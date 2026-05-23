@@ -44,6 +44,7 @@ ADRs record significant architectural decisions: what was decided, why, what alt
 | [ADR-0123](ADR-0123-symbolic-logic-shape-remap.md) | `symbolic_logic` Lane-Shape Remap (ADR-0109 Amendment) | Accepted (2026-05-22) |
 | [ADR-0124](ADR-0124-systems-software-audit-passed-promotion.md) | `systems_software` Audit-Passed Promotion | Accepted (2026-05-22) |
 | [ADR-0123a](ADR-0123a-inference-shape-synonym.md) | `all_three_pass_rate` Synonym in `inference_shape` (ADR-0109 Amendment) | Accepted (2026-05-22) |
+| [ADR-0119.2](ADR-0119.2-gsm8k-eval-corpus-dev-public.md) | GSM8K Eval Corpus Dev/Public Splits | Accepted (2026-05-22) |
 | [ADR-0119](ADR-0119-gsm8k-eval-lane-roadmap.md) | GSM8K Eval Lane Roadmap (Phase 5; decomposes into 5.1..5.8) | Proposed (2026-05-22) |
 
 ---
@@ -85,6 +86,7 @@ The ADR-0091..0114 slate is fully accepted (0091..0113) plus one proposed-roadma
 - `systems_software` Audit-Passed Promotion (third successful) — ADR-0124
 - `all_three_pass_rate` Synonym in `inference_shape` (ADR-0109 Amendment) — ADR-0123a
 - GSM8K Eval Lane Roadmap (Phase 5; decomposes into 5.1..5.8; proposed) — ADR-0119
+- GSM8K Eval Corpus Dev/Public Splits (200 original cases verified; dev/public splits populated; holdout sealed) — ADR-0119.2
 
 ADR-0080 has also landed: Contemplation Loop Phase 1 adds a read-only frontier-compare miner that emits `SPECULATIVE` findings only.
 
