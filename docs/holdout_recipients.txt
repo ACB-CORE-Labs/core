@@ -1,0 +1,4 @@
+# Public keys for encrypted eval holdouts (ADR-0105 / ADR-0119.1).
+# Add recipients as new lanes are sealed.
+
+fabrication_control: age1rzajyarfvq73vws6prehpauyfxpa4uywf3k4kw4cvtas6hfmkcmq4ha2e3
