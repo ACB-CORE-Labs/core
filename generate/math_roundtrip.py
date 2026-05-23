@@ -264,7 +264,17 @@ _WORD_RE: Final[re.Pattern[str]] = re.compile(r"\b\w+\b", flags=re.UNICODE)
 
 def _tokens(text: str) -> frozenset[str]:
     """Lowercased word-token set for word-boundary containment checks."""
-    return frozenset(m.group(0).lower() for m in _WORD_RE.finditer(text))
+    words = set(m.group(0).lower() for m in _WORD_RE.finditer(text))
+    # Support currency symbol to unit grounding mapping
+    if "$" in text:
+        words.update({"dollar", "dollars"})
+    if "¢" in text:
+        words.update({"cent", "cents"})
+    if "€" in text:
+        words.update({"euro", "euros"})
+    if "£" in text:
+        words.update({"pound", "pounds", "sterling"})
+    return frozenset(words)
 
 
 def _token_in(needle: str, haystack_tokens: frozenset[str]) -> bool:
@@ -272,7 +282,7 @@ def _token_in(needle: str, haystack_tokens: frozenset[str]) -> bool:
     return needle.lower() in haystack_tokens
 
 
-def _value_grounds(value_token: str, haystack_tokens: frozenset[str]) -> bool:
+def _value_grounds(value_token: str, haystack_tokens: frozenset[str], source_span: str = "") -> bool:
     """A numeric value grounds if its surface token appears, OR if the token
     is a digit-string and any equivalent word-form appears, OR if it's a
     word-form and the digit appears.
@@ -283,9 +293,18 @@ def _value_grounds(value_token: str, haystack_tokens: frozenset[str]) -> bool:
     hard-coded WORD_NUMBERS remains as a fast path and as a fallback if
     the pack is unavailable; the pack adds, never replaces.
     """
-    if _token_in(value_token, haystack_tokens):
+    clean_token = re.sub(r"^[\$\u20ac\u00a3\u00a5\u20b1\u00a2]", "", value_token).strip()
+    if not clean_token:
+        return False
+
+    # Check substring containment in source_span first (handles 18.00 and 3/4)
+    if source_span:
+        if clean_token.lower() in source_span.lower() or value_token.lower() in source_span.lower():
+            return True
+
+    if _token_in(clean_token, haystack_tokens) or _token_in(value_token, haystack_tokens):
         return True
-    lowered = value_token.lower()
+    lowered = clean_token.lower()
 
     # Pack-backed cardinal lookup (ADR-0128). Soft import — if the pack
     # isn't mounted (e.g., in legacy test environments) we silently fall
@@ -295,7 +314,7 @@ def _value_grounds(value_token: str, haystack_tokens: frozenset[str]) -> bool:
         entry = lookup_cardinal(lowered)
         if entry is not None:
             digit = str(entry.numeric_value)
-            if digit in haystack_tokens:
+            if digit in haystack_tokens or (source_span and digit in source_span):
                 return True
     except Exception:
         pass  # fall through to hard-coded path
@@ -303,15 +322,15 @@ def _value_grounds(value_token: str, haystack_tokens: frozenset[str]) -> bool:
     # word -> digit equivalent (legacy)
     if lowered in WORD_NUMBERS:
         digit = str(WORD_NUMBERS[lowered])
-        if digit in haystack_tokens:
+        if digit in haystack_tokens or (source_span and digit in source_span):
             return True
     # digit -> any word with that integer value (legacy)
     try:
-        n = int(value_token)
+        n = int(float(clean_token))
     except ValueError:
         return False
     for word, w_val in WORD_NUMBERS.items():
-        if w_val == n and word in haystack_tokens:
+        if w_val == n and (word in haystack_tokens or (source_span and word in source_span.lower())):
             return True
     # Pack-backed reverse lookup: digit -> cardinal surface in haystack
     try:
@@ -359,18 +378,30 @@ def roundtrip_admissible(c: CandidateOperation) -> bool:
     #    the anchor itself as the value token and pass via step (2).
     if c.op.kind == "compare_multiplicative" and c.matched_value_token == c.matched_verb:
         pass  # anchor already grounded by verb check
-    elif not _value_grounds(c.matched_value_token, haystack):
+    elif not _value_grounds(c.matched_value_token, haystack, c.source_span):
         return False
 
     # 5. Unit must ground when non-empty. Empty unit token is only valid
     #    for comparison operands without explicit unit phrasing
     #    ("Sam has twice as many as Tom").
     if c.matched_unit_token:
-        if not _token_in(c.matched_unit_token, haystack):
-            return False
+        # Check if the matched unit token is in haystack, or contains parts that are in haystack.
+        # For multi-word unit tokens like "an hour", we split and verify.
+        parts = re.split(r'[- ]', c.matched_unit_token)
+        for part in parts:
+            part = part.strip()
+            if part and not _token_in(part, haystack):
+                # Also allow currency symbol match if the part is "dollar" or "dollars" and "$" is present
+                if part in ("dollar", "dollars") and "$" in c.source_span:
+                    continue
+                if part in ("cent", "cents") and "¢" in c.source_span:
+                    continue
+                return False
     else:
         if not isinstance(c.op.operand, Comparison):
-            return False  # only comparisons may have empty unit token
+            has_currency = any(sym in c.source_span for sym in ("$", "€", "£", "¥", "₱", "¢"))
+            if not has_currency:
+                return False  # only comparisons or currency operations may have empty unit token
 
     # 6. Transfer target must appear.
     if c.matched_target_token is not None:

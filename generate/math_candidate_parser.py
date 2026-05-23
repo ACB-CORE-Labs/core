@@ -92,14 +92,54 @@ class CandidateInitial:
 # math_parser._INITIAL_HAS_RE's ADR-0123a entity slot.
 _ENTITY: Final[str] = r"(?:[A-Z]\w+|[Tt]he\s+\w+)"
 
-# Numeric value: digit run OR word-form integer (one..twelve initially;
-# WORD_NUMBERS table is wider but we cap the regex at the common range
-# for syntactic parsing and let the filter handle ground-truth value
-# equivalence).
-_WORD_NUM_OPTIONS: Final[str] = "|".join(
-    re.escape(w) for w in sorted(WORD_NUMBERS.keys(), key=len, reverse=True)
+# Dynamic value-slot regex builder
+def _build_value_regex() -> str:
+    fallback_words = "|".join(
+        re.escape(w) for w in sorted(WORD_NUMBERS.keys(), key=len, reverse=True)
+    )
+    fallback = rf"(?:\d+|{fallback_words})"
+    try:
+        from language_packs.numerics_loader import _index
+        idx = _index()
+        cardinal_words = sorted(idx.cardinals.keys(), key=len, reverse=True)
+        ordinal_words = sorted(idx.ordinals.keys(), key=len, reverse=True)
+        fraction_words = sorted(idx.fractions.keys(), key=len, reverse=True)
+        multiplier_words = sorted(idx.multipliers.keys(), key=len, reverse=True)
+        quantifier_words = sorted(idx.quantifiers.keys(), key=len, reverse=True)
+        
+        denom_plurals = ["halves", "thirds", "quarters", "fourths", "fifths", "sixths", "sevenths", "eighths", "ninths", "tenths", "sixteenths"]
+        
+        all_singles = set(cardinal_words + ordinal_words + fraction_words + multiplier_words + quantifier_words)
+        
+        cards_pat = "|".join(re.escape(w) for w in cardinal_words)
+        ords_pat = "|".join(re.escape(w) for w in ordinal_words)
+        fracs_pat = "|".join(re.escape(w) for w in fraction_words)
+        denoms_pat = "|".join(re.escape(w) for w in (ordinal_words + fraction_words + denom_plurals))
+        
+        comp_card_pat = rf"(?:{cards_pat})(?:[- ](?:and[- ])?(?:{cards_pat})){{0,4}}"
+        comp_frac_pat = rf"(?:{comp_card_pat})[- ](?:{denoms_pat})"
+        
+        patterns = [
+            r"\d+\s+\d+/\d+",
+            r"\d+/\d+",
+            r"[\$\u20ac\u00a3\u00a5\u20b1\u00a2]?\d+(?:\.\d+)?",
+            comp_frac_pat,
+            comp_card_pat,
+        ]
+        for w in all_singles:
+            patterns.append(re.escape(w))
+        return "|".join(patterns)
+    except Exception:
+        return fallback
+
+_VALUE: Final[str] = _build_value_regex()
+
+_UNIT: Final[str] = (
+    r"(?:(?!to\b)(?!more\b)(?!on\b)(?!from\b)(?!at\b)(?!in\b)"
+    r"(?!onto\b)(?!into\b)(?!under\b)(?!over\b)(?!of\b)(?!for\b)(?!with\b)"
+    r"(?!today\b)(?!now\b)(?!yesterday\b)(?!initially\b)\w+)+"
+    r"(?:[- ]\w+)*"
 )
-_VALUE: Final[str] = rf"(?:\d+|{_WORD_NUM_OPTIONS})"
 
 # Verb alternation built from the permissive registry. Pre-compute one
 # pattern per kind so we can attribute matched verbs to candidates.
@@ -118,30 +158,13 @@ _TRANSFER_VERBS_PATTERN: Final[str] = _verbs_pattern(TRANSFER_VERBS)
 # Initial-possession extractor
 # ---------------------------------------------------------------------------
 
-_INITIAL_HAS_RE: Final[re.Pattern[str]] = re.compile(
-    rf"^(?P<entity>{_ENTITY})\s+"
-    rf"(?P<anchor>has|have)\s+"
-    rf"(?P<value>{_VALUE})\s+"
-    r"(?P<unit>\w+)"
-    # ADR-0127 substance qualifier: "Sam has 5 feet of rope" — the
-    # 'of <NP>' tail is grammatically real but arithmetically inert.
-    r"(?:\s+of\s+.+)?"
-    r"\s*\.?$"
-)
-
-# ADR-0127 "There are/were N <unit> [in <place>]" initial-possession shape.
-# The implicit-subject anchor 'there are' is the only initial-possession
-# shape that doesn't name an entity in the source; we treat the
-# place phrase (when present) as the entity and treat the unit as the
-# count noun. When no place is named, the entity is the unit itself
-# (collective). Indefinite quantifiers ('some', 'few', 'many') in the
-# value slot are refused upstream by extract_initial_candidates via
-# the quantifier-driven refusal helper (ADR-0128.4).
 _INITIAL_THERE_ARE_RE: Final[re.Pattern[str]] = re.compile(
-    r"^There\s+(?P<anchor>are|were|is|was)\s+"
+    r"^(?:.*\b)?there\s+(?P<anchor>are|were|is|was)\s+"
     rf"(?P<value>{_VALUE})\s+"
-    r"(?P<unit>\w+)"
-    r"(?:\s+in\s+(?P<place>[A-Za-z]\w*(?:\s+\w+)?))?"
+    rf"(?P<unit>{_UNIT})"
+    r"(?:\s+of\s+(?P<substance>[a-zA-Z]\w*(?:\s+\w+)*))?"
+    r"(?:\s+(?:in|on|at|inside|outside)\s+(?P<place>[A-Za-z]\w*(?:\s+\w+)?))?"
+    r"(?:\s+[a-zA-Z]+)*"
     r"\s*\.?$",
     flags=re.IGNORECASE,
 )
@@ -156,10 +179,115 @@ def _normalize_entity(raw: str) -> str:
     return e
 
 
-def _resolve_value(value_token: str) -> int:
-    if value_token.isdigit():
-        return int(value_token)
-    return WORD_NUMBERS[value_token.lower()]
+def _resolve_currency_and_value(value_token: str) -> tuple[float | int, str | None]:
+    token = value_token.strip()
+    currency_unit = None
+    
+    # Check for leading currency symbols ($, €, £, ¥, ₱, ¢)
+    if token and not token[0].isalnum() and token[0] != '-':
+        symbol = token[0]
+        try:
+            from language_packs.loader import lookup_unit
+            entry = lookup_unit(symbol)
+            if entry is not None:
+                currency_unit = entry.plural.lower()
+                token = token[1:].strip()
+        except Exception:
+            if symbol == '$':
+                currency_unit = "dollars"
+                token = token[1:].strip()
+                
+    if currency_unit is not None:
+        if '.' in token:
+            decimals = token.split('.')[-1].strip('%')
+            if len(decimals) > 2:
+                raise ValueError("Too many decimal places for currency")
+
+    # Parse numeric value
+    try:
+        from language_packs.loader import match_number_format
+        parsed = match_number_format(token)
+        if parsed is not None:
+            val = parsed.value
+            from fractions import Fraction
+            if isinstance(val, Fraction):
+                val = float(val)
+            return val, currency_unit
+    except Exception:
+        pass
+        
+    try:
+        from language_packs.loader import lookup_fraction
+        frac_entry = lookup_fraction(token)
+        if frac_entry is not None:
+            return float(frac_entry.decimal_value), currency_unit
+    except Exception:
+        pass
+        
+    try:
+        from language_packs.loader import parse_compound_cardinal
+        comp_val = parse_compound_cardinal(token)
+        if comp_val is not None:
+            return comp_val, currency_unit
+    except Exception:
+        pass
+        
+    if token.isdigit():
+        return int(token), currency_unit
+    try:
+        return float(token), currency_unit
+    except ValueError:
+        pass
+        
+    lowered = token.lower()
+    if lowered in WORD_NUMBERS:
+        return WORD_NUMBERS[lowered], currency_unit
+        
+    raise ValueError(f"Could not resolve numeric value from token: {value_token!r}")
+
+
+def _resolve_value(value_token: str) -> float | int:
+    val, _ = _resolve_currency_and_value(value_token)
+    return val
+
+
+def _compose_unit(currency_unit: str | None, matched_unit: str | None) -> str | None:
+    if not currency_unit:
+        if not matched_unit:
+            return None
+        return _canonicalize_unit(matched_unit)
+    if not matched_unit:
+        return currency_unit
+        
+    mu_low = matched_unit.lower().strip()
+    for conn in ("an ", "a ", "per ", "each "):
+        if mu_low.startswith(conn):
+            mu_low = mu_low[len(conn):].strip()
+            
+    if mu_low == "each" or mu_low == "":
+        rate_denom = "item"
+    else:
+        rate_denom = _canonicalize_unit(mu_low)
+        try:
+            from language_packs.loader import lookup_unit
+            entry = lookup_unit(rate_denom)
+            if entry is not None:
+                rate_denom = entry.singular
+            elif rate_denom.endswith("s"):
+                rate_denom = rate_denom[:-1]
+        except Exception:
+            if rate_denom.endswith("s"):
+                rate_denom = rate_denom[:-1]
+                
+    composed_raw = f"{currency_unit} per {rate_denom}"
+    try:
+        from language_packs.loader import lookup_unit
+        entry = lookup_unit(composed_raw)
+        if entry is not None:
+            return entry.plural.lower()
+    except Exception:
+        pass
+    return _canonicalize_unit(composed_raw)
 
 
 def _is_indefinite_quantifier(token: str) -> bool:
@@ -184,69 +312,123 @@ def extract_initial_candidates(sentence: str) -> list[CandidateInitial]:
     """Return all admissible initial-possession candidates for ``sentence``.
 
     Recognized shapes:
-      1. "<Entity> has <N> <unit> [of <substance>]" — canonical.
+      1. "<Entity> has <N> <unit> [of <substance>]" — canonical, supporting compound possessions.
       2. "There are <N> <unit> [in <place>]" — implicit-subject shape.
-
-    ADR-0128.4: if the value slot resolves to an indefinite quantifier
-    (`some kids`, `many things`), no candidate is emitted (refusal
-    preserves wrong == 0).
     """
     s = sentence.strip().rstrip(".")
     out: list[CandidateInitial] = []
 
-    m = _INITIAL_HAS_RE.match(s)
-    if m is not None:
-        value_raw = m.group("value")
-        if not _is_indefinite_quantifier(value_raw):
-            entity = _normalize_entity(m.group("entity"))
-            value = _resolve_value(value_raw)
-            unit_raw = m.group("unit")
-            unit = _canonicalize_unit(unit_raw)
-            out.append(
-                CandidateInitial(
-                    initial=InitialPossession(
-                        entity=entity,
-                        quantity=Quantity(value=value, unit=unit),
-                    ),
-                    source_span=sentence,
-                    matched_anchor=m.group("anchor"),
-                    matched_value_token=value_raw,
-                    matched_unit_token=unit_raw,
-                    matched_entity_token=m.group("entity"),
-                )
-            )
+    m_has = re.match(
+        rf"^(?P<entity>{_ENTITY})\s+(?P<anchor>has|have)\s+(?P<quantities>.+)$",
+        s,
+        flags=re.IGNORECASE
+    )
+    if m_has is not None:
+        entity_raw = m_has.group("entity")
+        entity = _normalize_entity(entity_raw)
+        anchor = m_has.group("anchor")
+        quantities_str = m_has.group("quantities")
+        
+        parts = re.split(r",?\s+and\s+", quantities_str, flags=re.IGNORECASE)
+        
+        q_re = re.compile(
+            rf"^(?P<value>{_VALUE})(?:\s+(?P<unit>{_UNIT}))?(?:\s+of\s+(?P<substance>.+))?$",
+            flags=re.IGNORECASE
+        )
+        
+        all_matched = True
+        candidates_temp = []
+        for p in parts:
+            p = p.strip()
+            mq = q_re.match(p)
+            if mq is not None:
+                value_raw = mq.group("value")
+                if not _is_indefinite_quantifier(value_raw):
+                    try:
+                        val, curr_unit = _resolve_currency_and_value(value_raw)
+                        unit_raw = mq.group("unit")
+                        substance = mq.group("substance")
+                        if unit_raw is not None and substance is not None:
+                            unit_raw = f"{unit_raw} of {substance}"
+                        elif unit_raw is None and substance is not None:
+                            unit_raw = substance.strip()
+                            lowered_sub = unit_raw.lower()
+                            for art in ("a ", "an ", "the "):
+                                if lowered_sub.startswith(art):
+                                    unit_raw = unit_raw[len(art):].strip()
+                                    break
+                        unit = _compose_unit(curr_unit, unit_raw)
+                        if unit is None:
+                            all_matched = False
+                            break
+                        candidates_temp.append(
+                            CandidateInitial(
+                                initial=InitialPossession(
+                                    entity=entity,
+                                    quantity=Quantity(value=val, unit=unit),
+                                ),
+                                source_span=sentence,
+                                matched_anchor=anchor,
+                                matched_value_token=value_raw,
+                                matched_unit_token=unit_raw if unit_raw is not None else "",
+                                matched_entity_token=entity_raw,
+                            )
+                        )
+                    except ValueError:
+                        all_matched = False
+                        break
+                else:
+                    all_matched = False
+                    break
+            else:
+                all_matched = False
+                break
+                
+        if all_matched and candidates_temp:
+            out.extend(candidates_temp)
+            return out
 
     m2 = _INITIAL_THERE_ARE_RE.match(s)
     if m2 is not None:
         value_raw = m2.group("value")
         if not _is_indefinite_quantifier(value_raw):
-            unit_raw = m2.group("unit")
-            unit = _canonicalize_unit(unit_raw)
-            value = _resolve_value(value_raw)
-            place = m2.group("place")
-            # When a 'in <place>' phrase is present, treat the place as
-            # the implicit entity. Otherwise use the unit's plural as
-            # the collective entity name (deterministic, derivable from
-            # the source: "There are 5 kids" -> entity='kids').
-            if place is not None:
-                entity = _normalize_entity(place)
-                entity_token = place
-            else:
-                entity = unit
-                entity_token = unit_raw
-            out.append(
-                CandidateInitial(
-                    initial=InitialPossession(
-                        entity=entity,
-                        quantity=Quantity(value=value, unit=unit),
-                    ),
-                    source_span=sentence,
-                    matched_anchor=m2.group("anchor"),
-                    matched_value_token=value_raw,
-                    matched_unit_token=unit_raw,
-                    matched_entity_token=entity_token,
-                )
-            )
+            try:
+                val, curr_unit = _resolve_currency_and_value(value_raw)
+                unit_raw = m2.group("unit")
+                substance = m2.group("substance") if "substance" in m2.groupdict() else None
+                if unit_raw is not None and substance is not None:
+                    unit_raw = f"{unit_raw} of {substance}"
+                elif unit_raw is None and substance is not None:
+                    unit_raw = substance.strip()
+                    lowered_sub = unit_raw.lower()
+                    for art in ("a ", "an ", "the "):
+                        if lowered_sub.startswith(art):
+                            unit_raw = unit_raw[len(art):].strip()
+                            break
+                unit = _compose_unit(curr_unit, unit_raw)
+                if unit is not None:
+                    place = m2.group("place")
+                    if place is not None:
+                        entity = _normalize_entity(place)
+                        entity_token = place
+                    else:
+                        entity = unit
+                        entity_token = unit_raw
+                    out.append(
+                        CandidateInitial(
+                            initial=InitialPossession(
+                                entity=entity,
+                                quantity=Quantity(value=val, unit=unit),
+                            ),
+                            source_span=sentence,
+                            matched_anchor=m2.group("anchor"),
+                            matched_value_token=value_raw,
+                            matched_unit_token=unit_raw if unit_raw is not None else "",
+                            matched_entity_token=entity_token,
+                        )
+                    )
+            except ValueError:
+                pass
 
     return out
 
@@ -254,14 +436,6 @@ def extract_initial_candidates(sentence: str) -> list[CandidateInitial]:
 # ---------------------------------------------------------------------------
 # Operation candidate extractor
 # ---------------------------------------------------------------------------
-
-# Per-kind operation patterns. Each captures: subject, verb, value, unit,
-# optional target. The verb alternation is the kind's permissive verb table.
-#
-# Note: optional unit (?P<unit>) is allowed because some constructions
-# rely on inherited unit ("Sam doubles his savings"); however for P2's
-# scope we only emit candidates when the unit token is explicit. Inherited-
-# unit candidates require per-branch state and are added in P3.
 
 def _op_pattern(verbs_pattern: str, *, requires_target: bool) -> re.Pattern[str]:
     """Build the per-kind operation regex.
@@ -284,10 +458,6 @@ def _op_pattern(verbs_pattern: str, *, requires_target: bool) -> re.Pattern[str]
         )
     else:
         target_part = ""
-        # 'to' is included in the discardable preposition set.
-        # 'of' is included for ADR-0127 substance qualifiers ("1000 feet
-        # of cable") — the substance NP is grammatically real but
-        # arithmetically inert; the unit slot carries the dimensional info.
         trailing_prep = (
             r"(?:\s+(?:on|from|at|in|onto|into|under|over|to|of|for|with)\s+.+)?"
         )
@@ -297,8 +467,7 @@ def _op_pattern(verbs_pattern: str, *, requires_target: bool) -> re.Pattern[str]
         rf"(?P<verb>{verbs_pattern})"
         rf"\s+(?P<value>{_VALUE})"
         r"(?:\s+more)?"
-        r"(?:\s+(?!to\b)(?!more\b)(?!on\b)(?!from\b)(?!at\b)(?!in\b)"
-        r"(?P<unit>\w+))?"
+        r"(?:\s+(?P<unit>" + _UNIT + r"))?"
         rf"{target_part}"
         rf"{trailing_prep}"
         r"\s*\.?$",
@@ -339,12 +508,19 @@ def _build_op_candidate(
     the match lacks a required slot (e.g. unit token absent — P2 does
     not emit unit-inherited candidates)."""
     unit_raw = m.group("unit")
-    if unit_raw is None:
+    value_raw = m.group("value")
+    
+    try:
+        value, curr_unit = _resolve_currency_and_value(value_raw)
+    except ValueError:
         return None
-    unit = _canonicalize_unit(unit_raw)
+        
+    unit = _compose_unit(curr_unit, unit_raw)
+    if unit is None:
+        return None
+        
     subject = _normalize_entity(m.group("subject"))
     verb = m.group("verb").lower()
-    value = _resolve_value(m.group("value"))
     target_raw = m.group("target") if "target" in m.groupdict() else None
     target = target_raw if target_raw is not None else None
 
@@ -365,8 +541,8 @@ def _build_op_candidate(
         op=Operation(**op_kwargs),  # type: ignore[arg-type]
         source_span=source,
         matched_verb=verb,
-        matched_value_token=m.group("value"),
-        matched_unit_token=unit_raw,
+        matched_value_token=value_raw,
+        matched_unit_token=unit_raw if unit_raw is not None else "",
         matched_actor_token=m.group("subject"),
         matched_target_token=target,
     )
@@ -398,14 +574,14 @@ class CandidateUnknown:
 
 
 _Q_ENTITY_RE: Final[re.Pattern[str]] = re.compile(
-    r"^How\s+many\s+(?P<unit>\w+)\s+(?:does|do)\s+"
+    r"^How\s+many\s+(?P<unit>" + _UNIT + r")\s+(?:does|do)\s+"
     rf"(?P<entity>{_ENTITY})"
     r"\s+have(?:\s+(?:left|now|in\s+total|altogether)){0,2}\s*\??$",
     flags=re.IGNORECASE,
 )
 
 _Q_TOTAL_RE: Final[re.Pattern[str]] = re.compile(
-    r"^How\s+many\s+(?P<unit>\w+)\s+do\s+they\s+have"
+    r"^How\s+many\s+(?P<unit>" + _UNIT + r")\s+do\s+they\s+have"
     r"(?:\s+(?:in\s+total|altogether|left|now)){0,2}\s*\??$",
     flags=re.IGNORECASE,
 )

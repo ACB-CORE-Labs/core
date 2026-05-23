@@ -1,0 +1,172 @@
+{
+  "adr": "0131.G.3",
+  "exit_criterion": {
+    "correct_min_rate": 1.0,
+    "passed": true,
+    "wrong_max": 0
+  },
+  "metrics": {
+    "cases_total": 25,
+    "correct": 25,
+    "correct_rate": 1.0,
+    "overall_pass": true,
+    "refused": 0,
+    "wrong": 0,
+    "wrong_count_is_zero": true
+  },
+  "per_case": [
+    {
+      "case_id": "g3-001",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-002",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-003",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-004",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-005",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-006",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-007",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-008",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-009",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-010",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-011",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-012",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-013",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-014",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-015",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-016",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-017",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-018",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-019",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-020",
+      "outcome": "correct",
+      "reason": "",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-021",
+      "outcome": "refused",
+      "reason": "candidate_graph: no admissible candidate for statement: 'Tina has $18.0000.'",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-022",
+      "outcome": "refused",
+      "reason": "candidate_graph: no admissible candidate for statement: 'Jan has 1/0 of a cake.'",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-023",
+      "outcome": "refused",
+      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has one-hour-old baby.'",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-024",
+      "outcome": "refused",
+      "reason": "candidate_graph: no admissible candidate for statement: 'Marc has 10% of a pizza.'",
+      "verdict": "correct"
+    },
+    {
+      "case_id": "g3-025",
+      "outcome": "refused",
+      "reason": "candidate_graph: no admissible candidate for statement: 'Dan has 1e3 pizzas.'",
+      "verdict": "correct"
+    }
+  ],
+  "sample_count": 25,
+  "sample_path": "evals/math_capability_axes/G3_numerics/v1/cases.jsonl",
+  "schema_version": 1
+}

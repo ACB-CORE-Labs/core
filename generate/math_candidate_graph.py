@@ -158,10 +158,18 @@ def _initial_admissible(ic: CandidateInitial) -> bool:
     haystack = _tokens(ic.source_span)
     if not _token_in(ic.matched_anchor, haystack):
         return False
-    if not _value_grounds(ic.matched_value_token, haystack):
+    if not _value_grounds(ic.matched_value_token, haystack, ic.source_span):
         return False
-    if not _token_in(ic.matched_unit_token, haystack):
-        return False
+    if ic.matched_unit_token:
+        parts = re.split(r'[- ]', ic.matched_unit_token)
+        for part in parts:
+            part = part.strip()
+            if part and not _token_in(part, haystack):
+                if part in ("dollar", "dollars") and "$" in ic.source_span:
+                    continue
+                if part in ("cent", "cents") and "¢" in ic.source_span:
+                    continue
+                return False
     # Entity token: for multi-word entities ("the boys"), all words
     # must ground. Split + check each.
     for tok in ic.matched_entity_token.split():
@@ -174,7 +182,13 @@ def _question_admissible(qc: CandidateUnknown) -> bool:
     """Light structural ground-check for question candidates."""
     from generate.math_roundtrip import _tokens, _token_in
     haystack = _tokens(qc.source_span)
-    if not _token_in(qc.matched_unit_token, haystack):
+    if qc.matched_unit_token:
+        parts = re.split(r'[- ]', qc.matched_unit_token)
+        for part in parts:
+            part = part.strip()
+            if part and not _token_in(part, haystack):
+                return False
+    else:
         return False
     if qc.matched_entity_token is not None:
         for tok in qc.matched_entity_token.split():

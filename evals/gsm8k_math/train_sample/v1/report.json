@@ -13,7 +13,7 @@
   "per_case": [
     {
       "case_id": "gsm8k-train-sample-v1-0001",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Tina makes $18.00 an hour.'",
+      "reason": "candidate_graph: no admissible candidate for statement: 'If she works more than 8 hours per shift, she is eligible for overtime, which is paid by your hourly wage + 1/2 your hourly wage.'",
       "verdict": "refused"
     },
     {
@@ -123,7 +123,7 @@
     },
     {
       "case_id": "gsm8k-train-sample-v1-0023",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Nicole collected 400 Pokemon cards.'",
+      "reason": "candidate_graph: no admissible candidate for statement: \"Cindy collected twice as many, and Rex collected half of Nicole and Cindy's combined total.\"",
       "verdict": "refused"
     },
     {
@@ -143,7 +143,7 @@
     },
     {
       "case_id": "gsm8k-train-sample-v1-0027",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Malcolm has 240 followers on Instagram and 500 followers on Facebook.'",
+      "reason": "candidate_graph: no admissible candidate for statement: 'The number of followers he has on Twitter is half the number of followers he has on Instagram and Facebook combined.'",
       "verdict": "refused"
     },
     {
@@ -218,7 +218,7 @@
     },
     {
       "case_id": "gsm8k-train-sample-v1-0042",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Ella has 4 bags with 20 apples in each bag and six bags with 25 apples in each bag.'",
+      "reason": "candidate_graph: no admissible candidate for question: 'If Ella sells 200 apples, how many apples does Ella has left?'",
       "verdict": "refused"
     },
     {
