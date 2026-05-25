@@ -13,7 +13,7 @@
 | L2 — Vault | ✅ Audited | **PARTIAL** | None — flagged learning as wiring debt | 2026-05-24 |
 | L3 — Language packs | ✅ Audited | **PARTIAL** | None — flagged readback as wiring debt | 2026-05-24 |
 | L4 — Recognition | ⏳ Pending | — | — | — |
-| L5 — Cognition pipeline | ⏳ Pending | — | — | — |
+| L5 — Cognition pipeline | ✅ Audited | **PARTIAL** | Unused render.py deleted; explain.py and provenance.py flagged as wiring debt | 2026-05-24 |
 | L6 — Chat runtime + surface composition | ⏳ Pending | — | — | — |
 | L7 — Teaching loop | ⏳ Pending | — | — | — |
 | L8 — Inter-session memory + contemplation | ⏳ Pending | — | — | — |
@@ -659,3 +659,141 @@ Exposed symbols of the layer are cleanly resolved through static imports across 
 - **L5 (Cognition pipeline) / L6 (Chat runtime) auditor:** Note that the local readback rules within packs are dormant. Downstream surface generation utilizes `generate/realizer.py`. If future work activates local pack-driven readback or requires energy-modulated surface forms, the readback rules must be wired in and updated to differentiate E0 (vault recall) vs E2 (transiently warmed) states.
 
 ---
+
+## L5 — Cognition pipeline
+
+**Audit date:** 2026-05-24
+**Auditor:** primary agent (Gemini)
+**Verdict:** **PARTIAL**
+
+### Scope-hypothesis correction (per audit step 0)
+
+The scope's layering table cited `core/cognition/` and `generate/` concerns: intent classification, ratification, articulation target, deterministic realizer, proposition graph planner, cold-start grounding sources.
+Reality: The concerns are split across two packages: `core/cognition/` (orchestration, result, trace, surface resolution) and `generate/` (intent classification, intent ratification, realizer, templates, graph planner, admissibility, attention, salience, and stream walk).
+Hypothesis correction: The scope ranges omitted key admissibility and classification ADRs. `generate/render.py` was found to be completely dormant (0 imports, 0 references, 0 tests) and was deleted during cleanup. `core/cognition/explain.py` and `core/cognition/provenance.py` were found to have 0 live production callers, and are flagged as dormant/partially live wiring debt.
+
+### ADRs in scope for L5
+
+Triaged from keyword grep against `docs/decisions/`:
+
+| ADR | Title | Status | Belongs at L5? |
+|---|---|---|---|
+| ADR-0022 | Forward Semantic Control | Accepted | Yes — defines `classify_intent` and `ratify_intent` at the pipeline step |
+| ADR-0023 | Forward Semantic Control Proof | Accepted | Yes — verifies ratification execution and rates |
+| ADR-0024 | Inner-Loop Per-Rotor Admissibility | Accepted | Yes — defines admissibility regions, `check_transition`, and `InnerLoopExhaustion` |
+| ADR-0025 | Rotor / Frame Admissibility | Accepted | Yes — checks rotor effect on current field against frame cone |
+| ADR-0026 | Ranked Admissibility with Margin | Accepted | Yes — defines margin-mode checks and `check_margin` |
+| ADR-0046 | PropositionGraph as Forward Admissibility Constraint | Accepted | Yes — proposition graph planning constraints |
+| ADR-0047 | Wire the Forward Graph Constraint into the Chat Hot Path | Accepted | Yes — wires forward constraint |
+| ADR-0048 | Pack-Grounded Surface for Cold-Start DEFINITION / RECALL | Accepted | Yes — realizes surface from semantic packs |
+| ADR-0049 | Intent Classifier Head-Noun Subject Extraction | Accepted | Yes — head-noun extraction for intent grounding |
+| ADR-0050 | Pack-Grounded Surface for Cold-Start COMPARISON | Accepted | Yes — realizes comparison intents |
+| ADR-0051 | Trust-Boundary Hardening Pass | Accepted | Yes — input validations and safety gates |
+| ADR-0052 | Teaching-Grounded Surface for Cold-Start CAUSE / VERIFICATION | Accepted | Yes — realizes teaching-grounded intents |
+| ADR-0053 | Cognition Lane Closure | Accepted | Yes — completions of pipeline, grounding validations |
+| ADR-0058 | `forward_graph_constraint`: Engaged but Inert | Accepted | Yes — engaged but inert forward constraints |
+| ADR-0061 | PROCEDURE Intent Routes to Pack-Grounded Surface | Accepted | Yes — procedural intent realization |
+| ADR-0069 | Realizer register parameter | Accepted | Yes — realizer parameters/knobs |
+| ADR-0075 | Realizer slot-type guard | Accepted | Yes — slot-type guard checks |
+| ADR-0142 | Epistemic State Taxonomy | Accepted | Boundary-only — epistemic states relevant at L5/L9 boundary |
+| ADR-0143 | Recognition Spike | Accepted | Boundary-only — recognition anti-unification output is L5 input |
+| ADR-0144 | PropositionGraph: Epistemic Carrier & Gate | Accepted | Yes — PropositionGraph carrier integration with L4/L9 |
+
+### Modules in scope for L5
+
+| Module | Lines | Live-import sites (outside own package, outside `tests/`) | Test-import sites | Status |
+|---|---|---|---|---|
+| `core/cognition/pipeline.py` | 727 | 3 (`chat/runtime.py`, `core/cli.py`, `evals/run_cognition_eval.py`) | 12 | Live |
+| `core/cognition/result.py` | 139 | 3 | 11 | Live |
+| `core/cognition/trace.py` | 153 | 3 | 11 | Live |
+| `core/cognition/surface_resolution.py` | 108 | 1 (`pipeline.py`) | 3 | Live |
+| `core/cognition/explain.py` | 124 | 0 (only re-exported in `core/cognition/__init__.py`) | 1 | Dormant (No live production callers) |
+| `core/cognition/provenance.py` | 101 | 0 (imported in `evals/provenance/runner.py`) | 1 | Partially Live (Evals/verification only) |
+| `generate/intent.py` | 662 | 8 | 15 | Live |
+| `generate/intent_bridge.py` | 350 | 2 (`chat/runtime.py`, `core/cognition/pipeline.py`) | 2 | Live |
+| `generate/intent_ratifier.py` | 241 | 1 (`core/cognition/pipeline.py`) | 4 | Live |
+| `generate/realizer.py` | 272 | 3 | 7 | Live |
+| `generate/templates.py` | 232 | 3 | 3 | Live |
+| `generate/graph_planner.py` | 300 | 4 | 7 | Live |
+| `generate/admissibility.py` | 668 | 2 (`generate/stream.py`, `generate/graph_constraint.py`) | 11 | Live |
+| `generate/graph_constraint.py` | 159 | 2 (`chat/runtime.py`, `generate/stream.py`) | 2 | Live |
+| `generate/stream.py` | 648 | 2 (`chat/runtime.py`, `core/cognition/pipeline.py`) | 12 | Live |
+| `generate/proposition.py` | 417 | 1 (`chat/runtime.py`) | 2 | Live |
+| `generate/salience.py` | 62 | 2 | 2 | Live |
+| `generate/attention.py` | 43 | 1 (`generate/stream.py`) | 1 | Live |
+| `generate/bridge_trace.py` | 292 | 1 (`generate/intent_bridge.py`) | 1 | Live |
+| `generate/render.py` | 107 | 0 | 0 | DELETED (Unused/dormant) |
+
+### Caller-trace evidence
+
+Key exposed symbols of the layer are resolved across multiple live boundaries:
+- `core/cognition/pipeline.py::CognitiveTurnPipeline` is imported in `chat/runtime.py` to drive the main execution of the turn pipeline.
+- `generate/intent_ratifier.py::ratify_intent` is imported in `core/cognition/pipeline.py` to geometric-gate syntactic regex classifications.
+- `generate/stream.py::generate` is called in `chat/runtime.py` to stream tokens over the versor manifold.
+- `generate/realizer.py::realize_semantic` is called by `core/cognition/pipeline.py` and `chat/pack_grounding.py` to render deterministic semantic prose.
+- `generate/graph_planner.py::PropositionGraph` acts as the carrier of planned rhetorical steps, flowing from the planner to the realizer.
+
+The live chat/cognition trace is:
+`ChatRuntime.chat()` → `CognitiveTurnPipeline.run()` → `_ratify_intent()` → `graph_from_intent()` → `plan_articulation()` → `realize_semantic()` → `ChatRuntime.chat()` (delegated walk) → `generate()` → `resolve_surface()` → `compute_trace_hash()`.
+
+### Exercising suite lane
+
+- `core test --suite cognition` — Exercises the primary L5 lane (intent classification, ratification, planning, realization, and traces):
+  **Verification:** 120 passed, 1 skipped.
+- `core test --suite smoke` — Exercises the turn loop pipeline:
+  **Verification:** 67 passed.
+- `core eval cognition` — Exercises end-to-end cognition lane gates (byte-identity checks):
+  **Verification:** 13/13 passed (100% intent_accuracy, 100% surface_groundedness, 100% versor_closure_rate).
+- `verify_lane_shas.py` — Exercises all 7 pinned lanes:
+  **Verification:** 7/7 match pinned digests.
+
+### Cross-layer contract check
+
+**Pass 1 — mechanical (consumer-exists per exposed symbol):**
+
+| Exposed symbol | Consumer evidence |
+|---|---|
+| `CognitiveTurnPipeline` | `chat/runtime.py:27`, `core/cli.py:446`, `evals/run_cognition_eval.py` |
+| `CognitiveTurnResult` | `chat/runtime.py:27`, `core/cognition/pipeline.py`, tests |
+| `resolve_surface` | `core/cognition/pipeline.py:23` |
+| `compute_trace_hash` | `core/cognition/pipeline.py:24` |
+| `classify_compound_intent` | `core/cognition/pipeline.py:25` |
+| `ratify_intent` | `core/cognition/pipeline.py:30` |
+| `graph_from_intent` | `core/cognition/pipeline.py:34` |
+| `realize_semantic` | `core/cognition/pipeline.py:41` |
+| `generate` | `chat/runtime.py:88` |
+| `build_graph_constraint` | `chat/runtime.py:88` |
+
+**Pass 2 — semantic (four load-bearing invariants checked):**
+1. **Surface contract**: Verified `resolve_surface` in `core/cognition/surface_resolution.py` preserves the user-facing `surface` vs raw walk telemetry `walk_surface` split. User-facing `surface` is the semantic realizer output (or response surface) folded with deterministic walk/compose suffixes, whereas the raw manifold-walk telemetry goes strictly to `walk_surface`.
+2. **Normalization site discipline**: Verified `generate/stream.py` is a FORBIDDEN normalization site except for the documented final-state closure exception: `_close_final_state(state)` calls `unitize_versor(state.F)` when sealing the final state at the boundary of generation. Verified no other normalization has crept into `generate/`. `generate/admissibility.py` explicitly documents that its composed blades are *not* unitized to honor the CLAUDE.md discipline.
+3. **refusal_reason materialization**: Confirmed that `refusal_reason` wiring exists: `ChatResponse` has the field, `CognitiveTurnPipeline` reads it, and it is folded into `trace_hash` when non-empty. However, there is a wiring gap: `InnerLoopExhaustion` exceptions raised during generation are NOT caught in `ChatRuntime.chat()`, so `refusal_reason` is never populated with the machine-readable `RefusalReason` taxonomy (it propagates as an unhandled exception).
+4. **RatificationOutcome PASSTHROUGH split**: Confirmed that specific PASSTHROUGH sub-values (`PASSTHROUGH_NO_FIELD`, `PASSTHROUGH_NO_VOCAB`, `PASSTHROUGH_NO_VERSOR`) collapse to `"passthrough"` before trace hashing in `core/cognition/pipeline.py`. This preserves the byte-identity of existing trace hashes exactly.
+
+### Semantic mismatches flagged for human review
+
+- **InnerLoopExhaustion propagation gap**: The inner-loop refusal exceptions are never caught in the main `ChatRuntime.chat()` execution, meaning refusal reasons for admissibility exhaustions are never materialized to `ChatResponse.refusal_reason` during live execution. They cause unhandled exceptions unless caught externally.
+- **explain.py and provenance.py dormancy**: `core/cognition/explain.py` has 0 live production callers outside its test file. `core/cognition/provenance.py` is only used in tests and `evals/provenance/runner.py`. Review whether these should be fully wired to the live REPL or are reserved for offline audit tools.
+
+### Closure criteria scorecard
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| 1. Design artifact | ✅ | ADR-0022..0026, ADR-0046..0053, ADR-0142..0144 |
+| 2. Code artifact | ✅ | `core/cognition/`, `generate/` (after deleting unused `render.py`) |
+| 3. Live caller | ⚠️ PARTIAL | Orchestration pipeline, ratification, realizer, and stream walk are live; but `explain.py` is dormant and inner-loop refusal exceptions are unwired |
+| 4. Exercised by suite lane | ✅ | `cognition` and `smoke` suites pass; `eval cognition` achieves 100% metrics |
+| 5. Cross-layer consistency | ⚠️ PARTIAL | Hashing and surface contracts are consistent, but `refusal_reason` propagation from the generator is unwired |
+
+**Verdict:** **PARTIAL** (due to dormant explain.py, partial provenance.py, and unwired InnerLoopExhaustion exception materialization).
+
+### Cleanup performed
+
+- **`generate/render.py` deleted**: Completely unused module (0 production imports, 0 test imports, 0 references) removed; tests and SHAs confirmed intact post-deletion.
+
+### Findings / notes for downstream layers
+
+- **L6 (Chat runtime) auditor**: Wire the `InnerLoopExhaustion` exceptions caught in the turn loop to populate the `ChatResponse.refusal_reason` field so that machine-readable refusal codes are correctly folded into the trace hash and result objects.
+- **L7 (Teaching loop) / L8 (Memory) auditor**: Note that `core/cognition/explain.py` is dormant. If teaching correction review requires a natural-language explanation of what was decoded on a turn, wire `explain()` to the REPL or CLI proposal commands.
+- **L9 (Epistemic state) auditor**: ADR-0142 implementation debt #3 (wiring refusal reason) is the primary blocker for full epistemic refusal tracking. Fix this boundary in L6/L9.
+
