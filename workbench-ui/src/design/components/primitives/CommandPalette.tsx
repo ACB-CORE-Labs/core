@@ -2,13 +2,14 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Search } from "lucide-react";
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate, useInRouterContext } from "react-router-dom";
+import { useEvalLanes } from "../../../api/queries";
 
 interface Command {
   name: string;
   path: string;
 }
 
-const COMMANDS: Command[] = [
+const STATIC_COMMANDS: Command[] = [
   { name: "Open Chat", path: "/chat" },
   { name: "Open Proposals", path: "/proposals" },
   { name: "Open Evals", path: "/evals" },
@@ -20,6 +21,15 @@ function RouterCommandPalette(props: {
   onOpenChange: (open: boolean) => void;
 }) {
   const navigate = useNavigate();
+  const { data: lanes } = useEvalLanes();
+
+  const dynamicCommands = (lanes || []).map((lane) => ({
+    name: `Open eval lane ${lane.lane}`,
+    path: `/evals?lane=${lane.lane}`,
+  }));
+
+  const commands = [...STATIC_COMMANDS, ...dynamicCommands];
+
   const activate = useCallback(
     (cmd: Command) => {
       navigate(cmd.path);
@@ -27,7 +37,7 @@ function RouterCommandPalette(props: {
     },
     [navigate, props],
   );
-  return <CommandPaletteContent {...props} onActivate={activate} />;
+  return <CommandPaletteContent {...props} commands={commands} onActivate={activate} />;
 }
 
 // Fallback for design-system preview (no Router).
@@ -41,23 +51,25 @@ function FallbackCommandPalette(props: {
     },
     [props],
   );
-  return <CommandPaletteContent {...props} onActivate={activate} />;
+  return <CommandPaletteContent {...props} commands={STATIC_COMMANDS} onActivate={activate} />;
 }
 
 function CommandPaletteContent({
   open,
   onOpenChange,
   onActivate,
+  commands,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onActivate: (cmd: Command) => void;
+  commands: Command[];
 }) {
   const [query, setQuery] = useState("");
   const [focusedIndex, setFocusedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const filtered = COMMANDS.filter((cmd) =>
+  const filtered = commands.filter((cmd) =>
     cmd.name.toLowerCase().includes(query.toLowerCase()),
   );
 
