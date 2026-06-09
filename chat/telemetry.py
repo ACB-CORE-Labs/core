@@ -75,6 +75,7 @@ def serialize_turn_event(
         "normative_detail": str(
             getattr(event, "normative_detail", "") or ""
         ),
+        "disposition": str(getattr(event, "disposition", "") or ""),
         "refusal_emitted": bool(getattr(verdicts, "refusal_emitted", False)),
         "hedge_injected": bool(getattr(verdicts, "hedge_injected", False)),
         "versor_condition": float(getattr(event, "versor_condition", 0.0)),

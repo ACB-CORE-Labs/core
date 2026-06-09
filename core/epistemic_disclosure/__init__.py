@@ -54,6 +54,10 @@ from core.epistemic_disclosure.verified_contract import (
     disclosure_for_verification,
     evaluate_verification,
 )
+from core.epistemic_disclosure.ask_serving import (
+    ServedAskDecision,
+    evaluate_served_ask,
+)
 
 __all__ = [
     "DEFAULT_DISCLOSURE_CLAIM",
@@ -64,6 +68,7 @@ __all__ = [
     "LimitationKind",
     "MissingSlot",
     "ResolutionAction",
+    "ServedAskDecision",
     "ServedDisposition",
     "VerificationObligation",
     "VerificationProof",
@@ -74,5 +79,6 @@ __all__ = [
     "choose_served_disposition",
     "disclosure_for_verification",
     "evaluate_verification",
+    "evaluate_served_ask",
     "terminal_for_action",
 ]

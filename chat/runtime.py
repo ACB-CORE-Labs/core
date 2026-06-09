@@ -525,6 +525,7 @@ class ChatResponse:
     recalled_words: tuple[str, ...] = ()
     # ADR-0024 Phase 2 — stable refusal reason value
     refusal_reason: str = ""
+    disposition: str = ""
     dispatch_trace: DispatchTrace | None = None
 
 
@@ -1992,6 +1993,7 @@ class ChatRuntime:
         discovery_intent_tag: Any = None,
         discovery_intent_subject: str | None = None,
         dispatch_trace: DispatchTrace | None = None,
+        contemplation_result: Any | None = None,
     ) -> ChatResponse:
         zero = np.zeros(field_state.F.shape, dtype=np.float32)
         prop = Proposition(
@@ -2062,58 +2064,85 @@ class ChatRuntime:
             grounding_source = grounded_source_tag
         else:
             grounding_source = "none"
-        # ADR-0075 (C1) — realizer slot-type guard.  Runs BEFORE
-        # register decoration so a register cannot accidentally heal
-        # an illegal articulation by wrapping it, and BEFORE anchor-
-        # lens annotation extraction so the lens annotation never
-        # rides on a guard-rejected surface.  On rejection, route to
-        # the bounded disclosure string and force grounding_source to
-        # ``"none"`` (an illegal surface is ungrounded by construction).
-        # The pre-guard candidate is preserved on walk_surface_stub
-        # for telemetry — the stub path normally leaves walk_surface as
-        # _UNKNOWN_DOMAIN_SURFACE, so this swap strictly increases
-        # observability under rejection.
-        guard_verdict_stub = _check_realizer_surface(
-            response_surface,
-            pos_lookup=self._pos_by_surface.get,
-        )
-        realizer_guard_status_stub = guard_verdict_stub.status
-        realizer_guard_rule_stub = guard_verdict_stub.rule_id
-        walk_surface_stub = _UNKNOWN_DOMAIN_SURFACE
-        if guard_verdict_stub.status == "rejected":
-            walk_surface_stub = response_surface
-            response_surface = _GUARD_DISCLOSURE_SURFACE
-            grounding_source = "none"
-        # ADR-0077 (R6) — register layering separation.
-        # ``register_canonical_surface`` is the composer / guard output
-        # BEFORE any register transformation; the pipeline hashes this
-        # field for ``trace_hash`` so substantive register transforms
-        # cannot move the truth-path identity.  Substantive transforms
-        # are skipped on ``grounding_source == "none"`` so the bounded
-        # disclosure stays sacrosanct under terse_v1's drop_articles.
-        register_canonical_surface_stub = response_surface
-        if grounding_source == "none":
-            substantive_surface_stub = response_surface
+
+        # Determine the fallback disposition
+        if refusal_emitted:
+            fallback_disposition = "refuse"
+        elif grounding_source in ("vault", "pack", "teaching"):
+            fallback_disposition = "commit"
         else:
-            substantive_surface_stub = apply_substantive_register(
+            fallback_disposition = "refuse"
+
+        from core.epistemic_disclosure.ask_serving import evaluate_served_ask
+        decision = evaluate_served_ask(
+            self.config,
+            contemplation_result,
+            response_surface,
+        )
+
+        if decision.served and not refusal_emitted:
+            response_surface = decision.surface
+            stub_disposition = decision.disposition.value
+            stub_epistemic_state = "undetermined"
+            pre_decoration_surface_stub = response_surface
+            register_canonical_surface_stub = response_surface
+            class _DummyDecoration:
+                surface = decision.surface
+                variant_id = ""
+            decoration_stub = _DummyDecoration()
+            realizer_guard_status_stub = "ok"
+            realizer_guard_rule_stub = ""
+            walk_surface_stub = _UNKNOWN_DOMAIN_SURFACE
+        else:
+            if contemplation_result is not None:
+                stub_disposition = decision.disposition.value
+            else:
+                stub_disposition = fallback_disposition
+            stub_epistemic_state = epistemic_state_for_grounding_source(grounding_source).value
+
+            # ADR-0075 (C1) — realizer slot-type guard.  Runs BEFORE
+            # register decoration so a register cannot accidentally heal
+            # an illegal articulation by wrapping it, and BEFORE anchor-
+            # lens annotation extraction so the lens annotation never
+            # rides on a guard-rejected surface.  On rejection, route to
+            # the bounded disclosure string and force grounding_source to
+            # ``"none"`` (an illegal surface is ungrounded by construction).
+            # The pre-guard candidate is preserved on walk_surface_stub
+            # for telemetry — the stub path normally leaves walk_surface as
+            # _UNKNOWN_DOMAIN_SURFACE, so this swap strictly increases
+            # observability under rejection.
+            guard_verdict_stub = _check_realizer_surface(
+                response_surface,
+                pos_lookup=self._pos_by_surface.get,
+            )
+            realizer_guard_status_stub = guard_verdict_stub.status
+            realizer_guard_rule_stub = guard_verdict_stub.rule_id
+            walk_surface_stub = _UNKNOWN_DOMAIN_SURFACE
+            if guard_verdict_stub.status == "rejected":
+                walk_surface_stub = response_surface
+                response_surface = _GUARD_DISCLOSURE_SURFACE
+                grounding_source = "none"
+            # ADR-0077 (R6) — register layering separation.
+            register_canonical_surface_stub = response_surface
+            if grounding_source == "none":
+                substantive_surface_stub = response_surface
+            else:
+                substantive_surface_stub = apply_substantive_register(
+                    response_surface,
+                    self.register_pack,
+                    semantic_domains=pack_semantic_domains,
+                )
+            response_surface = substantive_surface_stub
+            # ADR-0071 (R4) — apply seeded discourse-marker decoration to
+            # the realized surface AFTER substantive register transforms.
+            pre_decoration_surface_stub = response_surface
+            decoration_stub = decorate_surface(
                 response_surface,
                 self.register_pack,
-                semantic_domains=pack_semantic_domains,
+                turn_idx=len(self.turn_log),
             )
-        response_surface = substantive_surface_stub
-        # ADR-0071 (R4) — apply seeded discourse-marker decoration to
-        # the realized surface AFTER substantive register transforms.
-        # Empty marker buckets ⇒ no-op (UNREGISTERED / neutral / terse).
-        # Preserve the pre-decoration string so the pipeline can hash
-        # the truth-path surface and trace_hash stays invariant under
-        # register (ADR-0069 invariant C, strengthened by ADR-0077).
-        pre_decoration_surface_stub = response_surface
-        decoration_stub = decorate_surface(
-            response_surface,
-            self.register_pack,
-            turn_idx=len(self.turn_log),
-        )
-        response_surface = decoration_stub.surface
+            response_surface = decoration_stub.surface
+
         register_id_stub = (
             "" if self.register_pack.is_unregistered()
             else self.register_pack.register_id
@@ -2143,7 +2172,6 @@ class ChatRuntime:
             refusal_emitted=refusal_emitted,
             hedge_injected=False,
         )
-        stub_epistemic_state = epistemic_state_for_grounding_source(grounding_source).value
         stub_normative_clearance = clearance_from_verdicts(verdicts_bundle).value
         stub_normative_detail = normative_detail_from_verdicts(verdicts_bundle)
         if tokens:
@@ -2178,6 +2206,7 @@ class ChatRuntime:
                 epistemic_state=stub_epistemic_state,
                 normative_clearance=stub_normative_clearance,
                 normative_detail=stub_normative_detail,
+                disposition=stub_disposition,
             )
             self.turn_log.append(stub_event)
             self._emit_turn_event(stub_event)
@@ -2237,10 +2266,16 @@ class ChatRuntime:
             normative_clearance=stub_normative_clearance,
             normative_detail=stub_normative_detail,
             refusal_reason=refusal_surface if refusal_emitted else "",
+            disposition=stub_disposition,
             dispatch_trace=dispatch_trace,
         )
 
-    def chat(self, text: str, max_tokens: int | None = None) -> ChatResponse:
+    def chat(
+        self,
+        text: str,
+        max_tokens: int | None = None,
+        contemplation_result: Any | None = None,
+    ) -> ChatResponse:
         self._last_input_text = text  # W-013: store for explain_last_turn()
         tokens = self._tokenize(text)
         filtered = self._apply_oov_policy(tokens)
@@ -2359,6 +2394,7 @@ class ChatRuntime:
                     discovery_intent_tag=discovery_intent_tag,
                     discovery_intent_subject=discovery_intent_subject,
                     dispatch_trace=dispatch_trace,
+                    contemplation_result=contemplation_result,
                 )
             )
 
@@ -2451,6 +2487,7 @@ class ChatRuntime:
             stub = self._stub_response(
                 field_state,
                 tokens=tuple(filtered),
+                contemplation_result=contemplation_result,
             )
             return self._checkpointed_response(
                 replace(stub, refusal_reason=_exhaustion_exc.reason.value)
@@ -2748,6 +2785,14 @@ class ChatRuntime:
             committed_surface=response_surface,
             decode_state=main_epistemic,
         )
+        from core.epistemic_disclosure.disposition import choose_served_disposition
+        from core.epistemic_disclosure.disclosure_claim import DisclosureClaim
+        main_disposition = choose_served_disposition(
+            epistemic_state=main_epistemic,
+            limitation=None,
+            disclosure_claim=DisclosureClaim.NONE,
+        ).value
+
         main_normative_clearance = clearance_from_verdicts(verdicts_bundle).value
         main_normative_detail = normative_detail_from_verdicts(verdicts_bundle)
         turn_event = TurnEvent(
@@ -2782,6 +2827,7 @@ class ChatRuntime:
             normative_clearance=main_normative_clearance,
             normative_detail=main_normative_detail,
             reach_level=main_reach_level,
+            disposition=main_disposition,
         )
         self.turn_log.append(turn_event)
         self._emit_turn_event(turn_event)
@@ -2834,6 +2880,7 @@ class ChatRuntime:
                 normative_detail=main_normative_detail,
                 reach_level=main_reach_level,
                 refusal_reason=refusal_surface if refusal_emitted else "",
+                disposition=main_disposition,
                 dispatch_trace=dispatch_trace,
             )
         )

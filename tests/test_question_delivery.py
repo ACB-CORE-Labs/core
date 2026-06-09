@@ -217,20 +217,25 @@ def test_question_path_is_content_addressed(tmp_path: Path) -> None:
 
 
 def test_delivery_is_off_serving() -> None:
-    """The delivery module must not import the sealed GSM8K serving substrate."""
-    path = Path(__file__).resolve().parents[1] / "core" / "epistemic_questions" / "delivery.py"
-    forbidden = ("generate.derivation", "core.reliability_gate")
-    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module:
-            assert not any(
-                node.module == f or node.module.startswith(f + ".") for f in forbidden
-            ), f"delivery.py imports forbidden serving module {node.module}"
-        elif isinstance(node, ast.Import):
-            for alias in node.names:
+    """The delivery and ask_serving modules must not import the sealed GSM8K serving substrate or chat."""
+    repo_root = Path(__file__).resolve().parents[1]
+    paths = [
+        repo_root / "core" / "epistemic_questions" / "delivery.py",
+        repo_root / "core" / "epistemic_disclosure" / "ask_serving.py",
+    ]
+    forbidden = ("generate.derivation", "core.reliability_gate", "chat")
+    for path in paths:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module:
                 assert not any(
-                    alias.name == f or alias.name.startswith(f + ".") for f in forbidden
-                ), f"delivery.py imports forbidden serving module {alias.name}"
+                    node.module == f or node.module.startswith(f + ".") for f in forbidden
+                ), f"{path.name} imports forbidden serving module {node.module}"
+            elif isinstance(node, ast.Import):
+                for alias in node.names:
+                    assert not any(
+                        alias.name == f or alias.name.startswith(f + ".") for f in forbidden
+                    ), f"{path.name} imports forbidden serving module {alias.name}"
 
 
 def test_question_needed_is_a_distinct_terminal() -> None:

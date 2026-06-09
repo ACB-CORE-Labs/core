@@ -84,19 +84,17 @@ def test_pass_manager_does_not_import_or_call_render_question_directly() -> None
     )
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     for node in ast.walk(tree):
-        # Ensure render_question is not imported, and chat/chat.runtime is not imported
-        if isinstance(node, ast.ImportFrom):
+        # Ensure render_question is not imported, and chat/chat.runtime/chat.* is not imported
+        if isinstance(node, ast.ImportFrom) and node.module:
             assert node.module != "core.epistemic_questions.render"
-            assert node.module != "chat.runtime"
-            assert node.module != "chat"
+            assert node.module != "chat" and not node.module.startswith("chat.")
             if node.names:
                 for alias in node.names:
                     assert alias.name != "render_question"
         elif isinstance(node, ast.Import):
             for alias in node.names:
                 assert alias.name != "core.epistemic_questions.render"
-                assert alias.name != "chat.runtime"
-                assert alias.name != "chat"
+                assert alias.name != "chat" and not alias.name.startswith("chat.")
 
         # Ensure render_question is not called directly
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):

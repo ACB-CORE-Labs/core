@@ -298,6 +298,7 @@ class TurnEvent:
     epistemic_state: str = "undetermined"
     normative_clearance: str = "unassessable"
     normative_detail: str = ""
+    disposition: str = ""
     # ADR-0206 — Response Governance Bridge reach level for this turn.
     # The reach policy that governed the response surface, as a
     # lower_snake_case string mirroring core.response_governance.ReachLevel
