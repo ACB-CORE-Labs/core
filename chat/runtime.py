@@ -2081,6 +2081,29 @@ class ChatRuntime:
         )
 
         if decision.served and not refusal_emitted:
+            # ASK serving bypass justification (Q1-C/Q1-D authoritative renderer):
+            #
+            # The Q1-C/Q1-D delivery path is the *authoritative grounded renderer*
+            # for served questions: the question prose was already validated, slot-
+            # checked, and written to disk by the ASK pass_manager before this point.
+            # Applying register decoration or the realizer slot-type guard here would
+            # risk mutating pre-rendered question prose that must reach the user
+            # exactly as grounded — register suffixes, discourse markers, and guard-
+            # replacement strings are semantically wrong in an intake-request context.
+            #
+            # Safety contract:
+            #   - evaluate_served_ask validates the full Q1-D contract (status,
+            #     requires_review, served=False, answer_binding=None, slot_name) before
+            #     setting decision.served = True.
+            #   - The text consumed here is question_text.strip() from the artifact,
+            #     not constructed in runtime.
+            #   - realizer_guard_status_stub = "ok" is set manually because the pre-
+            #     rendered question surface is Q1-C-grounded and does not require the
+            #     slot-type guard's structural check (which is designed for realizer
+            #     output, not pre-rendered intake prose).
+            #   - tests/test_ask_serving_integration.py::
+            #     test_served_ask_surface_is_consumed_exactly_from_artifact asserts
+            #     that the served surface equals artifact text without any mutation.
             response_surface = decision.surface
             stub_disposition = decision.disposition.value
             stub_epistemic_state = "undetermined"
