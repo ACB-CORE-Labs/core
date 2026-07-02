@@ -121,6 +121,39 @@ fn cga_inner(
     cga_inner_raw(x_slice, y_slice).map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+/// Embed a Euclidean point [x, y, z] into the CGA null cone.
+#[pyfunction]
+fn embed_point(
+    py: Python<'_>,
+    p: numpy::PyReadonlyArray1<'_, f32>,
+) -> PyResult<PyObject> {
+    let p_slice = read_f32_xyz(&p)?;
+    let result = crate::cga::embed_point_raw(p_slice);
+    f32_array_to_numpy(py, &result)
+}
+
+/// Re-project a multivector onto the null cone by Euclidean read-back + re-embed.
+#[pyfunction]
+fn null_project(
+    py: Python<'_>,
+    x: numpy::PyReadonlyArray1<'_, f32>,
+) -> PyResult<PyObject> {
+    let x_slice = read_f32_cl41_mv(&x)?;
+    let result = crate::cga::null_project_raw(x_slice);
+    f32_array_to_numpy(py, &result)
+}
+
+/// Check whether a multivector lies on the null cone.
+#[pyfunction]
+fn is_null(
+    x: numpy::PyReadonlyArray1<'_, f32>,
+    tol: f32,
+) -> PyResult<bool> {
+    let x_slice = read_f32_cl41_mv(&x)?;
+    crate::cga::is_null_raw(x_slice, tol)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
 /// Parallel top-k vault recall by CGA inner product (zero-copy).
 ///
 /// Per ADR-0020 follow-on (task #35): accepts a 2D numpy
@@ -298,6 +331,25 @@ fn read_f64_cl41_mv<'a>(arr: &'a numpy::PyReadonlyArray1<'a, f64>) -> PyResult<&
     })
 }
 
+fn read_f32_xyz<'a>(arr: &'a numpy::PyReadonlyArray1<'a, f32>) -> PyResult<&'a [f32; 3]> {
+    let len = arr.len()?;
+    if len != 3 {
+        return Err(PyValueError::new_err(format!(
+            "expected contiguous float32 array of length 3, got length {}",
+            len
+        )));
+    }
+    let slice = arr.as_slice().map_err(|e| {
+        PyValueError::new_err(format!(
+            "input must be C-contiguous float32 (3,): {}",
+            e
+        ))
+    })?;
+    slice.try_into().map_err(|_| {
+        PyValueError::new_err("expected contiguous float32 array of length 3")
+    })
+}
+
 fn extract_f32_slice(obj: &pyo3::types::PyAny) -> PyResult<[f32; 32]> {
     let np = obj.py().import("numpy")?;
     let arr = np.call_method1("asarray", (obj, "float32"))?;
@@ -353,6 +405,9 @@ fn core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(versor_condition, m)?)?;
     m.add_function(wrap_pyfunction!(normalize_to_versor, m)?)?;
     m.add_function(wrap_pyfunction!(cga_inner, m)?)?;
+    m.add_function(wrap_pyfunction!(embed_point, m)?)?;
+    m.add_function(wrap_pyfunction!(null_project, m)?)?;
+    m.add_function(wrap_pyfunction!(is_null, m)?)?;
     m.add_function(wrap_pyfunction!(vault_recall, m)?)?;
     m.add_function(wrap_pyfunction!(unitize_expmap, m)?)?;
     m.add_function(wrap_pyfunction!(diffusion_step, m)?)?;
