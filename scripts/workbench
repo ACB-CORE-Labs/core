@@ -21,7 +21,7 @@ API_HOST="127.0.0.1"
 UI_HOST="127.0.0.1"
 MIN_NODE_MAJOR=20
 REQUIRED_PYTHON_VERSION="3.12.13"
-REQUIRED_PYTHON_BIN="/opt/homebrew/bin/python3.12"
+REQUIRED_PYTHON_SPEC="${REQUIRED_PYTHON_SPEC:-${REQUIRED_PYTHON_VERSION}}"
 
 # --- resolve repo root from this script's location (works from anywhere) -----
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -73,13 +73,13 @@ setup() {
   bold "Setup"
 
   if [ ! -x "$VENV/bin/python" ]; then
-    warn "creating Python venv (.venv) with uv (${REQUIRED_PYTHON_VERSION})"
-    uv venv --python "$REQUIRED_PYTHON_BIN" "$VENV" >/dev/null
+    warn "creating Python venv (.venv) with uv (${REQUIRED_PYTHON_SPEC})"
+    uv venv --python "$REQUIRED_PYTHON_SPEC" "$VENV" >/dev/null
   fi
   local py_version
   py_version="$("$VENV/bin/python" -c 'import platform; print(platform.python_version())')"
   [ "$py_version" = "$REQUIRED_PYTHON_VERSION" ] \
-    || die "venv Python is ${py_version}; need exactly ${REQUIRED_PYTHON_VERSION}. Recreate: rm -rf .venv && uv venv --python ${REQUIRED_PYTHON_BIN}"
+    || die "venv Python is ${py_version}; need exactly ${REQUIRED_PYTHON_VERSION}. Recreate: rm -rf .venv && uv venv --python ${REQUIRED_PYTHON_SPEC} .venv"
   ok "Python ${py_version}"
 
   if [ ! -x "$VENV/bin/core" ] || ! "$VENV/bin/python" -c 'import workbench.server' >/dev/null 2>&1; then
