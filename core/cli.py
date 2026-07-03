@@ -1818,6 +1818,14 @@ def cmd_demo(args: argparse.Namespace) -> int:
                     print(f"    {k}: {v}")
         return 0
 
+    if target == "proof-carrying-promotion":
+        from evals.proof_carrying_promotion_demo.run_tour import run_tour
+
+        result = run_tour(emit_json=args.json)
+        if args.json:
+            print(json.dumps(result, indent=2, sort_keys=True, default=str))
+        return 0 if result.get("all_passed", False) else 1
+
     if target == "audit-tour":
         from evals.audit_tour.run_tour import run_tour
 
@@ -2192,7 +2200,7 @@ def _run_demo_all(emit_json: bool) -> int:
     passed["learning_arc"] = bool(arc_report.get("learning_arc_closed", False))
 
     # 9. articulation
-    _section("9/9  articulation — discourse-planner spine")
+    _section("9/10  articulation — discourse-planner spine")
     from evals.articulation.run_demo import run_demo as run_art
 
     if not emit_json:
@@ -2201,6 +2209,15 @@ def _run_demo_all(emit_json: bool) -> int:
         art_report = run_art(emit_json=emit_json)
     consolidated["articulation"] = art_report
     passed["articulation"] = bool(art_report.get("all_claims_supported", False))
+
+    # 10. proof-carrying-promotion
+    _section("10/10  proof-carrying-promotion — deductive engine pipeline")
+    from evals.proof_carrying_promotion_demo.run_tour import run_tour as run_pcp
+
+    with _maybe_suppress():
+        pcp_report = run_pcp(emit_json=emit_json)
+    consolidated["proof_carrying_promotion"] = pcp_report
+    passed["proof_carrying_promotion"] = bool(pcp_report.get("all_passed", False))
 
     all_passed = all(passed.values())
     consolidated["passed"] = passed
@@ -3632,6 +3649,7 @@ def build_parser() -> argparse.ArgumentParser:
             "phase5",
             "phase6",
             "adr-0024-chain",
+            "proof-carrying-promotion",
             "audit-tour",
             "register-tour",
             "anchor-lens-tour",
@@ -3653,8 +3671,9 @@ def build_parser() -> argparse.ArgumentParser:
             "phase5: stratified 5-family mechanism-isolation.  "
             "phase6: 3-condition head-to-head vs in-system baseline.  "
             "adr-0024-chain: phase5 + phase6 combined evidence.  "
-            "all: run every demo (eight in total) and print a "
+            "all: run every demo and print a "
             "consolidated PASS/FAIL table; exits non-zero if any demo fails.  "
+            "proof-carrying-promotion: ADR-0218 PR D deterministic demo.  "
             "audit-tour: ADR-0027..0041 pack-layer architecture in four "
             "scenes (identity / safety / ethics / replay).  "
             "register-tour: ADR-0068..0072 presentation-axis seam — same "
