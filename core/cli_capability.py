@@ -1,4 +1,5 @@
 """Extracted commands."""
+
 from __future__ import annotations
 import argparse
 import json
@@ -90,7 +91,9 @@ def cmd_capability_perturbation(args: argparse.Namespace) -> int:
     lane_id = args.lane_id
     report = validate_perturbation_suite(lane_id=lane_id)
 
-    out_dir = _Path(__file__).resolve().parent.parent / "evals" / "obligation_5_perturbation"
+    out_dir = (
+        _Path(__file__).resolve().parent.parent / "evals" / "obligation_5_perturbation"
+    )
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{lane_id}.json"
     emit_perturbation_report(report, out_path)
@@ -129,9 +132,16 @@ def cmd_capability_math_expert_gate(args: argparse.Namespace) -> int:
     )
 
     verdict = evaluate_composite_math_gate()
-    out_path = Path(args.out) if args.out else (
-        Path(__file__).resolve().parent.parent
-        / "evals" / "math_expert_claims" / "v1" / "expert_claims_math_v1.json"
+    out_path = (
+        Path(args.out)
+        if args.out
+        else (
+            Path(__file__).resolve().parent.parent
+            / "evals"
+            / "math_expert_claims"
+            / "v1"
+            / "expert_claims_math_v1.json"
+        )
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     emit_expert_claims_artifact(verdict, out_path)
@@ -172,10 +182,15 @@ def cmd_capability_pack_provenance(args: argparse.Namespace) -> int:
     )
 
     report = validate_lane()
-    out_path = Path(args.out) if args.out else (
-        Path(__file__).resolve().parent.parent
-        / "evals" / "obligation_10_pack_provenance"
-        / f"{report.lane_id}.json"
+    out_path = (
+        Path(args.out)
+        if args.out
+        else (
+            Path(__file__).resolve().parent.parent
+            / "evals"
+            / "obligation_10_pack_provenance"
+            / f"{report.lane_id}.json"
+        )
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     emit_provenance_report(report, out_path)
@@ -214,10 +229,15 @@ def cmd_capability_adversarial(args: argparse.Namespace) -> int:
     )
 
     report = evaluate_adversarial()
-    out_path = Path(args.out) if args.out else (
-        Path(__file__).resolve().parent.parent
-        / "evals" / "obligation_8_adversarial"
-        / f"{report.lane_id}.json"
+    out_path = (
+        Path(args.out)
+        if args.out
+        else (
+            Path(__file__).resolve().parent.parent
+            / "evals"
+            / "obligation_8_adversarial"
+            / f"{report.lane_id}.json"
+        )
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     emit_adversarial_report(report, out_path)
@@ -226,8 +246,12 @@ def cmd_capability_adversarial(args: argparse.Namespace) -> int:
         print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
     else:
         print(f"lane:                {report.lane_id}")
-        print(f"cases_total:         {report.cases_total}  (min {report.cases_total >= 30 and 'OK' or 'FAIL'})")
-        print(f"families_total:      {report.families_total}  ({'OK' if report.families_total >= 8 else 'FAIL'})")
+        print(
+            f"cases_total:         {report.cases_total}  (min {report.cases_total >= 30 and 'OK' or 'FAIL'})"
+        )
+        print(
+            f"families_total:      {report.families_total}  ({'OK' if report.families_total >= 8 else 'FAIL'})"
+        )
         print(f"cases_refused:       {report.cases_refused}")
         print(f"cases_solved:        {report.cases_solved}")
         print(f"cases_wrong:         {report.cases_wrong} (gate: must be 0)")
@@ -235,7 +259,9 @@ def cmd_capability_adversarial(args: argparse.Namespace) -> int:
         print()
         print(f"  {'family':<22} {'total':<7} {'refused':<8} {'solved':<8} {'wrong'}")
         for f in report.families:
-            print(f"  {f.family:<22} {f.cases_total:<7} {f.cases_refused:<8} {f.cases_solved:<8} {f.cases_wrong}")
+            print(
+                f"  {f.family:<22} {f.cases_total:<7} {f.cases_refused:<8} {f.cases_solved:<8} {f.cases_wrong}"
+            )
         print(f"\nartifact: {out_path}")
         if report.refusal_reason:
             print(f"refusal_reason: {report.refusal_reason}")
@@ -255,10 +281,15 @@ def cmd_capability_depth_curve(args: argparse.Namespace) -> int:
     )
 
     report = evaluate_depth_curve()
-    out_path = Path(args.out) if args.out else (
-        Path(__file__).resolve().parent.parent
-        / "evals" / "obligation_6_depth_curve"
-        / f"{report.lane_id}.json"
+    out_path = (
+        Path(args.out)
+        if args.out
+        else (
+            Path(__file__).resolve().parent.parent
+            / "evals"
+            / "obligation_6_depth_curve"
+            / f"{report.lane_id}.json"
+        )
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     emit_depth_curve_report(report, out_path)
@@ -275,10 +306,18 @@ def cmd_capability_depth_curve(args: argparse.Namespace) -> int:
         print(f"coverage_sufficient:           {report.coverage_sufficient}")
         print(f"populated_buckets:             {list(report.populated_buckets)}")
         print()
-        print(f"  {'bucket':<12} {'total':<7} {'correct':<8} {'accuracy':<10} {'bound':<10} {'satisfied'}")
+        print(
+            f"  {'bucket':<12} {'total':<7} {'correct':<8} {'accuracy':<10} {'bound':<10} {'satisfied'}"
+        )
         for b in report.buckets:
-            bound = f"{b.bound_required:.4f}" if b.bound_required is not None else "(anchor)"
-            print(f"  {b.bucket:<12} {b.cases_total:<7} {b.cases_correct:<8} {b.accuracy:<10.4f} {bound:<10} {b.bound_satisfied}")
+            bound = (
+                f"{b.bound_required:.4f}"
+                if b.bound_required is not None
+                else "(anchor)"
+            )
+            print(
+                f"  {b.bucket:<12} {b.cases_total:<7} {b.cases_correct:<8} {b.accuracy:<10.4f} {bound:<10} {b.bound_satisfied}"
+            )
         print(f"\nartifact: {out_path}")
         if report.refusal_reason:
             print(f"refusal_reason: {report.refusal_reason}")
@@ -296,21 +335,29 @@ def cmd_capability_ood_ratio(args: argparse.Namespace) -> int:
         emit_ood_ratio_report,
         evaluate_ood_ratio,
     )
-    from evals.obligation_2_ood_ratio.v1.runner import build_report, load_cases, write_report as write_ood_report
+    from evals.obligation_2_ood_ratio.v1.runner import (
+        build_report,
+        load_cases,
+        write_report as write_ood_report,
+    )
 
     _repo_root = Path(__file__).resolve().parent.parent
 
     # Regenerate OOD report so auditor always reads fresh results.
-    ood_report_path = _repo_root / "evals" / "obligation_2_ood_ratio" / "v1" / "report.json"
+    ood_report_path = (
+        _repo_root / "evals" / "obligation_2_ood_ratio" / "v1" / "report.json"
+    )
     ood_cases = load_cases()
     ood_runner_report = build_report(ood_cases)
     write_ood_report(ood_runner_report, ood_report_path)
 
     report = evaluate_ood_ratio()
-    out_path = Path(args.out) if args.out else (
-        _repo_root
-        / "evals" / "obligation_2_ood_ratio"
-        / f"{report.lane_id}.json"
+    out_path = (
+        Path(args.out)
+        if args.out
+        else (
+            _repo_root / "evals" / "obligation_2_ood_ratio" / f"{report.lane_id}.json"
+        )
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     emit_ood_ratio_report(report, out_path)
@@ -319,8 +366,12 @@ def cmd_capability_ood_ratio(args: argparse.Namespace) -> int:
         print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
     else:
         print(f"lane:                        {report.lane_id}")
-        print(f"public_accuracy:             {report.public_accuracy:.4f}  ({report.public_cases_correct}/{report.public_cases_total})")
-        print(f"ood_accuracy:                {report.ood_accuracy:.4f}  ({report.ood_cases_correct}/{report.ood_cases_total})")
+        print(
+            f"public_accuracy:             {report.public_accuracy:.4f}  ({report.public_cases_correct}/{report.public_cases_total})"
+        )
+        print(
+            f"ood_accuracy:                {report.ood_accuracy:.4f}  ({report.ood_cases_correct}/{report.ood_cases_total})"
+        )
         print(f"ood_ratio:                   {report.ood_ratio:.4f}")
         print(f"obligation_2_ratio_satisfied:{report.obligation_2_ratio_satisfied}")
         print(f"obligation_2_wrong_zero:     {report.obligation_2_wrong_zero}")
@@ -344,9 +395,16 @@ def cmd_capability_math_expert_promote(args: argparse.Namespace) -> int:
     )
 
     verdict = evaluate_math_expert_promotion()
-    out_path = Path(args.out) if args.out else (
-        Path(__file__).resolve().parent.parent
-        / "evals" / "math_expert_claims" / "v1" / "expert_claims_math_v1_signed.json"
+    out_path = (
+        Path(args.out)
+        if args.out
+        else (
+            Path(__file__).resolve().parent.parent
+            / "evals"
+            / "math_expert_claims"
+            / "v1"
+            / "expert_claims_math_v1_signed.json"
+        )
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     emit_promotion_artifact(verdict, out_path)
@@ -375,5 +433,3 @@ def cmd_capability_math_expert_promote(args: argparse.Namespace) -> int:
             print("refusal_reason:")
             print(f"  {verdict.refusal_reason}")
     return 0 if verdict.promote_admitted else 1
-
-

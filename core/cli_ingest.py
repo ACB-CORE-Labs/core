@@ -1,4 +1,5 @@
 """Operator-facing CLI for the durable ``core_ingest`` boundary."""
+
 from __future__ import annotations
 
 import argparse
@@ -120,7 +121,9 @@ def _print_text(payload: dict[str, Any]) -> None:
     summary = payload["summary"]
     source = payload["source"]
     source_label = (
-        source["path"] if source["kind"] == "file" else f"inline:{source['sha256'][:12]}"
+        source["path"]
+        if source["kind"] == "file"
+        else f"inline:{source['sha256'][:12]}"
     )
     print("core_ingest durable compile")
     print(f"source         : {source_label}")
@@ -188,7 +191,9 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         ),
     )
     sub = ingest.add_subparsers(
-        dest="ingest_command", metavar="ingest-command", required=True,
+        dest="ingest_command",
+        metavar="ingest-command",
+        required=True,
     )
 
     compile_cmd = sub.add_parser(

@@ -126,36 +126,22 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_pulse_integration.py",
         "tests/test_graph_diffusion.py",
     ),
-    "formation": (
-        "tests/formation",
-    ),
-    "proof": (
-        "tests/test_proof_properties.py",
-    ),
+    "formation": ("tests/formation",),
+    "proof": ("tests/test_proof_properties.py",),
     # ADR-0024 chain suites (Phases 2-6). Each phase has its own contract
     # tests so reviewers can run them independently; ``adr-0024`` runs the full
     # chain end-to-end.
-    "refusal": (
-        "tests/test_refusal_contract.py",
-    ),
-    "margin": (
-        "tests/test_margin_admissibility.py",
-    ),
-    "rotor": (
-        "tests/test_rotor_admissibility.py",
-    ),
+    "refusal": ("tests/test_refusal_contract.py",),
+    "margin": ("tests/test_margin_admissibility.py",),
+    "rotor": ("tests/test_rotor_admissibility.py",),
     "inner-loop": (
         "tests/test_inner_loop_admissibility.py",
         "tests/test_inner_loop_phase2.py",
         "tests/test_inner_loop_phase3.py",
         "tests/test_inner_loop_phase4.py",
     ),
-    "phase5": (
-        "tests/test_phase5_corpus.py",
-    ),
-    "phase6": (
-        "tests/test_phase6_demo.py",
-    ),
+    "phase5": ("tests/test_phase5_corpus.py",),
+    "phase6": ("tests/test_phase6_demo.py",),
     "adr-0024": (
         "tests/test_refusal_contract.py",
         "tests/test_margin_admissibility.py",
@@ -170,12 +156,8 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
     # ADR-0126 P6 — measurement harness for the GSM8K candidate-graph parser
     # exit criterion. ``wrong == 0`` is a hard gate (Obligation #4: refuse
     # rather than confabulate).
-    "math": (
-        "tests/test_adr_0126_train_sample_runner.py",
-    ),
-    "deductive": (
-        "tests/test_deductive_logic_entail.py",
-    ),
+    "math": ("tests/test_adr_0126_train_sample_runner.py",),
+    "deductive": ("tests/test_deductive_logic_entail.py",),
     "full": ("tests/",),
 }
 

@@ -48,7 +48,9 @@ def cmd_doctor(args: argparse.Namespace, *, repo_root: Path = DEFAULT_REPO_ROOT)
         "INFO native core_rs "
         f"{'importable' if rust_importable else 'not importable'}: {rust_detail}"
     )
-    print("INFO native policy  optional; run `core doctor --rust --require-rust` to gate it")
+    print(
+        "INFO native policy  optional; run `core doctor --rust --require-rust` to gate it"
+    )
 
     if args.packs:
         try:
@@ -57,7 +59,9 @@ def cmd_doctor(args: argparse.Namespace, *, repo_root: Path = DEFAULT_REPO_ROOT)
             packs = list_packs()
         except Exception as exc:
             ok = False
-            print(f"FAIL packs          language_packs.list_packs: {exc.__class__.__name__}: {exc}")
+            print(
+                f"FAIL packs          language_packs.list_packs: {exc.__class__.__name__}: {exc}"
+            )
         else:
             print("packs:")
             if packs:

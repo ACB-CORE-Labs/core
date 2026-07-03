@@ -1,4 +1,5 @@
 """Extracted commands."""
+
 from __future__ import annotations
 import argparse
 import json
@@ -6,6 +7,7 @@ import sys
 
 from core.cli_teaching import _safe_pack_id
 from core.cli import _die, _REPO_ROOT, _run
+
 
 def cmd_pack_list(args: argparse.Namespace) -> int:
     """List compiled language packs."""
@@ -36,12 +38,19 @@ def cmd_pack_validate(args: argparse.Namespace) -> int:
 
     if getattr(args, "dry_run", False):
         if args.json:
-            print(json.dumps({
-                "pack_id": pack_id,
-                "validator_path": str(validator_path),
-                "would_execute": False,
-                "exists": True,
-            }, ensure_ascii=False, indent=2, sort_keys=True))
+            print(
+                json.dumps(
+                    {
+                        "pack_id": pack_id,
+                        "validator_path": str(validator_path),
+                        "would_execute": False,
+                        "exists": True,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
         else:
             print(f"dry-run: pack_id={pack_id}")
             print(f"validator: {validator_path}")
@@ -56,7 +65,9 @@ def cmd_pack_validate(args: argparse.Namespace) -> int:
 
     import importlib.util
 
-    spec = importlib.util.spec_from_file_location(f"{pack_id}_validators", validator_path)
+    spec = importlib.util.spec_from_file_location(
+        f"{pack_id}_validators", validator_path
+    )
     if spec is None or spec.loader is None:
         _die(f"cannot load source-pack validator: {validator_path}", code=1)
     module = importlib.util.module_from_spec(spec)
@@ -71,5 +82,3 @@ def cmd_pack_validate(args: argparse.Namespace) -> int:
             status = "PASS" if result["passed"] else "FAIL"
             print(f"{status} {name:<12} {result['reason']}")
     return 0 if report["active"] else 1
-
-

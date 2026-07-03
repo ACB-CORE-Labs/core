@@ -1,4 +1,5 @@
 """Command line interface for the CORE versor engine."""
+
 from __future__ import annotations
 
 import argparse
@@ -22,7 +23,7 @@ _CORE_RS_DIR = _REPO_ROOT / "core-rs"
 _CORE_RS_MANIFEST = _CORE_RS_DIR / "Cargo.toml"
 
 DESCRIPTION = "CORE versor engine command suite."
-EPILOG = "Examples:\n  core chat\n  core pulse \"What is truth?\"\n  core pulse --no-glove --json \"Compare knowledge and wisdom\"\n  core bench\n  core bench --suite all\n  core bench --suite all --json --report bench_all.json\n  core bench --suite determinism --runs 50\n  core bench --suite speedup --json\n  core trace \"word beginning truth\"\n  core trace --output-language grc --frame-pack grc --json \"logos\"\n  core rust status\n  core rust build\n  core oov covenant\n  core pack list\n  core pack verify en_minimal_v1\n  core teaching audit\n  core teaching audit --json\n  core teaching gaps --top 10\n  core teaching queue --threshold 3\n  core teaching hitl-queue list\n  core teaching hitl-queue list --state all --json\n  core teaching hitl-queue show <proposal_id>\n  core teaching propose <candidate-jsonl-path>\n  core teaching propose-from-exemplars teaching/admissibility_exemplars/rate_with_currency_v1.jsonl\n  core teaching propose-from-exemplars --all\n  core teaching proposals --state pending\n  core teaching review <proposal_id> --accept --review-date 2026-05-18\n  core teaching supersede cause_light_reveals_truth --subject light --intent cause --connective grounds --object truth --review-date 2026-05-18\n  core teaching supersessions\n  core teaching supersessions --json\n  core test --suite fast -q\n  core test --suite pulse -q\n  core test --suite proof -q\n  core test --suite cognition -q\n  core test -- tests/test_alignment_graph.py -q\n  core demo audit-tour\n  core demo register-tour\n  core demo anchor-lens-tour\n  core demo orthogonality-tour\n  core demo pack-measurements\n  core demo long-context-comparison\n  core demo anti-regression\n  core demo learning-loop\n  core demo learning-arc\n  core demo articulation\n  core demo conversation\n  core demo conversation --no-stream\n  core demo all\n  core demo adr-0024-chain\n  core eval --list\n  core eval cognition\n  core eval cognition --json --save\n  core eval cognition --split dev --version v1\n  core eval cognition --split holdout\n  core eval contemplation_quality\n  core eval contemplation_quality --json --save\n  core eval math-contemplation\n  core eval math-contemplation --audit evals/gsm8k_math/train_sample/v1/audit_brief_11.json\n  core eval math-contemplation --output teaching/math_proposals/proposals.jsonl\n  core workbench api\n  core workbench api --port 9000\n  core workbench api --host 0.0.0.0 --allow-nonlocal-bind"
+EPILOG = 'Examples:\n  core chat\n  core pulse "What is truth?"\n  core pulse --no-glove --json "Compare knowledge and wisdom"\n  core bench\n  core bench --suite all\n  core bench --suite all --json --report bench_all.json\n  core bench --suite determinism --runs 50\n  core bench --suite speedup --json\n  core trace "word beginning truth"\n  core trace --output-language grc --frame-pack grc --json "logos"\n  core rust status\n  core rust build\n  core oov covenant\n  core pack list\n  core pack verify en_minimal_v1\n  core teaching audit\n  core teaching audit --json\n  core teaching gaps --top 10\n  core teaching queue --threshold 3\n  core teaching hitl-queue list\n  core teaching hitl-queue list --state all --json\n  core teaching hitl-queue show <proposal_id>\n  core teaching propose <candidate-jsonl-path>\n  core teaching propose-from-exemplars teaching/admissibility_exemplars/rate_with_currency_v1.jsonl\n  core teaching propose-from-exemplars --all\n  core teaching proposals --state pending\n  core teaching review <proposal_id> --accept --review-date 2026-05-18\n  core teaching supersede cause_light_reveals_truth --subject light --intent cause --connective grounds --object truth --review-date 2026-05-18\n  core teaching supersessions\n  core teaching supersessions --json\n  core test --suite fast -q\n  core test --suite pulse -q\n  core test --suite proof -q\n  core test --suite cognition -q\n  core test -- tests/test_alignment_graph.py -q\n  core demo audit-tour\n  core demo register-tour\n  core demo anchor-lens-tour\n  core demo orthogonality-tour\n  core demo pack-measurements\n  core demo long-context-comparison\n  core demo anti-regression\n  core demo learning-loop\n  core demo learning-arc\n  core demo articulation\n  core demo conversation\n  core demo conversation --no-stream\n  core demo all\n  core demo adr-0024-chain\n  core eval --list\n  core eval cognition\n  core eval cognition --json --save\n  core eval cognition --split dev --version v1\n  core eval cognition --split holdout\n  core eval contemplation_quality\n  core eval contemplation_quality --json --save\n  core eval math-contemplation\n  core eval math-contemplation --audit evals/gsm8k_math/train_sample/v1/audit_brief_11.json\n  core eval math-contemplation --output teaching/math_proposals/proposals.jsonl\n  core workbench api\n  core workbench api --port 9000\n  core workbench api --host 0.0.0.0 --allow-nonlocal-bind'
 
 _TEST_SUITES: dict[str, tuple[str, ...]] = {
     "fast": (
@@ -140,36 +141,22 @@ _TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_pulse_integration.py",
         "tests/test_graph_diffusion.py",
     ),
-    "formation": (
-        "tests/formation",
-    ),
-    "proof": (
-        "tests/test_proof_properties.py",
-    ),
+    "formation": ("tests/formation",),
+    "proof": ("tests/test_proof_properties.py",),
     # ADR-0024 chain suites (Phases 2-6).  Each phase has its own
     # contract tests so investors / reviewers can run them
     # independently; ``adr-0024`` runs the full chain end-to-end.
-    "refusal": (
-        "tests/test_refusal_contract.py",
-    ),
-    "margin": (
-        "tests/test_margin_admissibility.py",
-    ),
-    "rotor": (
-        "tests/test_rotor_admissibility.py",
-    ),
+    "refusal": ("tests/test_refusal_contract.py",),
+    "margin": ("tests/test_margin_admissibility.py",),
+    "rotor": ("tests/test_rotor_admissibility.py",),
     "inner-loop": (
         "tests/test_inner_loop_admissibility.py",
         "tests/test_inner_loop_phase2.py",
         "tests/test_inner_loop_phase3.py",
         "tests/test_inner_loop_phase4.py",
     ),
-    "phase5": (
-        "tests/test_phase5_corpus.py",
-    ),
-    "phase6": (
-        "tests/test_phase6_demo.py",
-    ),
+    "phase5": ("tests/test_phase5_corpus.py",),
+    "phase6": ("tests/test_phase6_demo.py",),
     "adr-0024": (
         "tests/test_refusal_contract.py",
         "tests/test_margin_admissibility.py",
@@ -184,12 +171,8 @@ _TEST_SUITES: dict[str, tuple[str, ...]] = {
     # ADR-0126 P6 — measurement harness for the GSM8K candidate-graph
     # parser exit criterion.  ``wrong == 0`` is a hard gate (Obligation
     # #4: refuse rather than confabulate).
-    "math": (
-        "tests/test_adr_0126_train_sample_runner.py",
-    ),
-    "deductive": (
-        "tests/test_deductive_logic_entail.py",
-    ),
+    "math": ("tests/test_adr_0126_train_sample_runner.py",),
+    "deductive": ("tests/test_deductive_logic_entail.py",),
     "full": ("tests/",),
 }
 
@@ -218,7 +201,9 @@ def _runtime_config_from_args(args: argparse.Namespace):
 
     output_language = args.output_language
     frame_pack = args.frame_pack or output_language
-    input_packs = tuple(args.pack) if getattr(args, "pack", None) else DEFAULT_CONFIG.input_packs
+    input_packs = (
+        tuple(args.pack) if getattr(args, "pack", None) else DEFAULT_CONFIG.input_packs
+    )
     return RuntimeConfig(
         input_packs=input_packs,
         output_language=output_language,
@@ -245,6 +230,7 @@ def _print_identity_packs(use_json: bool) -> int:
     packs = available_packs()
     if use_json:
         import json as _json
+
         print(_json.dumps(packs, indent=2, sort_keys=True))
         return 0
     if not packs:
@@ -270,6 +256,7 @@ def cmd_chat(args: argparse.Namespace) -> int:
         return _print_identity_packs(use_json=getattr(args, "json", False))
     try:
         from chat.runtime import ChatRuntime
+
         # ADR-0041 — operator-facing verdict readout.  Imported lazily
         # so a broken telemetry module doesn't block REPL startup.
         from chat.telemetry import format_verdict_summary
@@ -284,6 +271,7 @@ def cmd_chat(args: argparse.Namespace) -> int:
     except Exception as exc:  # noqa: BLE001 — surface pack-load errors
         from packs.anchor_lens.loader import AnchorLensError
         from packs.register.loader import RegisterPackError
+
         if isinstance(exc, RegisterPackError):
             _die(f"invalid --register pack id: {exc}", code=2)
         if isinstance(exc, AnchorLensError):
@@ -406,7 +394,9 @@ def cmd_always_on(args: argparse.Namespace) -> int:
     def _log(record) -> None:
         if quiet:
             return
-        vc = "—" if record.versor_condition is None else f"{record.versor_condition:.2e}"
+        vc = (
+            "—" if record.versor_condition is None else f"{record.versor_condition:.2e}"
+        )
         if record.did_work:
             findings = getattr(record, "frontier_findings", 0)
             findings_part = f" +{findings} findings" if findings else ""
@@ -421,7 +411,11 @@ def cmd_always_on(args: argparse.Namespace) -> int:
                 file=sys.stderr,
             )
 
-    bound = "unbounded (until SIGINT/SIGTERM)" if max_beats is None else f"{max_beats} beats"
+    bound = (
+        "unbounded (until SIGINT/SIGTERM)"
+        if max_beats is None
+        else f"{max_beats} beats"
+    )
     print(
         f"core always-on: continuous-life heartbeat · interval {interval}s · {bound}",
         file=sys.stderr,
@@ -448,9 +442,7 @@ def cmd_always_on(args: argparse.Namespace) -> int:
         _die(f"always-on already running for this engine state: {exc}", code=2)
     except IdentityContinuityError as exc:
         _die(
-            _always_on_identity_break_message(
-                getattr(args, "engine_state", None), exc
-            ),
+            _always_on_identity_break_message(getattr(args, "engine_state", None), exc),
             code=2,
         )
     except IncompatibleEngineStateError as exc:
@@ -477,36 +469,35 @@ def cmd_always_on(args: argparse.Namespace) -> int:
 
 def _pytest_args_for_suite(suite: str, extra_args: Sequence[str]) -> list[str]:
     from core import cli_test
+
     return cli_test.pytest_args_for_suite(suite, extra_args)
 
 
 def _xdist_available() -> bool:
     """Return True iff pytest-xdist is importable."""
     from core import cli_test
+
     return cli_test.xdist_available()
 
 
 def _maybe_inject_xdist(forwarded: list[str], suite: str | None) -> list[str]:
     """Inject xdist."""
     from core import cli_test
+
     return cli_test.maybe_inject_xdist(forwarded, suite)
-    # Honour explicit operator override.
-    if any(a.startswith("-n") or a == "--dist" for a in forwarded):
-        return forwarded
-    if suite == "full":
-        return ["-n", "auto", *forwarded]
-    return forwarded
 
 
 def cmd_test(args: argparse.Namespace) -> int:
     """Run pytest through curated suite aliases or direct passthrough args."""
     from core import cli_test
+
     return cli_test.cmd_test(args, run=_run, python_executable=sys.executable)
 
 
 def cmd_check(args: argparse.Namespace) -> int:
     """Run ruff over selected project paths."""
     from core import cli_test
+
     return cli_test.cmd_check(args, run=_run, python_executable=sys.executable)
 
 
@@ -602,7 +593,7 @@ def cmd_trace(args: argparse.Namespace) -> int:
     """Trace one chat turn and print field telemetry."""
     text = " ".join(args.text).strip()
     if not text:
-        _die("trace requires input text. Try: core trace \"word beginning truth\"")
+        _die('trace requires input text. Try: core trace "word beginning truth"')
 
     runtime = _runtime_for_trace(args)
     try:
@@ -650,92 +641,92 @@ def cmd_oov(args: argparse.Namespace) -> int:
 
 def cmd_capability_chains(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_chains(args)
 
+    return cli_capability.cmd_capability_chains(args)
 
 
 def cmd_capability_flags(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_flags(args)
 
+    return cli_capability.cmd_capability_flags(args)
 
 
 def cmd_capability_ledger(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_ledger(args)
 
+    return cli_capability.cmd_capability_ledger(args)
 
 
 def cmd_capability_artifact(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_artifact(args)
 
+    return cli_capability.cmd_capability_artifact(args)
 
 
 def cmd_capability_domain_contract(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_domain_contract(args)
 
+    return cli_capability.cmd_capability_domain_contract(args)
 
 
 def cmd_capability_evidence_plan(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_evidence_plan(args)
 
+    return cli_capability.cmd_capability_evidence_plan(args)
 
 
 def cmd_capability_perturbation(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_perturbation(args)
 
+    return cli_capability.cmd_capability_perturbation(args)
 
 
 def cmd_capability_math_expert_gate(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_math_expert_gate(args)
 
+    return cli_capability.cmd_capability_math_expert_gate(args)
 
 
 def cmd_capability_pack_provenance(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_pack_provenance(args)
 
+    return cli_capability.cmd_capability_pack_provenance(args)
 
 
 def cmd_capability_adversarial(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_adversarial(args)
 
+    return cli_capability.cmd_capability_adversarial(args)
 
 
 def cmd_capability_depth_curve(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_depth_curve(args)
 
+    return cli_capability.cmd_capability_depth_curve(args)
 
 
 def cmd_capability_ood_ratio(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_ood_ratio(args)
 
+    return cli_capability.cmd_capability_ood_ratio(args)
 
 
 def cmd_capability_math_expert_promote(args: argparse.Namespace) -> int:
     from core import cli_capability
-    return cli_capability.cmd_capability_math_expert_promote(args)
 
+    return cli_capability.cmd_capability_math_expert_promote(args)
 
 
 def cmd_pack_list(args: argparse.Namespace) -> int:
     from core import cli_pack
-    return cli_pack.cmd_pack_list(args)
 
+    return cli_pack.cmd_pack_list(args)
 
 
 def cmd_pack_verify(args: argparse.Namespace) -> int:
     from core import cli_pack
-    return cli_pack.cmd_pack_verify(args)
 
+    return cli_pack.cmd_pack_verify(args)
 
 
 def _safe_pack_id(pack_id: str) -> str:
@@ -762,32 +753,32 @@ def _safe_pack_id(pack_id: str) -> str:
 
 def cmd_teaching_audit(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_audit(args)
 
+    return cli_teaching.cmd_teaching_audit(args)
 
 
 def cmd_teaching_gaps(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_gaps(args)
 
+    return cli_teaching.cmd_teaching_gaps(args)
 
 
 def cmd_teaching_oov_gaps(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_oov_gaps(args)
 
+    return cli_teaching.cmd_teaching_oov_gaps(args)
 
 
 def cmd_teaching_oov_queue(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_oov_queue(args)
 
+    return cli_teaching.cmd_teaching_oov_queue(args)
 
 
 def cmd_teaching_queue(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_queue(args)
 
+    return cli_teaching.cmd_teaching_queue(args)
 
 
 def _contemplation_runs_dir(args_dir: str | None) -> Path:
@@ -798,129 +789,130 @@ def _contemplation_runs_dir(args_dir: str | None) -> Path:
 
 def cmd_teaching_hitl_queue_list(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_hitl_queue_list(args)
 
+    return cli_teaching.cmd_teaching_hitl_queue_list(args)
 
 
 def cmd_teaching_hitl_queue_show(args: argparse.Namespace) -> int:
     from core import cli_teaching
+
     return cli_teaching.cmd_teaching_hitl_queue_show(args)
-
-
-
 
 
 def cmd_teaching_propose(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_propose(args)
 
+    return cli_teaching.cmd_teaching_propose(args)
 
 
 def cmd_teaching_propose_from_exemplars(args: argparse.Namespace) -> int:
     from core import cli_teaching
+
     return cli_teaching.cmd_teaching_propose_from_exemplars(args)
-
-
-
-
-
 
 
 def cmd_teaching_propose_miner(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_propose_miner(args)
 
+    return cli_teaching.cmd_teaching_propose_miner(args)
 
 
 def cmd_teaching_propose_curriculum(args: argparse.Namespace) -> int:
     from core import cli_teaching
+
     return cli_teaching.cmd_teaching_propose_curriculum(args)
-
-
-
-
-
 
 
 def cmd_teaching_proposals(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_proposals(args)
 
+    return cli_teaching.cmd_teaching_proposals(args)
 
 
 def cmd_teaching_review(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_review(args)
 
+    return cli_teaching.cmd_teaching_review(args)
 
 
 def cmd_teaching_supersessions(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_supersessions(args)
 
+    return cli_teaching.cmd_teaching_supersessions(args)
 
 
 def cmd_teaching_supersede(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_supersede(args)
 
+    return cli_teaching.cmd_teaching_supersede(args)
 
 
 def cmd_teaching_compile_pack(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_compile_pack(args)
 
+    return cli_teaching.cmd_teaching_compile_pack(args)
 
 
 def cmd_teaching_seed_recognizer(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_seed_recognizer(args)
 
+    return cli_teaching.cmd_teaching_seed_recognizer(args)
 
 
 def cmd_teaching_coverage(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_coverage(args)
 
+    return cli_teaching.cmd_teaching_coverage(args)
 
 
 def cmd_teaching_refusal_taxonomy(args: argparse.Namespace) -> int:
     from core import cli_teaching
-    return cli_teaching.cmd_teaching_refusal_taxonomy(args)
 
+    return cli_teaching.cmd_teaching_refusal_taxonomy(args)
 
 
 def cmd_pack_validate(args: argparse.Namespace) -> int:
     from core import cli_pack
-    return cli_pack.cmd_pack_validate(args)
 
+    return cli_pack.cmd_pack_validate(args)
 
 
 def _print_rust_status() -> bool:
     from core import cli_rust
+
     return cli_rust.print_rust_status(repo_root=_REPO_ROOT)
 
 
 def _probe_core_rs() -> tuple[bool, str]:
     from core import cli_rust
+
     return cli_rust.probe_core_rs()
 
 
 def cmd_rust_status(args: argparse.Namespace) -> int:
     """Print Rust backend activation status."""
     from core import cli_rust
+
     return cli_rust.cmd_rust_status(args, repo_root=_REPO_ROOT)
 
 
 def cmd_rust_build(args: argparse.Namespace) -> int:
     """Build/install core_rs into the active Python environment."""
     from core import cli_rust
-    return cli_rust.cmd_rust_build(args, repo_root=_REPO_ROOT, run=_run, fail=_die, python_executable=sys.executable)
+
+    return cli_rust.cmd_rust_build(
+        args,
+        repo_root=_REPO_ROOT,
+        run=_run,
+        fail=_die,
+        python_executable=sys.executable,
+    )
 
 
 def cmd_rust_test(args: argparse.Namespace) -> int:
     """Run Rust crate tests."""
     from core import cli_rust
+
     return cli_rust.cmd_rust_test(args, repo_root=_REPO_ROOT, run=_run, fail=_die)
 
 
@@ -951,25 +943,26 @@ def cmd_contemplation(args: argparse.Namespace) -> int:
 def cmd_doctor(args: argparse.Namespace) -> int:
     """Inspect import/package health for the CLI runtime path."""
     from core import cli_doctor
+
     return cli_doctor.cmd_doctor(args, repo_root=_REPO_ROOT)
 
 
 def cmd_eval(args: argparse.Namespace) -> int:
     from core import cli_eval
-    return cli_eval.cmd_eval(args)
 
+    return cli_eval.cmd_eval(args)
 
 
 def cmd_eval_sensorium(args: argparse.Namespace) -> int:
     from core import cli_eval
-    return cli_eval.cmd_eval_sensorium(args)
 
+    return cli_eval.cmd_eval_sensorium(args)
 
 
 def cmd_eval_environment_falsification(args: argparse.Namespace) -> int:
     from core import cli_eval
-    return cli_eval.cmd_eval_environment_falsification(args)
 
+    return cli_eval.cmd_eval_environment_falsification(args)
 
 
 # ---------------------------------------------------------------------------
@@ -978,12 +971,7 @@ def cmd_eval_environment_falsification(args: argparse.Namespace) -> int:
 
 _MATH_PROPOSALS_DIR = _REPO_ROOT / "teaching" / "math_proposals"
 _DEFAULT_AUDIT_PATH = (
-    _REPO_ROOT
-    / "evals"
-    / "gsm8k_math"
-    / "train_sample"
-    / "v1"
-    / "audit_brief_11.json"
+    _REPO_ROOT / "evals" / "gsm8k_math" / "train_sample" / "v1" / "audit_brief_11.json"
 )
 _DEFAULT_OUTPUT_PATH = _MATH_PROPOSALS_DIR / "proposals.jsonl"
 
@@ -1016,8 +1004,7 @@ def _validate_output_path(raw: str | None) -> Path:
         resolved.relative_to(allowed_root)
     except ValueError:
         _die(
-            f"--output must resolve inside teaching/math_proposals/; "
-            f"got: {raw!r}",
+            f"--output must resolve inside teaching/math_proposals/; got: {raw!r}",
             code=2,
         )
 
@@ -1026,8 +1013,8 @@ def _validate_output_path(raw: str | None) -> Path:
 
 def cmd_eval_math_contemplation(args: argparse.Namespace) -> int:
     from core import cli_eval
-    return cli_eval.cmd_eval_math_contemplation(args)
 
+    return cli_eval.cmd_eval_math_contemplation(args)
 
 
 def cmd_workbench(args: argparse.Namespace) -> int:
@@ -1057,13 +1044,20 @@ def cmd_pulse(args: argparse.Namespace) -> int:
 
     if args.json:
         import json as _json
-        print(_json.dumps({
-            "prompt": text,
-            "recalled_words": list(result.recalled_words),
-            "surface": result.surface,
-            "steps": result.steps,
-            "converged": result.converged,
-        }, ensure_ascii=False, indent=2))
+
+        print(
+            _json.dumps(
+                {
+                    "prompt": text,
+                    "recalled_words": list(result.recalled_words),
+                    "surface": result.surface,
+                    "steps": result.steps,
+                    "converged": result.converged,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
     else:
         print(f"\nsurface: {result.surface}")
         print(f"steps  : {result.steps}  converged: {result.converged}")
@@ -1651,6 +1645,7 @@ def _format_phase5_table(metrics: dict[str, Any], per_family: dict[str, Any]) ->
 def _format_phase6_table(metrics: dict[str, Any]) -> str:
     def pf(b: bool) -> str:
         return "PASS" if b else "FAIL"
+
     lines = [
         "",
         "Phase 6 — Comparative Demo: CORE vs In-System Baseline (ADR-0023 ablation)",
@@ -1699,44 +1694,73 @@ def _write_results_index() -> Path:
         except (OSError, json.JSONDecodeError):
             continue
         metrics = data.get("metrics", {}) if isinstance(data, dict) else {}
-        entries.append({
-            "file": p.name,
-            "size_bytes": p.stat().st_size,
-            "headline": {
-                k: v for k, v in metrics.items()
-                if k in (
-                    "case_count", "pass_rate", "pass_rate_threshold",
-                    "pass_rate_margin", "mechanism_isolated",
-                    "mechanism_isolated_threshold", "mechanism_isolated_margin",
-                    "all_three_conditions_pass", "c1_pass", "c2_pass", "c3_pass",
-                    "best_threshold", "best_separation_quality",
-                )
-            },
-        })
+        entries.append(
+            {
+                "file": p.name,
+                "size_bytes": p.stat().st_size,
+                "headline": {
+                    k: v
+                    for k, v in metrics.items()
+                    if k
+                    in (
+                        "case_count",
+                        "pass_rate",
+                        "pass_rate_threshold",
+                        "pass_rate_margin",
+                        "mechanism_isolated",
+                        "mechanism_isolated_threshold",
+                        "mechanism_isolated_margin",
+                        "all_three_conditions_pass",
+                        "c1_pass",
+                        "c2_pass",
+                        "c3_pass",
+                        "best_threshold",
+                        "best_separation_quality",
+                    )
+                },
+            }
+        )
     index_path = results_dir / "index.json"
-    index_path.write_text(json.dumps({
-        "results_dir": str(results_dir),
-        "reports": entries,
-    }, indent=2))
+    index_path.write_text(
+        json.dumps(
+            {
+                "results_dir": str(results_dir),
+                "reports": entries,
+            },
+            indent=2,
+        )
+    )
     return index_path
 
 
 def _run_demo_phase5(emit_json: bool, *, with_preamble: bool = True) -> dict[str, Any]:
     from evals.forward_semantic_control.phase5_runner import run_lane
+
     if with_preamble and not emit_json:
         _print_preamble(_PHASE5_PREAMBLE)
     cases_path = _DEMO_CORPUS_DIR / "v2_phase5" / "cases.jsonl"
-    cases = [json.loads(line) for line in cases_path.read_text().splitlines() if line.strip()]
+    cases = [
+        json.loads(line) for line in cases_path.read_text().splitlines() if line.strip()
+    ]
     report = run_lane(cases)
     out = _DEMO_RESULTS_DIR / "phase5_report.json"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps({
-        "metrics": report.metrics,
-        "per_family": report.per_family,
-        "case_details": report.case_details,
-    }, indent=2))
+    out.write_text(
+        json.dumps(
+            {
+                "metrics": report.metrics,
+                "per_family": report.per_family,
+                "case_details": report.case_details,
+            },
+            indent=2,
+        )
+    )
     if emit_json:
-        print(json.dumps({"metrics": report.metrics, "per_family": report.per_family}, indent=2))
+        print(
+            json.dumps(
+                {"metrics": report.metrics, "per_family": report.per_family}, indent=2
+            )
+        )
     else:
         print(_format_phase5_table(report.metrics, report.per_family))
         print(f"  full report: {out}")
@@ -1745,17 +1769,25 @@ def _run_demo_phase5(emit_json: bool, *, with_preamble: bool = True) -> dict[str
 
 def _run_demo_phase6(emit_json: bool, *, with_preamble: bool = True) -> dict[str, Any]:
     from evals.forward_semantic_control.phase6_demo import run_lane
+
     if with_preamble and not emit_json:
         _print_preamble(_PHASE6_PREAMBLE)
     cases_path = _DEMO_CORPUS_DIR / "v2_phase6_demo" / "cases.jsonl"
-    cases = [json.loads(line) for line in cases_path.read_text().splitlines() if line.strip()]
+    cases = [
+        json.loads(line) for line in cases_path.read_text().splitlines() if line.strip()
+    ]
     report = run_lane(cases)
     out = _DEMO_RESULTS_DIR / "phase6_demo_report.json"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps({
-        "metrics": report.metrics,
-        "case_details": report.case_details,
-    }, indent=2))
+    out.write_text(
+        json.dumps(
+            {
+                "metrics": report.metrics,
+                "case_details": report.case_details,
+            },
+            indent=2,
+        )
+    )
     if emit_json:
         print(json.dumps({"metrics": report.metrics}, indent=2))
     else:
@@ -2012,8 +2044,12 @@ def _run_adr_0024_chain(emit_json: bool) -> None:
     print("ADR-0024 chain — combined summary")
     print("=" * 76)
     print(f"  Phase 5 pass_rate (margin):    {p5.get('pass_rate_margin', 0):.2%}")
-    print(f"  Phase 5 mechanism_isolated:    {p5.get('mechanism_isolated_margin', False)}")
-    print(f"  Phase 6 all three conditions:  {p6.get('all_three_conditions_pass', False)}")
+    print(
+        f"  Phase 5 mechanism_isolated:    {p5.get('mechanism_isolated_margin', False)}"
+    )
+    print(
+        f"  Phase 6 all three conditions:  {p6.get('all_three_conditions_pass', False)}"
+    )
     print("")
     print("  What this means:")
     print("    Phase 5 verifies CORE handles five distinct geometric")
@@ -2076,6 +2112,7 @@ def _run_demo_all(emit_json: bool) -> int:
     # 3. audit-tour
     _section("3/8  audit-tour — pack-layer story")
     from evals.audit_tour.run_tour import run_tour
+
     if not emit_json:
         _print_preamble(_AUDIT_TOUR_PREAMBLE)
     with _maybe_suppress():
@@ -2090,6 +2127,7 @@ def _run_demo_all(emit_json: bool) -> int:
         write_report,
         _print_human,
     )
+
     if not emit_json:
         _print_preamble(_PACK_MEASUREMENTS_PREAMBLE)
     with _maybe_suppress():
@@ -2106,6 +2144,7 @@ def _run_demo_all(emit_json: bool) -> int:
         run_comparison,
         _write_report as _write_lc_report,
     )
+
     if not emit_json:
         _print_preamble(_LONG_CONTEXT_COMPARISON_PREAMBLE)
     with _maybe_suppress():
@@ -2124,6 +2163,7 @@ def _run_demo_all(emit_json: bool) -> int:
     # 6. anti-regression
     _section("6/8  anti-regression — three-gate defense")
     from evals.anti_regression.run_demo import run_demo as run_ar
+
     if not emit_json:
         _print_preamble(_ANTI_REGRESSION_PREAMBLE)
     with _maybe_suppress():
@@ -2134,6 +2174,7 @@ def _run_demo_all(emit_json: bool) -> int:
     # 7. learning-loop
     _section("7/9  learning-loop — cold turn → grounded surface")
     from evals.learning_loop.run_demo import run_demo as run_loop
+
     if not emit_json:
         _print_preamble(_LEARNING_LOOP_PREAMBLE)
     with _maybe_suppress():
@@ -2144,6 +2185,7 @@ def _run_demo_all(emit_json: bool) -> int:
     # 8. learning-arc
     _section("8/9  learning-arc — engine-authored proposal via contemplation")
     from evals.learning_arc.run_demo import run_demo as run_arc
+
     with _maybe_suppress():
         arc_report = run_arc(emit_json=emit_json)
     consolidated["learning_arc"] = arc_report
@@ -2152,6 +2194,7 @@ def _run_demo_all(emit_json: bool) -> int:
     # 9. articulation
     _section("9/9  articulation — discourse-planner spine")
     from evals.articulation.run_demo import run_demo as run_art
+
     if not emit_json:
         _print_preamble(_ARTICULATION_PREAMBLE)
     with _maybe_suppress():
@@ -2214,7 +2257,9 @@ def _cmd_bench_all(args: argparse.Namespace) -> int:
 
     # 1. Core six.
     if not json_out:
-        print("\n[1/4] Core six (determinism / latency / speedup / versor / convergence / realizer)")
+        print(
+            "\n[1/4] Core six (determinism / latency / speedup / versor / convergence / realizer)"
+        )
         print("-" * 78)
     with _bench_stdout_guard(json_out):
         core_report = run_benchmarks(suite=None, runs=args.runs)
@@ -2242,11 +2287,15 @@ def _cmd_bench_all(args: argparse.Namespace) -> int:
     # sub-bench when unavailable rather than aborting the whole run.
     try:
         import psutil  # noqa: F401
+
         skip_fp = False
     except ImportError:
         skip_fp = True
     if not json_out:
-        print("\n[3/4] Articulation suite" + (" (footprint skipped — psutil not installed)" if skip_fp else ""))
+        print(
+            "\n[3/4] Articulation suite"
+            + (" (footprint skipped — psutil not installed)" if skip_fp else "")
+        )
         print("-" * 78)
     with _bench_stdout_guard(json_out):
         a_report = run_articulation_suite(
@@ -2258,7 +2307,8 @@ def _cmd_bench_all(args: argparse.Namespace) -> int:
         )
     a_pass = bool(a_report.determinism_all_identical) and (
         a_report.discourse_planner_metrics.get("articulate_sentence_rate", 0.0) == 1.0
-        and a_report.discourse_planner_metrics.get("disclosure_sentence_rate", 0.0) == 0.0
+        and a_report.discourse_planner_metrics.get("disclosure_sentence_rate", 0.0)
+        == 0.0
     )
     if not json_out:
         if skip_fp:
@@ -2285,14 +2335,20 @@ def _cmd_bench_all(args: argparse.Namespace) -> int:
             "articulation_passed": a_pass,
             "cost": cost_report.as_dict(),
         }
-        print(json.dumps(consolidated, ensure_ascii=False, indent=2, sort_keys=True, default=str))
+        print(
+            json.dumps(
+                consolidated, ensure_ascii=False, indent=2, sort_keys=True, default=str
+            )
+        )
 
     all_pass = all(r.passed for r in overall_results) and a_pass
     if not json_out:
         print("\n" + "=" * 78)
-        print(f"{'ALL PASSED' if all_pass else 'FAILURES DETECTED'} across "
-              f"{len(overall_results) + 1} pass/fail benches "
-              f"(plus cost measurement section)")
+        print(
+            f"{'ALL PASSED' if all_pass else 'FAILURES DETECTED'} across "
+            f"{len(overall_results) + 1} pass/fail benches "
+            f"(plus cost measurement section)"
+        )
         print("=" * 78)
     return 0 if all_pass else 1
 
@@ -2327,10 +2383,15 @@ def cmd_bench(args: argparse.Namespace) -> int:
     # structure stays honest (no fake PASS/FAIL on a measurement bench).
     if args.suite == "cost":
         from benchmarks.cost import run_cost, write_report
+
         with _bench_stdout_guard(args.json):
             report = run_cost(turns=args.runs)
         if args.json:
-            print(json.dumps(report.as_dict(), ensure_ascii=False, indent=2, sort_keys=True))
+            print(
+                json.dumps(
+                    report.as_dict(), ensure_ascii=False, indent=2, sort_keys=True
+                )
+            )
         else:
             print(report.summary())
         if args.report:
@@ -2344,6 +2405,7 @@ def cmd_bench(args: argparse.Namespace) -> int:
             run_benchmark as run_apple_uma_benchmark,
             write_reports as write_apple_uma_reports,
         )
+
         with _bench_stdout_guard(args.json):
             uma_report = run_apple_uma_benchmark()
         if args.report:
@@ -2380,6 +2442,7 @@ def cmd_bench(args: argparse.Namespace) -> int:
             format_summary,
             run_articulation_suite,
         )
+
         if not args.json:
             _print_preamble(_ARTICULATION_BENCH_PREAMBLE)
         with _bench_stdout_guard(args.json):
@@ -2390,7 +2453,11 @@ def cmd_bench(args: argparse.Namespace) -> int:
                 ollama_reruns=getattr(args, "ollama_reruns", 3),
             )
         if args.json:
-            print(json.dumps(a_report.as_dict(), ensure_ascii=False, indent=2, sort_keys=True))
+            print(
+                json.dumps(
+                    a_report.as_dict(), ensure_ascii=False, indent=2, sort_keys=True
+                )
+            )
         else:
             print(format_summary(a_report))
         if args.report:
@@ -2435,13 +2502,43 @@ def cmd_bench(args: argparse.Namespace) -> int:
 
 
 def _add_runtime_policy_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--pack", action="append", help="language pack to mount; repeat for multiple packs")
-    parser.add_argument("--output-language", default="en", help="target output language code; default: en")
-    parser.add_argument("--frame-pack", help="frame pack to use; defaults to output language")
-    parser.add_argument("--max-tokens", type=int, default=32, help="maximum generated tokens; default: 32")
-    parser.add_argument("--vault-reproject-interval", type=int, default=20, help="vault null-cone reprojection cadence; default: 20 stores")
-    parser.add_argument("--salience-top-k", type=int, default=16, help="salience candidate budget; default: 16")
-    parser.add_argument("--inhibition-threshold", type=float, default=0.3, help="attention inhibition threshold; default: 0.3")
+    parser.add_argument(
+        "--pack",
+        action="append",
+        help="language pack to mount; repeat for multiple packs",
+    )
+    parser.add_argument(
+        "--output-language",
+        default="en",
+        help="target output language code; default: en",
+    )
+    parser.add_argument(
+        "--frame-pack", help="frame pack to use; defaults to output language"
+    )
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=32,
+        help="maximum generated tokens; default: 32",
+    )
+    parser.add_argument(
+        "--vault-reproject-interval",
+        type=int,
+        default=20,
+        help="vault null-cone reprojection cadence; default: 20 stores",
+    )
+    parser.add_argument(
+        "--salience-top-k",
+        type=int,
+        default=16,
+        help="salience candidate budget; default: 16",
+    )
+    parser.add_argument(
+        "--inhibition-threshold",
+        type=float,
+        default=0.3,
+        help="attention inhibition threshold; default: 0.3",
+    )
     parser.add_argument(
         "--inner-loop-admissibility",
         action="store_true",
@@ -2453,7 +2550,11 @@ def _add_runtime_policy_args(parser: argparse.ArgumentParser) -> None:
         default=0.0,
         help="inner-loop admissibility score threshold; default: 0.0",
     )
-    parser.add_argument("--no-salience", action="store_true", help="disable salience attention and use full-manifold generation")
+    parser.add_argument(
+        "--no-salience",
+        action="store_true",
+        help="disable salience attention and use full-manifold generation",
+    )
     parser.add_argument(
         "--allow-cross-language-generation",
         action="store_true",
@@ -2480,7 +2581,12 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--version", action="store_true", dest="print_version", help="print package version and exit")
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        dest="print_version",
+        help="print package version and exit",
+    )
     subparsers = parser.add_subparsers(dest="command", metavar="command")
 
     chat = subparsers.add_parser("chat", help="start the interactive chat REPL")
@@ -2596,10 +2702,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     always_on.set_defaults(func=cmd_always_on)
 
-    test = subparsers.add_parser("test", help="run pytest with curated suite aliases or direct passthrough")
-    test.add_argument("--suite", choices=sorted(_TEST_SUITES), help="curated suite alias to run")
-    test.add_argument("--list-suites", action="store_true", help="list curated test suite aliases and exit")
-    test.add_argument("args", nargs=argparse.REMAINDER, help="arguments forwarded to pytest")
+    test = subparsers.add_parser(
+        "test", help="run pytest with curated suite aliases or direct passthrough"
+    )
+    test.add_argument(
+        "--suite", choices=sorted(_TEST_SUITES), help="curated suite alias to run"
+    )
+    test.add_argument(
+        "--list-suites",
+        action="store_true",
+        help="list curated test suite aliases and exit",
+    )
+    test.add_argument(
+        "args", nargs=argparse.REMAINDER, help="arguments forwarded to pytest"
+    )
     test.set_defaults(func=cmd_test)
 
     check = subparsers.add_parser("check", help="run ruff check")
@@ -2621,29 +2737,59 @@ def build_parser() -> argparse.ArgumentParser:
     oov.add_argument("token", help="token to inspect or ground")
     oov.set_defaults(func=cmd_oov)
 
-    capability = subparsers.add_parser("capability", help="capability readiness reports")
-    capability_sub = capability.add_subparsers(dest="capability_command", metavar="capability-command", required=True)
-    capability_chains = capability_sub.add_parser("chains", help="report teaching chain readiness")
-    capability_chains.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability = subparsers.add_parser(
+        "capability", help="capability readiness reports"
+    )
+    capability_sub = capability.add_subparsers(
+        dest="capability_command", metavar="capability-command", required=True
+    )
+    capability_chains = capability_sub.add_parser(
+        "chains", help="report teaching chain readiness"
+    )
+    capability_chains.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_chains.set_defaults(func=cmd_capability_chains)
-    capability_flags = capability_sub.add_parser("flags", help="report runtime flag readiness")
-    capability_flags.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_flags = capability_sub.add_parser(
+        "flags", help="report runtime flag readiness"
+    )
+    capability_flags.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_flags.set_defaults(func=cmd_capability_flags)
-    capability_ledger = capability_sub.add_parser("ledger", help="generated capability ledger")
-    capability_ledger.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_ledger = capability_sub.add_parser(
+        "ledger", help="generated capability ledger"
+    )
+    capability_ledger.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_ledger.set_defaults(func=cmd_capability_ledger)
-    capability_artifact = capability_sub.add_parser("artifact", help="content-addressed artifact metadata")
-    capability_artifact.add_argument("--lane", required=True, help="eval lane id (e.g. cognition)")
-    capability_artifact.add_argument("--split", required=True, choices=("dev", "public", "holdout"))
-    capability_artifact.add_argument("--version", required=True, help="eval version id (e.g. v1)")
-    capability_artifact.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_artifact = capability_sub.add_parser(
+        "artifact", help="content-addressed artifact metadata"
+    )
+    capability_artifact.add_argument(
+        "--lane", required=True, help="eval lane id (e.g. cognition)"
+    )
+    capability_artifact.add_argument(
+        "--split", required=True, choices=("dev", "public", "holdout")
+    )
+    capability_artifact.add_argument(
+        "--version", required=True, help="eval version id (e.g. v1)"
+    )
+    capability_artifact.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_artifact.set_defaults(func=cmd_capability_artifact)
     capability_domain_contract = capability_sub.add_parser(
         "domain-contract",
         help="ADR-0093 dry-run validate Domain Pack Contract v1 (9 predicates)",
     )
-    capability_domain_contract.add_argument("--pack-id", required=True, help="language pack id")
-    capability_domain_contract.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_domain_contract.add_argument(
+        "--pack-id", required=True, help="language pack id"
+    )
+    capability_domain_contract.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_domain_contract.add_argument(
         "--structural-only",
         action="store_true",
@@ -2654,7 +2800,9 @@ def build_parser() -> argparse.ArgumentParser:
         "evidence-plan",
         help="content-addressed local/worker evidence job plan",
     )
-    capability_evidence_plan.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_evidence_plan.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_evidence_plan.set_defaults(func=cmd_capability_evidence_plan)
     capability_perturbation = capability_sub.add_parser(
         "perturbation",
@@ -2674,7 +2822,9 @@ def build_parser() -> argparse.ArgumentParser:
         "math-expert-gate",
         help="ADR-0131.4 evaluate the composite math-expert promotion gate (B1+B2+B3)",
     )
-    capability_math_expert_gate.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_math_expert_gate.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_math_expert_gate.add_argument(
         "--out",
         default=None,
@@ -2685,7 +2835,9 @@ def build_parser() -> argparse.ArgumentParser:
         "pack-provenance",
         help="ADR-0114a Obligation #10 — audit solver-step pack_lemma_ids against on-disk lexicon",
     )
-    capability_pack_provenance.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_pack_provenance.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_pack_provenance.add_argument(
         "--out",
         default=None,
@@ -2696,7 +2848,9 @@ def build_parser() -> argparse.ArgumentParser:
         "adversarial",
         help="ADR-0114a Obligation #8 — adversarial generation auditor (wrong==0 across families)",
     )
-    capability_adversarial.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_adversarial.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_adversarial.add_argument(
         "--out",
         default=None,
@@ -2707,7 +2861,9 @@ def build_parser() -> argparse.ArgumentParser:
         "depth-curve",
         help="ADR-0114a Obligation #6 — compositional-depth vs accuracy curve",
     )
-    capability_depth_curve.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_depth_curve.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_depth_curve.add_argument(
         "--out",
         default=None,
@@ -2718,7 +2874,9 @@ def build_parser() -> argparse.ArgumentParser:
         "ood-ratio",
         help="ADR-0114a Obligation #2 — OOD surface variation ratio auditor for B3",
     )
-    capability_ood_ratio.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_ood_ratio.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_ood_ratio.add_argument(
         "--out",
         default=None,
@@ -2729,7 +2887,9 @@ def build_parser() -> argparse.ArgumentParser:
         "math-expert-promote",
         help="ADR-0120 — compose all 10 ADR-0114a obligation verdicts + composite gate + reviewer signature into the math-expert promotion verdict",
     )
-    capability_math_expert_promote.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    capability_math_expert_promote.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
     capability_math_expert_promote.add_argument(
         "--out",
         default=None,
@@ -2738,16 +2898,26 @@ def build_parser() -> argparse.ArgumentParser:
     capability_math_expert_promote.set_defaults(func=cmd_capability_math_expert_promote)
 
     pack = subparsers.add_parser("pack", help="inspect and verify language packs")
-    pack_sub = pack.add_subparsers(dest="pack_command", metavar="pack-command", required=True)
+    pack_sub = pack.add_subparsers(
+        dest="pack_command", metavar="pack-command", required=True
+    )
     pack_list = pack_sub.add_parser("list", help="list compiled packs")
     pack_list.set_defaults(func=cmd_pack_list)
     pack_verify = pack_sub.add_parser("verify", help="verify a pack checksum")
     pack_verify.add_argument("pack_id", help="pack id, e.g. en_minimal_v1")
     pack_verify.set_defaults(func=cmd_pack_verify)
-    pack_validate = pack_sub.add_parser("validate", help="validate a source pack under packs/")
+    pack_validate = pack_sub.add_parser(
+        "validate", help="validate a source pack under packs/"
+    )
     pack_validate.add_argument("pack_id", help="source pack id, e.g. en, he, grc, el")
-    pack_validate.add_argument("--json", action="store_true", help="emit machine-readable JSON")
-    pack_validate.add_argument("--dry-run", action="store_true", help="check validator exists without executing")
+    pack_validate.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
+    pack_validate.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="check validator exists without executing",
+    )
     pack_validate.add_argument(
         "--allow-arbitrary-code",
         action="store_true",
@@ -2760,14 +2930,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="inspect the reviewed teaching corpus",
     )
     teaching_sub = teaching.add_subparsers(
-        dest="teaching_command", metavar="teaching-command", required=True,
+        dest="teaching_command",
+        metavar="teaching-command",
+        required=True,
     )
     teaching_audit = teaching_sub.add_parser(
         "audit",
         help="surface load decisions and drop reasons for the cognition-chains corpus",
     )
     teaching_audit.add_argument(
-        "--json", action="store_true",
+        "--json",
+        action="store_true",
         help="emit machine-readable JSON",
     )
     teaching_audit.set_defaults(func=cmd_teaching_audit)
@@ -2777,23 +2950,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="rank OOV tokens emitted by the runtime's teach-me surface",
     )
     teaching_oov_gaps.add_argument(
-        "--root", default=None,
+        "--root",
+        default=None,
         help="OOV-sink root (default: teaching/oov_log)",
     )
     teaching_oov_gaps.add_argument(
-        "--since", default=None,
+        "--since",
+        default=None,
         help="lower-bound month token YYYY-MM",
     )
     teaching_oov_gaps.add_argument(
-        "--top", type=int, default=None,
+        "--top",
+        type=int,
+        default=None,
         help="show only the top N tokens by emission count",
     )
     teaching_oov_gaps.add_argument(
-        "--sample-limit", type=int, default=5,
+        "--sample-limit",
+        type=int,
+        default=5,
         help="max candidate_ids retained per token as samples (default: 5)",
     )
     teaching_oov_gaps.add_argument(
-        "--json", action="store_true", help="machine-readable output",
+        "--json",
+        action="store_true",
+        help="machine-readable output",
     )
     teaching_oov_gaps.set_defaults(func=cmd_teaching_oov_gaps)
 
@@ -2802,23 +2983,30 @@ def build_parser() -> argparse.ArgumentParser:
         help="show auto-promoted OOV-token queue (tokens crossing --threshold)",
     )
     teaching_oov_queue.add_argument(
-        "--root", default=None,
+        "--root",
+        default=None,
         help="OOV-sink root (default: teaching/oov_log)",
     )
     teaching_oov_queue.add_argument(
-        "--since", default=None,
+        "--since",
+        default=None,
         help="lower-bound month token YYYY-MM",
     )
     teaching_oov_queue.add_argument(
-        "--threshold", type=int, default=3,
+        "--threshold",
+        type=int,
+        default=3,
         help="minimum (boundary-clean) emissions to promote (default: 3)",
     )
     teaching_oov_queue.add_argument(
-        "--include-tainted", action="store_true",
+        "--include-tainted",
+        action="store_true",
         help="count refusal/hedge-tainted emissions toward the threshold",
     )
     teaching_oov_queue.add_argument(
-        "--json", action="store_true", help="machine-readable output",
+        "--json",
+        action="store_true",
+        help="machine-readable output",
     )
     teaching_oov_queue.set_defaults(func=cmd_teaching_oov_queue)
 
@@ -2827,23 +3015,30 @@ def build_parser() -> argparse.ArgumentParser:
         help="show auto-promoted high-priority gaps (cells crossing --threshold)",
     )
     teaching_queue.add_argument(
-        "--root", default=None,
+        "--root",
+        default=None,
         help="discovery-sink root (default: teaching/discovery_log)",
     )
     teaching_queue.add_argument(
-        "--since", default=None,
+        "--since",
+        default=None,
         help="lower-bound month token YYYY-MM",
     )
     teaching_queue.add_argument(
-        "--threshold", type=int, default=3,
+        "--threshold",
+        type=int,
+        default=3,
         help="minimum (boundary-clean) emissions to promote a cell (default: 3)",
     )
     teaching_queue.add_argument(
-        "--include-tainted", action="store_true",
+        "--include-tainted",
+        action="store_true",
         help="count refusal/hedge-tainted emissions toward the threshold",
     )
     teaching_queue.add_argument(
-        "--json", action="store_true", help="machine-readable output",
+        "--json",
+        action="store_true",
+        help="machine-readable output",
     )
     teaching_queue.set_defaults(func=cmd_teaching_queue)
 
@@ -2852,7 +3047,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="inspect the asynchronous human-in-the-loop review queue (ADR-0161)",
     )
     teaching_hitl_queue_sub = teaching_hitl_queue.add_subparsers(
-        dest="hitl_queue_command", metavar="hitl-queue-command", required=True,
+        dest="hitl_queue_command",
+        metavar="hitl-queue-command",
+        required=True,
     )
 
     teaching_hitl_queue_list = teaching_hitl_queue_sub.add_parser(
@@ -2860,20 +3057,24 @@ def build_parser() -> argparse.ArgumentParser:
         help="list queue items",
     )
     teaching_hitl_queue_list.add_argument(
-        "--state", default="pending",
+        "--state",
+        default="pending",
         choices=("pending", "accepted", "rejected", "withdrawn", "all"),
         help="filter by state (default: pending)",
     )
     teaching_hitl_queue_list.add_argument(
-        "--json", action="store_true",
+        "--json",
+        action="store_true",
         help="output machine-readable JSON",
     )
     teaching_hitl_queue_list.add_argument(
-        "--log-path", default=None,
+        "--log-path",
+        default=None,
         help="path to the proposal log file",
     )
     teaching_hitl_queue_list.add_argument(
-        "--contemplation-runs-dir", default=None,
+        "--contemplation-runs-dir",
+        default=None,
         help="path to contemplation runs directory",
     )
     teaching_hitl_queue_list.set_defaults(func=cmd_teaching_hitl_queue_list)
@@ -2887,15 +3088,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="proposal ID or prefix",
     )
     teaching_hitl_queue_show.add_argument(
-        "--json", action="store_true",
+        "--json",
+        action="store_true",
         help="output machine-readable JSON",
     )
     teaching_hitl_queue_show.add_argument(
-        "--log-path", default=None,
+        "--log-path",
+        default=None,
         help="path to the proposal log file",
     )
     teaching_hitl_queue_show.add_argument(
-        "--contemplation-runs-dir", default=None,
+        "--contemplation-runs-dir",
+        default=None,
         help="path to contemplation runs directory",
     )
     teaching_hitl_queue_show.set_defaults(func=cmd_teaching_hitl_queue_show)
@@ -2905,23 +3109,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="rank (subject, intent) cells discovery candidates would have grounded",
     )
     teaching_gaps.add_argument(
-        "--root", default=None,
+        "--root",
+        default=None,
         help="discovery-sink root (default: teaching/discovery_log)",
     )
     teaching_gaps.add_argument(
-        "--since", default=None,
+        "--since",
+        default=None,
         help="lower-bound month token YYYY-MM (default: include every available month)",
     )
     teaching_gaps.add_argument(
-        "--top", type=int, default=None,
+        "--top",
+        type=int,
+        default=None,
         help="show only the top N cells by emission count",
     )
     teaching_gaps.add_argument(
-        "--sample-limit", type=int, default=5,
+        "--sample-limit",
+        type=int,
+        default=5,
         help="max candidate_ids retained per cell as samples (default: 5)",
     )
     teaching_gaps.add_argument(
-        "--json", action="store_true", help="machine-readable output",
+        "--json",
+        action="store_true",
+        help="machine-readable output",
     )
     teaching_gaps.set_defaults(func=cmd_teaching_gaps)
 
@@ -2934,11 +3146,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="path to a JSONL file containing one enriched candidate line",
     )
     teaching_propose.add_argument(
-        "--allow-evaluative", action="store_true",
+        "--allow-evaluative",
+        action="store_true",
         help="permit claim_domain=evaluative proposals (operator override)",
     )
     teaching_propose.add_argument(
-        "--log", default=None,
+        "--log",
+        default=None,
         help="proposal log path (default: teaching/proposals/proposals.jsonl)",
     )
     teaching_propose.set_defaults(func=cmd_teaching_propose)
@@ -2993,19 +3207,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="build PackMutationProposals from miner ContemplationFinding JSONL (ADR-0095)",
     )
     teaching_propose_miner.add_argument(
-        "--findings", required=True,
+        "--findings",
+        required=True,
         help="path to JSONL file of ContemplationFinding records (kind=pack_mutation_candidate)",
     )
     teaching_propose_miner.add_argument(
-        "--miner-id", required=True,
+        "--miner-id",
+        required=True,
         help="miner identifier stamped on proposals (e.g. 'articulation_quality_v1')",
     )
     teaching_propose_miner.add_argument(
-        "--revision", default=None,
+        "--revision",
+        default=None,
         help="emitted_at_revision string (defaults to current git HEAD SHA)",
     )
     teaching_propose_miner.add_argument(
-        "--out", default=None,
+        "--out",
+        default=None,
         help="output JSONL path for proposals (default: stdout)",
     )
     teaching_propose_miner.set_defaults(func=cmd_teaching_propose_miner)
@@ -3015,19 +3233,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="build PackMutationProposals from curriculum ContemplationFinding JSONL (ADR-0104)",
     )
     teaching_propose_curriculum.add_argument(
-        "--findings", required=True,
+        "--findings",
+        required=True,
         help="path to JSONL file of ContemplationFinding records (kind=pack_mutation_candidate)",
     )
     teaching_propose_curriculum.add_argument(
-        "--curriculum-id", required=True,
+        "--curriculum-id",
+        required=True,
         help="curriculum identifier stamped on proposals (e.g. 'gsm8k_curriculum_v1')",
     )
     teaching_propose_curriculum.add_argument(
-        "--revision", default=None,
+        "--revision",
+        default=None,
         help="emitted_at_revision string (defaults to current git HEAD SHA)",
     )
     teaching_propose_curriculum.add_argument(
-        "--out", default=None,
+        "--out",
+        default=None,
         help="output JSONL path for proposals (default: stdout)",
     )
     teaching_propose_curriculum.set_defaults(func=cmd_teaching_propose_curriculum)
@@ -3037,15 +3259,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="list proposals in the append-only log",
     )
     teaching_proposals.add_argument(
-        "--state", default=None,
+        "--state",
+        default=None,
         choices=("pending", "accepted", "rejected", "withdrawn"),
         help="filter by review state",
     )
     teaching_proposals.add_argument(
-        "--log", default=None, help="proposal log path",
+        "--log",
+        default=None,
+        help="proposal log path",
     )
     teaching_proposals.add_argument(
-        "--json", action="store_true", help="machine-readable output",
+        "--json",
+        action="store_true",
+        help="machine-readable output",
     )
     teaching_proposals.set_defaults(func=cmd_teaching_proposals)
 
@@ -3060,11 +3287,14 @@ def build_parser() -> argparse.ArgumentParser:
     grp.add_argument("--withdraw", action="store_true")
     teaching_review.add_argument("--note", default="", help="operator note")
     teaching_review.add_argument(
-        "--review-date", default=None,
+        "--review-date",
+        default=None,
         help="review date (YYYY-MM-DD) — required on --accept",
     )
     teaching_review.add_argument(
-        "--log", default=None, help="proposal log path",
+        "--log",
+        default=None,
+        help="proposal log path",
     )
     teaching_review.set_defaults(func=cmd_teaching_review)
 
@@ -3081,23 +3311,29 @@ def build_parser() -> argparse.ArgumentParser:
     teaching_supersede.add_argument("--connective", required=True)
     teaching_supersede.add_argument("--object", required=True)
     teaching_supersede.add_argument(
-        "--review-date", required=True, help="YYYY-MM-DD",
+        "--review-date",
+        required=True,
+        help="YYYY-MM-DD",
     )
     teaching_supersede.add_argument(
-        "--cross-pack", action="store_true",
+        "--cross-pack",
+        action="store_true",
         help="ADR-0067 — target the cross-pack corpus instead of in-pack",
     )
     teaching_supersede.add_argument(
-        "--subject-pack-id", default="",
+        "--subject-pack-id",
+        default="",
         help="cross-pack only: subject lemma's resident pack id",
     )
     teaching_supersede.add_argument(
-        "--object-pack-id", default="",
+        "--object-pack-id",
+        default="",
         help="cross-pack only: object lemma's resident pack id",
     )
     teaching_supersede.add_argument("--note", default="", help="operator note")
     teaching_supersede.add_argument(
-        "--new-chain-id", default=None,
+        "--new-chain-id",
+        default=None,
         help="explicit new chain_id (default: <intent>_<subject>_<connective>_<object>)",
     )
     teaching_supersede.set_defaults(func=cmd_teaching_supersede)
@@ -3107,11 +3343,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="RAT-1 — regenerate compiled artifacts + manifest checksums for a pack",
     )
     teaching_compile_pack.add_argument(
-        "--pack", default=None,
+        "--pack",
+        default=None,
         help="pack root path (default: language_packs/data/en_core_math_v1)",
     )
     teaching_compile_pack.add_argument(
-        "--json", action="store_true", help="emit machine-readable JSON",
+        "--json",
+        action="store_true",
+        help="emit machine-readable JSON",
     )
     teaching_compile_pack.set_defaults(func=cmd_teaching_compile_pack)
 
@@ -3120,47 +3359,67 @@ def build_parser() -> argparse.ArgumentParser:
         help="RAT-1 — append a reviewed RatifiedRecognizer entry to the proposal log",
     )
     teaching_seed_recognizer.add_argument(
-        "--shape-category", required=True,
+        "--shape-category",
+        required=True,
         help="ShapeCategory value (e.g. rate_with_currency, multiplicative_aggregation)",
     )
     teaching_seed_recognizer.add_argument(
-        "--anchor-kind", required=True,
+        "--anchor-kind",
+        required=True,
         help="anchor_kind value (e.g. currency_per_unit_composition)",
     )
     teaching_seed_recognizer.add_argument(
-        "--observed-currency-symbols", nargs="*", default=None,
+        "--observed-currency-symbols",
+        nargs="*",
+        default=None,
         help="currency symbols the recognizer admits",
     )
     teaching_seed_recognizer.add_argument(
-        "--observed-per-units", nargs="*", default=None,
+        "--observed-per-units",
+        nargs="*",
+        default=None,
         help="per-unit tokens the recognizer admits",
     )
     teaching_seed_recognizer.add_argument(
-        "--observed-units", nargs="*", default=None,
+        "--observed-units",
+        nargs="*",
+        default=None,
         help="unit tokens the recognizer admits (for additive/subtractive)",
     )
     teaching_seed_recognizer.add_argument(
-        "--anchor-count-min", type=int, default=None,
+        "--anchor-count-min",
+        type=int,
+        default=None,
     )
     teaching_seed_recognizer.add_argument(
-        "--anchor-count-max", type=int, default=None,
+        "--anchor-count-max",
+        type=int,
+        default=None,
     )
     teaching_seed_recognizer.add_argument(
-        "--graph-intent", default=None,
+        "--graph-intent",
+        default=None,
         help="rate / aggregate / amount / setup / count",
     )
     teaching_seed_recognizer.add_argument(
-        "--review-date", default=None, help="YYYY-MM-DD (default: today)",
+        "--review-date",
+        default=None,
+        help="YYYY-MM-DD (default: today)",
     )
     teaching_seed_recognizer.add_argument(
-        "--extract-values", action="store_true",
+        "--extract-values",
+        action="store_true",
         help="WAVE-A — opt the recognizer spec into value-extracting matcher path",
     )
     teaching_seed_recognizer.add_argument(
-        "--note", default="", help="operator note",
+        "--note",
+        default="",
+        help="operator note",
     )
     teaching_seed_recognizer.add_argument(
-        "--log", default=None, help="proposal log path",
+        "--log",
+        default=None,
+        help="proposal log path",
     )
     teaching_seed_recognizer.set_defaults(func=cmd_teaching_seed_recognizer)
 
@@ -3169,24 +3428,34 @@ def build_parser() -> argparse.ArgumentParser:
         help="Brief D — per-shape admission histogram with optional deltas vs HEAD",
     )
     teaching_coverage.add_argument(
-        "--lane", default="gsm8k_math", help="eval lane (default: gsm8k_math)",
+        "--lane",
+        default="gsm8k_math",
+        help="eval lane (default: gsm8k_math)",
     )
     teaching_coverage.add_argument(
-        "--split", default="train_sample", help="lane split (default: train_sample)",
+        "--split",
+        default="train_sample",
+        help="lane split (default: train_sample)",
     )
     teaching_coverage.add_argument(
-        "--version", default="v1", help="lane version (default: v1)",
+        "--version",
+        default="v1",
+        help="lane version (default: v1)",
     )
     teaching_coverage.add_argument(
-        "--run", action="store_true",
+        "--run",
+        action="store_true",
         help="re-run the lane's runner even if report.json exists",
     )
     teaching_coverage.add_argument(
-        "--delta", action="store_true",
+        "--delta",
+        action="store_true",
         help="compute delta vs the report.json committed at HEAD",
     )
     teaching_coverage.add_argument(
-        "--json", action="store_true", help="emit machine-readable JSON",
+        "--json",
+        action="store_true",
+        help="emit machine-readable JSON",
     )
     teaching_coverage.set_defaults(func=cmd_teaching_coverage)
 
@@ -3195,15 +3464,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="ADR-0163 Phase A — categorise refused statements by shape",
     )
     teaching_refusal_taxonomy.add_argument(
-        "--input", default=None,
+        "--input",
+        default=None,
         help="path to refused-cases JSONL (default: evals/refusal_taxonomy/public/v1/cases.jsonl)",
     )
     teaching_refusal_taxonomy.add_argument(
-        "--json", action="store_true",
+        "--json",
+        action="store_true",
         help="emit machine-readable JSON",
     )
     teaching_refusal_taxonomy.add_argument(
-        "--save", action="store_true",
+        "--save",
+        action="store_true",
         help="write report to evals/refusal_taxonomy/v1/report.json",
     )
     teaching_refusal_taxonomy.set_defaults(func=cmd_teaching_refusal_taxonomy)
@@ -3213,7 +3485,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="pair each retired chain with its active replacement (derived view)",
     )
     teaching_supersessions.add_argument(
-        "--json", action="store_true", help="emit machine-readable JSON",
+        "--json",
+        action="store_true",
+        help="emit machine-readable JSON",
     )
     teaching_supersessions.set_defaults(func=cmd_teaching_supersessions)
 
@@ -3222,12 +3496,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="build, test, and inspect the Rust backend",
         description="build, test, and inspect the Rust backend",
     )
-    rust_sub = rust.add_subparsers(dest="rust_command", metavar="rust-command", required=True)
+    rust_sub = rust.add_subparsers(
+        dest="rust_command", metavar="rust-command", required=True
+    )
     rust_status = rust_sub.add_parser("status", help="show whether core_rs is active")
-    rust_status.add_argument("--require-active", action="store_true", help="exit nonzero if core_rs is inactive")
+    rust_status.add_argument(
+        "--require-active",
+        action="store_true",
+        help="exit nonzero if core_rs is inactive",
+    )
     rust_status.set_defaults(func=cmd_rust_status)
     rust_build = rust_sub.add_parser("build", help="build/install core_rs with maturin")
-    rust_build.add_argument("--skip-auditwheel", action="store_true", help="pass --skip-auditwheel to maturin")
+    rust_build.add_argument(
+        "--skip-auditwheel",
+        action="store_true",
+        help="pass --skip-auditwheel to maturin",
+    )
     rust_build.set_defaults(func=cmd_rust_build)
     rust_test = rust_sub.add_parser("test", help="run cargo test --release for core-rs")
     rust_test.set_defaults(func=cmd_rust_test)
@@ -3261,8 +3545,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pulse.add_argument("text", nargs="*", default=["What is truth?"])
     pulse.add_argument("--top-k", type=int, default=5, metavar="N")
-    pulse.add_argument("--no-glove", action="store_true", help="use compiled pack only (no GloVe download)")
-    pulse.add_argument("--no-correction", action="store_true", help="disable correction (V3 mode)")
+    pulse.add_argument(
+        "--no-glove",
+        action="store_true",
+        help="use compiled pack only (no GloVe download)",
+    )
+    pulse.add_argument(
+        "--no-correction", action="store_true", help="disable correction (V3 mode)"
+    )
     pulse.add_argument("--correction-rate", type=float, default=0.3, metavar="R")
     pulse.add_argument("--json", action="store_true", help="emit machine-readable JSON")
     pulse.set_defaults(func=cmd_pulse)
@@ -3272,29 +3562,58 @@ def build_parser() -> argparse.ArgumentParser:
         help="run benchmark harness (determinism, latency, speedup, versor audit)",
         description="run benchmark harness",
     )
-    bench.add_argument("--suite", choices=["determinism", "latency", "speedup", "versor", "convergence", "realizer", "cost", "teaching-loop", "articulation", "apple-uma", "all"],
-                       help="run a specific benchmark suite")
+    bench.add_argument(
+        "--suite",
+        choices=[
+            "determinism",
+            "latency",
+            "speedup",
+            "versor",
+            "convergence",
+            "realizer",
+            "cost",
+            "teaching-loop",
+            "articulation",
+            "apple-uma",
+            "all",
+        ],
+        help="run a specific benchmark suite",
+    )
     bench.add_argument(
         "--write-report",
         action="store_true",
         help="apple-uma suite: write evals/reports/apple_uma_mechanical_sympathy_latest.{json,md}",
     )
-    bench.add_argument("--runs", type=int, default=20, metavar="N", help="run count for determinism benchmark (also turns count for cost suite)")
+    bench.add_argument(
+        "--runs",
+        type=int,
+        default=20,
+        metavar="N",
+        help="run count for determinism benchmark (also turns count for cost suite)",
+    )
     bench.add_argument("--json", action="store_true", help="emit machine-readable JSON")
     bench.add_argument("--report", metavar="PATH", help="write JSON report to file")
     bench.add_argument(
-        "--turns", type=int, default=200, metavar="N",
+        "--turns",
+        type=int,
+        default=200,
+        metavar="N",
         help="articulation suite: footprint sample count (default 200)",
     )
     bench.add_argument(
-        "--ollama-model", default=None, metavar="MODEL",
+        "--ollama-model",
+        default=None,
+        metavar="MODEL",
         help="articulation suite: ollama model id to compare against "
-             "(e.g. llama3:8b); omit to skip the Ollama sub-bench",
+        "(e.g. llama3:8b); omit to skip the Ollama sub-bench",
     )
     bench.add_argument(
-        "--ollama-reruns", type=int, default=3, metavar="N",
+        "--ollama-reruns",
+        type=int,
+        default=3,
+        metavar="N",
         help="articulation suite: per-prompt rerun count for ollama "
-             "(higher = better unique-surface measurement; default 3)",
+        "(higher = better unique-surface measurement; default 3)",
     )
     bench.set_defaults(func=cmd_bench)
 
@@ -3383,8 +3702,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=4,
         metavar="N",
         help=(
-            "parallel worker count for supported demos "
-            "(0/1 => sequential; default 4)"
+            "parallel worker count for supported demos (0/1 => sequential; default 4)"
         ),
     )
     demo.add_argument(
@@ -3421,21 +3739,34 @@ def build_parser() -> argparse.ArgumentParser:
 
     eval_cmd = subparsers.add_parser("eval", help="run eval lanes")
     eval_cmd.add_argument("lane", nargs="?", help="eval lane name (e.g. cognition)")
-    eval_cmd.add_argument("--list", dest="list_lanes", action="store_true", help="list available eval lanes")
+    eval_cmd.add_argument(
+        "--list",
+        dest="list_lanes",
+        action="store_true",
+        help="list available eval lanes",
+    )
     eval_cmd.add_argument("--version", help="version to evaluate (default: latest)")
-    eval_cmd.add_argument("--split", default="public", choices=["dev", "public", "holdout"], help="which split to score (default: public)")
+    eval_cmd.add_argument(
+        "--split",
+        default="public",
+        choices=["dev", "public", "holdout"],
+        help="which split to score (default: public)",
+    )
     eval_cmd.add_argument(
         "--workers",
         type=int,
         default=4,
         metavar="N",
         help=(
-            "parallel worker count for cognition lane "
-            "(0/1 => sequential; default 4)"
+            "parallel worker count for cognition lane (0/1 => sequential; default 4)"
         ),
     )
-    eval_cmd.add_argument("--json", action="store_true", help="emit machine-readable JSON")
-    eval_cmd.add_argument("--save", action="store_true", help="write result to lane results/ directory")
+    eval_cmd.add_argument(
+        "--json", action="store_true", help="emit machine-readable JSON"
+    )
+    eval_cmd.add_argument(
+        "--save", action="store_true", help="write result to lane results/ directory"
+    )
     eval_cmd.add_argument("--report", metavar="PATH", help="write JSON report to file")
     eval_cmd.add_argument(
         "--modality",
@@ -3465,9 +3796,11 @@ def build_parser() -> argparse.ArgumentParser:
     eval_cmd.set_defaults(func=cmd_eval)
 
     from core.cli_ingest import register as _register_ingest
+
     _register_ingest(subparsers)
 
     from formation.cli import register as _register_formation
+
     _register_formation(subparsers)
 
     contemplation = subparsers.add_parser(
@@ -3515,10 +3848,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     contemplation.set_defaults(func=cmd_contemplation)
 
-    doctor = subparsers.add_parser("doctor", help="check runtime imports and packaging health")
-    doctor.add_argument("--packs", action="store_true", help="also list discovered language packs")
-    doctor.add_argument("--rust", action="store_true", help="also show Rust backend activation status")
-    doctor.add_argument("--require-rust", action="store_true", help="exit nonzero when --rust shows inactive backend")
+    doctor = subparsers.add_parser(
+        "doctor", help="check runtime imports and packaging health"
+    )
+    doctor.add_argument(
+        "--packs", action="store_true", help="also list discovered language packs"
+    )
+    doctor.add_argument(
+        "--rust", action="store_true", help="also show Rust backend activation status"
+    )
+    doctor.add_argument(
+        "--require-rust",
+        action="store_true",
+        help="exit nonzero when --rust shows inactive backend",
+    )
     doctor.set_defaults(func=cmd_doctor)
 
     return parser

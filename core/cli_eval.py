@@ -1,4 +1,5 @@
 """Extracted commands."""
+
 from __future__ import annotations
 import argparse
 import json
@@ -7,6 +8,7 @@ from pathlib import Path
 
 from core.cli import _validate_output_path, _DEFAULT_AUDIT_PATH
 from core.cli import _die, _REPO_ROOT
+
 
 def cmd_eval(args: argparse.Namespace) -> int:
     """Run an eval lane by name, or list available lanes."""
@@ -37,7 +39,9 @@ def cmd_eval(args: argparse.Namespace) -> int:
 
     lane_name = args.lane
     if not lane_name:
-        _die("eval requires a lane name. Use `core eval --list` to see available lanes.")
+        _die(
+            "eval requires a lane name. Use `core eval --list` to see available lanes."
+        )
 
     try:
         lane = get_lane(lane_name)
@@ -72,7 +76,9 @@ def cmd_eval(args: argparse.Namespace) -> int:
         _die(str(exc))
 
     if args.json:
-        print(json.dumps(result.as_dict(), ensure_ascii=False, indent=2, sort_keys=True))
+        print(
+            json.dumps(result.as_dict(), ensure_ascii=False, indent=2, sort_keys=True)
+        )
     else:
         print(f"lane           : {result.lane}")
         print(f"version        : {result.version}")
@@ -91,7 +97,8 @@ def cmd_eval(args: argparse.Namespace) -> int:
             # cognition-specific failure printer is gated on lane identity to
             # avoid spurious "failures" output for lanes that pass cleanly.
             failures = [
-                c for c in result.case_details
+                c
+                for c in result.case_details
                 if not c.get("intent_correct") or not c.get("versor_closure")
             ]
             if failures:
@@ -254,5 +261,3 @@ def cmd_eval_math_contemplation(args: argparse.Namespace) -> int:
         )
 
     return 0
-
-

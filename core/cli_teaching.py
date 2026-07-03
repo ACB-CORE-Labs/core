@@ -1,4 +1,5 @@
 """Extracted commands."""
+
 from __future__ import annotations
 import argparse
 import json
@@ -22,7 +23,9 @@ def cmd_teaching_audit(args: argparse.Namespace) -> int:
 
     report = audit_corpus()
     if args.json:
-        print(json.dumps(report.as_dict(), ensure_ascii=False, indent=2, sort_keys=True))
+        print(
+            json.dumps(report.as_dict(), ensure_ascii=False, indent=2, sort_keys=True)
+        )
         return 0 if not report.dropped else 1
     print(f"corpus_id      : {report.corpus_id}")
     print(f"corpus_path    : {report.corpus_path}")
@@ -79,7 +82,9 @@ def cmd_teaching_gaps(args: argparse.Namespace) -> int:
             print(f"  (root path does not exist: {root})")
         return 1
 
-    print(f"{'rank':>4}  {'subject':<24}{'intent':<14}{'count':>6}  {'clean':>6}  months")
+    print(
+        f"{'rank':>4}  {'subject':<24}{'intent':<14}{'count':>6}  {'clean':>6}  months"
+    )
     print("-" * 80)
     for i, gap in enumerate(rows, 1):
         months = ",".join(gap.months_seen) if gap.months_seen else "—"
@@ -253,9 +258,7 @@ def cmd_teaching_queue(args: argparse.Namespace) -> int:
         print(f"No cells met threshold {args.threshold}.")
         return 1
 
-    print(
-        f"{'rank':>4}  {'queue_id':<48}{'count':>6}  {'clean':>6}  months"
-    )
+    print(f"{'rank':>4}  {'queue_id':<48}{'count':>6}  {'clean':>6}  months")
     print("-" * 96)
     for i, p in enumerate(promoted, 1):
         months = ",".join(p.months_seen) if p.months_seen else "—"
@@ -289,6 +292,7 @@ def cmd_teaching_hitl_queue_list(args: argparse.Namespace) -> int:
 
     if args.json:
         import dataclasses
+
         payload = [dataclasses.asdict(item) for item in items]
         print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
         return 0
@@ -308,13 +312,15 @@ def cmd_teaching_hitl_queue_list(args: argparse.Namespace) -> int:
         else:
             replay_status = "?"
 
-        rows.append((
-            item.proposal_id[:12],
-            item.source_kind,
-            item.state,
-            str(item.age_proposals),
-            replay_status,
-        ))
+        rows.append(
+            (
+                item.proposal_id[:12],
+                item.source_kind,
+                item.state,
+                str(item.age_proposals),
+                replay_status,
+            )
+        )
 
     col_widths = [len(h) for h in header]
     for row in rows:
@@ -351,17 +357,30 @@ def cmd_teaching_hitl_queue_show(args: argparse.Namespace) -> int:
         item = exact_matches[0]
     else:
         # 2. Search for prefix match
-        prefix_matches = [item for item in items if item.proposal_id.startswith(args.proposal_id)]
+        prefix_matches = [
+            item for item in items if item.proposal_id.startswith(args.proposal_id)
+        ]
         if len(prefix_matches) == 1:
             item = prefix_matches[0]
         elif len(prefix_matches) == 0:
-            _die(f"proposal_id prefix {args.proposal_id!r} matches zero queue items", code=1)
+            _die(
+                f"proposal_id prefix {args.proposal_id!r} matches zero queue items",
+                code=1,
+            )
         else:
-            _die(f"proposal_id prefix {args.proposal_id!r} is ambiguous (matches multiple items)", code=1)
+            _die(
+                f"proposal_id prefix {args.proposal_id!r} is ambiguous (matches multiple items)",
+                code=1,
+            )
 
     if args.json:
         import dataclasses
-        print(json.dumps(dataclasses.asdict(item), ensure_ascii=False, indent=2, sort_keys=True))
+
+        print(
+            json.dumps(
+                dataclasses.asdict(item), ensure_ascii=False, indent=2, sort_keys=True
+            )
+        )
         return 0
 
     print(f"Proposal ID: {item.proposal_id}")
@@ -391,11 +410,13 @@ def cmd_teaching_hitl_queue_show(args: argparse.Namespace) -> int:
     print("Review History:")
     if item.review_history:
         for ev in item.review_history:
-            note = ev.get('note', '')
-            to_state = ev.get('to', '')
-            review_date = ev.get('review_date', '')
-            actor = ev.get('actor', '')
-            print(f"  - [{review_date or '—'}] transitioned to {to_state} by {actor or '—'}")
+            note = ev.get("note", "")
+            to_state = ev.get("to", "")
+            review_date = ev.get("review_date", "")
+            actor = ev.get("actor", "")
+            print(
+                f"  - [{review_date or '—'}] transitioned to {to_state} by {actor or '—'}"
+            )
             if note:
                 print(f"    Note: {note}")
     else:
@@ -403,7 +424,9 @@ def cmd_teaching_hitl_queue_show(args: argparse.Namespace) -> int:
     print()
     print("ADR References:")
     print("  - Queue contract: docs/adr/ADR-0161-hitl-async-queue.md")
-    print("  - Proposal/review state machine: docs/adr/ADR-0057-teaching-chain-proposal-review.md")
+    print(
+        "  - Proposal/review state machine: docs/adr/ADR-0057-teaching-chain-proposal-review.md"
+    )
 
     return 0
 
@@ -411,8 +434,12 @@ def cmd_teaching_hitl_queue_show(args: argparse.Namespace) -> int:
 def cmd_teaching_propose(args: argparse.Namespace) -> int:
     """ADR-0057 Phase C2 — build a proposal from an enriched candidate JSONL."""
     from teaching.proposals import (
-        ProposalError, ProposalLog, RefusedAsDependent, RefusedAsDuplicate,
-        RefusedAtCapacity, propose_from_candidate,
+        ProposalError,
+        ProposalLog,
+        RefusedAsDependent,
+        RefusedAsDuplicate,
+        RefusedAtCapacity,
+        propose_from_candidate,
     )
 
     candidate = _load_candidate_jsonl(args.candidate_path)
@@ -420,7 +447,9 @@ def cmd_teaching_propose(args: argparse.Namespace) -> int:
     log = ProposalLog(log_path)
     try:
         proposal = propose_from_candidate(
-            candidate, log=log, allow_evaluative=args.allow_evaluative,
+            candidate,
+            log=log,
+            allow_evaluative=args.allow_evaluative,
         )
     except ProposalError as exc:
         _die(f"ineligible: {exc}", code=1)
@@ -439,7 +468,9 @@ def cmd_teaching_propose(args: argparse.Namespace) -> int:
         return 1
 
     if isinstance(proposal, RefusedAsDuplicate):
-        print(f"duplicate: proposal_id={proposal.proposal_id} existing_state={proposal.existing_state}")
+        print(
+            f"duplicate: proposal_id={proposal.proposal_id} existing_state={proposal.existing_state}"
+        )
         return 1
 
     if isinstance(proposal, RefusedAsDependent):
@@ -509,6 +540,7 @@ def cmd_teaching_propose_from_exemplars(args: argparse.Namespace) -> int:
 
     # Resolve current git revision once for the ProposalSource stamp.
     from teaching.proposals import _current_revision
+
     revision = _current_revision()
 
     results: list[dict[str, Any]] = []
@@ -519,11 +551,13 @@ def cmd_teaching_propose_from_exemplars(args: argparse.Namespace) -> int:
             source_id=corpus.corpus_digest,
             emitted_at_revision=revision,
         )
+
         # Bind active_corpus_path=None so the gate reads the live corpus.
         def _gate(chain: dict[str, Any]) -> Any:
             return run_admissibility_replay_gate(
                 candidate.proposed_chain.get("recognizer_spec"),
             )
+
         try:
             proposal = propose_from_candidate(
                 candidate,
@@ -537,7 +571,12 @@ def cmd_teaching_propose_from_exemplars(args: argparse.Namespace) -> int:
                 code=1,
             )
 
-        from teaching.proposals import RefusedAsDependent, RefusedAsDuplicate, RefusedAtCapacity
+        from teaching.proposals import (
+            RefusedAsDependent,
+            RefusedAsDuplicate,
+            RefusedAtCapacity,
+        )
+
         if isinstance(proposal, RefusedAtCapacity):
             try:
                 rel_path = proposal.report_path.relative_to(_REPO_ROOT)
@@ -552,7 +591,9 @@ def cmd_teaching_propose_from_exemplars(args: argparse.Namespace) -> int:
             return 1
 
         if isinstance(proposal, RefusedAsDuplicate):
-            print(f"duplicate: proposal_id={proposal.proposal_id} existing_state={proposal.existing_state}")
+            print(
+                f"duplicate: proposal_id={proposal.proposal_id} existing_state={proposal.existing_state}"
+            )
             return 1
 
         if isinstance(proposal, RefusedAsDependent):
@@ -670,8 +711,11 @@ def cmd_teaching_proposals(args: argparse.Namespace) -> int:
 
 def cmd_teaching_review(args: argparse.Namespace) -> int:
     from teaching.proposals import (
-        ProposalError, ProposalLog,
-        accept_proposal, reject_proposal, withdraw_proposal,
+        ProposalError,
+        ProposalLog,
+        accept_proposal,
+        reject_proposal,
+        withdraw_proposal,
     )
 
     log_path = Path(args.log) if args.log else None
@@ -681,8 +725,10 @@ def cmd_teaching_review(args: argparse.Namespace) -> int:
             if not args.review_date:
                 _die("--accept requires --review-date YYYY-MM-DD", code=2)
             from chat.teaching_grounding import _CORPUS_PATH
+
             chain_id = accept_proposal(
-                args.proposal_id, log=log,
+                args.proposal_id,
+                log=log,
                 corpus_path=_CORPUS_PATH,
                 review_date=args.review_date,
                 operator_note=args.note,
@@ -713,14 +759,18 @@ def cmd_teaching_supersessions(args: argparse.Namespace) -> int:
     records = supersession_history(report)
 
     if args.json:
-        print(json.dumps(
-            {
-                "corpus_id": report.corpus_id,
-                "corpus_path": report.corpus_path,
-                "supersessions": [r.as_dict() for r in records],
-            },
-            ensure_ascii=False, indent=2, sort_keys=True,
-        ))
+        print(
+            json.dumps(
+                {
+                    "corpus_id": report.corpus_id,
+                    "corpus_path": report.corpus_path,
+                    "supersessions": [r.as_dict() for r in records],
+                },
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            )
+        )
         return 0
 
     if not records:
@@ -768,11 +818,11 @@ def cmd_teaching_supersede(args: argparse.Namespace) -> int:
         # when any cross-pack flag is set.
         if not subj_pack or not obj_pack:
             _die(
-                "cross-pack supersede requires --subject-pack-id and "
-                "--object-pack-id",
+                "cross-pack supersede requires --subject-pack-id and --object-pack-id",
                 code=2,
             )
         from teaching.cross_pack_supersede import supersede_cross_pack_chain
+
         try:
             new_chain_id = supersede_cross_pack_chain(
                 old_chain_id=args.old_chain_id,
@@ -828,21 +878,33 @@ def cmd_teaching_compile_pack(args: argparse.Namespace) -> int:
 
     from language_packs.compile_pack import compile_pack
 
-    pack_root = Path(args.pack) if args.pack else (
-        Path(__file__).resolve().parent.parent
-        / "language_packs" / "data" / "en_core_math_v1"
+    pack_root = (
+        Path(args.pack)
+        if args.pack
+        else (
+            Path(__file__).resolve().parent.parent
+            / "language_packs"
+            / "data"
+            / "en_core_math_v1"
+        )
     )
     receipt = compile_pack(pack_root.resolve())
 
     if args.json:
-        print(json.dumps({
-            "pack_path": str(receipt.pack_path),
-            "frame_checksum": receipt.frame_checksum,
-            "composition_checksum": receipt.composition_checksum,
-            "frame_bytes_written": receipt.frame_bytes_written,
-            "composition_bytes_written": receipt.composition_bytes_written,
-            "manifest_updated": receipt.manifest_updated,
-        }, indent=2, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "pack_path": str(receipt.pack_path),
+                    "frame_checksum": receipt.frame_checksum,
+                    "composition_checksum": receipt.composition_checksum,
+                    "frame_bytes_written": receipt.frame_bytes_written,
+                    "composition_bytes_written": receipt.composition_bytes_written,
+                    "manifest_updated": receipt.manifest_updated,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
     else:
         print(f"pack                 : {receipt.pack_path}")
         print(f"frame_checksum       : {receipt.frame_checksum[:24]}...")
@@ -887,9 +949,7 @@ def cmd_teaching_seed_recognizer(args: argparse.Namespace) -> int:
             set(args.observed_currency_symbols)
         )
     if args.observed_per_units:
-        canonical_pattern["observed_per_units"] = sorted(
-            set(args.observed_per_units)
-        )
+        canonical_pattern["observed_per_units"] = sorted(set(args.observed_per_units))
     if args.observed_units:
         canonical_pattern["observed_units"] = sorted(set(args.observed_units))
     if args.anchor_count_min is not None:
@@ -938,13 +998,15 @@ def cmd_teaching_seed_recognizer(args: argparse.Namespace) -> int:
 
     # Append created + transition events directly via the log's writer.
     log._append({"event": "created", "proposal": proposal_payload})
-    log._append({
-        "event": "transition",
-        "proposal_id": proposal_id,
-        "to": "accepted",
-        "note": args.note or "RAT-1 CLI seed",
-        "review_date": review_date,
-    })
+    log._append(
+        {
+            "event": "transition",
+            "proposal_id": proposal_id,
+            "to": "accepted",
+            "note": args.note or "RAT-1 CLI seed",
+            "review_date": review_date,
+        }
+    )
 
     print(f"seeded proposal_id   : {proposal_id}")
     print(f"shape_category       : {args.shape_category}")
@@ -981,6 +1043,7 @@ def cmd_teaching_coverage(args: argparse.Namespace) -> int:
     # depth response to the Sourcery security advisory: reject
     # everything except ``[a-z0-9_]+``.
     import re as _re
+
     _safe_token_re = _re.compile(r"^[a-z0-9_]+$")
     for label, value in (("lane", lane), ("split", split), ("version", version)):
         if not _safe_token_re.match(value):
@@ -999,6 +1062,7 @@ def cmd_teaching_coverage(args: argparse.Namespace) -> int:
 
     if args.run or not report_path.exists():
         import subprocess
+
         runner_module = f"evals.{lane}.{split}.{version}.runner"
         runner_args = [sys.executable, "-m", runner_module]
         try:
@@ -1014,9 +1078,7 @@ def cmd_teaching_coverage(args: argparse.Namespace) -> int:
 
     baseline_path = None
     if args.delta:
-        report_relpath = (
-            f"evals/{lane}/{split}/{version}/report.json"
-        )
+        report_relpath = f"evals/{lane}/{split}/{version}/report.json"
         baseline_path = fetch_committed_baseline(report_relpath, repo_root)
 
     report = build_coverage_report(
@@ -1077,8 +1139,12 @@ def cmd_teaching_refusal_taxonomy(args: argparse.Namespace) -> int:
     from evals.refusal_taxonomy.runner import run_lane
     from scripts.build_refusal_taxonomy_cases import build_cases
 
-    input_path = Path(args.input) if args.input else (
-        _REPO_ROOT / "evals" / "refusal_taxonomy" / "public" / "v1" / "cases.jsonl"
+    input_path = (
+        Path(args.input)
+        if args.input
+        else (
+            _REPO_ROOT / "evals" / "refusal_taxonomy" / "public" / "v1" / "cases.jsonl"
+        )
     )
     if not input_path.exists():
         print(f"input not found: {input_path}", file=sys.stderr)
@@ -1109,7 +1175,8 @@ def cmd_teaching_refusal_taxonomy(args: argparse.Namespace) -> int:
         print(f"case_digest        : {metrics['case_digest']}")
         print("histogram:")
         for category, count in sorted(
-            metrics["by_category"].items(), key=lambda kv: (-kv[1], kv[0]),
+            metrics["by_category"].items(),
+            key=lambda kv: (-kv[1], kv[0]),
         ):
             print(f"  {count:3d}  {category}")
 
@@ -1125,8 +1192,7 @@ def cmd_teaching_refusal_taxonomy(args: argparse.Namespace) -> int:
             "cases": report.case_details,
         }
         out.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True)
-            + "\n"
+            json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
         )
         print(f"saved              : {out}", file=sys.stderr)
 
@@ -1171,9 +1237,7 @@ def _load_candidate_jsonl(path: str) -> Any:
     except json.JSONDecodeError as exc:
         _die(f"invalid JSON: {exc}", code=2)
     try:
-        evidence = tuple(
-            EvidencePointer(**e) for e in payload.get("evidence", [])
-        )
+        evidence = tuple(EvidencePointer(**e) for e in payload.get("evidence", []))
         sub_questions = tuple(
             SubQuestion(
                 sub_id=s["sub_id"],
@@ -1207,7 +1271,9 @@ def _load_candidate_jsonl(path: str) -> Any:
 def _load_findings_jsonl(path: str) -> list:
     """Load ContemplationFinding objects from a JSONL file (W-019)."""
     from core.contemplation.schema import (
-        ContemplationEvidenceRef, ContemplationFinding, FindingKind,
+        ContemplationEvidenceRef,
+        ContemplationFinding,
+        FindingKind,
     )
     from teaching.epistemic import EpistemicStatus
 
@@ -1222,19 +1288,21 @@ def _load_findings_jsonl(path: str) -> list:
             )
             for e in raw.get("evidence_refs", [])
         )
-        findings.append(ContemplationFinding(
-            kind=FindingKind(raw["kind"]),
-            subject=raw["subject"],
-            predicate=raw["predicate"],
-            object=raw.get("object"),
-            evidence_refs=evidence_refs,
-            proposed_action=raw["proposed_action"],
-            substrate_hash=raw.get("substrate_hash", ""),
-            epistemic_status=EpistemicStatus(
-                raw.get("epistemic_status", EpistemicStatus.SPECULATIVE.value)
-            ),
-            finding_id=raw.get("finding_id", ""),
-        ))
+        findings.append(
+            ContemplationFinding(
+                kind=FindingKind(raw["kind"]),
+                subject=raw["subject"],
+                predicate=raw["predicate"],
+                object=raw.get("object"),
+                evidence_refs=evidence_refs,
+                proposed_action=raw["proposed_action"],
+                substrate_hash=raw.get("substrate_hash", ""),
+                epistemic_status=EpistemicStatus(
+                    raw.get("epistemic_status", EpistemicStatus.SPECULATIVE.value)
+                ),
+                finding_id=raw.get("finding_id", ""),
+            )
+        )
     return findings
 
 
@@ -1254,7 +1322,9 @@ def _current_git_revision() -> str:
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--short=12", "HEAD"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         return result.stdout.strip() or "unknown"
     except Exception:  # noqa: BLE001
@@ -1267,10 +1337,14 @@ def _write_miner_curriculum_batch(
     out_path: Path | None,
 ) -> None:
     """Write PackMutationProposal batch to JSONL and print summary."""
-    lines = [json.dumps(p.as_dict(), sort_keys=True, ensure_ascii=False) for p in proposals]
+    lines = [
+        json.dumps(p.as_dict(), sort_keys=True, ensure_ascii=False) for p in proposals
+    ]
     if out_path is not None:
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+        out_path.write_text(
+            "\n".join(lines) + ("\n" if lines else ""), encoding="utf-8"
+        )
         print(f"wrote {len(proposals)} proposal(s) → {out_path}")
     else:
         for line in lines:
@@ -1278,6 +1352,7 @@ def _write_miner_curriculum_batch(
     print(f"proposals : {len(proposals)}", file=sys.stderr)
     print(f"rejections: {len(rejections)}", file=sys.stderr)
     for rej in rejections:
-        print(f"  rejected {rej.get('finding_id', '?')}: {rej.get('reason', '?')}", file=sys.stderr)
-
-
+        print(
+            f"  rejected {rej.get('finding_id', '?')}: {rej.get('reason', '?')}",
+            file=sys.stderr,
+        )
