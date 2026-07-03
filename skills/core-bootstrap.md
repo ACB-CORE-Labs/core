@@ -9,7 +9,7 @@ Execute the full **Session Start Checklist** from GROK.md in strict order, inclu
 
 1. Read GROK.md in full.
 2. Read AGENTS.md in full.
-3. Read docs/runtime_contracts.md in full.
+3. Read docs/specs/runtime_contracts.md in full.
 4. Confirm project root:
    - `pwd`
    - `git rev-parse --show-toplevel`

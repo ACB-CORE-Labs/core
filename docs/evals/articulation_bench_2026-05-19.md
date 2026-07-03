@@ -120,7 +120,7 @@ trace hashing, and reviewed teaching.
 The `determinism` sub-bench enforces this end-to-end with the
 planner engaged: 20 independent `ChatRuntime` instances per prompt,
 one unique surface per prompt.  This is the *learning-loop
-determinism* of [ADR-0055](../decisions/) and [ADR-0057](../decisions/)
+determinism* of [ADR-0055](../adr/) and [ADR-0057](../adr/)
 applied to the articulation spine rather than only to retrieval and
 proposal acceptance.
 

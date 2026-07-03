@@ -120,7 +120,7 @@ Never push the PR branch until the logical slice commits + 9-section report are 
 
 When a design or capability change is implemented (even "just" substrate), the following must be updated in the same PR (or as an immediate follow-up docs slice on the branch):
 
-- **Canonical runtime contract**: `docs/runtime_contracts.md` (the Idle consolidation / Step D — CLOSE section must name the new behaviour while re-stating every existing contract: SPECULATIVE honesty, wrong=0 by proof-gating + verifier, replayable provenance, session-only / no parallel path, no COHERENT, no normalization outside sanctioned boundaries).
+- **Canonical runtime contract**: `docs/specs/runtime_contracts.md` (the Idle consolidation / Step D — CLOSE section must name the new behaviour while re-stating every existing contract: SPECULATIVE honesty, wrong=0 by proof-gating + verifier, replayable provenance, session-only / no parallel path, no COHERENT, no normalization outside sanctioned boundaries).
 - **Dated analysis / lookback note** under `docs/analysis/` (this file). Captures scope, evidence, the governing sequence plan, branch discipline, red lines, and non-goals. Follows the style of other step/phase lookbacks and design notes in the tree.
 - **High-level entry points** (root `README.md`, `docs/capability_roadmap.md`, `docs/PROGRESS.md`, etc.): minimal accurate cross-reference or one-sentence pointer so a reader of the high-level material knows the lived loop now also consolidates declared strict-order relations via CLOSE. Do not bury the contract details in the overview README.
 - Any ADR/brief/handoff that would otherwise become stale on the cognitive loop description.
@@ -129,7 +129,7 @@ This note + the runtime_contracts.md extension + the small README pointer satisf
 
 ## Documentation Updates Delivered in This Step
 
-- Extended the "Idle consolidation (Step D — CLOSE)" section in `docs/runtime_contracts.md` (one clear paragraph + contract bullets re-affirming the invariants now apply to the relational transitive case as well).
+- Extended the "Idle consolidation (Step D — CLOSE)" section in `docs/specs/runtime_contracts.md` (one clear paragraph + contract bullets re-affirming the invariants now apply to the relational transitive case as well).
 - This analysis note (the reusable "solid organized, clean plan" for branch/worktree start, PR slicing, wait conditions, 9-section reporting, and the documentation-update rule).
 - Tiny, accurate pointer added to root `README.md` near the learning-loop / teaching-corpus description (cross-ref to the contracts for the new CLOSE behaviour).
 

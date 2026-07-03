@@ -103,7 +103,7 @@ short-circuits at the question layer.
   - B3 lane regression guard.
   - GSM8K safety rail: `admitted_wrong == 0` preserved.
 
-- **ADR** `docs/decisions/ADR-0131.G.6-rate-capacity.md`. Parent:
+- **ADR** `docs/adr/ADR-0131.G.6-rate-capacity.md`. Parent:
   ADR-0131.G. Document closed verb set, closed time-unit set, conversion
   table, short-circuit path rationale. State explicitly that
   `math_solver.py` and `math_problem_graph.py` are unchanged. Call out

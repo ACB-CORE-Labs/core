@@ -2,7 +2,7 @@
 
 **Status:** Operational reference. Update when pack format, loader contract, or composition rules change.
 **Last updated:** 2026-05-17
-**Companion docs:** [`decisions/ADR-0029-safety-packs.md`](decisions/ADR-0029-safety-packs.md), [`identity_packs.md`](identity_packs.md)
+**Companion docs:** [`adr/ADR-0029-safety-packs.md`](adr/ADR-0029-safety-packs.md), [`identity_packs.md`](identity_packs.md)
 
 ## What a safety pack is
 
@@ -183,7 +183,7 @@ Unknown boundaries (declared in the pack but no predicate registered) default to
 
 ## Known limits
 
-1. ~~**No `SafetyCheck` parallel to `IdentityCheck`.**~~ **Closed by [ADR-0032](decisions/ADR-0032-safety-check-surface.md) (2026-05-17).** See §SafetyCheck above. v1 is observational; turn-loop auto-invocation and refusal wiring are future ADRs.
+1. ~~**No `SafetyCheck` parallel to `IdentityCheck`.**~~ **Closed by [ADR-0032](adr/ADR-0032-safety-check-surface.md) (2026-05-17).** See §SafetyCheck above. v1 is observational; turn-loop auto-invocation and refusal wiring are future ADRs.
 2. **No per-tenant safety packs.** Multi-tenant CORE deployments share one safety pack.
 3. **No human-in-the-loop ratification step.** Operational discipline lives in PR review, not the code.
 4. **English-only boundary descriptions** at v1.
@@ -192,7 +192,7 @@ Unknown boundaries (declared in the pack but no predicate registered) default to
 
 - Pack format spec: this doc §"Pack format (v1)".
 - Loader contract: this doc §"Loader contract".
-- Decision record: [ADR-0029](decisions/ADR-0029-safety-packs.md).
+- Decision record: [ADR-0029](adr/ADR-0029-safety-packs.md).
 - Identity pack composition: [`identity_packs.md`](identity_packs.md).
-- Trust-boundary doctrine: [`runtime_contracts.md`](runtime_contracts.md), CLAUDE.md "Security and Trust Boundaries".
+- Trust-boundary doctrine: [`specs/runtime_contracts.md`](specs/runtime_contracts.md), AGENTS.md "Security and trust boundaries".
 - The formation template used for ratification: `formation/templates/identity_anchor.py`.

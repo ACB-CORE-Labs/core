@@ -17,15 +17,15 @@ Target literal classes (closed set, drawn from `en_numerics_v1`):
 - **Hyphenated compound numerics:** `one-hour`, `10 one-hour` — adjectival numeric modifying a head noun.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0131.G-gsm8k-coverage-probe.md` — iteration discipline.
-2. `docs/decisions/ADR-0127-units-pack-and-units-aware-parser.md` + `docs/decisions/ADR-0128-numerics-pack.md` — the packs that already exist; the work is **consuming them at the parser layer**, not extending them.
+1. `docs/adr/ADR-0131.G-gsm8k-coverage-probe.md` — iteration discipline.
+2. `docs/adr/ADR-0127-units-pack-and-units-aware-parser.md` + `docs/adr/ADR-0128-numerics-pack.md` — the packs that already exist; the work is **consuming them at the parser layer**, not extending them.
 
 **What to ship:**
 - **Parser extension** in `generate/math_candidate_parser.py`: widen the value-slot matcher to consult `en_numerics_v1.lexicon` (money + fraction + compound forms) before falling back to the existing integer/word-number regex. Currency-symbol → unit promotion routes through the `en_units_v1` resolver. The pack lookup is **deterministic, ordered, and cached** at parser-construction time; no I/O on hot path.
 - **Curated coverage cases** at `evals/math_capability_axes/G3_numerics/v1/cases.jsonl` (~25): ≥5 per literal class + ≥5 refusal probes (e.g. `$N.NNNN` with too many decimals, fractions like `N/0`, ambiguous hyphenations like `one-hour-old`). Refusal probes pin the scope.
 - **Runner + report** at `evals/math_capability_axes/G3_numerics/v1/`.
 - **Tests** at `tests/test_adr_0131_G3_numerics.py` (~12): per-literal-class at-least-one passing, refusal probes all refuse typed, `wrong == 0`, replay byte-equality, **GSM8K probe re-run with admission strictly increases OR money/fraction-shape refusals strictly decrease** (declare in ADR, gate on it).
-- **ADR** `docs/decisions/ADR-0131.G.3-numerics.md`. Cite ADR-0127/0128 packs; document the closed literal classes; pin currency-symbol → unit mapping; list every deferred shape.
+- **ADR** `docs/adr/ADR-0131.G.3-numerics.md`. Cite ADR-0127/0128 packs; document the closed literal classes; pin currency-symbol → unit mapping; list every deferred shape.
 - **Refresh** `evals/gsm8k_math/train_sample/v1/train_sample_coverage_report.json`.
 
 **Hard constraints:**

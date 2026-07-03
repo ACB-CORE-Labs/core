@@ -92,7 +92,7 @@ speculative scaffolding, **stop and flag it** — that's the failure mode.
 ## 3. Map of what already exists (read these first; don't reinvent)
 
 - `CLAUDE.md` — the constitution. Read it.
-- `docs/decisions/` — all ADRs (0001…0195) + `README.md` narrative.
+- `docs/adr/` — all ADRs (0001…0195) + `README.md` narrative.
 - `evals/` already contains:
   - `gsm8k_math/` — `train_sample/` (the real metric), `practice/` (sealed),
     `confusers/` (discrimination probes). **This is your structural template.**
@@ -149,7 +149,7 @@ counts sum to 44; no claim that a case "would pass" — only *why it currently d
 
 ### TASK C — Subject Readiness Survey + Recommendation  *(decides scope for D+)*
 **Read:** `evals/symbolic_logic/`, `evals/math_capability_axes/`,
-`docs/decisions/README.md`, and ADRs touching logic (search "0123") and
+`docs/adr/README.md`, and ADRs touching logic (search "0123") and
 capability axes (search "0131").
 **Produce:** `docs/analysis/next-subjects-readiness.md` — for each candidate
 subject below, state: what substrate already exists, which primitives from

@@ -175,10 +175,10 @@ ADR-0061 path landed.
 
 - [Curriculum: epistemology v1](epistemology_v1.md) — the first
   unit; chain selection rationale and operator workflow.
-- [ADR-0057](../decisions/ADR-0057-teaching-chain-proposal-review.md)
+- [ADR-0057](../adr/ADR-0057-teaching-chain-proposal-review.md)
   — the propose/review/accept surface.
-- [ADR-0060](../decisions/ADR-0060-correction-acknowledgment-topic-lemma.md)
-  + [ADR-0061](../decisions/ADR-0061-procedure-intent-pack-grounded-surface.md)
+- [ADR-0060](../adr/ADR-0060-correction-acknowledgment-topic-lemma.md)
+  + [ADR-0061](../adr/ADR-0061-procedure-intent-pack-grounded-surface.md)
   — architectural surface composition fixes that close the
   remaining-fixable holdout misses.
 - Next: composed-surface ADR (chain-of-chains realization) — the

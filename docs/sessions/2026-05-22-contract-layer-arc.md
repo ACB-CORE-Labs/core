@@ -85,15 +85,15 @@ These are not contract changes. ADR-0106 + ADR-0109 contract bodies are untouche
 
 ## References
 
-- `docs/decisions/ADR-0103-fluency-lane-attachment-for-adr-0102.md`
-- `docs/decisions/ADR-0104-curriculum-sourced-teaching-proposals.md`
-- `docs/decisions/ADR-0105-sealed-holdout-encryption.md`
-- `docs/decisions/ADR-0106-expert-demo-promotion-contract.md`
-- `docs/decisions/ADR-0107-mathematics-logic-expert-demo-deferred.md`
-- `docs/decisions/ADR-0108-proposed-adr-sequencing.md`
-- `docs/decisions/ADR-0109-lane-shape-aware-thresholds.md`
-- `docs/decisions/ADR-0110-mathematics-logic-expert-demo-promotion.md`
-- `docs/decisions/ADR-0080-contemplation-loop.md`
+- `docs/adr/ADR-0103-fluency-lane-attachment-for-adr-0102.md`
+- `docs/adr/ADR-0104-curriculum-sourced-teaching-proposals.md`
+- `docs/adr/ADR-0105-sealed-holdout-encryption.md`
+- `docs/adr/ADR-0106-expert-demo-promotion-contract.md`
+- `docs/adr/ADR-0107-mathematics-logic-expert-demo-deferred.md`
+- `docs/adr/ADR-0108-proposed-adr-sequencing.md`
+- `docs/adr/ADR-0109-lane-shape-aware-thresholds.md`
+- `docs/adr/ADR-0110-mathematics-logic-expert-demo-promotion.md`
+- `docs/adr/ADR-0080-contemplation-loop.md`
 - `docs/reviewers.yaml` (first signed `expert_demo_claims` entry)
 - `core/capability/expert_demo.py`
 - `core/capability/reviewers.py`

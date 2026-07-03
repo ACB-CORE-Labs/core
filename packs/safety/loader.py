@@ -6,7 +6,7 @@ carry the boundaries CORE will *never* cross (which cannot be swapped at
 all).  Architecturally they are sister concerns but structurally they
 are separate: different directory, different schema, different loader.
 
-See ``docs/decisions/ADR-0029-safety-packs.md``.
+See ``docs/adr/ADR-0029-safety-packs.md``.
 """
 
 from __future__ import annotations

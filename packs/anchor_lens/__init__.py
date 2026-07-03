@@ -1,8 +1,8 @@
 """Anchor-lens packs — substantive-axis siblings to identity/safety/
 ethics/register.
 
-See ``docs/decisions/ADR-0073-anchor-lens-substrate.md`` (umbrella)
-and ``docs/decisions/ADR-0073b-anchor-lens-class-loader.md`` (this
+See ``docs/adr/ADR-0073-anchor-lens-substrate.md`` (umbrella)
+and ``docs/adr/ADR-0073b-anchor-lens-class-loader.md`` (this
 phase).
 """
 

@@ -26,7 +26,7 @@ dialect, the exact fragmentation ADR-0144 was created to resolve.
 
 This contract is that single source. **The canonicalizer is authoritative for the
 formula grammar**; any grammar change updates this doc in the *same* PR (mirroring
-the `docs/runtime_contracts.md` discipline).
+the `docs/specs/runtime_contracts.md` discipline).
 
 The representation is **two layers**:
 

@@ -182,7 +182,7 @@ No timelines. Order is by leverage, not calendar.
 
 - `docs/handoff/discrete_count_statement-injector-spec.md` — the DCS sub-shape spec
 - `docs/handoff/ADR-0167-FOLLOWUPS.md` — parent follow-up queue
-- `docs/decisions/ADR-0168-frameclaim-ratification.md` — FrameClaim scoping
-- `docs/decisions/ADR-0168.1-math-frameclaim-proposal-adapter.md` — adapter bridge
+- `docs/adr/ADR-0168-frameclaim-ratification.md` — FrameClaim scoping
+- `docs/adr/ADR-0168.1-math-frameclaim-proposal-adapter.md` — adapter bridge
 - PR #369 — A2's schema-refusal artifact
 - `memory/feedback-no-self-dispatch-of-subagents.md` — binding dispatch principle

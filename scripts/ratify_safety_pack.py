@@ -6,7 +6,7 @@ identity packs.  The boundary identifiers are expressed as
 ``every_axis_seeded_at_least_once`` covers them, and the canned
 override-attempt counters drive the ``every_override_rejected`` gate.
 
-See ``docs/decisions/ADR-0029-safety-packs.md``.
+See ``docs/adr/ADR-0029-safety-packs.md``.
 """
 
 from __future__ import annotations

@@ -146,7 +146,7 @@ Accepted when:
 - Verifier passes all 50 dev-set solver traces
 - Every named tamper class is caught by the test suite
 - Smoke suite is green
-- ADR linked from `docs/decisions/README.md` index and frontier
+- ADR linked from `docs/adr/README.md` index and frontier
 
 ---
 

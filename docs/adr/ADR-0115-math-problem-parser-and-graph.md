@@ -165,7 +165,7 @@ the parser against itself. Tested by
   registry, scope boundary, and authoring contract
 - `tests/test_math_problem_graph.py` is 26/26 green and pins the five
   invariants above
-- README + `docs/decisions/README.md` link this ADR
+- README + `docs/adr/README.md` link this ADR
 
 ---
 

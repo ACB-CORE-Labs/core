@@ -1,7 +1,7 @@
 """ADR-0163-F2 — the confuser corpus runner (a discrimination probe).
 
 Scored the **opposite way from a coverage lane** (see
-``docs/decisions/ADR-0163-F2-confuser-corpus-spec.md``): the headline is
+``docs/adr/ADR-0163-F2-confuser-corpus-spec.md``): the headline is
 ``wrong == 0`` on confusers — a confuser *answered* is a defect regardless of its
 value — plus **pair-consistency** (a reader that solves a twin but also commits an
 answer on its confuser is surface-matching, not reading). ``refused`` on confusers

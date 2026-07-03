@@ -38,7 +38,7 @@ comprehension failure → proposal_only artifact → proposal-review report → 
   never propagated, so it cannot corrupt the tick's state or return.
 - **No state change:** the sub-pass never sets `did_work`, so the existing checkpoint logic is
   untouched; default-off leaves `IdleTickResult` byte-identical for existing callers.
-- Contract documented in `docs/runtime_contracts.md`; contract tests in
+- Contract documented in `docs/specs/runtime_contracts.md`; contract tests in
   `tests/test_idle_proposal_review.py` (default-off shape, enabled summary, captured exception,
   no-checkpoint, other-passes-unperturbed) plus the unchanged existing idle suites.
 

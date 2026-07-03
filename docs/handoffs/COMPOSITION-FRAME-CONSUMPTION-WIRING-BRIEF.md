@@ -111,7 +111,7 @@ Both CW-1 and CW-2 mirror this pattern.
 
 - `generate/comprehension/lexicon.py::load_lexicon` (the template)
 - `teaching/math_frame_ratification.py` (write side — entry schema)
-- `docs/decisions/ADR-0168-frameclaim-ratification.md` §"Mutation boundary"
+- `docs/adr/ADR-0168-frameclaim-ratification.md` §"Mutation boundary"
 - `language_packs/data/en_core_math_v1/manifest.json` (current shape)
 - The empty `language_packs/data/en_core_math_v1/frames/` directory
 
@@ -165,7 +165,7 @@ Both CW-1 and CW-2 mirror this pattern.
 
 - All CW-1 reads
 - `teaching/math_composition_ratification.py` (write side — entry schema)
-- `docs/decisions/ADR-0169-compositionclaim-ratification.md` §"Mutation boundary", §"Initial safe category scope"
+- `docs/adr/ADR-0169-compositionclaim-ratification.md` §"Mutation boundary", §"Initial safe category scope"
 - `generate/recognizer_anchor_inject.py` — current injector entry points (`inject_from_match`, `inject_discrete_count_statement`)
 - `generate/math_candidate_graph.py` — where injector outputs feed the graph
 

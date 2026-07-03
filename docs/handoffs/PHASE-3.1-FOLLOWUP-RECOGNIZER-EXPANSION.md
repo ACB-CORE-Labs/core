@@ -3,7 +3,7 @@
 **Status:** Open recommendation
 **Date:** 2026-05-28
 **Author:** Shay (analysis surfaced during ADR-0174 Phase 3a)
-**Parent:** [ADR-0174 — Held-Hypothesis Comprehension](../decisions/ADR-0174-held-hypothesis-comprehension.md)
+**Parent:** [ADR-0174 — Held-Hypothesis Comprehension](../adr/ADR-0174-held-hypothesis-comprehension.md)
 **Related ADRs:** ADR-0163 (path to GSM8K mastery), ADR-0167 (audit-as-teaching-evidence), ADR-0150/0152/0155/0161 (HITL corridor)
 
 ---

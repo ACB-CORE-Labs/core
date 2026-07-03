@@ -87,7 +87,7 @@ What ships:
 - **ADR-0162 (PR #293)** — design system doctrine: semantic tokens, dark-only theme, motion rules ("reveals structure, not cognition"), `StableJsonViewer` six invariants, empty/error/loading state contracts, keyboard-first contract, five-region shell, v1 component map, explicit no-go list.
 - **Branch 1 (PR #295)** — `workbench-ui/` scaffold with self-hosted Inter + JetBrains Mono, generated `tokens.ts` mirror from `tokens.css`, `StableJsonViewer` with all six invariants tested, enum-bound badge primitives (`EpistemicStateBadge`, `NormativeClearanceBadge`, `ReviewStateBadge`, `GroundingSourceBadge`), and a `/preview` route as the design baseline.  Build-time enum-coverage test parses `core/epistemic_state.py` + `teaching/proposals.py` via Python AST and asserts 1:1 badge coverage; adding an enum value on the Python side without updating the badge fails the test loud.
 - **W-027 (PR #299)** — five-region grid shell (TopBar / LeftNav / MainSurface / RightInspector / StatusFooter), ten empty routes each with copy-CLI affordances, live `StatusFooter` consuming `useRuntimeStatus()` (color + label encoding of `mutation_mode`, click-to-copy `git_revision`, amber-on-warning `checkpoint_revision` with ADR-0157/0158 inline note), `CommandPalette` upgrade with three real commands + fuzzy search, `ApiErrorBoundary` for `WorkbenchApiError`, schema-drift sentinel via `scripts/dump-api-schemas.py`.
-- **W-028 (PR #303)** — the first route with real content.  `/chat` route with `PromptComposer` (⌘/Ctrl+Enter submit, Esc clear, 4096-char cap), `ResponseCard`, `EvidenceStrip` (5 enum-bound badges visible at a glance — grounding source, epistemic state, normative clearance, refusal indicator, mutation/checkpoint), `TraceDrawer` with three layers (structured panels, `StableJsonViewer`, raw payload behind `<details>` with downloadable .json).  Server-side `POST /chat/turn` with module-level `threading.Lock`, 64 KiB body cap, returns full `ChatTurnResult` carrying surface/walk_surface/articulation_surface distinctly per `docs/runtime_contracts.md`.
+- **W-028 (PR #303)** — the first route with real content.  `/chat` route with `PromptComposer` (⌘/Ctrl+Enter submit, Esc clear, 4096-char cap), `ResponseCard`, `EvidenceStrip` (5 enum-bound badges visible at a glance — grounding source, epistemic state, normative clearance, refusal indicator, mutation/checkpoint), `TraceDrawer` with three layers (structured panels, `StableJsonViewer`, raw payload behind `<details>` with downloadable .json).  Server-side `POST /chat/turn` with module-level `threading.Lock`, 64 KiB body cap, returns full `ChatTurnResult` carrying surface/walk_surface/articulation_surface distinctly per `docs/specs/runtime_contracts.md`.
 
 ### Fork C — HITL Queue (ADR-0161 + L10b followups)
 
@@ -172,10 +172,10 @@ That loop, once you decide to run it, is the math architecture working as design
 
 ## Cross-references
 
-- [ADR-0163 — Path to GSM8K mastery](../decisions/ADR-0163-gsm8k-path-to-mastery.md)
-- [ADR-0162 — Workbench Design System v1](../decisions/ADR-0162-workbench-design-system.md)
-- [ADR-0161 — HITL async queue](../decisions/ADR-0161-hitl-async-queue.md)
-- [ADR-0160 — CORE Workbench v1](../decisions/ADR-0160-core-workbench-v1.md)
+- [ADR-0163 — Path to GSM8K mastery](../adr/ADR-0163-gsm8k-path-to-mastery.md)
+- [ADR-0162 — Workbench Design System v1](../adr/ADR-0162-workbench-design-system.md)
+- [ADR-0161 — HITL async queue](../adr/ADR-0161-hitl-async-queue.md)
+- [ADR-0160 — CORE Workbench v1](../adr/ADR-0160-core-workbench-v1.md)
 - [Master plan post-substrate-audit](../master-plan-post-substrate-audit.md) — superseded by this session for the math + workbench forks
 - [docs/PROGRESS.md](../PROGRESS.md) — capability-roadmap tracker; this session adds the math-corridor closure entry
 

@@ -6,7 +6,7 @@
 reproduced live against `origin/main` @ `2cb0922` via read-only
 `extract_quantities` / derivation-composer / `parse_and_solve` probes.
 
-**Scope.** Open [ADR-0179 — Extraction Richness](../decisions/ADR-0179-extraction-richness.md),
+**Scope.** Open [ADR-0179 — Extraction Richness](../adr/ADR-0179-extraction-richness.md),
 read the exact cases its §Context table names as starved by the thin
 `(\d+(?:\.\d+)?)\s+([a-z]+)` extractor, and verify for each — *against the tree* —
 whether it actually refuses at the **extraction** layer (`generate/derivation/extract.py`)

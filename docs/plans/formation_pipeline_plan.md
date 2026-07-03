@@ -2,8 +2,8 @@
 
 Status: **IMPLEMENTED (back half) — 2026-05-17**
 Author: planner pass, 2026-05-16
-Companion doc: `docs/decisions/ADR-0021-epistemic-grade-policy.md`,
-`docs/runtime_contracts.md`, `docs/teaching_order.md`
+Companion doc: `docs/adr/ADR-0021-epistemic-grade-policy.md`,
+`docs/specs/runtime_contracts.md`, `docs/teaching_order.md`
 
 ## Implementation status
 
@@ -96,7 +96,7 @@ is a small change; none alters the architecture. Confirm or push back per item.
     `ReviewedTeachingExample` per validated triple, stamped with the Mastery
     Report SHA, and submits it through the existing reviewed apply path.
     This preserves ADR-0021's "one mutation path" invariant.
-14. **Trust boundary table belongs in `docs/runtime_contracts.md`.** Add a
+14. **Trust boundary table belongs in `docs/specs/runtime_contracts.md`.** Add a
     new "§Formation trust boundaries" section listing the six boundaries from
     the design. Update the contracts doc in the same PR as Phase 1.
 15. **CLI subparser: `core formation` as new top-level verb.** Mirrors `core
@@ -174,7 +174,7 @@ Deliverables:
   `(subject_id, stage, input_sha)` keys. Path-traversal-safe.
 - `formation/candidate.py` — `CandidateState` enum
   (`PROPOSED`/`QUARANTINED`/`VALIDATED`).
-- `docs/runtime_contracts.md` — append "§Formation trust boundaries" with the
+- `docs/specs/runtime_contracts.md` — append "§Formation trust boundaries" with the
   six-boundary table.
 - Tests: round-trip serialization, canonical-form stability, SHA stability
   across runs, cache-key sanitization.
@@ -283,7 +283,7 @@ Deliverables:
 - `tests/formation/test_micro_course.py` — 5 concepts, 10 relations, 3
   walks, 2 adversarial probes. Asserts a `Ratified` `MasteryReport`.
 - `_TEST_SUITES["formation"]` registered in `core/cli.py`.
-- Update `docs/runtime_contracts.md` with the micro-course as a worked
+- Update `docs/specs/runtime_contracts.md` with the micro-course as a worked
   example.
 
 **Milestone:** hand-curated triples now flow Forge → Ratify with a Mastery
@@ -348,7 +348,7 @@ Deliverables:
 - `core formation autorun` chains Stages 1–7, halts before promote.
 - `core formation status` shows cache state per stage.
 - Performance pass: parallel adapter pool tuning, triple cache benchmarks.
-- Final `docs/runtime_contracts.md` update; new ADR-0022 if the trust
+- Final `docs/specs/runtime_contracts.md` update; new ADR-0022 if the trust
   boundaries deserve a standalone decision record.
 
 ---

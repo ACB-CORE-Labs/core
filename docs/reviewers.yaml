@@ -63,7 +63,7 @@ audit_passed_claims:
 # ADR-0120's fail-closed property firing by design. DO NOT re-sign to force the
 # ledger flip; the honest current status is audit-passed (expert rests on
 # CORE-authored lanes, not external GSM8K).
-# See docs/decisions/ADR-0200-expert-claim-reconciliation.md.
+# See docs/adr/ADR-0200-expert-claim-reconciliation.md.
 # ---------------------------------------------------------------------------
 math_expert_claims:
     - domain_id: mathematics_logic

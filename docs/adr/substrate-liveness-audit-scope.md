@@ -197,7 +197,7 @@ audit from becoming an abandoned monolith:
 For each layer, in dependency order (L0 → L9; L10/L11 are not audit
 targets):
 
-1. **Enumerate ADRs.** From `docs/decisions/`, list every ADR whose
+1. **Enumerate ADRs.** From `docs/adr/`, list every ADR whose
    subject falls within the layer. Do not trust the ADR-range hints
    in the layering table — re-enumerate per layer.
 2. **Map ADRs to modules.** For each ADR, identify the primary

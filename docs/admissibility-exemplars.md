@@ -89,7 +89,7 @@ Contract:
 
 ## Cross-references
 
-- [ADR-0163 — Path to GSM8K mastery](decisions/ADR-0163-gsm8k-path-to-mastery.md)
+- [ADR-0163 — Path to GSM8K mastery](adr/ADR-0163-gsm8k-path-to-mastery.md)
 - [Phase A refusal taxonomy contract](../evals/refusal_taxonomy/contract.md)
-- [ADR-0057 — Proposal review + replay-equivalence](decisions/ADR-0057-teaching-chain-proposal-review.md)
-- [ADR-0161 — HITL async queue](decisions/ADR-0161-hitl-async-queue.md)
+- [ADR-0057 — Proposal review + replay-equivalence](adr/ADR-0057-teaching-chain-proposal-review.md)
+- [ADR-0161 — HITL async queue](adr/ADR-0161-hitl-async-queue.md)

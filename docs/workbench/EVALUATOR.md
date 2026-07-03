@@ -90,4 +90,4 @@ overclaiming — let it.
 
 - `docs/workbench/` — design system, route map, mastery roadmap.
 - `CLAUDE.md` — the engine's non-negotiable invariants and doctrine.
-- `docs/runtime_contracts.md` — response/telemetry/identity/replay contracts.
+- `docs/specs/runtime_contracts.md` — response/telemetry/identity/replay contracts.

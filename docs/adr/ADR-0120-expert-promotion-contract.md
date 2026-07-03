@@ -237,8 +237,8 @@ re-derivation that deviates by more than ε = 0.02 demotes the row.
 
 Accepted when:
 
-- The ADR file exists in `docs/decisions/` and is linked from
-  `docs/decisions/README.md`
+- The ADR file exists in `docs/adr/` and is linked from
+  `docs/adr/README.md`
 - ADR-0120 is documentation + contract definition; the IMPLEMENTATION
   (the `evaluate_expert_promotion` module + tests + reporting layer
   integration) ships under ADR-0120a (a follow-up implementation

@@ -114,7 +114,7 @@ High-res, dark theme, Evidence Chain Rail visible.
   framing; the guiding-question quote is a strong pull-quote.
 - `docs/workbench/UI-UX-GUIDE.md` — operator/evaluator route map + evidence
   grammar; the proof the UX is *designed*. Cite for the UI/UX-value argument.
-- `docs/runtime_contracts.md` — surface/walk/articulation contract (determinism
+- `docs/specs/runtime_contracts.md` — surface/walk/articulation contract (determinism
   is contractual, not aspirational).
 - `CLAIMS.md` + `docs/claims_ledger.md` — the receipts. Linking these publicly
   is itself a credibility move.

@@ -159,7 +159,7 @@ Accepted when:
   - public: 50/50 = 1.0000
   - OOD: 150/150 = 1.0000
   - OOD/public: 1.0000
-- ADR linked from `docs/decisions/README.md` index and frontier
+- ADR linked from `docs/adr/README.md` index and frontier
 
 ---
 

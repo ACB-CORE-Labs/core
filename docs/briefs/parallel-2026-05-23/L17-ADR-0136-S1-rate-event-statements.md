@@ -186,7 +186,7 @@ runner. `wrong == 0` gate. Byte-equal `report.json`.
 - B3 regression guard.
 - GSM8K `admitted_wrong == 0` + post-S.1 `admission_rate` honestly reported.
 
-### ADR (`docs/decisions/ADR-0136.S.1-rate-event-statements.md`)
+### ADR (`docs/adr/ADR-0136.S.1-rate-event-statements.md`)
 
 Parent: `ADR-0136-statement-layer-corridor.md` (write as sibling doc, one
 paragraph stub, if parent doesn't exist yet). Document:

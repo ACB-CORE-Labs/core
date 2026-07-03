@@ -131,7 +131,7 @@ Land in this order:
   be removed without a deprecation cycle.  Migration step is a
   wrapper, not a removal.
 - **Mode semantics** — the three modes (`full` / `bridge` / `walk`)
-  must be documented in `docs/runtime_contracts.md` BEFORE the
+  must be documented in `docs/specs/runtime_contracts.md` BEFORE the
   refactor so users can rely on them.
 - **Eval invariant** — `cognition` eval expects pipeline-level
   behaviour.  The wrapper preserves that; verifiable byte-identity

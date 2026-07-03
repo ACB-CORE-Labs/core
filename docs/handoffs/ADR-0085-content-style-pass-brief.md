@@ -1,6 +1,6 @@
 # ADR-0085 Content Style Pass — Brief
 
-**Audience:** A fresh dev agent (cheaper/faster tier). You have NO prior context — read this file plus `docs/decisions/ADR-0085-gloss-aware-cause.md` and act from there.
+**Audience:** A fresh dev agent (cheaper/faster tier). You have NO prior context — read this file plus `docs/adr/ADR-0085-gloss-aware-cause.md` and act from there.
 
 **Mission:** Apply a fluency pass to the ratified gloss entries so the surfaces produced by the composer read as natural English. You are only editing JSONL gloss content. You are NOT implementing composer changes, NOT touching algebra, NOT changing pack schemas.
 

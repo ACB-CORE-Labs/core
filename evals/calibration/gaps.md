@@ -62,7 +62,7 @@ once that signal exists.
 `(response.surface == _UNKNOWN_DOMAIN_SURFACE and response.vault_hits == 0)`.
 When the gate fires, the safety stub is preserved as the user-facing
 `surface`; the realizer's articulation still survives in `walk_surface`
-as evidence.  Contract update in `docs/runtime_contracts.md`; new
+as evidence.  Contract update in `docs/specs/runtime_contracts.md`; new
 contract test `tests/test_semantic_realizer_integration.py::
 test_pipeline_honours_safety_stub_when_gate_fires`.
 
@@ -95,5 +95,5 @@ A small, contained fix: in `CognitiveTurnPipeline.run()`, only
 override `surface`/`articulation_surface` when the underlying response
 is *not* an OOD stub.  This makes the user-facing surface honest about
 no_grounding without affecting any other contract.  The
-`docs/runtime_contracts.md` document should be updated in the same
+`docs/specs/runtime_contracts.md` document should be updated in the same
 change.

@@ -29,7 +29,7 @@ You are working inside AssetOverflow/core. Before touching anything:
 4. If dirty, classify every loose file/change. If unknown, inspect git history, recent branches/worktrees, and open PRs. Preserve unknown work with a descriptive stash; do not destroy it.
 5. Establish a clean current baseline before new work: `git fetch origin --prune`, `git switch main`, `git pull --ff-only origin main`.
 6. For non-trivial implementation, create a fresh worktree from current `origin/main` and do the work there.
-7. Read CLAUDE.md, GROK.md, AGENTS.md, and docs/runtime_contracts.md fully. Do not infer the project structure — derive it.
+7. Read CLAUDE.md, GROK.md, AGENTS.md, and docs/specs/runtime_contracts.md fully. Do not infer the project structure — derive it.
 8. The field invariant is load-bearing: versor_condition(F) < 1e-6. Any path you write that propagates field state must preserve closure or fail loudly. Never silently downgrade.
 9. Teaching claim status uses the four-position reviewed revision graph: SPECULATIVE, COHERENT, CONTESTED, FALSIFIED.
 
@@ -47,7 +47,7 @@ Rules:
 - Every non-trivial decision must be traceable to an existing ADR or require a new one. If you are making an architectural choice with no ADR anchor, name it explicitly and propose the ADR before writing code.
 - Placement is load-bearing. generate/* owns generation/propagation semantics. algebra/versor.py owns closure invariants only — no admissibility logic there. field/propagate.py is a forbidden normalization/repair site.
 - Fail loudly, not silently. No silent catch-and-continue on versor violations, refusal exhaustion, or epistemic transitions.
-- New test gates follow the taxonomy in docs/runtime_contracts.md: algebra/ physics/ runtime/ cognition/ teaching/ packs/. Do not mix concerns across test directories.
+- New test gates follow the taxonomy in docs/specs/runtime_contracts.md: algebra/ physics/ runtime/ cognition/ teaching/ packs/. Do not mix concerns across test directories.
 - Every new invariant must be enforced by a failing test, not by convention.
 ```
 
@@ -160,7 +160,7 @@ First:
   - `pwd`
   - `git rev-parse --show-toplevel`
   - verify `GROK.md` and `AGENTS.md` exist
-- Read GROK.md, AGENTS.md, CLAUDE.md, and docs/runtime_contracts.md.
+- Read GROK.md, AGENTS.md, CLAUDE.md, and docs/specs/runtime_contracts.md.
 - Inspect local state before branch movement:
   - `git status --short --branch`
   - `git diff --stat`

@@ -7,7 +7,7 @@ emits `MathReaderRefusalShapeProposal` records (each carrying a
 
 **Scope:** Tier 1 only (extensional contemplation). Tier 2
 (intensional + two-arm test-and-learn) and Loop 3 (verdict feedback)
-ship later. Reference: `docs/decisions/ADR-0172-math-corpus-decomposition-mechanism.md`
+ship later. Reference: `docs/adr/ADR-0172-math-corpus-decomposition-mechanism.md`
 (on `origin/main`).
 
 **Bundling rule:** Per Shay 2026-05-27 — during research/solutions-finding
@@ -415,7 +415,7 @@ proposals. The two proposal streams remain partitioned by
 ### Workbench files to inspect first
 
 - `chat/workbench.py` (or wherever ADR-0160's workbench lives — grep for `cognition_proposals`)
-- ADR-0160 itself (`docs/decisions/ADR-0160-*.md`)
+- ADR-0160 itself (`docs/adr/ADR-0160-*.md`)
 - ADR-0167-FOLLOWUPS §1 for the handler dispatch table
 
 ### Forbidden

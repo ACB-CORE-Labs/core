@@ -114,13 +114,20 @@ locked reference (below).
 
 ## Environment gotchas (these cost time on 2026-05-31)
 
-1. **Build `core-rs` against Python ≤3.12.** PyO3 0.21 supports max 3.12, but
-   fresh `uv` worktree venvs resolve to 3.13 and the homebrew system python is
-   3.14 (`cargo` then errors: *"configured Python interpreter version (3.14) is
-   newer than PyO3's maximum supported version (3.12)"*). Use:
+1. **Build `core-rs` with an explicit PyO3 compatibility policy.** PyO3 0.21
+   supports max 3.12, while fresh `uv` worktree venvs may resolve to 3.13 and
+   the Homebrew system Python may be newer. The `core rust build` / `core rust
+   test` commands set `PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1` automatically.
+   For direct cargo invocations, either use Python 3.12 explicitly:
 
    ```bash
    PYO3_PYTHON=/opt/homebrew/bin/python3.12 cargo test --test test_crdt_hash_parity --test test_arena -q
+   ```
+
+   or set the same forward-compatibility variable:
+
+   ```bash
+   PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 cargo test --test test_crdt_hash_parity --test test_arena -q
    ```
 
 2. **`public_demo` lane SHA miss is environmental, not a regression.**
@@ -153,7 +160,7 @@ uv run python tests/fixtures/crdt/_generate.py
 
 ## Authoritative docs
 
-- **Doctrine & ratification:** ADR-0196 (`docs/decisions/`), [`README.md`](README.md)
+- **Doctrine & ratification:** ADR-0196 (`docs/adr/`), [`README.md`](README.md)
 - **Gates:** [`adoption-gates.md`](adoption-gates.md)
 - **CRDT slices:** [`crdt-substrate/`](crdt-substrate/README.md) + [`implementation-slices.md`](crdt-substrate/implementation-slices.md)
 - **Component contract status / what locked G1:** ADR-0180 §5

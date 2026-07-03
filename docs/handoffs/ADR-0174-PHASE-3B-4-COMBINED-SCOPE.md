@@ -3,7 +3,7 @@
 **Status:** Proposed
 **Date:** 2026-05-28
 **Author:** Shay
-**Parent ADR:** [ADR-0174 — Held-Hypothesis Comprehension](../decisions/ADR-0174-held-hypothesis-comprehension.md)
+**Parent ADR:** [ADR-0174 — Held-Hypothesis Comprehension](../adr/ADR-0174-held-hypothesis-comprehension.md)
 **Predecessor PRs:** #416 (Phase 1), #420 (Phase 2), #423 (Phase 3a), #426 (initial-overwrite hazard fix)
 **Type:** Combined dispatch pack — Phase 3b is prerequisite for Phase 4 to have anything to operate on
 
@@ -237,7 +237,7 @@ Before any merge:
 
 ## Cross-references
 
-- Parent ADR: `docs/decisions/ADR-0174-held-hypothesis-comprehension.md` (Proposed; Phase 1-3a + amendment shipped)
+- Parent ADR: `docs/adr/ADR-0174-held-hypothesis-comprehension.md` (Proposed; Phase 1-3a + amendment shipped)
 - Predecessor PRs: #416, #420, #423, #426
 - Lookback review doctrine: `CLAUDE.md §Lookback Review Discipline`
 - Hazards memory: `project-adr-0174-multi-actor-pronoun-hazard`, `feedback-wrong-zero-hazard-case-0050`

@@ -2,7 +2,7 @@
 
 **Status:** Operational reference. Update when pack format, loader contract, or composition rules change.
 **Last updated:** 2026-05-17
-**Companion docs:** [`decisions/ADR-0033-ethics-packs.md`](decisions/ADR-0033-ethics-packs.md), [`identity_packs.md`](identity_packs.md), [`safety_packs.md`](safety_packs.md)
+**Companion docs:** [`adr/ADR-0033-ethics-packs.md`](adr/ADR-0033-ethics-packs.md), [`identity_packs.md`](identity_packs.md), [`safety_packs.md`](safety_packs.md)
 
 ## What an ethics pack is
 
@@ -208,7 +208,7 @@ Unknown commitments default to `upheld=True, runtime_checkable=False, reason="no
 
 ## Known limits / future ADRs
 
-1. ~~**No `EthicsCheck` predicate surface** parallel to `SafetyCheck`.~~ **Closed by [ADR-0034](decisions/ADR-0034-ethics-check-surface.md) (2026-05-17).** v1 is observational; turn-loop auto-invocation and refusal wiring are future ADRs.
+1. ~~**No `EthicsCheck` predicate surface** parallel to `SafetyCheck`.~~ **Closed by [ADR-0034](adr/ADR-0034-ethics-check-surface.md) (2026-05-17).** v1 is observational; turn-loop auto-invocation and refusal wiring are future ADRs.
 2. **No deliberation surface.** Ethics-as-deliberation (multi-candidate trajectory selection, typed-tradeoff evaluation) needs multi-trajectory articulation first.
 3. **No pack inheritance.** Domain packs must declare full commitment lists; no `extends` mechanism.
 4. **No domain-driven behavior.** `domain` is audit-only.
@@ -220,7 +220,7 @@ Unknown commitments default to `upheld=True, runtime_checkable=False, reason="no
 
 - Pack format spec: this doc §"Pack format (v1)".
 - Loader contract: this doc §"Loader contract".
-- Decision records: [ADR-0033](decisions/ADR-0033-ethics-packs.md), [ADR-0034](decisions/ADR-0034-ethics-check-surface.md).
+- Decision records: [ADR-0033](adr/ADR-0033-ethics-packs.md), [ADR-0034](adr/ADR-0034-ethics-check-surface.md).
 - Identity composition: [`identity_packs.md`](identity_packs.md).
 - Safety composition: [`safety_packs.md`](safety_packs.md).
 - Safety predicate surface: [`safety_packs.md`](safety_packs.md) §SafetyCheck.

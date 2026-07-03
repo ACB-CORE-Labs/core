@@ -15,7 +15,7 @@ CLOSE-derived facts are accretive, open-world products of the derivation / deter
 - These appear in `--json` output, verbose RESULT blocks, `DemoReport`, the `make test-close-flywheel` lane, and `tests/test_anti_regression_demo.py`.
 - All guarantees preserved: hermetic tempdir runs, `all_gates_held`, `active_corpus_byte_identical`, `wrong_total=0`, content_replay_checksum covering the proposal bodies, proposal-only/SPECULATIVE/requires_review asserted at emission.
 
-(See `evals/close_derived_climb/contract.md`, the visibility ratification artifact, `docs/testing-lanes.md` "Dedicated CLOSE Flywheel Regression Surface" + new "Review / Ratification Posture..." subsection, `docs/runtime_contracts.md` Derived CLOSE proposal bridge section, and `chat/runtime.py:IdleTickResult.derived_close_proposals_emitted`.)
+(See `evals/close_derived_climb/contract.md`, the visibility ratification artifact, `docs/testing-lanes.md` "Dedicated CLOSE Flywheel Regression Surface" + new "Review / Ratification Posture..." subsection, `docs/specs/runtime_contracts.md` Derived CLOSE proposal bridge section, and `chat/runtime.py:IdleTickResult.derived_close_proposals_emitted`.)
 
 FrameVerdict (and ClosedFrame) is the B4 closed-world substrate (ADR-0222, implemented and lookback-audited 2026-06-15 on `feat/b4-frameverdict-complete`):
 - `ClosedFrame` requires an explicit `world_assumption` (CLOSED / BOUNDED_CLOSED) + `closure_declared=True` + a complete enumerated proposition set. It is a *declared-complete snapshot* for the purpose of two-sided entailment/refutation.
@@ -74,7 +74,7 @@ Any future proposal for controlled interaction (however narrow or "read-only") m
 - A new (or substantially amended) ADR.
 - Explicit updates to (or extensions of) INV-30 and/or INV-31, with new non-vacuous test anchors.
 - Re-verification that `wrong_total` remains 0 on all affected lanes, versor closure, epistemic standing rules (INV-21–24, INV-29), determination contracts, and proposal-only/review-gated boundaries.
-- Fresh ratification artifact + updates to `docs/runtime_contracts.md`, `tests/test_architectural_invariants.py`, and the relevant B4 / CLOSE ratif family.
+- Fresh ratification artifact + updates to `docs/specs/runtime_contracts.md`, `tests/test_architectural_invariants.py`, and the relevant B4 / CLOSE ratif family.
 - Explicit alignment argument against the Three Engineering Pillars.
 
 Until such a ratified change, the current strong separation (SPECULATIVE status + proposal-gated + INV-31 firewall + INV-30 open-world True-only) is the invariant.
@@ -88,8 +88,8 @@ Until such a ratified change, the current strong separation (SPECULATIVE status 
 ## Verification Obligations (Post-Ratification)
 
 - This ratification artifact exists on disk (written first).
-- `docs/runtime_contracts.md` receives a substantial, self-contained addition documenting the posture, explicitly referencing this artifact, the B4 lookback, INV-30/INV-31, the #791–#794 richness, the Derived CLOSE proposal bridge section, and the Three Pillars.
-- Git diff limited to `docs/analysis/*-ratification-2026-06-16.md` (this file) + the update to `docs/runtime_contracts.md`. Zero changes to any `.py`, Makefile, evals runners, tests, or other behavior.
+- `docs/specs/runtime_contracts.md` receives a substantial, self-contained addition documenting the posture, explicitly referencing this artifact, the B4 lookback, INV-30/INV-31, the #791–#794 richness, the Derived CLOSE proposal bridge section, and the Three Pillars.
+- Git diff limited to `docs/analysis/*-ratification-2026-06-16.md` (this file) + the update to `docs/specs/runtime_contracts.md`. Zero changes to any `.py`, Makefile, evals runners, tests, or other behavior.
 - The full architectural invariants suite (`tests/test_architectural_invariants.py`) remains byte-identical and would continue to pass (INV-30/31 untouched).
 - Existing CLOSE references in runtime_contracts.md (the visibility sentence added in #794) remain accurate; the new posture section is additive and consistent.
 - `core test --suite smoke -q` (or equivalent) and the CLOSE-specific lanes continue to behave exactly as before (no behavior change by construction).
@@ -100,7 +100,7 @@ Until such a ratified change, the current strong separation (SPECULATIVE status 
 - Governing brief (this session).
 - CLOSE family: `docs/analysis/close-derived-climb-yardstick-claim-b-ratification-2026-06-16.md`, `close-derived-proposal-bridge-2026-06-16.md`, `close-flywheel-dedicated-regression-surface-ratification-2026-06-16.md`, `close-flywheel-proposal-review-visibility-ratification-2026-06-16.md`, `integrate-hardened-close-yardstick-determinism-teaching-regression-ratification-2026-06-16.md`.
 - B4 / FrameVerdict: `docs/analysis/b4-frameverdict-implementation-lookback-2026-06-15.md`, `docs/handoff/b4-pr1-frameverdict-type-inv31-brief-2026-06-15.md`, ADR-0222.
-- `docs/runtime_contracts.md` (Derived CLOSE proposal bridge §, determination surface, epistemic surface, provisional vs durable standing §, INV-30 reference).
+- `docs/specs/runtime_contracts.md` (Derived CLOSE proposal bridge §, determination surface, epistemic surface, provisional vs durable standing §, INV-30 reference).
 - `tests/test_architectural_invariants.py` (INV-30 and INV-31 sections with exact claims and non-vacuity anchors).
 - `generate/determine/determine.py` (Determined/Undetermined contract), `generate/frame_verdict/types.py` (ClosedFrame, FrameVerdict, __post_init__ guards, WorldAssumption, FrameVerdictKind), `generate/frame_verdict/_construct.py` (single construction funnel).
 - `teaching/proposals.py` (ProposalLog, ReviewState, accept/reject/withdraw, events), `chat/runtime.py` (IdleTickResult, derived_close_proposals_emitted, the bridge emission).
@@ -108,7 +108,7 @@ Until such a ratified change, the current strong separation (SPECULATIVE status 
 - Engineering Pillars: `docs/Whitepaper.md` §IV.
 - Core agent instructions (Claude.md / AGENTS.md / CLAUDE.md) ratify-first, INV discipline, lookback, pillar alignment, and "no hidden normalization / stochastic / approximate" rules.
 
-**Ratification Status:** COMPLETE AND LOCKED. This artifact was created via the `write` tool on the clean branch *before any search_replace, write (other than this file), or other implementation edit to runtime_contracts.md, tests, evals, source, or any other documentation*. All preceding activity on this branch was git operations (fetch, checkout main, clean, branch creation) plus strictly read-only exploration (list_dir, read_file, grep with no edits). The decision is now on disk and may be referenced. Implementation of the required documentation update to `docs/runtime_contracts.md` (and only that) may now proceed exactly within the scope above. Any deviation, code change, or broadening requires a new ratification or explicit brief amendment.
+**Ratification Status:** COMPLETE AND LOCKED. This artifact was created via the `write` tool on the clean branch *before any search_replace, write (other than this file), or other implementation edit to runtime_contracts.md, tests, evals, source, or any other documentation*. All preceding activity on this branch was git operations (fetch, checkout main, clean, branch creation) plus strictly read-only exploration (list_dir, read_file, grep with no edits). The decision is now on disk and may be referenced. Implementation of the required documentation update to `docs/specs/runtime_contracts.md` (and only that) may now proceed exactly within the scope above. Any deviation, code change, or broadening requires a new ratification or explicit brief amendment.
 
 ---
 

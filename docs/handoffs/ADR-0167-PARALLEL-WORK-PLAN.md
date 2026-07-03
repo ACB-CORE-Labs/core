@@ -1,7 +1,7 @@
 # ADR-0167 — Parallel Work Plan
 
 **Date:** 2026-05-27
-**Parent ADR:** [ADR-0167](../decisions/ADR-0167-audit-as-teaching-evidence.md)
+**Parent ADR:** [ADR-0167](../adr/ADR-0167-audit-as-teaching-evidence.md)
 **Goal:** Land the LexicalClaim-first slice of the math reader → contemplation
 wire across four cooperating operators in two waves, with strict
 worktree isolation and shared invariants.

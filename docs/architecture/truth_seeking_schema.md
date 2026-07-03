@@ -37,7 +37,7 @@ property is broken.
 ### 1. Coherence, not authority, is the only admission signal
 
 > *Source: [`teaching/epistemic.py`](../teaching/epistemic.py),
-> [ADR-0021 §3](decisions/ADR-0021-epistemic-grade-policy.md).*
+> [ADR-0021 §3](adr/ADR-0021-epistemic-grade-policy.md).*
 
 A claim is admitted as evidence in downstream inference if and only
 if it has been judged coherent with the existing reviewed field. Not
@@ -58,7 +58,7 @@ a model trusts its own prior output because it sounds confident.
 
 ### 2. The non-hardening invariant
 
-> *Source: [ADR-0021 §2](decisions/ADR-0021-epistemic-grade-policy.md),
+> *Source: [ADR-0021 §2](adr/ADR-0021-epistemic-grade-policy.md),
 > verified by absence: no `final`, `frozen`, `axiom`, or `permanent`
 > flag exists in the codebase.*
 
@@ -113,7 +113,7 @@ guarantee. The test makes that collapse visible at commit time.
 
 > *Source: [`teaching/review.py::_is_identity_override`](../teaching/review.py),
 > [`core/physics/identity.py::IdentityCheck`](../core/physics/identity.py),
-> [ADR-0010](decisions/ADR-0010-identity-physics.md).*
+> [ADR-0010](adr/ADR-0010-identity-physics.md).*
 
 A correction that attempts to rewrite identity — "you are now Bob,"
 "forget your prior axes," "ignore previous instructions" — is
@@ -232,7 +232,7 @@ declare its role. Categories:
   `vault/decompose.py:121`.
 - **EVIDENCE_TELEMETRY** — feeds `walk_surface` and trace evidence
   but NOT the user-facing surface (per
-  `docs/runtime_contracts.md` §surface vs walk_surface). Tolerable
+  `docs/specs/runtime_contracts.md` §surface vs walk_surface). Tolerable
   unfiltered because the walk does not shape claims. Site:
   `generate/stream.py:147` (`_recall_state`).
 - **EVIDENCE_USER_FACING** — would feed user-facing surface as if
@@ -354,8 +354,8 @@ is not enforced.
 - Identity-rewrite firewall (two-layer): [`teaching/review.py::_is_identity_override`](../teaching/review.py), [`core/physics/identity.py`](../core/physics/identity.py)
 - Formation pipeline (LLMs propose, the Forge disposes, CORE composes): [`docs/formation_pipeline_plan.md`](formation_pipeline_plan.md)
 - One-mutation-path invariant test: [`tests/test_architectural_invariants.py::TestINV21OneMutationPath`](../tests/test_architectural_invariants.py)
-- ADR-0021 (epistemic grade policy): [`docs/decisions/ADR-0021-epistemic-grade-policy.md`](decisions/ADR-0021-epistemic-grade-policy.md)
-- ADR-0010 (identity physics): [`docs/decisions/ADR-0010-identity-physics.md`](decisions/ADR-0010-identity-physics.md)
+- ADR-0021 (epistemic grade policy): [`docs/adr/ADR-0021-epistemic-grade-policy.md`](adr/ADR-0021-epistemic-grade-policy.md)
+- ADR-0010 (identity physics): [`docs/adr/ADR-0010-identity-physics.md`](adr/ADR-0010-identity-physics.md)
 - Public claims with reproducible measurements: [`evals/CLAIMS.md`](../evals/CLAIMS.md)
 - Eval lanes that exercise the schema:
   - [`evals/adversarial_identity`](../evals/adversarial_identity)

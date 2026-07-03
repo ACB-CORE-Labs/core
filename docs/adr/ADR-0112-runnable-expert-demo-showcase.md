@@ -170,7 +170,7 @@ Accepted when:
 - `core demo expert --domain <id>` works for `mathematics_logic` and
   `physics`; both produce `all_claims_supported=True` and digest match
 - `tests/test_expert_demo_runnable.py` pins the five invariants
-- README + docs/decisions/README.md updated to point readers at the
+- README + docs/adr/README.md updated to point readers at the
   new runnable surface
 
 ---

@@ -82,7 +82,7 @@ Phase 1 merge must demonstrate:
 
 - `unified_ingest=False` (default) byte-identical to pre-fix on every cognition eval case (CI-pinned by `test_unified_ingest_null_lift`).
 - `unified_ingest=True` produces well-formed responses on a smoke prompt set; gate decisions are made on the committed field; the walk uses the same field the gate decided against.
-- Stub-path turn-state behavior change documented in `docs/runtime_contracts.md` as a flag-conditional invariant.
+- Stub-path turn-state behavior change documented in `docs/specs/runtime_contracts.md` as a flag-conditional invariant.
 
 Phase 2 merge (separate PR) must demonstrate:
 

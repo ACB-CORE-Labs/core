@@ -257,8 +257,8 @@ tests/test_pack_resolver.py                          NEW (28 tests)
 tests/test_cross_pack_grounding.py                   NEW (17 tests)
 tests/test_pack_grounding.py                         2 stale tests rewritten
 tests/test_en_core_relations_v1_pack.py              default-input test inverted
-docs/decisions/ADR-0063-cross-pack-surface-resolver.md   NEW (this file)
-docs/decisions/README.md                             ADR-0063 index entry
+docs/adr/ADR-0063-cross-pack-surface-resolver.md   NEW (this file)
+docs/adr/README.md                             ADR-0063 index entry
 ```
 
 Lines of net change: small. The architectural unlock is in

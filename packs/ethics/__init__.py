@@ -6,7 +6,7 @@ packs are swappable like identity packs but contribute *commitments*
 (propositional pledges) rather than *value axes* (geometric directions)
 or *boundaries* (universal red lines).
 
-See ``docs/decisions/ADR-0033-ethics-packs.md``.
+See ``docs/adr/ADR-0033-ethics-packs.md``.
 """
 
 from packs.ethics.check import (

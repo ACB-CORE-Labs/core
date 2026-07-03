@@ -12,7 +12,7 @@ cd ../core-binding-graph-p3
 Still no runtime wiring outside `generate/binding_graph/` and no solver invocation — Phase 3 is structural and dimensional analysis only. Phase 4 (question-target binding refinement) and Phase 5 (B3 / bounded-grammar integration) remain deferred.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0132-binding-graph-data-model.md` + `docs/decisions/ADR-0133-binding-graph-adapter.md` — your prior phases. The Phase-1 dataclass shape (`BoundEquation.unit_proof: UnitProof | None`, `admissibility_status: Literal[...]`) is the contract you're filling in.
+1. `docs/adr/ADR-0132-binding-graph-data-model.md` + `docs/adr/ADR-0133-binding-graph-adapter.md` — your prior phases. The Phase-1 dataclass shape (`BoundEquation.unit_proof: UnitProof | None`, `admissibility_status: Literal[...]`) is the contract you're filling in.
 2. `packs/en_units_v1/` (loaded into the runtime via ADR-0127) — the **canonical unit vocabulary**. Your unit algebra must be expressed in those units only; do not invent new ones. Read the pack's lexicon + relation files to identify the closed set of units and their dimensional families (length, time, mass, currency, count, rate-of-X-per-Y, etc.).
 
 **What to ship:**
@@ -34,7 +34,7 @@ Still no runtime wiring outside `generate/binding_graph/` and no solver invocati
 - `tests/test_binding_graph_units.py` — 30–40 tests covering the algebra primitives (commutativity, inverse-of-inverse, refusal on unknown unit-id).
 - `tests/test_binding_graph_admissibility.py` — 50–70 tests covering each operation kind's admissibility rules with both positive and negative cases, plus the typed-refusal contract.
 - `tests/test_binding_graph_adapter_units.py` — 20–30 integration tests covering the adapter's Phase-3 behavior: every Phase-2 case still round-trips, but now `unit_proof` is populated (or refusal is typed); a few intentionally unit-mismatched `MathProblemGraph` inputs produce `admissibility_status="refused"` with the correct reason.
-- `docs/decisions/ADR-0134-binding-graph-admissibility.md` — short ADR; cite ADR-0132 + ADR-0133 parents and ADR-0127 (units pack). Explicit "Phase 4–5 deferred" section.
+- `docs/adr/ADR-0134-binding-graph-admissibility.md` — short ADR; cite ADR-0132 + ADR-0133 parents and ADR-0127 (units pack). Explicit "Phase 4–5 deferred" section.
 
 **Hard constraints:**
 - **Closed unit vocabulary.** Every unit id used in algebra must already exist in `en_units_v1`. If you find yourself wanting to invent or coerce, stop and refuse with `unknown_unit`.

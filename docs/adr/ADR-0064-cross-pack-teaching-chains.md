@@ -202,8 +202,8 @@ teaching/discovery.py                                           cross-corpus gat
 teaching/replay.py                                              swap-the-registry
 teaching/relations_chains/relations_chains_v1.jsonl             NEW (seed corpus, 7 chains)
 tests/test_relations_chains_v1.py                               NEW (17 tests)
-docs/decisions/ADR-0064-cross-pack-teaching-chains.md           NEW (this file)
-docs/decisions/README.md                                        index entry
+docs/adr/ADR-0064-cross-pack-teaching-chains.md           NEW (this file)
+docs/adr/README.md                                        index entry
 docs/curriculum/relations_chains_v1.md                          NEW (curriculum unit doc)
 ```
 

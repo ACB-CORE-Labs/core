@@ -228,7 +228,7 @@ tests/test_anchor_lens_no_glyph_leak.py                        NEW
 tests/test_anchor_lens_engagement_unit.py                      NEW
   - _resolve_anchor_lens_mode unit coverage
 
-docs/decisions/ADR-0073c-anchor-lens-composer-wiring.md        NEW (this file)
+docs/adr/ADR-0073c-anchor-lens-composer-wiring.md        NEW (this file)
 ```
 
 ---

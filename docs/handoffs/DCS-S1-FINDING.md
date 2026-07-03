@@ -102,12 +102,12 @@ emit `CandidateInitial`.
 
 This is no longer four separate sub-shape problems. It's **one substrate
 bottleneck affecting all four categories**. The right artifact is a
-contract-widening ADR — see [ADR-0170](../decisions/ADR-0170-injector-contract-widening.md).
+contract-widening ADR — see [ADR-0170](../adr/ADR-0170-injector-contract-widening.md).
 
 ## What this PR ships
 
 - This finding doc (`docs/handoff/DCS-S1-FINDING.md`)
-- `docs/decisions/ADR-0170-injector-contract-widening.md` — the scoping
+- `docs/adr/ADR-0170-injector-contract-widening.md` — the scoping
   ADR that names the contract change and the four categories it unblocks
 
 What this PR does NOT ship:
@@ -132,7 +132,7 @@ possession can ship cleanly.
 
 - [WAVE-NEXT-REVISED](./WAVE-NEXT-REVISED.md) — parent plan; needs an
   update pointing to ADR-0170 as the prerequisite
-- [ADR-0170](../decisions/ADR-0170-injector-contract-widening.md) — the
+- [ADR-0170](../adr/ADR-0170-injector-contract-widening.md) — the
   scoping ADR this finding routes to
 - PR #369 (A2) — first observation of the gap; documents `Rate`
   extension steps

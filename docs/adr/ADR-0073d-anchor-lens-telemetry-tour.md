@@ -206,7 +206,7 @@ tests/test_anchor_lens_tour_demo.py                           NEW
   - Per-cell anchor_lens_id recorded correctly
   - No substrate glyphs in the surfaces
 
-docs/decisions/ADR-0073d-anchor-lens-telemetry-tour.md        NEW (this file)
+docs/adr/ADR-0073d-anchor-lens-telemetry-tour.md        NEW (this file)
 ```
 
 ### Invariants pinned at L1.4

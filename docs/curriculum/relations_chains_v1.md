@@ -143,7 +143,7 @@ natural follow-up.
 
 ## Cross-References
 
-- [ADR-0064](../decisions/ADR-0064-cross-pack-teaching-chains.md) —
+- [ADR-0064](../adr/ADR-0064-cross-pack-teaching-chains.md) —
   the architectural unlock that made this seed possible.
 - [Pack: `en_core_relations_v1`](relations_pack_v1.md) — the lexicon
   this corpus is bound to.

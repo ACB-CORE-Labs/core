@@ -19,7 +19,7 @@ Target shapes (closed set):
 This is the **highest-risk axis** of the four — multi-clause composition is where confabulation risk is highest. Refusal-first stays paramount; admission gains must be small and load-bearing, not maximum-rate-chasing.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0131.G-gsm8k-coverage-probe.md` — iteration discipline. The "smell test" (admission moves on GSM8K but new axis cases don't all pass → reject) bites hardest here.
+1. `docs/adr/ADR-0131.G-gsm8k-coverage-probe.md` — iteration discipline. The "smell test" (admission moves on GSM8K but new axis cases don't all pass → reject) bites hardest here.
 2. `generate/math_candidate_graph.py` — the candidate-graph topology. New candidates must compose through the same graph; nothing in the binding/admissibility layer changes.
 
 **What to ship:**
@@ -28,7 +28,7 @@ This is the **highest-risk axis** of the four — multi-clause composition is wh
 - **Curated coverage cases** at `evals/math_capability_axes/G4_multi_clause/v1/cases.jsonl` (~30 cases): ≥6 per shape + ≥6 refusal probes for shapes that look multi-clause but are **not** in the closed set (e.g. cross-sentence coreference `Aaron has 5. He gives 2 to Bob.`, ambiguous `each` scope, three-way conjunctions). Refusal probes are load-bearing — they pin the scope boundary the architecture refuses to cross.
 - **Runner + report** at `evals/math_capability_axes/G4_multi_clause/v1/`.
 - **Tests** at `tests/test_adr_0131_G4_multi_clause.py` (~15): per-shape at-least-one passing, refusal probes refuse typed, **`wrong == 0` (especially load-bearing here)**, replay byte-equality, **GSM8K probe re-run with admission strictly increases OR multi-clause refusals strictly decrease** (declare in ADR, gate on it), B3 + G.1/G.2/G.3 lanes unchanged.
-- **ADR** `docs/decisions/ADR-0131.G.4-multi-clause.md`. Cite ADR-0131.G parent and ADR-0126 (candidate graph). Pin the closed shape set; document the `each`-scope policy (always distributive, never collective — refuse collective readings); document why cross-sentence coreference stays deferred.
+- **ADR** `docs/adr/ADR-0131.G.4-multi-clause.md`. Cite ADR-0131.G parent and ADR-0126 (candidate graph). Pin the closed shape set; document the `each`-scope policy (always distributive, never collective — refuse collective readings); document why cross-sentence coreference stays deferred.
 - **Refresh** `evals/gsm8k_math/train_sample/v1/train_sample_coverage_report.json`.
 
 **Hard constraints:**

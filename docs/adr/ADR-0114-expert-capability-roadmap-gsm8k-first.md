@@ -228,8 +228,8 @@ hidden calibration.
 
 ADR-0114 is accepted when:
 
-- The ADR file exists in `docs/decisions/` and is linked from
-  `docs/decisions/README.md`
+- The ADR file exists in `docs/adr/` and is linked from
+  `docs/adr/README.md`
 - No code changes — this is a roadmap ADR only
 - README updated to point at this sequence as the path-to-expert
 

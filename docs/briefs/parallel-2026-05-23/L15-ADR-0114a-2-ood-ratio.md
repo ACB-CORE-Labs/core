@@ -18,7 +18,7 @@ The OOD lane is a separate case set whose surface forms vary along **non-semanti
 The obligation's spirit: a pattern-matcher overfits to surface distributions of the training/public set and falls off when surface varies; a deterministic reasoner stays approximately flat. The 0.95 ratio means OOD accuracy must be at least 95% of public accuracy.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0118a-ood-surface-generator.md` — methodological blueprint. Mirror the OOD generation taxonomy where it transfers; B3's bounded grammar narrows the design space (no paraphrase variance — that's adversarial, not OOD).
+1. `docs/adr/ADR-0118a-ood-surface-generator.md` — methodological blueprint. Mirror the OOD generation taxonomy where it transfers; B3's bounded grammar narrows the design space (no paraphrase variance — that's adversarial, not OOD).
 2. `core/capability/pack_provenance.py` (PR #189 / merged ADR-0114a.10) + `core/capability/depth_curve.py` (PR #190 / pending ADR-0114a.6) — the auditor pattern this PR mirrors. Same module-shape, same CLI-shape, same `validate_lane`/`evaluate_*` signature, same `obligation_N_*` verdict fields.
 
 **What to ship:**
@@ -44,7 +44,7 @@ The obligation's spirit: a pattern-matcher overfits to surface distributions of 
   - Determinism: report byte-equal across runs.
   - Snapshot test: current main satisfies obligation #2 on the OOD set you ship.
 
-- **ADR** `docs/decisions/ADR-0114a.2-ood-ratio-auditor.md`. Cite parent ADR-0114a, ADR-0118a (methodology), PR #189 + PR #190 (auditor pattern), ADR-0131.3 (B3 grammar contract). Pin the entity-name and unit-noun substitution pools.
+- **ADR** `docs/adr/ADR-0114a.2-ood-ratio-auditor.md`. Cite parent ADR-0114a, ADR-0118a (methodology), PR #189 + PR #190 (auditor pattern), ADR-0131.3 (B3 grammar contract). Pin the entity-name and unit-noun substitution pools.
 
 **Hard constraints:**
 

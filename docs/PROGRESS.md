@@ -34,11 +34,11 @@ ADRs strengthened: 0022 (TBDs closed), 0023 (proof evidence expanded).
 
 Evidence locations:
 
-- Runtime contracts: `docs/runtime_contracts.md` — Refusal / Margin / Rotor admissibility sections
+- Runtime contracts: `docs/specs/runtime_contracts.md` — Refusal / Margin / Rotor admissibility sections
 - Stratified findings: `docs/evals/phase5_stratified_findings.md`
 - Comparative demo: `docs/evals/phase6_comparative_demo.md`
 - Reports: `evals/forward_semantic_control/results/` (+ auto-refreshed `index.json`)
-- ADR index: `docs/decisions/README.md` — "ADR-0024 chain" section
+- ADR index: `docs/adr/README.md` — "ADR-0024 chain" section
 
 How to verify on a fresh checkout:
 
@@ -800,7 +800,7 @@ Also retroactive (the bulk happened between 2026-05-18 and 2026-05-20):
 
 **Status:** Complete ✓ (all 8 sub-phases landed 2026-05-22/23)
 **Depends on:** ADR-0114, ADR-0114a, ADR-0115, ADR-0116, ADR-0117, ADR-0118
-**Roadmap:** `docs/decisions/ADR-0119-gsm8k-eval-lane-roadmap.md`
+**Roadmap:** `docs/adr/ADR-0119-gsm8k-eval-lane-roadmap.md`
 
 This phase completes the GSM8K eval lane substrate defined in ADR-0114 §Phase 5 and
 decomposed into 8 sub-phases by ADR-0119. The lane is now substrate-complete;

@@ -139,7 +139,7 @@ Detailed brief pack: `docs/handoff/wave-M-phaseB-calibration-briefs-2026-06-13.m
   deferred per-turn O(n²) persistence cost and contradict the L10
   discard-on-exit design; (2) it touches the runtime surface contract
   (`CognitiveTurnResult → ChatTurnResult → TurnJournalEntry` is two narrowing
-  hops), so the PR updates `docs/runtime_contracts.md` + a **non-vacuous
+  hops), so the PR updates `docs/specs/runtime_contracts.md` + a **non-vacuous
   fail-closed test** that a silently-dropped stage fails loudly (CLAUDE.md
   Schema-Defined Proof Obligations), and pre-widening turns show
   `missing_evidence`, not green. The replay-reconstruction fallback (Option B)

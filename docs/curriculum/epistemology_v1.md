@@ -10,9 +10,9 @@
 ## Premise
 
 CORE's reviewed teaching corpus is the inter-session memory surface
-([ADR-0055](../decisions/ADR-0055-inter-session-memory-discovery-promotion.md)).
+([ADR-0055](../adr/ADR-0055-inter-session-memory-discovery-promotion.md)).
 The operator-driven path to extend it is the propose → replay-equivalence
-gate → operator accept loop ([ADR-0057](../decisions/ADR-0057-teaching-chain-proposal-review.md)),
+gate → operator accept loop ([ADR-0057](../adr/ADR-0057-teaching-chain-proposal-review.md)),
 plus the supersede surface for retiring chains in favour of replacements.
 
 This unit is the **first** end-to-end use of those surfaces against the
@@ -163,7 +163,7 @@ the active view deterministically.
 
 ## Cross-References
 
-- [ADR-0055](../decisions/ADR-0055-inter-session-memory-discovery-promotion.md) — the inter-session-memory architecture this unit consumes.
-- [ADR-0056](../decisions/ADR-0056-contemplation-loop-c1.md) — DiscoveryCandidate contemplation; the candidate JSONL in this unit was operator-authored (hand-augmented with corpus-evidence pointers) rather than emitted by the runtime, but the structure is the same.
-- [ADR-0057](../decisions/ADR-0057-teaching-chain-proposal-review.md) — the proposal + replay gate + accept surface this unit uses; the supersede CLI is the follow-up at `8d2c84a`.
+- [ADR-0055](../adr/ADR-0055-inter-session-memory-discovery-promotion.md) — the inter-session-memory architecture this unit consumes.
+- [ADR-0056](../adr/ADR-0056-contemplation-loop-c1.md) — DiscoveryCandidate contemplation; the candidate JSONL in this unit was operator-authored (hand-augmented with corpus-evidence pointers) rather than emitted by the runtime, but the structure is the same.
+- [ADR-0057](../adr/ADR-0057-teaching-chain-proposal-review.md) — the proposal + replay gate + accept surface this unit uses; the supersede CLI is the follow-up at `8d2c84a`.
 - [teaching_order.md](../teaching_order.md) — the prerequisite-topological doctrine that scoped this unit's chain selection.

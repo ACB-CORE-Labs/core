@@ -84,7 +84,7 @@ packs/register/default_neutral_v1.mastery_report.json         NEW (self-seal)
 scripts/ratify_register_packs.py                              NEW (idempotent)
 tests/test_register_pack_loader.py                            NEW
 tests/test_register_pack_seam.py                              NEW
-docs/decisions/ADR-0068-register-pack-class.md                NEW (this file)
+docs/adr/ADR-0068-register-pack-class.md                NEW (this file)
 ```
 
 The loader lives at `packs/register/loader.py` (sibling to

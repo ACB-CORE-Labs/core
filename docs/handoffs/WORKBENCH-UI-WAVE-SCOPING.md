@@ -4,7 +4,7 @@
 prerequisite ADRs/decisions before any implementation moves)
 **Date:** 2026-05-27
 **Author:** Shay
-**Parent doctrine:** [ADR-0160](../decisions/ADR-0160-core-workbench-v1.md), [ADR-0162](../decisions/ADR-0162-workbench-design-system.md)
+**Parent doctrine:** [ADR-0160](../adr/ADR-0160-core-workbench-v1.md), [ADR-0162](../adr/ADR-0162-workbench-design-system.md)
 **Related:** ADR-0161 (proposal-review trust boundary), ADR-0167 (teaching-corridor), ADR-0168 / 0168.1 (FrameClaim handler), ADR-0169 / 0169.1 (CompositionClaim doctrine), ADR-0172 (math contemplation corridor)
 
 ---

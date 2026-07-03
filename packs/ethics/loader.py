@@ -20,7 +20,7 @@ into the runtime manifold's ``boundary_ids`` alongside identity and
 safety contributions.  The composition is monotone: ethics can add
 constraints, never remove them.
 
-See ``docs/decisions/ADR-0033-ethics-packs.md``.
+See ``docs/adr/ADR-0033-ethics-packs.md``.
 """
 
 from __future__ import annotations

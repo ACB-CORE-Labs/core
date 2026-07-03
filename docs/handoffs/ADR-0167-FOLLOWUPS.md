@@ -1,8 +1,8 @@
 # ADR-0167 — Follow-ups Queue
 
 **Date opened:** 2026-05-27 (end of Wave 3)
-**Parent:** [ADR-0167](../decisions/ADR-0167-audit-as-teaching-evidence.md)
-**Companion:** [SESSION-2026-05-27](../decisions/SESSION-2026-05-27-adr-0167-parallel-dispatch.md)
+**Parent:** [ADR-0167](../adr/ADR-0167-audit-as-teaching-evidence.md)
+**Companion:** [SESSION-2026-05-27](../adr/SESSION-2026-05-27-adr-0167-parallel-dispatch.md)
 
 The LexicalClaim slice landed clean (W1-A → W2-A/B/C/D → W3-A merged
 2026-05-27). This file captures the named follow-ups that surfaced

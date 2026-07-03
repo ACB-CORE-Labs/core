@@ -4,7 +4,7 @@
 **Runner:** `evals/learning_loop/run_demo.py`
 **CLI:** `core demo learning-loop` (`--json` for machine-readable output)
 **Contract tests:** `tests/test_learning_loop_demo.py` (7 passing)
-**Reference ADRs:** [0055](../decisions/ADR-0055-inter-session-memory-discovery-promotion.md), [0056](../decisions/ADR-0056-contemplation-loop-c1.md), [0057](../decisions/ADR-0057-teaching-chain-proposal-review.md)
+**Reference ADRs:** [0055](../adr/ADR-0055-inter-session-memory-discovery-promotion.md), [0056](../adr/ADR-0056-contemplation-loop-c1.md), [0057](../adr/ADR-0057-teaching-chain-proposal-review.md)
 
 ![learning-loop demo](assets/learning_loop.gif)
 

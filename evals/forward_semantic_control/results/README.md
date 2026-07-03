@@ -43,7 +43,7 @@ Reports per condition (boundary_only / null_control / inner_loop_t0 / inner_loop
 `exhaustion_rate`, `mean_admissibility_checks_per_turn`, latency stats,
 `trace_hash_stability_pass_rate`.
 
-**Headline interpretation.** The Phase 2 corpus is *adversarial-by-accident*: the v1 case schema probes teaching-driven walks, not inner-loop admissibility. Exhaustion rates above 0.05 on this corpus are an *architectural finding* (documented in `docs/decisions/ADR-0024-inner-loop-admissibility.md` Phase 1 addendum), not a regression.
+**Headline interpretation.** The Phase 2 corpus is *adversarial-by-accident*: the v1 case schema probes teaching-driven walks, not inner-loop admissibility. Exhaustion rates above 0.05 on this corpus are an *architectural finding* (documented in `docs/adr/ADR-0024-inner-loop-admissibility.md` Phase 1 addendum), not a regression.
 
 ### `phase3_v2_report.json`
 
@@ -148,9 +148,9 @@ A `refused: true` leg additionally carries `refusal_reason` (the stable enum val
 
 ## Related docs
 
-- `docs/runtime_contracts.md` — Refusal / Margin / Rotor admissibility contracts
+- `docs/specs/runtime_contracts.md` — Refusal / Margin / Rotor admissibility contracts
 - `docs/evals/phase5_stratified_findings.md` — Phase 5 architectural findings
 - `docs/evals/phase6_comparative_demo.md` — Phase 6 narrative + "what this does NOT claim"
-- `docs/decisions/ADR-0024-inner-loop-admissibility.md` — the foundational ADR
-- `docs/decisions/ADR-0025-rotor-frame-admissibility-design-note.md` — rotor admissibility (accepted)
-- `docs/decisions/ADR-0026-ranked-admissibility-with-margin.md` — δ-margin gate (accepted)
+- `docs/adr/ADR-0024-inner-loop-admissibility.md` — the foundational ADR
+- `docs/adr/ADR-0025-rotor-frame-admissibility-design-note.md` — rotor admissibility (accepted)
+- `docs/adr/ADR-0026-ranked-admissibility-with-margin.md` — δ-margin gate (accepted)

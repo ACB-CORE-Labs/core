@@ -59,7 +59,7 @@ Phase C2 is **opt-in substantive**. Default off preserves every existing invaria
 ### Phase C3 — Telemetry alignment
 
 - Widen `TurnEvent` and `ChatResponse` with `compound_clause_count: int = 0` and `compound_relation_chain: tuple[str, ...] = ()` so operators can see compound dispatch outcomes without parsing surfaces.
-- Document the new fields in `docs/runtime_contracts.md` under a new "compound intent" subsection.
+- Document the new fields in `docs/specs/runtime_contracts.md` under a new "compound intent" subsection.
 - Add a `core demo compound-tour` walking four prompts (`AND`, `BUT`, `BECAUSE`, comma-joined) × two modes (flag off, flag on) and asserting:
   - flag-off: byte-identical surfaces and trace_hashes (null-lift invariant).
   - flag-on: distinct surfaces, distinct trace_hashes, all clauses represented in the surface, all clauses recorded in the new telemetry fields.
@@ -101,4 +101,4 @@ Phase C2 merge (separate PR):
 Phase C3 merge (separate PR):
 
 - `core demo compound-tour` ships; both flag-on and flag-off assertions in CI.
-- `docs/runtime_contracts.md` updated.
+- `docs/specs/runtime_contracts.md` updated.

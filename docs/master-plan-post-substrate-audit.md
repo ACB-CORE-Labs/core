@@ -14,6 +14,11 @@ session boundary so morning-self picks up cleanly.
 > for the day's full ledger (15 merges + 1 issue).  Sections below remain
 > as the historical 2026-05-24 plan; **next-moves are in the session
 > recap, not here**.
+>
+> **2026-07-03 current-state note** — the historical pytest `QUARANTINE`
+> registry described below has been retired. `conftest.py` now has
+> `QUARANTINE = frozenset()`, and `docs/test-debt-quarantine.md` is the
+> current source for quarantine policy.
 
 ---
 
@@ -43,7 +48,7 @@ session boundary so morning-self picks up cleanly.
 - **W-012** — `InnerLoopExhaustion` caught in ChatRuntime (PR #258, paired)
 - Ratchet v5 (PR #260) — registry updated
 
-### Quarantine registry (49 tests)
+### Historical quarantine registry (49 tests; now retired)
 
 Cluster A (4) — ADR ledger drift, one-token extensions, shape of W-002
 Cluster B (15) — surface decoration drift (`pack-grounded (<pack>)` suffix)
@@ -65,7 +70,7 @@ All confirmed pre-existing via bisect against `c1a1b7a` (pre-W-*-work commit). T
 ## Phase 1 — Hygiene & honesty (today, in flight)
 
 - **B PR #261** — extract `math_teaching_corpus` lane from pytest into CI lane SHAs (−9 min suite time, ~30% reduction)
-- **Gate PR** (pending #261) — `conftest.py` QUARANTINE registry of 49 known-failing tests + new `full-pytest.yml` workflow running `pytest -m "not quarantine" -n 4`
+- **Gate PR** (pending #261) — historical `conftest.py` QUARANTINE registry of 49 known-failing tests + new `full-pytest.yml` workflow running `pytest -m "not quarantine" -n 4`
 - **5 W-* closures** — W-004, W-011, W-012, W-015, W-016
 
 **Outcome:** test debt is **visible and ratcheted**; speed recovered; the audit-derived registry is operational. We can ship the next dozen PRs without flying blind.
@@ -92,7 +97,9 @@ Each ~30 min thought + small PR. Mostly cleanup-as-you-find calls per [[feedback
 
 ## Phase 3 — Test debt paydown
 
-Goal: shrink `QUARANTINE` from 49 → 0. One PR per cluster.
+Historical goal: shrink `QUARANTINE` from 49 -> 0. This is now complete;
+`conftest.py` has an empty registry. The historical cluster sequence remains
+below for audit archaeology.
 
 ### Sequence (easiest → hardest)
 
@@ -188,10 +195,10 @@ Two flavors, worth distinguishing:
 
 - [substrate-liveness-ratchet](audit/substrate-liveness-ratchet.md) — wiring debt registry (v5)
 - [substrate-liveness-registry](audit/substrate-liveness-registry.md) — per-layer audit evidence
-- [test-debt-quarantine](test-debt-quarantine.md) — pytest QUARANTINE registry (49 tests, 5 clusters)
-- [L10-runtime-model-scope](decisions/L10-runtime-model-scope.md) — gates W-003, W-007, W-009
-- [recognizer-storage-scope](decisions/recognizer-storage-scope.md) — gates W-007
-- [substrate-liveness-audit-scope](decisions/substrate-liveness-audit-scope.md) — defines audit shape
+- [test-debt-quarantine](test-debt-quarantine.md) — current pytest quarantine policy and historical cluster notes
+- [L10-runtime-model-scope](adr/L10-runtime-model-scope.md) — gates W-003, W-007, W-009
+- [recognizer-storage-scope](adr/recognizer-storage-scope.md) — gates W-007
+- [substrate-liveness-audit-scope](adr/substrate-liveness-audit-scope.md) — defines audit shape
 
 ## Memory cross-references
 

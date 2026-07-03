@@ -10,9 +10,9 @@
 
 ## Context
 
-Under [ADR-0109](file:///Users/kaizenpro/.gemini/antigravity/worktrees/core/fix-symbolic-logic-shape/docs/decisions/ADR-0109-lane-shape-aware-thresholds.md), threshold verification rules are lane-shape-aware, mapping specific lane IDs to defined metric shapes. [ADR-0109](file:///Users/kaizenpro/.gemini/antigravity/worktrees/core/fix-symbolic-logic-shape/docs/decisions/ADR-0109-lane-shape-aware-thresholds.md) mapped the `symbolic_logic` lane to `symbolic_logic_shape`, which internally dispatched to the accuracy-shape threshold checker (`_check_accuracy_shape`).
+Under [ADR-0109](file:///Users/kaizenpro/.gemini/antigravity/worktrees/core/fix-symbolic-logic-shape/docs/adr/ADR-0109-lane-shape-aware-thresholds.md), threshold verification rules are lane-shape-aware, mapping specific lane IDs to defined metric shapes. [ADR-0109](file:///Users/kaizenpro/.gemini/antigravity/worktrees/core/fix-symbolic-logic-shape/docs/adr/ADR-0109-lane-shape-aware-thresholds.md) mapped the `symbolic_logic` lane to `symbolic_logic_shape`, which internally dispatched to the accuracy-shape threshold checker (`_check_accuracy_shape`).
 
-However, as documented in the deferred promotion of `systems_software` ([ADR-0122](file:///Users/kaizenpro/.gemini/antigravity/worktrees/core/fix-symbolic-logic-shape/docs/decisions/ADR-0122-systems-software-audit-passed-deferred.md)), the `symbolic_logic` lane output payload actually contains inference-style metrics (`all_pass_rate`, `replay_determinism`, and `overall_pass`) rather than accuracy-shape metrics (`accuracy` or `passed/total`). This mismatch caused the gate to fail closed with the error message: `lane 'symbolic_logic' missing accuracy (and no passed/total fallback)`.
+However, as documented in the deferred promotion of `systems_software` ([ADR-0122](file:///Users/kaizenpro/.gemini/antigravity/worktrees/core/fix-symbolic-logic-shape/docs/adr/ADR-0122-systems-software-audit-passed-deferred.md)), the `symbolic_logic` lane output payload actually contains inference-style metrics (`all_pass_rate`, `replay_determinism`, and `overall_pass`) rather than accuracy-shape metrics (`accuracy` or `passed/total`). This mismatch caused the gate to fail closed with the error message: `lane 'symbolic_logic' missing accuracy (and no passed/total fallback)`.
 
 This amendment corrects the mapping to unblock the `systems_software` promotion.
 
@@ -41,7 +41,7 @@ Additionally, because no other lane in the registry maps to `symbolic_logic_shap
 ## Invariants
 
 ### `inference_shape_thresholds_applied`
-The existing `inference_shape` thresholds defined in [ADR-0109](file:///Users/kaizenpro/.gemini/antigravity/worktrees/core/fix-symbolic-logic-shape/docs/decisions/ADR-0109-lane-shape-aware-thresholds.md) now govern `symbolic_logic` verification:
+The existing `inference_shape` thresholds defined in [ADR-0109](file:///Users/kaizenpro/.gemini/antigravity/worktrees/core/fix-symbolic-logic-shape/docs/adr/ADR-0109-lane-shape-aware-thresholds.md) now govern `symbolic_logic` verification:
 - `all_pass_rate >= 0.95`
 - `replay_determinism == 1.0`
 - `overall_pass == True`
@@ -62,7 +62,7 @@ Accepted when:
 ## Consequences
 
 - The contract blocker for `systems_software` is resolved: the lane gate now evaluates `symbolic_logic` outputs under the correct metric schema.
-- The deferral in [ADR-0122](file:///Users/kaizenpro/.gemini/antigravity/worktrees/core/fix-symbolic-logic-shape/docs/decisions/ADR-0122-systems-software-audit-passed-deferred.md) can be resolved in a subsequent promotion attempt (likely ADR-0124) when a signed promotion claim is recorded.
+- The deferral in [ADR-0122](file:///Users/kaizenpro/.gemini/antigravity/worktrees/core/fix-symbolic-logic-shape/docs/adr/ADR-0122-systems-software-audit-passed-deferred.md) can be resolved in a subsequent promotion attempt (likely ADR-0124) when a signed promotion claim is recorded.
 
 ---
 

@@ -53,7 +53,7 @@ From the first commit, CORE was designed as a three-language implementation stac
 | Language | Role | Reason |
 |---|---|---|
 | **Python** | Orchestration, session management, vocabulary, persona construction | Human-readable system topology. The field lifecycle is expressed as Python because humans need to read, audit, and extend the cognitive architecture. |
-| **Rust** | Algebra kernel, vault recall, holonomy encoding, batch propagation | Zero-cost abstractions, ownership semantics, and Rayon parallelism for the operations that are called 10,000 times per generation. No GIL. No heap allocation in the hot path. |
+| **Rust** | Algebra kernel, exact vault recall, closure-preserving versor apply, graph diffusion | Zero-cost abstractions, ownership semantics, and Rayon parallelism for the native operations that are parity-gated and explicitly enabled. No hidden backend substitution. |
 | **MLX** | Tensor operations on Apple Silicon UMA | The field is a dense f32 array. MLX executes on the Neural Engine and AMX coprocessors with zero PCIe transfer overhead. The hardware *is* the memory bus. |
 
 This is not a stack — it is a stratification. Each language governs its natural domain. Python describes structure. Rust computes algebra. MLX executes tensor operations on silicon. The boundary between them is defined by contract, not convention.
@@ -350,7 +350,7 @@ deterministic trace. The chain is the structural defense against
 the confabulation failure mode at exactly the layer where it must
 be defended — generation itself.
 
-Full evidence: `docs/runtime_contracts.md` (contracts),
+Full evidence: `docs/specs/runtime_contracts.md` (contracts),
 `docs/evals/phase5_stratified_findings.md` (geometric
 characterization), `docs/evals/phase6_comparative_demo.md`
 (head-to-head demo).
@@ -407,14 +407,14 @@ sampling, not from a replay-deterministic trace bound to a signed
 evidence bundle. CORE makes the commitment first-class.
 
 External readers can inspect the ledger
-(`core capability ledger` / `docs/decisions/README.md` table) to see
+(`core capability ledger` / `docs/adr/README.md` table) to see
 which domains are *contract-passing* and which are *demonstrated*. As
 of 2026-05-23: three domains demonstrated (`mathematics_logic`,
 `physics`, `systems_software`); one ratified domain pending its
 own promotion ADR (`hebrew_greek_textual_reasoning`).
 
-Full evidence chain: `docs/decisions/README.md` (index + frontier),
-`docs/decisions/ADR-0091-domain-pack-contract-v1.md` through
+Full evidence chain: `docs/adr/README.md` (index + frontier),
+`docs/adr/ADR-0091-domain-pack-contract-v1.md` through
 `ADR-0111-physics-expert-demo-promotion.md`.
 
 #### Phase 5 — Capability Substrate (ADR-0119 arc)

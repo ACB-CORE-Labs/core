@@ -209,7 +209,7 @@ the surfaces are demonstrably non-trivial across registers*.
 ### Files
 
 ```
-docs/decisions/ADR-0077-substantive-register-knobs.md    NEW (this file)
+docs/adr/ADR-0077-substantive-register-knobs.md    NEW (this file)
 
 packs/register/default_neutral_v1.json                   EDIT
   - realizer_overrides explicitly sets all R6 keys to false

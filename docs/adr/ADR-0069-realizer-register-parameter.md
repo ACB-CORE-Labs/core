@@ -98,7 +98,7 @@ tests/test_register_null_lift.py                             NEW
 tests/test_runtime_config_register.py                        NEW
   - RuntimeConfig field shape; load behaviour; invalid id rejection
 
-docs/decisions/ADR-0069-realizer-register-parameter.md       NEW (this file)
+docs/adr/ADR-0069-realizer-register-parameter.md       NEW (this file)
 ```
 
 ### Wiring shape

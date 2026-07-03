@@ -202,7 +202,7 @@ artifacts reconcile to the truth.
 | `docs/claims_ledger.md` | current state | reconciled to `7/43/0`, afferent sensorium substrate landed, and fail-closed efferent governance scaffold |
 | `CLAUDE.md` GSM8K substrate header | current operator instruction | reconcile serving metric to `7/43/0`; keep wrong=0 governor |
 | `evals/gsm8k_math/train_sample/v1/README.md` | current eval summary | reconcile current report and note R4 goal-residual lift |
-| `docs/decisions/ADR-0207-gsm8k-substrate-ratification.md` | ratified decision with evolving execution status | keep ratification baseline; add current-state note after R4 lift |
+| `docs/adr/ADR-0207-gsm8k-substrate-ratification.md` | ratified decision with evolving execution status | keep ratification baseline; add current-state note after R4 lift |
 | `docs/reviewers.yaml` `math_expert_claims` | history (receipt) | keep entry; add quarantine note separately; do not re-sign |
-| `docs/decisions/ADR-0120-math-expert-ledger-flip.md` | history | header note: valid-at 2026-05-23, auto-reverted, current = audit-passed |
+| `docs/adr/ADR-0120-math-expert-ledger-flip.md` | history | header note: valid-at 2026-05-23, auto-reverted, current = audit-passed |
 | `evals/math_expert_claims/v1/expert_claims_math_v1_signed.json` | current state | future regeneration should preserve `promote_admitted: false` until a ratified expert path exists |

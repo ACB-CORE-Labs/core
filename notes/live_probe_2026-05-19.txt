@@ -4,8 +4,7 @@
 # (cold-start invariant — no vault contamination).  Deterministic;
 # every run produces byte-identical output.
 #
-# Reproduce by running notes/live_probe_2026-05-19.py (see the
-# scaffolded version under that name).
+# Reproduce by running scripts/probes/live_probe_2026_05_19.py.
 #
 
 

@@ -145,7 +145,7 @@ drift.
 
 - ADR-0054 (Vault Recall Indexing + Batching) — the matrix-cache contract the
   sharded path must preserve at the read side.
-- `docs/runtime_contracts.md` — the response/telemetry/memory/identity
+- `docs/specs/runtime_contracts.md` — the response/telemetry/memory/identity
   contracts that §3.1's "zero modification of `anti_unifier` and `carrier`"
   claim is being measured against.
 - CLAUDE.md §Normalization Rules — `ingest/gate.py` remains the **only**

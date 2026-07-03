@@ -23,7 +23,7 @@ Per ADR-0034:
   Downstream domain deployments can register custom predicates without
   modifying CORE code.
 
-See ``docs/decisions/ADR-0034-ethics-check-surface.md``.
+See ``docs/adr/ADR-0034-ethics-check-surface.md``.
 """
 
 from __future__ import annotations

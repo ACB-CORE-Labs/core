@@ -180,10 +180,10 @@ data + a contract test. No runtime code path changed.
 - [Curriculum: cognition saturation v2](cognition_saturation_v2.md)
   — the sibling cognition-pack saturation that produced the 21
   chains the cognition lane composes over today.
-- [ADR-0027](../decisions/ADR-0027-identity-packs.md) — pack
+- [ADR-0027](../adr/ADR-0027-identity-packs.md) — pack
   loading + ratification surface that this pack consumes
   unchanged.
-- [ADR-0062](../decisions/ADR-0062-composed-teaching-grounded-surface.md)
+- [ADR-0062](../adr/ADR-0062-composed-teaching-grounded-surface.md)
   — the composed-surface ADR; the relations pack will become
   the second domain that composer composes over, once cross-pack
   composition lands.

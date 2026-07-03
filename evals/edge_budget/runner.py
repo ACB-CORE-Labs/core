@@ -69,6 +69,11 @@ def _measure_into(n_turns: int, engine_state_dir: Path) -> list[TurnCost]:
     costs: list[TurnCost] = []
     for i in range(n_turns):
         pipe.run(prompt_at(i))
+        current = (engine_state_dir / "current").read_text(encoding="utf-8").strip() if (engine_state_dir / "current").exists() else ""
+        if current:
+            session_file = engine_state_dir / current / "session_state.json"
+        else:
+            session_file = engine_state_dir / "session_state.json"
         size = session_file.stat().st_size if session_file.exists() else 0
         costs.append(TurnCost(i, len(runtime._context.vault), size))
     return costs

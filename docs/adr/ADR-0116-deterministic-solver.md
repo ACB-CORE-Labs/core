@@ -185,7 +185,7 @@ Accepted when:
 - Solver hits 50/50 on the 50-case dev set
 - `core capability ledger` continues to load (pack discovery is
   additive; no domain contract changes)
-- ADR linked from `docs/decisions/README.md` index and frontier
+- ADR linked from `docs/adr/README.md` index and frontier
 
 ---
 

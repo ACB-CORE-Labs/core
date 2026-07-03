@@ -199,7 +199,7 @@ tests/test_anchor_lens_pack_loader.py                           NEW
 tests/test_anchor_lens_null_lift.py                             NEW
 tests/test_anchor_lens_pack_seam.py                             NEW
 
-docs/decisions/ADR-0073b-anchor-lens-class-loader.md            NEW (this file)
+docs/adr/ADR-0073b-anchor-lens-class-loader.md            NEW (this file)
 ```
 
 ---

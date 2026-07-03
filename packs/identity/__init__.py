@@ -1,7 +1,7 @@
 """Identity packs — on-disk, content-addressed IdentityManifolds.
 
 See ``docs/identity_packs.md`` for the pack format, loader contract, and
-authoring guide.  See ``docs/decisions/ADR-0027-identity-packs.md`` for
+authoring guide.  See ``docs/adr/ADR-0027-identity-packs.md`` for
 the decision record.
 """
 

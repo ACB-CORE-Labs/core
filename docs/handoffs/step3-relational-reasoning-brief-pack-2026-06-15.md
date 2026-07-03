@@ -215,7 +215,7 @@ now; code waits.
 
 **Do NOT:** add any `answer=False` path to `determine.py`; wire a runtime caller; weaken INV-30.
 
-**Files:** `docs/decisions/ADR-XXXX-frame-verdict-closed-world.md` (+ an optional non-wired
+**Files:** `docs/adr/ADR-XXXX-frame-verdict-closed-world.md` (+ an optional non-wired
 schema stub). **Budget:** ~15–25 tool calls (mostly reading ADR-0211 + `determine.py` + INV-30
 to ground the design).
 

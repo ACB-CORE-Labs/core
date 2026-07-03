@@ -58,7 +58,7 @@ Concretely (post-ratif):
    - `docs/testing-lanes.md`: Extend the "Dedicated CLOSE Flywheel Regression Surface (Claim-B Level)" section (the one added in #793) with a new subsection "Review / Ratification Posture and Events (the previously weaker half)" describing the new signals, their purpose (visibility into acceptance/rejection rates, review outcomes, promotion-adjacent events for the CLOSE-derived proposals), expected characteristics (still heavy, hermetic, proposal-only/SPECULATIVE guarantees are *asserted*, not bypassed), and the ratif link.
    - `docs/evals/anti_regression_demo.md`: Note that the demo now also participates in review/ratification visibility for the embedded CLOSE surface.
    - `evals/close_derived_climb/contract.md`: Add the new posture signals to the "What the yardstick measures" list + ratif reference.
-   - `docs/runtime_contracts.md`: One-sentence tightening (if needed) that the determination + proposal emission contracts now have corresponding review-posture observability in the dedicated lane.
+   - `docs/specs/runtime_contracts.md`: One-sentence tightening (if needed) that the determination + proposal emission contracts now have corresponding review-posture observability in the dedicated lane.
    - Cross-reference the new ratif artifact and the prior dedicated-surface ratif.
 
 4. **No other changes**:
@@ -112,7 +112,7 @@ The chosen path is the minimal, precise, pillar-aligned, scope-respecting, herme
 - `docs/testing-lanes.md` (Dedicated section + "How the surface builds on prior work").
 - `evals/close_derived_climb/contract.md`, `evals/anti_regression/run_demo.py`, `chat/runtime.py:IdleTickResult`, `teaching/proposals.py:ProposalLog + ReviewState + accept/reject`, `vault/store.py` (promotion boundaries).
 - Engineering Pillars: `docs/Whitepaper.md` §IV.
-- Runtime contracts: `docs/runtime_contracts.md` (determination + proposal emission sections).
+- Runtime contracts: `docs/specs/runtime_contracts.md` (determination + proposal emission sections).
 
 **Ratification Status:** COMPLETE AND LOCKED. This artifact was created via the `write` tool on the clean branch *before any search_replace, write (other than this file), or other implementation edit to Makefile, source, tests, evals runners, or any other documentation*. All preceding activity was git operations (fetch, checkout main, ff, branch creation, clean of stray artifacts) plus strictly read-only exploration (list_dir, read_file, grep with no edits). Implementation may now proceed exactly within the scope above. Any deviation requires a new ratification or explicit brief amendment.
 

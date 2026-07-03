@@ -2,7 +2,7 @@
 
 Reads a content-addressed identity pack from disk and constructs an
 :class:`IdentityManifold` for the runtime.  See
-``docs/decisions/ADR-0027-identity-packs.md`` for context.
+``docs/adr/ADR-0027-identity-packs.md`` for context.
 
 Loader contract (read carefully — this is a trust boundary):
 

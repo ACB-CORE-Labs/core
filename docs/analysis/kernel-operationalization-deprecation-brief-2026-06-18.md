@@ -84,7 +84,7 @@ CLAUDE.md
 GROK.md
 AGENTS.md
 docs/architecture/kernel-knowledge-layer-v1.md
-docs/runtime_contracts.md
+docs/specs/runtime_contracts.md
 ```
 
 Add a rule equivalent to:

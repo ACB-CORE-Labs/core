@@ -231,7 +231,7 @@ core eval cognition          (byte-identical at default config)
 - New `packs/rhetorical_style/loader.py` with `RhetoricalStylePack`
   dataclass and ratification gates.
 - New `default_unstyled_v1` pack that produces the null-lift baseline.
-- `docs/runtime_contracts.md` updated to declare rhetorical style as
+- `docs/specs/runtime_contracts.md` updated to declare rhetorical style as
   the third substantive axis with its `trace_hash` invariant.
 
 ### What does not change

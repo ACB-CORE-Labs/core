@@ -8,9 +8,9 @@
 was written against a stale "frontend zero" state and a Zustand layout
 this codebase never adopted. Read the *Reconciliation* section below
 before treating the older brief as authoritative.
-**Parent doctrine:** [ADR-0173](../decisions/ADR-0173-workbench-ratification-trust-boundary.md)
-(trust boundary), [ADR-0160](../decisions/ADR-0160-core-workbench-v1.md)
-(workbench v1), [ADR-0162](../decisions/ADR-0162-workbench-design-system.md)
+**Parent doctrine:** [ADR-0173](../adr/ADR-0173-workbench-ratification-trust-boundary.md)
+(trust boundary), [ADR-0160](../adr/ADR-0160-core-workbench-v1.md)
+(workbench v1), [ADR-0162](../adr/ADR-0162-workbench-design-system.md)
 (design system + keyboard contract)
 **Operator profile:** Opus — load-bearing `wrong == 0` surface; must
 mirror the case-0050 hazard-pin rigor of
@@ -106,7 +106,7 @@ share a working dir with other agents.)
 
 ## Reads required FIRST
 
-- `docs/decisions/ADR-0173-workbench-ratification-trust-boundary.md`
+- `docs/adr/ADR-0173-workbench-ratification-trust-boundary.md`
   — entire ADR. The §"Keyboard contract", §"What the workbench MAY
   do / MUST NOT do", §"Ratification record extension", and
   §"Acceptance gates → W3" are verbatim requirements.
