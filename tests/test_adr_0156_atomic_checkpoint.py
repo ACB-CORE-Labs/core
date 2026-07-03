@@ -187,7 +187,7 @@ def test_round_trip_unchanged_after_atomic_refactor(tmp_path: Path) -> None:
     manifest = store.load_manifest()
     assert manifest is not None
     assert manifest == {
-        "schema_version": 1,
+        "schema_version": 2,
         "turn_count": 42,
         "written_at_revision": manifest["written_at_revision"],
     }

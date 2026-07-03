@@ -151,7 +151,7 @@ def _admitted_records(intent_sha256: str) -> tuple[ActionVerdictRecord, ...]:
 
 def test_adr_0216_motor_verdict_lowering_is_documented():
     root = Path(__file__).resolve().parents[1]
-    adr = root / "docs" / "decisions" / "ADR-0216-motor-verdict-lowering.md"
+    adr = root / "docs" / "adr" / "ADR-0216-motor-verdict-lowering.md"
     assert adr.exists()
     text = adr.read_text(encoding="utf-8")
     assert "MotorActionIntent" in text

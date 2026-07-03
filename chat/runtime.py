@@ -1205,7 +1205,7 @@ class ChatRuntime:
         ``govern_response`` widens to APPROXIMATE iff the predicate-class holds a genuine
         SERVE license, and ``shape_surface`` DISCLOSES it as ``[approximate] …``. An
         unlicensed class stays STRICT (the surface is unchanged — the honest refusal).
-        Off-flag turns never reach here. See ``docs/runtime_contracts.md``.
+        Off-flag turns never reach here. See ``docs/specs/runtime_contracts.md``.
         """
         accrual = self._last_turn_accrual
         if accrual is None:

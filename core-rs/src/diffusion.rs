@@ -11,10 +11,6 @@
 use crate::cl41::geometric_product_f64;
 use std::collections::HashMap;
 
-/// Blade indices 9, 12, 14, 15 square to +1 (boost/hyperbolic planes involving e5).
-/// Remaining bivector indices (6-8, 10-11, 13) square to -1 (rotation planes).
-const BOOST_INDICES: [usize; 4] = [9, 12, 14, 15];
-
 fn is_boost(blade_idx: usize) -> bool {
     matches!(blade_idx, 9 | 12 | 14 | 15)
 }
@@ -26,7 +22,9 @@ fn is_boost(blade_idx: usize) -> bool {
 pub fn unitize_f32(v: &[f32; 32]) -> [f32; 32] {
     let v64: [f64; 32] = {
         let mut arr = [0f64; 32];
-        for i in 0..32 { arr[i] = v[i] as f64; }
+        for i in 0..32 {
+            arr[i] = v[i] as f64;
+        }
         arr
     };
 
@@ -40,7 +38,9 @@ pub fn unitize_f32(v: &[f32; 32]) -> [f32; 32] {
     // Extract bivector content (indices 6..16)
     let bv: [f64; 10] = {
         let mut arr = [0f64; 10];
-        for i in 0..10 { arr[i] = v64[6 + i]; }
+        for i in 0..10 {
+            arr[i] = v64[6 + i];
+        }
         arr
     };
     let bv_norm: f64 = bv.iter().map(|x| x * x).sum::<f64>().sqrt();
@@ -57,7 +57,9 @@ pub fn unitize_f32(v: &[f32; 32]) -> [f32; 32] {
 
     for i in 0..10usize {
         let w = bv[i] / bv_norm;
-        if w.abs() < 1e-14 { continue; }
+        if w.abs() < 1e-14 {
+            continue;
+        }
         let theta = angle * w;
         let mut factor = [0f64; 32];
         let blade_idx = 6 + i;
@@ -72,11 +74,15 @@ pub fn unitize_f32(v: &[f32; 32]) -> [f32; 32] {
     }
 
     if v64[0] < 0.0 {
-        for x in rotor.iter_mut() { *x = -*x; }
+        for x in rotor.iter_mut() {
+            *x = -*x;
+        }
     }
 
     let mut result = [0f32; 32];
-    for i in 0..32 { result[i] = rotor[i] as f32; }
+    for i in 0..32 {
+        result[i] = rotor[i] as f32;
+    }
     result
 }
 
@@ -103,19 +109,27 @@ pub fn graph_diffusion_step(
     }
 
     for (&node, srcs) in &neighbors {
-        if node >= n || srcs.is_empty() { continue; }
+        if node >= n || srcs.is_empty() {
+            continue;
+        }
 
         // Current node in f64
         let mut f = [0f64; 32];
-        for i in 0..32 { f[i] = fields[node][i] as f64; }
+        for i in 0..32 {
+            f[i] = fields[node][i] as f64;
+        }
 
         // Neighbor average in f64
         let mut avg = [0f64; 32];
         for &src in srcs {
-            for i in 0..32 { avg[i] += fields[src][i] as f64; }
+            for i in 0..32 {
+                avg[i] += fields[src][i] as f64;
+            }
         }
         let inv = 1.0 / srcs.len() as f64;
-        for x in avg.iter_mut() { *x *= inv; }
+        for x in avg.iter_mut() {
+            *x *= inv;
+        }
 
         // Blend
         let mut blended = [0f32; 32];
@@ -170,7 +184,7 @@ mod tests {
         let mut v = [0f32; 32];
         v[0] = 0.8;
         v[6] = 0.3;
-        v[9] = 0.2;  // boost blade
+        v[9] = 0.2; // boost blade
         let result = unitize_f32(&v);
         let cond = versor_condition_raw(&result).unwrap();
         assert!(cond < 1e-4, "versor condition {} too large", cond);

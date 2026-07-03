@@ -21,7 +21,7 @@ Trust boundary (per CLAUDE.md):
 * **Idempotent flush.**  Each ``emit()`` flushes immediately so a
   crashed turn loop still has its prior turns durable on disk.
 
-See ``docs/decisions/ADR-0040-telemetry-sink.md``.
+See ``docs/adr/ADR-0040-telemetry-sink.md``.
 """
 
 from __future__ import annotations

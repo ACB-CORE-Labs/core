@@ -111,7 +111,7 @@ uv run pytest tests/test_adr_0131_3_bounded_grammar_lane.py tests/test_binding_g
 
 - **Packs-only Engine Identity:** Stamped manifest scheme updated to scheme `2` (packs-only hash) which ignores `code_revision` as build provenance. `ChatRuntime` now correctly computes identity using the actual resolved/loaded packs rather than config values.
 - **Turn-scoped Planner Variables:** `_last_plan_findings` and `_last_plan_metrics` are reset at the beginning of `ChatRuntime.chat` to ensure zero state leakage between fast-path and planning turns.
-- **ADR Corpus Cohesion & Definitional Closure:** Completed directory consolidation (`docs/decisions/*` -> `docs/adr/`), fixed backslash escape in `en_arithmetic_v1/glosses.jsonl`, set `definitional_layer: false` for `en_core_syntax_v1` in manifest, and added `Governance Cross-Reference (ADR-0225)` sections to the 7 foundational architecture anchor ADRs.
+- **ADR Corpus Cohesion & Definitional Closure:** Completed directory consolidation (`docs/adr/*` -> `docs/adr/`), fixed backslash escape in `en_arithmetic_v1/glosses.jsonl`, set `definitional_layer: false` for `en_core_syntax_v1` in manifest, and added `Governance Cross-Reference (ADR-0225)` sections to the 7 foundational architecture anchor ADRs.
 
 
 ---

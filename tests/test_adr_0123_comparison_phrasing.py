@@ -1,7 +1,7 @@
 """ADR-0123 — comparison-phrasing realizer (surface increment on substrate).
 
 Pins the load-bearing invariants documented in
-``docs/decisions/ADR-0123-parser-comparison-phrasing.md``. The
+``docs/adr/ADR-0123-parser-comparison-phrasing.md``. The
 substrate (PR #155, commit ``c9bd5d4``) shipped the typed graph
 operand (``Comparison``), the two new operation kinds, the parser
 patterns, the solver/verifier wiring, and the two pack lemmas; this

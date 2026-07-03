@@ -6,7 +6,7 @@
 This directory is the independent validation scaffold for the propositional
 canonicalizer and first `modus_ponens` proof-chain rule. The formula grammar,
 atom declaration shape, and atom-to-FeatureBundle binding convention are governed
-by `docs/decisions/ADR-0202-proposition-representation-contract.md`.
+by `docs/adr/ADR-0202-proposition-representation-contract.md`.
 
 The fixture inventory in `propositional_cases.json` records concrete formula
 strings, per-case `atoms` blocks, expected behaviors, and rationale. It is ready

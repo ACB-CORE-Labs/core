@@ -148,12 +148,14 @@ def test_cli_all_flag_proposes_all_exemplar_corpora(tmp_path: Path) -> None:
     # currency_amount, discrete_count_statement, and multiplicative_aggregation
     # exemplar corpora. Update this set when a new exemplar corpus is added.
     assert cats == {
+        "comparative_with_unit",
         "currency_amount",
         "descriptive_setup_no_quantity",
         "discrete_count_statement",
         "multiplicative_aggregation",
         "rate_with_currency",
         "temporal_aggregation",
+        "unit_partition",
     }
     for p in payload["proposals"]:
         assert p["state"] == "pending"

@@ -1,7 +1,7 @@
 """ADR-0122 — parser expansion: rate / per-unit reasoning.
 
 Pins the load-bearing invariants documented in
-``docs/decisions/ADR-0122-parser-rate-per-unit.md``. The invariants
+``docs/adr/ADR-0122-parser-rate-per-unit.md``. The invariants
 fall into three layers:
 
 1. **Substrate invariants** (1-9): pure unit tests against the new

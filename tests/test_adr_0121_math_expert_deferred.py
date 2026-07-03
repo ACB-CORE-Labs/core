@@ -1,7 +1,7 @@
 """ADR-0121 — first `expert` promotion attempt (mathematics_logic) deferred.
 
 Pins five load-bearing invariants documented in
-``docs/decisions/ADR-0121-mathematics-logic-expert-deferred.md``:
+``docs/adr/ADR-0121-mathematics-logic-expert-deferred.md``:
 
 1. ``mathematics_logic`` ledger row stays at ``status="audit-passed"``;
    ``predicates.audit_passed == True``. No domain row carries the

@@ -40,7 +40,11 @@ fn test_e1_e2_anticommute() {
     let e1e2 = geometric_product_raw(&e1, &e2).unwrap();
     let e2e1 = geometric_product_raw(&e2, &e1).unwrap();
     for i in 0..32 {
-        assert!((e1e2[i] + e2e1[i]).abs() < 1e-6, "e1*e2 + e2*e1 != 0 at index {}", i);
+        assert!(
+            (e1e2[i] + e2e1[i]).abs() < 1e-6,
+            "e1*e2 + e2*e1 != 0 at index {}",
+            i
+        );
     }
 }
 
@@ -57,12 +61,18 @@ fn test_reverse_grade2_sign() {
     let mut a = [0f32; 32];
     a[6] = 1.0;
     let r = reverse_raw(&a);
-    assert!((r[6] + 1.0).abs() < 1e-6, "reverse of grade-2 blade should negate");
+    assert!(
+        (r[6] + 1.0).abs() < 1e-6,
+        "reverse of grade-2 blade should negate"
+    );
 }
 
 #[test]
 fn test_reverse_grade1_unchanged() {
     let e1 = basis(0);
     let r = reverse_raw(&e1);
-    assert!((r[1] - 1.0).abs() < 1e-6, "reverse of grade-1 blade should be unchanged");
+    assert!(
+        (r[1] - 1.0).abs() < 1e-6,
+        "reverse of grade-1 blade should be unchanged"
+    );
 }

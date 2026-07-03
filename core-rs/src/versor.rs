@@ -4,7 +4,9 @@
 //! normalize_to_versor F/sqrt(|F*rev(F)|) — called once at injection gate
 //! versor_condition   ||F*rev(F)-1||_F   — used in tests and gate only
 
-use crate::cl41::{geometric_product_f64, geometric_product_raw, reverse_f64, reverse_raw, Cl41Error};
+use crate::cl41::{
+    geometric_product_f64, geometric_product_raw, reverse_f64, reverse_raw, Cl41Error,
+};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -16,7 +18,6 @@ pub enum VersorError {
 }
 
 const NEAR_ZERO_TOL: f64 = 1e-12;
-const NULL_SCALAR_TOL: f64 = 1e-9;
 const CONSTRUCTION_RESIDUE_TOL: f64 = 1e-2;
 const SEED_BIVECTORS: [usize; 6] = [6, 7, 8, 10, 11, 13];
 
@@ -52,7 +53,9 @@ fn unitize_closed(v: &[f64; 32]) -> Result<[f64; 32], ()> {
 
     let inv = 1.0 / scalar_sq.sqrt();
     let mut result = *v;
-    for x in result.iter_mut() { *x *= inv; }
+    for x in result.iter_mut() {
+        *x *= inv;
+    }
     Ok(result)
 }
 
@@ -83,19 +86,25 @@ fn close_applied_versor(v: &[f32; 32]) -> [f32; 32] {
 
     let v_f64: [f64; 32] = {
         let mut arr = [0f64; 32];
-        for i in 0..32 { arr[i] = v[i] as f64; }
+        for i in 0..32 {
+            arr[i] = v[i] as f64;
+        }
         arr
     };
 
     if let Ok(closed) = unitize_closed(&v_f64) {
         let mut result = [0f32; 32];
-        for i in 0..32 { result[i] = closed[i] as f32; }
+        for i in 0..32 {
+            result[i] = closed[i] as f32;
+        }
         return result;
     }
 
     if let Ok(seeded) = seed_to_rotor(&v_f64) {
         let mut result = [0f32; 32];
-        for i in 0..32 { result[i] = seeded[i] as f32; }
+        for i in 0..32 {
+            result[i] = seeded[i] as f32;
+        }
         return result;
     }
 
@@ -122,10 +131,7 @@ pub fn versor_apply_closed(v: &[f32; 32], f: &[f32; 32]) -> Result<[f32; 32], Ve
 /// accepted — otherwise the deterministic `seed_to_rotor`
 /// construction map is used.  ADR-0020 parity gate
 /// `tests/test_versor_apply_rust_parity.py`.
-pub fn versor_apply_closed_f64(
-    v: &[f64; 32],
-    f: &[f64; 32],
-) -> Result<[f64; 32], VersorError> {
+pub fn versor_apply_closed_f64(v: &[f64; 32], f: &[f64; 32]) -> Result<[f64; 32], VersorError> {
     let rev_v = reverse_f64(v);
     let vf = geometric_product_f64(v, f);
     let vfrv = geometric_product_f64(&vf, &rev_v);
@@ -167,10 +173,7 @@ fn unitize_versor_f64(v: &[f64; 32]) -> Result<[f64; 32], ()> {
             // `unitize_closed` signature; mirror Python's policy by gating
             // the fallback on the dense-support heuristic, which is the
             // condition Python also requires before invoking the rotor seed.
-            let support = v
-                .iter()
-                .filter(|x| x.abs() > NEAR_ZERO_TOL)
-                .count();
+            let support = v.iter().filter(|x| x.abs() > NEAR_ZERO_TOL).count();
             if support < DENSE_SEED_MIN_COMPONENTS {
                 Err(())
             } else {
@@ -199,8 +202,8 @@ fn close_applied_versor_f64(v: &[f64; 32]) -> [f64; 32] {
 /// Raw sandwich product V * F * reverse(V) without closure.
 pub fn versor_apply_raw(v: &[f32; 32], f: &[f32; 32]) -> Result<[f32; 32], VersorError> {
     let rev_v = reverse_raw(v);
-    let vf    = geometric_product_raw(v, f)?;
-    let vfrv  = geometric_product_raw(&vf, &rev_v)?;
+    let vf = geometric_product_raw(v, f)?;
+    let vfrv = geometric_product_raw(&vf, &rev_v)?;
     Ok(vfrv)
 }
 
@@ -208,14 +211,16 @@ pub fn versor_apply_raw(v: &[f32; 32], f: &[f32; 32]) -> Result<[f32; 32], Verso
 /// Called ONCE at ingest/gate. Never mid-propagation.
 pub fn normalize_to_versor_raw(f: &[f32; 32]) -> Result<[f32; 32], VersorError> {
     let rev_f = reverse_raw(f);
-    let frv   = geometric_product_raw(f, &rev_f)?;
-    let n2    = frv[0]; // grade-0 = scalar part
+    let frv = geometric_product_raw(f, &rev_f)?;
+    let n2 = frv[0]; // grade-0 = scalar part
     if n2.abs() < 1e-12 {
         return Err(VersorError::NullVersor(n2));
     }
     let inv_norm = 1.0 / n2.abs().sqrt();
     let mut result = *f;
-    for x in result.iter_mut() { *x *= inv_norm; }
+    for x in result.iter_mut() {
+        *x *= inv_norm;
+    }
     Ok(result)
 }
 

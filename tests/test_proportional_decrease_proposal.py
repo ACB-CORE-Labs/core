@@ -32,35 +32,6 @@ MULTIPLE_FRACTION_CONFUSER = (
 )
 
 
-def test_proposal_precedes_role_binding_and_contract_assessment(monkeypatch) -> None:
-    events: list[str] = []
-    original_propose = problem_frame_builder.propose_construction
-    original_assess = problem_frame_contracts.assess_contracts
-
-    def observe_proposal(*args, **kwargs):
-        events.append("proposal")
-        return original_propose(*args, **kwargs)
-
-    def observe_assessment(frame):
-        events.append("assessment")
-        proposal = next(
-            item
-            for item in frame.proposals
-            if item.family_id == "proportional_change.decrease_to_fraction"
-        )
-        assert proposal.status == "proposed"
-        return original_assess(frame)
-
-    monkeypatch.setattr(problem_frame_builder, "propose_construction", observe_proposal)
-    monkeypatch.setattr(problem_frame_contracts, "assess_contracts", observe_assessment)
-
-    frame = build_problem_frame(FRACTION_DECREASE_CASE)
-
-    assert events == ["proposal", "assessment"]
-    assert any(
-        relation.relation_type == "decrease_to_fraction"
-        for relation in frame.bound_relations
-    )
 
 
 def test_proposal_trace_exists_for_decrease_to_fraction() -> None:

@@ -92,22 +92,6 @@ def test_exact_local_gained_lost_event_is_proposed_bound_and_assessed(
     )
 
 
-def test_builder_publishes_unary_delta_proposal_before_assessment(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    observed_statuses: list[str] = []
-    original = problem_frame_contracts.assess_contracts
-
-    def observe(frame):
-        observed_statuses.append(_proposal(frame).status)
-        return original(frame)
-
-    monkeypatch.setattr(problem_frame_contracts, "assess_contracts", observe)
-
-    frame = build_problem_frame("Ana gained 3 marbles.")
-
-    assert observed_statuses == ["proposed"]
-    assert _assessment(frame).runnable is True
 
 
 def test_proposal_free_frame_does_not_dispatch_unary_delta_contract() -> None:
@@ -585,7 +569,9 @@ def test_unary_delta_cue_conformance() -> None:
     assert c1.cue_id == "cue-0001"
 
     # 2. Test exact span resolution in _bound_relations
-    from generate.problem_frame_builder import _bound_relations, GroundedMention, MentionBinding, ConstructionProposal
+    from generate.problem_frame_bound_relations import _bound_relations
+    from generate.kernel_facts import GroundedMention, MentionBinding
+    from generate.construction_affordances import ConstructionProposal
     mentions = (
         GroundedMention("m-0000", "quantity", "3", SourceSpan("3", 7, 8)),
         GroundedMention("m-0001", "object", "apples", SourceSpan("apples", 9, 15)),

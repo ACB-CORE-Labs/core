@@ -6,6 +6,7 @@
 //!   - versor_condition    (||F*rev(F) - 1||_F)
 //!   - cga_inner           (symmetric inner product)
 //!   - vault_recall        (parallel top-k scan)
+//!   - diffusion_step      (zero-copy graph diffusion step)
 //!
 //! All multivectors are f32 arrays of length 32, passed as numpy arrays.
 
@@ -21,8 +22,6 @@ pub mod versor;
 use cga::cga_inner_raw;
 use cl41::geometric_product_raw;
 use diffusion::{graph_diffusion_step, unitize_f32};
-#[allow(unused_imports)]
-use vault::vault_recall_raw;
 use versor::{
     normalize_to_versor_raw, versor_apply_closed, versor_apply_closed_f64, versor_apply_raw,
     versor_condition_raw,
@@ -50,13 +49,13 @@ fn geometric_product(
 #[pyfunction]
 fn versor_apply(
     py: Python<'_>,
-    v: &pyo3::types::PyAny,
-    f: &pyo3::types::PyAny,
+    v: &Bound<'_, pyo3::types::PyAny>,
+    f: &Bound<'_, pyo3::types::PyAny>,
 ) -> PyResult<PyObject> {
     let v_slice = extract_f32_slice(v)?;
     let f_slice = extract_f32_slice(f)?;
-    let result = versor_apply_raw(&v_slice, &f_slice)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let result =
+        versor_apply_raw(&v_slice, &f_slice).map_err(|e| PyValueError::new_err(e.to_string()))?;
     f32_array_to_numpy(py, &result)
 }
 
@@ -70,8 +69,8 @@ fn versor_apply_with_closure(
 ) -> PyResult<PyObject> {
     let v_slice = read_f32_cl41_mv(&v)?;
     let f_slice = read_f32_cl41_mv(&f)?;
-    let result = versor_apply_closed(v_slice, f_slice)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let result =
+        versor_apply_closed(v_slice, f_slice).map_err(|e| PyValueError::new_err(e.to_string()))?;
     f32_array_to_numpy(py, &result)
 }
 
@@ -100,13 +99,10 @@ fn versor_condition(f: numpy::PyReadonlyArray1<'_, f32>) -> PyResult<f32> {
 
 /// Project F onto versor manifold: F / sqrt(|F*rev(F)|).
 #[pyfunction]
-fn normalize_to_versor(
-    py: Python<'_>,
-    f: &pyo3::types::PyAny,
-) -> PyResult<PyObject> {
+fn normalize_to_versor(py: Python<'_>, f: &Bound<'_, pyo3::types::PyAny>) -> PyResult<PyObject> {
     let f_slice = extract_f32_slice(f)?;
-    let result = normalize_to_versor_raw(&f_slice)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let result =
+        normalize_to_versor_raw(&f_slice).map_err(|e| PyValueError::new_err(e.to_string()))?;
     f32_array_to_numpy(py, &result)
 }
 
@@ -146,9 +142,9 @@ fn vault_recall(
         )));
     }
     let n = shape[0];
-    let q_slice = query.as_slice().map_err(|e| {
-        PyValueError::new_err(format!("query must be contiguous f32 (32,): {}", e))
-    })?;
+    let q_slice = query
+        .as_slice()
+        .map_err(|e| PyValueError::new_err(format!("query must be contiguous f32 (32,): {}", e)))?;
     if q_slice.len() != 32 {
         return Err(PyValueError::new_err(format!(
             "query must have length 32, got {}",
@@ -156,10 +152,7 @@ fn vault_recall(
         )));
     }
     let v_slice = versors.as_slice().map_err(|e| {
-        PyValueError::new_err(format!(
-            "versors must be C-contiguous f32 (N, 32): {}",
-            e
-        ))
+        PyValueError::new_err(format!("versors must be C-contiguous f32 (N, 32): {}", e))
     })?;
     let mut q_arr = [0f32; 32];
     q_arr.copy_from_slice(q_slice);
@@ -171,10 +164,7 @@ fn vault_recall(
 /// Unitize a multivector via the Cl(4,1) exponential map.
 /// Distinguishes boost planes (cosh/sinh) from rotation planes (cos/sin).
 #[pyfunction]
-fn unitize_expmap(
-    py: Python<'_>,
-    v: &pyo3::types::PyAny,
-) -> PyResult<PyObject> {
+fn unitize_expmap(py: Python<'_>, v: &Bound<'_, pyo3::types::PyAny>) -> PyResult<PyObject> {
     let v_slice = extract_f32_slice(v)?;
     let result = unitize_f32(&v_slice);
     f32_array_to_numpy(py, &result)
@@ -224,16 +214,10 @@ fn diffusion_step<'py>(
     }
 
     let fields_slice = fields.as_slice().map_err(|e| {
-        PyValueError::new_err(format!(
-            "fields must be C-contiguous f32 (N, 32): {}",
-            e
-        ))
+        PyValueError::new_err(format!("fields must be C-contiguous f32 (N, 32): {}", e))
     })?;
     let edges_slice = edges.as_slice().map_err(|e| {
-        PyValueError::new_err(format!(
-            "edges must be C-contiguous i32 (E, 2): {}",
-            e
-        ))
+        PyValueError::new_err(format!("edges must be C-contiguous i32 (E, 2): {}", e))
     })?;
 
     // ``[f32; 32]`` and ``[i32; 2]`` are both ``Pod`` (arrays of POD
@@ -242,8 +226,7 @@ fn diffusion_step<'py>(
     let fields_blocks: &[[f32; 32]] = bytemuck::cast_slice(fields_slice);
     let edges_blocks: &[[i32; 2]] = bytemuck::cast_slice(edges_slice);
 
-    let (new_fields, delta) =
-        graph_diffusion_step(fields_blocks, edges_blocks, damping);
+    let (new_fields, delta) = graph_diffusion_step(fields_blocks, edges_blocks, damping);
 
     // ``Vec<[f32; 32]>`` → ``Vec<f32>`` is a zero-copy reinterpretation
     // of the allocation (requires the ``extern_crate_alloc`` bytemuck
@@ -269,14 +252,11 @@ fn read_f32_cl41_mv<'a>(arr: &'a numpy::PyReadonlyArray1<'a, f32>) -> PyResult<&
         )));
     }
     let slice = arr.as_slice().map_err(|e| {
-        PyValueError::new_err(format!(
-            "input must be C-contiguous float32 (32,): {}",
-            e
-        ))
+        PyValueError::new_err(format!("input must be C-contiguous float32 (32,): {}", e))
     })?;
-    slice.try_into().map_err(|_| {
-        PyValueError::new_err("expected contiguous float32 array of length 32")
-    })
+    slice
+        .try_into()
+        .map_err(|_| PyValueError::new_err("expected contiguous float32 array of length 32"))
 }
 
 fn read_f64_cl41_mv<'a>(arr: &'a numpy::PyReadonlyArray1<'a, f64>) -> PyResult<&'a [f64; 32]> {
@@ -288,18 +268,15 @@ fn read_f64_cl41_mv<'a>(arr: &'a numpy::PyReadonlyArray1<'a, f64>) -> PyResult<&
         )));
     }
     let slice = arr.as_slice().map_err(|e| {
-        PyValueError::new_err(format!(
-            "input must be C-contiguous float64 (32,): {}",
-            e
-        ))
+        PyValueError::new_err(format!("input must be C-contiguous float64 (32,): {}", e))
     })?;
-    slice.try_into().map_err(|_| {
-        PyValueError::new_err("expected contiguous float64 array of length 32")
-    })
+    slice
+        .try_into()
+        .map_err(|_| PyValueError::new_err("expected contiguous float64 array of length 32"))
 }
 
-fn extract_f32_slice(obj: &pyo3::types::PyAny) -> PyResult<[f32; 32]> {
-    let np = obj.py().import("numpy")?;
+fn extract_f32_slice(obj: &Bound<'_, pyo3::types::PyAny>) -> PyResult<[f32; 32]> {
+    let np = obj.py().import_bound("numpy")?;
     let arr = np.call_method1("asarray", (obj, "float32"))?;
     let flat = arr.call_method0("flatten")?;
     let list: Vec<f32> = flat.extract()?;
@@ -315,30 +292,14 @@ fn extract_f32_slice(obj: &pyo3::types::PyAny) -> PyResult<[f32; 32]> {
 }
 
 fn f32_array_to_numpy(py: Python<'_>, data: &[f32; 32]) -> PyResult<PyObject> {
-    let np = py.import("numpy")?;
+    let np = py.import_bound("numpy")?;
     let list: Vec<f32> = data.to_vec();
     let arr = np.call_method1("array", (list, "float32"))?;
     Ok(arr.into_py(py))
 }
 
-fn extract_f64_slice(obj: &pyo3::types::PyAny) -> PyResult<[f64; 32]> {
-    let np = obj.py().import("numpy")?;
-    let arr = np.call_method1("asarray", (obj, "float64"))?;
-    let flat = arr.call_method0("flatten")?;
-    let list: Vec<f64> = flat.extract()?;
-    if list.len() != 32 {
-        return Err(PyValueError::new_err(format!(
-            "Expected array of length 32, got {}",
-            list.len()
-        )));
-    }
-    let mut out = [0f64; 32];
-    out.copy_from_slice(&list);
-    Ok(out)
-}
-
 fn f64_array_to_numpy(py: Python<'_>, data: &[f64; 32]) -> PyResult<PyObject> {
-    let np = py.import("numpy")?;
+    let np = py.import_bound("numpy")?;
     let list: Vec<f64> = data.to_vec();
     let arr = np.call_method1("array", (list, "float64"))?;
     Ok(arr.into_py(py))

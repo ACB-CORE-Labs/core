@@ -17,7 +17,7 @@ EXPECTED_DIR = DEMO_DIR / "expected"
 PROTECTED_PATHS = [
     Path("CLAIMS.md"),
     Path("chat/runtime.py"),
-    Path("docs/runtime_contracts.md"),
+    Path("docs/specs/runtime_contracts.md"),
 ]
 
 
@@ -91,7 +91,7 @@ def test_authorized_only_inside_envelope():
     assert response["licensed_action"]["effect"] == "inert_license_only"
 
     payload = _fixture("authorized-low-risk-local-action.json")["arguments"]
-    payload["action_request"]["target"]["path"] = "docs/runtime_contracts.md"
+    payload["action_request"]["target"]["path"] = "docs/specs/runtime_contracts.md"
     refused = authority.run_authority(payload)
     assert refused["status"] == "refused"
     assert refused["refusal_reason"] == "protected_path"

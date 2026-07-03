@@ -8,7 +8,7 @@ injectors can emit operations as well as initials. The existing
 the widening is type-level only in this PR.
 
 References:
-- docs/decisions/ADR-0170-injector-contract-widening.md §"Implementation
+- docs/adr/ADR-0170-injector-contract-widening.md §"Implementation
   outline" W1 (this PR)
 - docs/handoff/DCS-S1-FINDING.md — the investigation that surfaced the
   contract gap

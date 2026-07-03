@@ -33,7 +33,15 @@ def showcase_payload() -> Iterator[dict[str, Any]]:
     invariant (one artifact, many claims).
     """
     with tempfile.TemporaryDirectory(prefix="public_showcase_test_") as d:
-        yield run_showcase(output_dir=Path(d))
+        old_val = os.environ.get("CORE_SHOWCASE_SKIP_BUDGET")
+        os.environ["CORE_SHOWCASE_SKIP_BUDGET"] = "1"
+        try:
+            yield run_showcase(output_dir=Path(d))
+        finally:
+            if old_val is not None:
+                os.environ["CORE_SHOWCASE_SKIP_BUDGET"] = old_val
+            else:
+                del os.environ["CORE_SHOWCASE_SKIP_BUDGET"]
 
 
 class TestShowcaseExecution:

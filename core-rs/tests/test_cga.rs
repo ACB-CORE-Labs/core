@@ -4,7 +4,10 @@ use core_rs::cga::{cga_inner_raw, embed_point_raw, is_null_raw, null_project_raw
 fn test_embedded_point_is_null() {
     let p = [1.0f32, 2.0, 3.0];
     let x = embed_point_raw(&p);
-    assert!(is_null_raw(&x, 1e-5).unwrap(), "Embedded point should be null");
+    assert!(
+        is_null_raw(&x, 1e-5).unwrap(),
+        "Embedded point should be null"
+    );
 }
 
 #[test]
@@ -27,7 +30,11 @@ fn test_cga_distance_identity() {
     let x = embed_point_raw(&[0.0, 0.0, 0.0]);
     let y = embed_point_raw(&[1.0, 0.0, 0.0]);
     let inner = cga_inner_raw(&x, &y).unwrap();
-    assert!((inner - (-0.5)).abs() < 1e-5, "Expected -0.5 for unit-distance points, got {}", inner);
+    assert!(
+        (inner - (-0.5)).abs() < 1e-5,
+        "Expected -0.5 for unit-distance points, got {}",
+        inner
+    );
 }
 
 #[test]
@@ -37,5 +44,8 @@ fn test_null_project_restores_null() {
     x[0] += 0.05;
     x[7] -= 0.03;
     let fixed = null_project_raw(&x);
-    assert!(is_null_raw(&fixed, 1e-5).unwrap(), "null_project failed to restore null cone");
+    assert!(
+        is_null_raw(&fixed, 1e-5).unwrap(),
+        "null_project failed to restore null cone"
+    );
 }
