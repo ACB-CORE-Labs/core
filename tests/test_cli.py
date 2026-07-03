@@ -45,6 +45,8 @@ def test_rust_status_reports_backend_state(capsys: pytest.CaptureFixture[str]) -
     out = capsys.readouterr().out
     assert "core_rs crate" in out
     assert "cargo manifest" in out
+    assert "core_rs import" in out
+    assert "CORE_BACKEND" in out
     assert "rust backend" in out
 
 
@@ -67,13 +69,20 @@ def test_doctor_imports_runtime_support_modules(capsys: pytest.CaptureFixture[st
     assert main(["doctor"]) == 0
     out = capsys.readouterr().out
     assert "OK   alignment" in out
+    assert "OK   core_ingest" in out
+    assert "OK   engine_state" in out
+    assert "OK   packs" in out
+    assert "OK   teaching" in out
     assert "OK   morphology" in out
     assert "OK   sensorium" in out
+    assert "INFO native core_rs" in out
+    assert "INFO native policy" in out
 
 
 def test_doctor_rust_reports_backend_state(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["doctor", "--rust"]) == 0
     out = capsys.readouterr().out
+    assert "core_rs import" in out
     assert "rust backend" in out
 
 

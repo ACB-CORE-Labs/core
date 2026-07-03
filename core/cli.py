@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 import sys
 from collections.abc import Sequence
@@ -477,31 +476,20 @@ def cmd_always_on(args: argparse.Namespace) -> int:
 
 
 def _pytest_args_for_suite(suite: str, extra_args: Sequence[str]) -> list[str]:
-    paths = _TEST_SUITES[suite]
-    forwarded = list(extra_args)
-    if forwarded and forwarded[0] == "--":
-        forwarded = forwarded[1:]
-    return [*paths, *forwarded]
+    from core import cli_test
+    return cli_test.pytest_args_for_suite(suite, extra_args)
 
 
 def _xdist_available() -> bool:
-    """Return True iff ``pytest-xdist`` is importable."""
-    try:
-        import xdist  # noqa: F401
-    except ImportError:
-        return False
-    return True
+    """Return True iff pytest-xdist is importable."""
+    from core import cli_test
+    return cli_test.xdist_available()
 
 
 def _maybe_inject_xdist(forwarded: list[str], suite: str | None) -> list[str]:
-    """Inject ``-n auto`` for suites large enough to benefit from
-    parallelism.  ``--suite full`` always gets it (when xdist is
-    installed); curated suites stay single-process because they are
-    already small and the worker-spawn overhead is net-negative on
-    them.  Operators can override by passing ``-n <N>`` or
-    ``--no-parallel`` (here stripped) in ``args``."""
-    if not _xdist_available():
-        return forwarded
+    """Inject xdist."""
+    from core import cli_test
+    return cli_test.maybe_inject_xdist(forwarded, suite)
     # Honour explicit operator override.
     if any(a.startswith("-n") or a == "--dist" for a in forwarded):
         return forwarded
@@ -512,41 +500,14 @@ def _maybe_inject_xdist(forwarded: list[str], suite: str | None) -> list[str]:
 
 def cmd_test(args: argparse.Namespace) -> int:
     """Run pytest through curated suite aliases or direct passthrough args."""
-    default_args = ["-q", "--tb=short"]
-    if args.list_suites:
-        for name in sorted(_TEST_SUITES):
-            print(name)
-        return 0
-    if args.suite:
-        forwarded = _pytest_args_for_suite(args.suite, args.args or default_args)
-    else:
-        forwarded = list(args.args or default_args)
-        if forwarded and forwarded[0] == "--":
-            forwarded = forwarded[1:]
-    forwarded = _maybe_inject_xdist(forwarded, args.suite)
-    return _run(sys.executable, "-m", "pytest", *forwarded)
+    from core import cli_test
+    return cli_test.cmd_test(args, run=_run, python_executable=sys.executable)
 
 
 def cmd_check(args: argparse.Namespace) -> int:
     """Run ruff over selected project paths."""
-    targets = args.paths or [
-        "algebra",
-        "alignment",
-        "chat",
-        "core",
-        "field",
-        "generate",
-        "ingest",
-        "language_packs",
-        "morphology",
-        "persona",
-        "sensorium",
-        "session",
-        "vault",
-        "vocab",
-        "tests",
-    ]
-    return _run(sys.executable, "-m", "ruff", "check", *targets)
+    from core import cli_test
+    return cli_test.cmd_check(args, run=_run, python_executable=sys.executable)
 
 
 def _runtime_for_trace(args: argparse.Namespace):
@@ -688,399 +649,93 @@ def cmd_oov(args: argparse.Namespace) -> int:
 
 
 def cmd_capability_chains(args: argparse.Namespace) -> int:
-    from core.capability import chain_report
+    from core import cli_capability
+    return cli_capability.cmd_capability_chains(args)
 
-    report = chain_report()
-    print(json.dumps(report, indent=2, sort_keys=True) if args.json else report)
-    return 0
 
 
 def cmd_capability_flags(args: argparse.Namespace) -> int:
-    from core.capability import flag_report
+    from core import cli_capability
+    return cli_capability.cmd_capability_flags(args)
 
-    report = flag_report()
-    print(json.dumps(report, indent=2, sort_keys=True) if args.json else report)
-    return 0
 
 
 def cmd_capability_ledger(args: argparse.Namespace) -> int:
-    from core.capability import ledger_report
+    from core import cli_capability
+    return cli_capability.cmd_capability_ledger(args)
 
-    report = ledger_report()
-    print(json.dumps(report, indent=2, sort_keys=True) if args.json else report)
-    return 0
 
 
 def cmd_capability_artifact(args: argparse.Namespace) -> int:
-    from core.capability import CapabilityArtifactQuery, artifact_report
+    from core import cli_capability
+    return cli_capability.cmd_capability_artifact(args)
 
-    report = artifact_report(
-        CapabilityArtifactQuery(lane=args.lane, split=args.split, version=args.version)
-    )
-    print(json.dumps(report, indent=2, sort_keys=True) if args.json else report)
-    return 0
 
 
 def cmd_capability_domain_contract(args: argparse.Namespace) -> int:
-    """ADR-0093 domain-contract dry-run validator.
+    from core import cli_capability
+    return cli_capability.cmd_capability_domain_contract(args)
 
-    Default behavior runs the nine ADR-0091 predicates plus eval-lane
-    artifact resolution and exits non-zero on any predicate failure.
-    The legacy structural-only output remains available via
-    ``--structural-only`` for callers that depend on the prior shape.
-    """
-    from language_packs.domain_contract import validate_domain_contract_pack
-
-    if getattr(args, "structural_only", False):
-        report = validate_domain_contract_pack(args.pack_id).as_dict()
-        print(json.dumps(report, indent=2, sort_keys=True) if args.json else report)
-        return 0 if report["valid"] else 1
-
-    from core.capability.domain_contract_predicates import evaluate_domain_contract
-
-    predicate_report = evaluate_domain_contract(args.pack_id).as_dict()
-    print(
-        json.dumps(predicate_report, indent=2, sort_keys=True)
-        if args.json
-        else predicate_report
-    )
-    return 0 if predicate_report["all_passed"] else 1
 
 
 def cmd_capability_evidence_plan(args: argparse.Namespace) -> int:
-    from core.capability import evidence_plan_report
+    from core import cli_capability
+    return cli_capability.cmd_capability_evidence_plan(args)
 
-    report = evidence_plan_report()
-    print(json.dumps(report, indent=2, sort_keys=True) if args.json else report)
-    return 0
 
 
 def cmd_capability_perturbation(args: argparse.Namespace) -> int:
-    """ADR-0114a Obligation #5 — reasoning-isolation perturbation suite for B3.
+    from core import cli_capability
+    return cli_capability.cmd_capability_perturbation(args)
 
-    Generates and scores invariance-preserving and invariance-breaking
-    perturbations over B3 (bounded grammar) expected-correct cases.
-    Writes the report to ``evals/obligation_5_perturbation/<lane_id>.json``.
-    Exit 0 iff both preserving_rate == 1.0 AND breaking_rate == 1.0.
-    """
-    from pathlib import Path as _Path
-    from core.capability.perturbation_b3 import (
-        validate_perturbation_suite,
-        emit_perturbation_report,
-    )
-
-    lane_id = args.lane_id
-    report = validate_perturbation_suite(lane_id=lane_id)
-
-    out_dir = _Path(__file__).resolve().parent.parent / "evals" / "obligation_5_perturbation"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"{lane_id}.json"
-    emit_perturbation_report(report, out_path)
-
-    if args.json:
-        print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
-    else:
-        print(f"lane_id:             {report.lane_id}")
-        print(f"cases_total:         {report.cases_total}")
-        print(f"cases_expected_correct: {report.cases_expected_correct}")
-        print(
-            f"preserving: {report.preserving_correct}/{report.preserving_attempted} "
-            f"= {report.preserving_rate:.4f}"
-        )
-        print(
-            f"breaking:   {report.breaking_correct}/{report.breaking_attempted} "
-            f"= {report.breaking_rate:.4f}"
-        )
-        print(f"obligation_5_passed: {report.obligation_5_passed}")
-        print(f"report_digest:       {report.report_digest}")
-        print(f"artifact:            {out_path}")
-        if not report.obligation_5_passed:
-            print(f"refusal_reason: {report.refusal_reason}")
-    return 0 if report.obligation_5_passed else 1
 
 
 def cmd_capability_math_expert_gate(args: argparse.Namespace) -> int:
-    """ADR-0131.4 — evaluate the composite math-expert promotion gate
-    (Benchmark 1 + 2 + 3, ADR-0131's revision of ADR-0120's single-lane
-    coverage check). Emits ``expert_claims_math_v1.json`` to ``--out``
-    (default: ``evals/math_expert_claims/v1/expert_claims_math_v1.json``).
-    Exit 0 iff every benchmark passes."""
-    from pathlib import Path
-    from core.capability.composite_math_gate import (
-        emit_expert_claims_artifact,
-        evaluate_composite_math_gate,
-    )
+    from core import cli_capability
+    return cli_capability.cmd_capability_math_expert_gate(args)
 
-    verdict = evaluate_composite_math_gate()
-    out_path = Path(args.out) if args.out else (
-        Path(__file__).resolve().parent.parent
-        / "evals" / "math_expert_claims" / "v1" / "expert_claims_math_v1.json"
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    emit_expert_claims_artifact(verdict, out_path)
-
-    if args.json:
-        print(json.dumps(verdict.as_dict(), indent=2, sort_keys=True))
-    else:
-        print(f"composite_gate_passed: {verdict.composite_gate_passed}")
-        print(f"claim_digest:          {verdict.claim_digest}")
-        print(f"artifact:              {out_path}")
-        for b in verdict.benchmarks:
-            print(
-                f"  {b.benchmark_id:>20}  passed={b.passed}  "
-                f"correct={b.correct}/{b.cases_total}  wrong={b.wrong}  "
-                f"rate={b.correct_rate:.4f}"
-            )
-        hd = verdict.honest_disclosure
-        print(
-            f"GSM8K honest disclosure: admission={hd.get('admitted_solved', 0)}/"
-            f"{hd.get('cases_total', 0)}, wrong={hd.get('admitted_wrong', 0)}, "
-            f"substrate={hd.get('substrate', '?')}"
-        )
-        if not verdict.composite_gate_passed:
-            print(f"refusal_reason: {verdict.refusal_reason}")
-    return 0 if verdict.composite_gate_passed else 1
 
 
 def cmd_capability_pack_provenance(args: argparse.Namespace) -> int:
-    """ADR-0114a Obligation #10 — external audit that every solver
-    step's ``pack_lemma_id`` resolves to a real entry in the domain's
-    operator pack lexicon. Defaults to B3 (bounded grammar) under
-    ``en_arithmetic_v1``. Emits report to ``--out`` (default:
-    ``evals/obligation_10_pack_provenance/<lane_id>.json``).
-    Exit 0 iff obligation passes."""
-    from pathlib import Path
-    from core.capability.pack_provenance import (
-        emit_provenance_report,
-        validate_lane,
-    )
+    from core import cli_capability
+    return cli_capability.cmd_capability_pack_provenance(args)
 
-    report = validate_lane()
-    out_path = Path(args.out) if args.out else (
-        Path(__file__).resolve().parent.parent
-        / "evals" / "obligation_10_pack_provenance"
-        / f"{report.lane_id}.json"
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    emit_provenance_report(report, out_path)
-
-    if args.json:
-        print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
-    else:
-        print(f"lane:                       {report.lane_id}")
-        print(f"pack_id:                    {report.pack_id}")
-        print(f"cases_total:                {report.cases_total}")
-        print(f"cases_validated:            {report.cases_validated}")
-        print(f"cases_skipped_unsolved:     {report.cases_skipped_unsolved}")
-        print(f"cases_violated:             {report.cases_violated}")
-        print(f"obligation_10_passed:       {report.obligation_10_passed}")
-        print(f"distinct_lemma_ids_observed:")
-        for lid in report.distinct_lemma_ids_observed:
-            print(f"  - {lid}")
-        print(f"artifact:                   {out_path}")
-        if report.refusal_reason:
-            print(f"refusal_reason:             {report.refusal_reason}")
-    return 0 if report.obligation_10_passed else 1
 
 
 def cmd_capability_adversarial(args: argparse.Namespace) -> int:
-    """ADR-0114a Obligation #8 — adversarial generation auditor. Runs
-    a committed adversarial case set through the candidate-graph
-    pipeline; gate is ``wrong == 0`` across all families AND
-    ``cases_total >= 30`` AND ``families_total >= 8``. Default cases
-    set ``evals/obligation_8_adversarial/v1/cases.jsonl``; writes
-    report to ``--out`` (default
-    ``evals/obligation_8_adversarial/<lane_id>.json``). Exit 0 iff
-    obligation passes."""
-    from pathlib import Path
-    from core.capability.adversarial import (
-        emit_adversarial_report,
-        evaluate_adversarial,
-    )
+    from core import cli_capability
+    return cli_capability.cmd_capability_adversarial(args)
 
-    report = evaluate_adversarial()
-    out_path = Path(args.out) if args.out else (
-        Path(__file__).resolve().parent.parent
-        / "evals" / "obligation_8_adversarial"
-        / f"{report.lane_id}.json"
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    emit_adversarial_report(report, out_path)
-
-    if args.json:
-        print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
-    else:
-        print(f"lane:                {report.lane_id}")
-        print(f"cases_total:         {report.cases_total}  (min {report.cases_total >= 30 and 'OK' or 'FAIL'})")
-        print(f"families_total:      {report.families_total}  ({'OK' if report.families_total >= 8 else 'FAIL'})")
-        print(f"cases_refused:       {report.cases_refused}")
-        print(f"cases_solved:        {report.cases_solved}")
-        print(f"cases_wrong:         {report.cases_wrong} (gate: must be 0)")
-        print(f"obligation_8_passed: {report.obligation_8_passed}")
-        print()
-        print(f"  {'family':<22} {'total':<7} {'refused':<8} {'solved':<8} {'wrong'}")
-        for f in report.families:
-            print(f"  {f.family:<22} {f.cases_total:<7} {f.cases_refused:<8} {f.cases_solved:<8} {f.cases_wrong}")
-        print(f"\nartifact: {out_path}")
-        if report.refusal_reason:
-            print(f"refusal_reason: {report.refusal_reason}")
-    return 0 if report.obligation_8_passed else 1
 
 
 def cmd_capability_depth_curve(args: argparse.Namespace) -> int:
-    """ADR-0114a Obligation #6 — compositional-depth curve. Re-runs the
-    lane's expected-correct cases, buckets by ``len(trace.steps)``,
-    asserts ``accuracy(N) >= accuracy(depth_1) * (1 - eps)^(N-1)`` for
-    eps = 0.05. Defaults to B3 (bounded grammar). Emits report to
-    ``--out`` (default ``evals/obligation_6_depth_curve/<lane_id>.json``).
-    Exit 0 iff the assertion holds."""
-    from pathlib import Path
-    from core.capability.depth_curve import (
-        emit_depth_curve_report,
-        evaluate_depth_curve,
-    )
+    from core import cli_capability
+    return cli_capability.cmd_capability_depth_curve(args)
 
-    report = evaluate_depth_curve()
-    out_path = Path(args.out) if args.out else (
-        Path(__file__).resolve().parent.parent
-        / "evals" / "obligation_6_depth_curve"
-        / f"{report.lane_id}.json"
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    emit_depth_curve_report(report, out_path)
-
-    if args.json:
-        print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
-    else:
-        print(f"lane:                          {report.lane_id}")
-        print(f"cases_total:                   {report.cases_total}")
-        print(f"cases_solved:                  {report.cases_solved}")
-        print(f"epsilon:                       {report.epsilon}")
-        print(f"mechanism_wired:               {report.obligation_6_mechanism_wired}")
-        print(f"assertion_holds:               {report.obligation_6_assertion_holds}")
-        print(f"coverage_sufficient:           {report.coverage_sufficient}")
-        print(f"populated_buckets:             {list(report.populated_buckets)}")
-        print()
-        print(f"  {'bucket':<12} {'total':<7} {'correct':<8} {'accuracy':<10} {'bound':<10} {'satisfied'}")
-        for b in report.buckets:
-            bound = f"{b.bound_required:.4f}" if b.bound_required is not None else "(anchor)"
-            print(f"  {b.bucket:<12} {b.cases_total:<7} {b.cases_correct:<8} {b.accuracy:<10.4f} {bound:<10} {b.bound_satisfied}")
-        print(f"\nartifact: {out_path}")
-        if report.refusal_reason:
-            print(f"refusal_reason: {report.refusal_reason}")
-    return 0 if report.obligation_6_assertion_holds else 1
 
 
 def cmd_capability_ood_ratio(args: argparse.Namespace) -> int:
-    """ADR-0114a Obligation #2 — OOD surface variation ratio auditor.
+    from core import cli_capability
+    return cli_capability.cmd_capability_ood_ratio(args)
 
-    Reads the B3 public ``report.json`` and the OOD lane ``report.json``,
-    computes ``ood_ratio = ood_accuracy / public_accuracy``, and exits 0
-    iff ratio >= 0.95 AND ood wrong == 0. Writes report to ``--out``
-    (default: ``evals/obligation_2_ood_ratio/<lane_id>.json``)."""
-    from pathlib import Path
-    from core.capability.ood_ratio import (
-        emit_ood_ratio_report,
-        evaluate_ood_ratio,
-    )
-    from evals.obligation_2_ood_ratio.v1.runner import build_report, load_cases, write_report as write_ood_report
-
-    _repo_root = Path(__file__).resolve().parent.parent
-
-    # Regenerate OOD report so auditor always reads fresh results.
-    ood_report_path = _repo_root / "evals" / "obligation_2_ood_ratio" / "v1" / "report.json"
-    ood_cases = load_cases()
-    ood_runner_report = build_report(ood_cases)
-    write_ood_report(ood_runner_report, ood_report_path)
-
-    report = evaluate_ood_ratio()
-    out_path = Path(args.out) if args.out else (
-        _repo_root
-        / "evals" / "obligation_2_ood_ratio"
-        / f"{report.lane_id}.json"
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    emit_ood_ratio_report(report, out_path)
-
-    if args.json:
-        print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
-    else:
-        print(f"lane:                        {report.lane_id}")
-        print(f"public_accuracy:             {report.public_accuracy:.4f}  ({report.public_cases_correct}/{report.public_cases_total})")
-        print(f"ood_accuracy:                {report.ood_accuracy:.4f}  ({report.ood_cases_correct}/{report.ood_cases_total})")
-        print(f"ood_ratio:                   {report.ood_ratio:.4f}")
-        print(f"obligation_2_ratio_satisfied:{report.obligation_2_ratio_satisfied}")
-        print(f"obligation_2_wrong_zero:     {report.obligation_2_wrong_zero}")
-        print(f"obligation_2_passed:         {report.obligation_2_passed}")
-        print(f"artifact:                    {out_path}")
-        if report.refusal_reason:
-            print(f"refusal_reason:              {report.refusal_reason}")
-    return 0 if report.obligation_2_passed else 1
 
 
 def cmd_capability_math_expert_promote(args: argparse.Namespace) -> int:
-    """ADR-0120 math-expert promotion composer. Collects all 10 ADR-0114a
-    obligation verdicts + the ADR-0131.4 composite math gate verdict +
-    the reviewer-signed claim entry from ``docs/reviewers.yaml``;
-    emits a deterministic ``expert_claims_math_v1_signed.json``
-    artifact. Exit 0 iff ``promote_admitted == True``.
-    """
-    from pathlib import Path
-    from core.capability.expert_promotion_math import (
-        emit_promotion_artifact,
-        evaluate_math_expert_promotion,
-    )
+    from core import cli_capability
+    return cli_capability.cmd_capability_math_expert_promote(args)
 
-    verdict = evaluate_math_expert_promotion()
-    out_path = Path(args.out) if args.out else (
-        Path(__file__).resolve().parent.parent
-        / "evals" / "math_expert_claims" / "v1" / "expert_claims_math_v1_signed.json"
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    emit_promotion_artifact(verdict, out_path)
-
-    if args.json:
-        print(json.dumps(verdict.as_dict(), indent=2, sort_keys=True))
-    else:
-        print(f"domain:                      {verdict.domain}")
-        print()
-        print(f"  {'id':<4} {'passed':<7} title")
-        for o in verdict.obligations:
-            print(f"  {o.obligation_id:<4} {str(o.passed):<7} {o.title}")
-            if not o.passed:
-                print(f"          refusal: {o.refusal_reason}")
-        print()
-        print(f"composite_gate_passed:       {verdict.composite_gate_passed}")
-        print(f"all_obligations_passed:      {verdict.all_obligations_passed}")
-        print(f"technical_pass:              {verdict.technical_pass}")
-        print(f"claim_digest:                {verdict.claim_digest}")
-        print(f"reviewer_signature_present:  {verdict.reviewer_signature is not None}")
-        print(f"reviewer_signature_matches:  {verdict.reviewer_signature_matches}")
-        print(f"promote_admitted:            {verdict.promote_admitted}")
-        print(f"artifact:                    {out_path}")
-        if verdict.refusal_reason:
-            print()
-            print(f"refusal_reason:")
-            print(f"  {verdict.refusal_reason}")
-    return 0 if verdict.promote_admitted else 1
 
 
 def cmd_pack_list(args: argparse.Namespace) -> int:
-    """List compiled language packs."""
-    from language_packs import list_packs
+    from core import cli_pack
+    return cli_pack.cmd_pack_list(args)
 
-    packs = list_packs()
-    if not packs:
-        print("no compiled packs found")
-        return 0
-    for pack_id in packs:
-        print(pack_id)
-    return 0
 
 
 def cmd_pack_verify(args: argparse.Namespace) -> int:
-    """Verify one language pack checksum."""
-    return _run(sys.executable, "-m", "language_packs", "verify", args.pack_id)
+    from core import cli_pack
+    return cli_pack.cmd_pack_verify(args)
+
 
 
 def _safe_pack_id(pack_id: str) -> str:
@@ -1106,262 +761,33 @@ def _safe_pack_id(pack_id: str) -> str:
 
 
 def cmd_teaching_audit(args: argparse.Namespace) -> int:
-    """ADR-0055 Phase A — surface load decisions on the reviewed teaching corpus.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_audit(args)
 
-    Re-parses the cognition-chains JSONL with the same gates as the
-    runtime loader, but keeps drop reasons so silent shrinkage (pack
-    skew, supersession, schema drift) is inspectable.  Pure read.
-    """
-    from teaching.audit import audit_corpus
-
-    report = audit_corpus()
-    if args.json:
-        print(json.dumps(report.as_dict(), ensure_ascii=False, indent=2, sort_keys=True))
-        return 0 if not report.dropped else 1
-    print(f"corpus_id      : {report.corpus_id}")
-    print(f"corpus_path    : {report.corpus_path}")
-    print(f"lines_on_disk  : {report.lines_on_disk}")
-    print(f"lines_loaded   : {report.lines_loaded}")
-    if report.dropped:
-        print(f"\ndropped ({len(report.dropped)}):")
-        for d in report.dropped:
-            cid = d.chain_id or "<unknown>"
-            print(f"  L{d.line_no:>4}  {cid:<40}  {d.reason}")
-        return 1
-    return 0
 
 
 def cmd_teaching_gaps(args: argparse.Namespace) -> int:
-    """Phase 1.1 — rank (subject, intent) cells the runtime would have
-    grounded but couldn't, aggregated from emitted DiscoveryCandidates.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_gaps(args)
 
-    Reads JSONL files written by
-    :class:`teaching.discovery_sink.DiscoveryMonthlyFileSink` under
-    *root* (default ``teaching/discovery_log``) and emits a ranked
-    table of cells ordered by emission count.
-
-    Pure read — never mutates the sink.
-    """
-    from teaching.gaps import _DEFAULT_ROOT, aggregate_gaps
-
-    root = Path(args.root) if args.root else _DEFAULT_ROOT
-    try:
-        rows = aggregate_gaps(
-            root=root,
-            since=args.since,
-            sample_limit=max(1, int(args.sample_limit)),
-        )
-    except ValueError as exc:
-        _die(str(exc), code=2)
-
-    if args.top is not None and args.top > 0:
-        rows = rows[: args.top]
-
-    if args.json:
-        payload = {
-            "root": str(root) if root is not None else None,
-            "since": args.since,
-            "total_cells": len(rows),
-            "gaps": [g.as_dict() for g in rows],
-        }
-        print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
-        return 0 if rows else 1
-
-    if not rows:
-        print("No discovery candidates found.")
-        if root is not None and not root.exists():
-            print(f"  (root path does not exist: {root})")
-        return 1
-
-    print(f"{'rank':>4}  {'subject':<24}{'intent':<14}{'count':>6}  {'clean':>6}  months")
-    print("-" * 80)
-    for i, gap in enumerate(rows, 1):
-        months = ",".join(gap.months_seen) if gap.months_seen else "—"
-        print(
-            f"{i:>4}  {gap.subject[:24]:<24}{gap.intent[:14]:<14}"
-            f"{gap.count:>6}  {gap.boundary_clean_count:>6}  {months}"
-        )
-    return 0
 
 
 def cmd_teaching_oov_gaps(args: argparse.Namespace) -> int:
-    """Phase 2.3 — rank OOV tokens emitted by the runtime's
-    OOV "teach me" surface.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_oov_gaps(args)
 
-    Reads JSONL files written by
-    :class:`teaching.oov_sink.OOVMonthlyFileSink` under *root*
-    (default ``teaching/oov_log``) and emits a ranked table of
-    tokens ordered by emission count.
-
-    Pure read — never mutates the sink.
-    """
-    from teaching.oov_gaps import _DEFAULT_ROOT, aggregate_oov_gaps
-
-    root = Path(args.root) if args.root else _DEFAULT_ROOT
-    try:
-        rows = aggregate_oov_gaps(
-            root=root,
-            since=args.since,
-            sample_limit=max(1, int(args.sample_limit)),
-        )
-    except ValueError as exc:
-        _die(str(exc), code=2)
-
-    if args.top is not None and args.top > 0:
-        rows = rows[: args.top]
-
-    if args.json:
-        payload = {
-            "root": str(root),
-            "since": args.since,
-            "total_tokens": len(rows),
-            "oov_gaps": [g.as_dict() for g in rows],
-        }
-        print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
-        return 0 if rows else 1
-
-    if not rows:
-        print("No OOV candidates found.")
-        if root is not None and not root.exists():
-            print(f"  (root path does not exist: {root})")
-        return 1
-
-    print(f"{'rank':>4}  {'token':<28}{'count':>6}  {'clean':>6}  intents")
-    print("-" * 80)
-    for i, gap in enumerate(rows, 1):
-        intents = ",".join(gap.intents) if gap.intents else "—"
-        print(
-            f"{i:>4}  {gap.token[:28]:<28}{gap.count:>6}  "
-            f"{gap.boundary_clean_count:>6}  {intents}"
-        )
-    return 0
 
 
 def cmd_teaching_oov_queue(args: argparse.Namespace) -> int:
-    """Phase 2.3 — show the auto-promoted OOV-token queue.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_oov_queue(args)
 
-    Same shape as ``core teaching queue`` but for vocabulary gaps:
-    tokens whose boundary-clean emission count meets ``--threshold``
-    are surfaced as PackMutationProposal candidates that an operator
-    can author via the reviewed ADR-0027 path.
-
-    Never auto-mutates a pack — operator-visible signal only.
-    """
-    from teaching.oov_gaps import _DEFAULT_ROOT, aggregate_oov_gaps
-    from teaching.oov_promotion import promote_oov_gaps
-
-    root = Path(args.root) if args.root else _DEFAULT_ROOT
-    try:
-        gaps = aggregate_oov_gaps(root=root, since=args.since, sample_limit=5)
-    except ValueError as exc:
-        _die(str(exc), code=2)
-
-    if args.threshold < 1:
-        _die(f"--threshold must be >= 1 (got {args.threshold})", code=2)
-
-    promoted = promote_oov_gaps(
-        gaps,
-        threshold=args.threshold,
-        include_tainted=args.include_tainted,
-    )
-
-    if args.json:
-        payload = {
-            "root": str(root),
-            "since": args.since,
-            "threshold": args.threshold,
-            "include_tainted": args.include_tainted,
-            "total_promoted": len(promoted),
-            "queue": [p.as_dict() for p in promoted],
-        }
-        print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
-        return 0 if promoted else 1
-
-    if not promoted:
-        print(f"No OOV tokens met threshold {args.threshold}.")
-        return 1
-
-    print(f"{'rank':>4}  {'queue_id':<40}{'count':>6}  {'clean':>6}  intents")
-    print("-" * 96)
-    for i, p in enumerate(promoted, 1):
-        intents = ",".join(p.intents) if p.intents else "—"
-        print(
-            f"{i:>4}  {p.queue_id[:40]:<40}{p.count:>6}  "
-            f"{p.boundary_clean_count:>6}  {intents}"
-        )
-    print()
-    print(
-        f"Add each token to one of: {', '.join(promoted[0].suggested_packs)}.  "
-        f"Use a reviewed PackMutationProposal — never auto-applies."
-    )
-    return 0
 
 
 def cmd_teaching_queue(args: argparse.Namespace) -> int:
-    """Phase 1.2 — show the auto-promoted gap queue.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_queue(args)
 
-    Reads the discovery sink (same path as ``core teaching gaps``),
-    aggregates by cell, and emits cells whose boundary-clean
-    emission count meets ``--threshold``.
-
-    Boundary-tainted emissions (refusal/hedge fired during the
-    contributing turn) are excluded by default; ``--include-tainted``
-    counts every emission toward the threshold.  Operators reach for
-    that flag deliberately, not by accident.
-    """
-    from teaching.gaps import _DEFAULT_ROOT, aggregate_gaps
-    from teaching.promotion import promote_gaps
-
-    root = Path(args.root) if args.root else _DEFAULT_ROOT
-    try:
-        gaps = aggregate_gaps(
-            root=root,
-            since=args.since,
-            sample_limit=5,
-        )
-    except ValueError as exc:
-        _die(str(exc), code=2)
-
-    if args.threshold < 1:
-        _die(f"--threshold must be >= 1 (got {args.threshold})", code=2)
-
-    promoted = promote_gaps(
-        gaps,
-        threshold=args.threshold,
-        include_tainted=args.include_tainted,
-    )
-
-    if args.json:
-        payload = {
-            "root": str(root),
-            "since": args.since,
-            "threshold": args.threshold,
-            "include_tainted": args.include_tainted,
-            "total_promoted": len(promoted),
-            "queue": [p.as_dict() for p in promoted],
-        }
-        print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
-        return 0 if promoted else 1
-
-    if not promoted:
-        print(f"No cells met threshold {args.threshold}.")
-        return 1
-
-    print(
-        f"{'rank':>4}  {'queue_id':<48}{'count':>6}  {'clean':>6}  months"
-    )
-    print("-" * 96)
-    for i, p in enumerate(promoted, 1):
-        months = ",".join(p.months_seen) if p.months_seen else "—"
-        print(
-            f"{i:>4}  {p.queue_id[:48]:<48}{p.count:>6}  {p.boundary_clean_count:>6}  {months}"
-        )
-    print()
-    print(
-        "Author chains with: core teaching propose <candidate-jsonl> "
-        "(or hand-author + supersede)."
-    )
-    return 0
 
 
 def _contemplation_runs_dir(args_dir: str | None) -> Path:
@@ -1371,1091 +797,131 @@ def _contemplation_runs_dir(args_dir: str | None) -> Path:
 
 
 def cmd_teaching_hitl_queue_list(args: argparse.Namespace) -> int:
-    """List queue items in the human-in-the-loop review queue."""
-    from teaching.proposals import DEFAULT_PROPOSAL_LOG_PATH, ProposalLog
-    from teaching.queue import derive_queue
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_hitl_queue_list(args)
 
-    log_path = Path(args.log_path) if args.log_path else DEFAULT_PROPOSAL_LOG_PATH
-    runs_dir = _contemplation_runs_dir(args.contemplation_runs_dir)
-
-    log = ProposalLog(log_path)
-    if not log.path.exists():
-        return 0
-
-    items = derive_queue(log, contemplation_runs_dir=runs_dir)
-
-    if args.state and args.state != "all":
-        items = tuple(item for item in items if item.state == args.state)
-
-    if args.json:
-        import dataclasses
-        payload = [dataclasses.asdict(item) for item in items]
-        print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
-        return 0
-
-    if not items:
-        return 0
-
-    header = ("proposal_id", "source_kind", "state", "age", "replay")
-    rows = []
-    for item in items:
-        if item.replay_evidence is None:
-            replay_status = "?"
-        elif item.replay_evidence.get("replay_equivalent") is True:
-            replay_status = "ok"
-        elif item.replay_evidence.get("replay_equivalent") is False:
-            replay_status = "regressed"
-        else:
-            replay_status = "?"
-
-        rows.append((
-            item.proposal_id[:12],
-            item.source_kind,
-            item.state,
-            str(item.age_proposals),
-            replay_status,
-        ))
-
-    col_widths = [len(h) for h in header]
-    for row in rows:
-        for idx, val in enumerate(row):
-            col_widths[idx] = max(col_widths[idx], len(val))
-
-    header_str = "  ".join(f"{h:<{col_widths[idx]}}" for idx, h in enumerate(header))
-    print(header_str)
-    print("  ".join("-" * w for w in col_widths))
-    for row in rows:
-        row_str = "  ".join(f"{val:<{col_widths[idx]}}" for idx, val in enumerate(row))
-        print(row_str)
-
-    return 0
 
 
 def cmd_teaching_hitl_queue_show(args: argparse.Namespace) -> int:
-    """Show details of a specific queue item in the human-in-the-loop review queue."""
-    from teaching.proposals import DEFAULT_PROPOSAL_LOG_PATH, ProposalLog
-    from teaching.queue import derive_queue
-
-    log_path = Path(args.log_path) if args.log_path else DEFAULT_PROPOSAL_LOG_PATH
-    runs_dir = _contemplation_runs_dir(args.contemplation_runs_dir)
-
-    log = ProposalLog(log_path)
-    if not log.path.exists():
-        _die(f"no proposal log at {log.path}", code=1)
-
-    items = derive_queue(log, contemplation_runs_dir=runs_dir)
-
-    # 1. Search for exact match
-    exact_matches = [item for item in items if item.proposal_id == args.proposal_id]
-    if len(exact_matches) == 1:
-        item = exact_matches[0]
-    else:
-        # 2. Search for prefix match
-        prefix_matches = [item for item in items if item.proposal_id.startswith(args.proposal_id)]
-        if len(prefix_matches) == 1:
-            item = prefix_matches[0]
-        elif len(prefix_matches) == 0:
-            _die(f"proposal_id prefix {args.proposal_id!r} matches zero queue items", code=1)
-        else:
-            _die(f"proposal_id prefix {args.proposal_id!r} is ambiguous (matches multiple items)", code=1)
-
-    if args.json:
-        import dataclasses
-        print(json.dumps(dataclasses.asdict(item), ensure_ascii=False, indent=2, sort_keys=True))
-        return 0
-
-    print(f"Proposal ID: {item.proposal_id}")
-    print(f"Source Kind: {item.source_kind}")
-    print(f"Source ID  : {item.source_id or '—'}")
-    print(f"State      : {item.state}")
-    print(f"Age        : {item.age_proposals}")
-
-    if item.replay_evidence is None:
-        replay_status = "?"
-    elif item.replay_evidence.get("replay_equivalent") is True:
-        replay_status = "ok"
-    elif item.replay_evidence.get("replay_equivalent") is False:
-        replay_status = "regressed"
-    else:
-        replay_status = "?"
-    print(f"Replay     : {replay_status}")
-    print(f"Report Path: {item.contemplation_report_path or '—'}")
-    print()
-    print("Proposed Chain:")
-    chain = item.proposed_chain or {}
-    print(f"  subject   : {chain.get('subject', '—')}")
-    print(f"  intent    : {chain.get('intent', '—')}")
-    print(f"  connective: {chain.get('connective', '—')}")
-    print(f"  object    : {chain.get('object', '—')}")
-    print()
-    print("Review History:")
-    if item.review_history:
-        for ev in item.review_history:
-            note = ev.get('note', '')
-            to_state = ev.get('to', '')
-            review_date = ev.get('review_date', '')
-            actor = ev.get('actor', '')
-            print(f"  - [{review_date or '—'}] transitioned to {to_state} by {actor or '—'}")
-            if note:
-                print(f"    Note: {note}")
-    else:
-        print("  (no review history)")
-    print()
-    print("ADR References:")
-    print("  - Queue contract: docs/decisions/ADR-0161-hitl-async-queue.md")
-    print("  - Proposal/review state machine: docs/decisions/ADR-0057-teaching-chain-proposal-review.md")
-
-    return 0
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_hitl_queue_show(args)
 
 
-def _load_candidate_jsonl(path: str) -> Any:
-    """Read one enriched DiscoveryCandidate JSONL line from *path*."""
-    from teaching.discovery import DiscoveryCandidate, EvidencePointer, SubQuestion
 
-    p = Path(path)
-    if not p.exists():
-        _die(f"candidate file not found: {path}", code=2)
-    raw = p.read_text(encoding="utf-8").strip()
-    if not raw:
-        _die("candidate file is empty", code=2)
-    first = raw.splitlines()[0].strip()
-    try:
-        payload = json.loads(first)
-    except json.JSONDecodeError as exc:
-        _die(f"invalid JSON: {exc}", code=2)
-    try:
-        evidence = tuple(
-            EvidencePointer(**e) for e in payload.get("evidence", [])
-        )
-        sub_questions = tuple(
-            SubQuestion(
-                sub_id=s["sub_id"],
-                proposed_subject=s["proposed_subject"],
-                proposed_intent=s["proposed_intent"],
-                outcome=s["outcome"],
-                evidence=tuple(EvidencePointer(**e) for e in s.get("evidence", [])),
-            )
-            for s in payload.get("sub_questions", [])
-        )
-        return DiscoveryCandidate(
-            candidate_id=payload["candidate_id"],
-            proposed_chain=payload["proposed_chain"],
-            trigger=payload["trigger"],
-            source_turn_trace=payload.get("source_turn_trace", ""),
-            pack_consistent=bool(payload.get("pack_consistent", True)),
-            boundary_clean=bool(payload.get("boundary_clean", True)),
-            review_state=payload.get("review_state", "unreviewed"),
-            domain=payload.get("domain", "cognition"),
-            polarity=payload.get("polarity", "undetermined"),
-            claim_domain=payload.get("claim_domain", "factual"),
-            evidence=evidence,
-            sub_questions=sub_questions,
-            contemplation_depth=int(payload.get("contemplation_depth", 0)),
-            recursion_overflow=bool(payload.get("recursion_overflow", False)),
-        )
-    except (KeyError, TypeError) as exc:
-        _die(f"candidate JSON missing required field: {exc}", code=2)
 
 
 def cmd_teaching_propose(args: argparse.Namespace) -> int:
-    """ADR-0057 Phase C2 — build a proposal from an enriched candidate JSONL."""
-    from teaching.proposals import (
-        ProposalError, ProposalLog, RefusedAsDependent, RefusedAsDuplicate,
-        RefusedAtCapacity, propose_from_candidate,
-    )
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_propose(args)
 
-    candidate = _load_candidate_jsonl(args.candidate_path)
-    log_path = Path(args.log) if args.log else None
-    log = ProposalLog(log_path)
-    try:
-        proposal = propose_from_candidate(
-            candidate, log=log, allow_evaluative=args.allow_evaluative,
-        )
-    except ProposalError as exc:
-        _die(f"ineligible: {exc}", code=1)
-
-    if isinstance(proposal, RefusedAtCapacity):
-        try:
-            rel_path = proposal.report_path.relative_to(_REPO_ROOT)
-        except ValueError:
-            try:
-                rel_path = proposal.report_path.relative_to(Path.cwd())
-            except ValueError:
-                rel_path = proposal.report_path
-        print(f"queue_full: pending={proposal.pending_count}, cap={proposal.cap}")
-        print("candidates_skipped: 1")
-        print(f"report_written: {rel_path}")
-        return 1
-
-    if isinstance(proposal, RefusedAsDuplicate):
-        print(f"duplicate: proposal_id={proposal.proposal_id} existing_state={proposal.existing_state}")
-        return 1
-
-    if isinstance(proposal, RefusedAsDependent):
-        print(f"dependent_on_pending: dependent_on={list(proposal.dependent_on)}")
-        print(f"overlapping_lemmas={list(proposal.overlapping_lemmas)}")
-        return 1
-
-    rec = log.find(proposal.proposal_id)
-    print(f"proposal_id    : {proposal.proposal_id}")
-    print(f"state          : {rec['state']}")
-    if rec.get("replay_evidence"):
-        ev = rec["replay_evidence"]
-        print(f"replay_equivalent: {ev['replay_equivalent']}")
-        if ev.get("regressed_metrics"):
-            print(f"regressed       : {', '.join(ev['regressed_metrics'])}")
-    if rec.get("operator_note"):
-        print(f"note           : {rec['operator_note']}")
-    return 0 if rec["state"] in ("pending", "accepted") else 1
 
 
 def cmd_teaching_propose_from_exemplars(args: argparse.Namespace) -> int:
-    """ADR-0163 Phase C — propose recognizers from admissibility exemplar corpora.
-
-    Loads one or more Phase B exemplar JSONLs, runs the contemplation
-    synthesis to produce a :class:`DiscoveryCandidate` per corpus, and
-    routes each candidate through :func:`teaching.proposals.propose_from_candidate`
-    with the admissibility replay gate substituted for the cognition-only
-    replay-equivalence gate.  Proposals land as ``pending``; operator
-    ratifies via ``core teaching review`` (existing path).
-    """
-    from datetime import datetime, timezone
-
-    from teaching.contemplation import contemplate_exemplar_corpus
-    from teaching.exemplar_ingest import (
-        ExemplarIngestError,
-        list_corpora,
-        load_exemplar_corpus,
-    )
-    from teaching.proposals import (
-        DEFAULT_PROPOSAL_LOG_PATH,
-        ProposalError,
-        ProposalLog,
-        propose_from_candidate,
-    )
-    from teaching.replay import run_admissibility_replay_gate
-    from teaching.source import ProposalSource
-
-    review_date = args.review_date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-    log_path = Path(args.log) if args.log else DEFAULT_PROPOSAL_LOG_PATH
-    log = ProposalLog(log_path)
-
-    # Resolve corpora: --all loads every JSONL; otherwise the single path.
-    try:
-        if args.all:
-            root = Path(args.exemplar_path) if args.exemplar_path else None
-            corpora = list_corpora(root)
-        else:
-            if not args.exemplar_path:
-                _die(
-                    "exemplar_path is required unless --all is passed",
-                    code=2,
-                )
-            corpora = (load_exemplar_corpus(Path(args.exemplar_path)),)
-    except ExemplarIngestError as exc:
-        _die(f"exemplar ingest failed: {exc}", code=1)
-
-    # Resolve current git revision once for the ProposalSource stamp.
-    from teaching.proposals import _current_revision
-    revision = _current_revision()
-
-    results: list[dict[str, Any]] = []
-    for corpus in corpora:
-        candidate = contemplate_exemplar_corpus(corpus)
-        source = ProposalSource(
-            kind="exemplar_corpus",
-            source_id=corpus.corpus_digest,
-            emitted_at_revision=revision,
-        )
-        # Bind active_corpus_path=None so the gate reads the live corpus.
-        def _gate(chain: dict[str, Any]) -> Any:
-            return run_admissibility_replay_gate(
-                candidate.proposed_chain.get("recognizer_spec"),
-            )
-        try:
-            proposal = propose_from_candidate(
-                candidate,
-                log=log,
-                run_replay=_gate,
-                source=source,
-            )
-        except ProposalError as exc:
-            _die(
-                f"ineligible candidate for {corpus.shape_category.value}: {exc}",
-                code=1,
-            )
-
-        from teaching.proposals import RefusedAsDependent, RefusedAsDuplicate, RefusedAtCapacity
-        if isinstance(proposal, RefusedAtCapacity):
-            try:
-                rel_path = proposal.report_path.relative_to(_REPO_ROOT)
-            except ValueError:
-                try:
-                    rel_path = proposal.report_path.relative_to(Path.cwd())
-                except ValueError:
-                    rel_path = proposal.report_path
-            print(f"queue_full: pending={proposal.pending_count}, cap={proposal.cap}")
-            print("candidates_skipped: 1")
-            print(f"report_written: {rel_path}")
-            return 1
-
-        if isinstance(proposal, RefusedAsDuplicate):
-            print(f"duplicate: proposal_id={proposal.proposal_id} existing_state={proposal.existing_state}")
-            return 1
-
-        if isinstance(proposal, RefusedAsDependent):
-            print(f"dependent_on_pending: dependent_on={list(proposal.dependent_on)}")
-            print(f"overlapping_lemmas={list(proposal.overlapping_lemmas)}")
-            return 1
-
-        rec = log.find(proposal.proposal_id)
-        result = {
-            "shape_category": corpus.shape_category.value,
-            "corpus_path": str(corpus.path),
-            "corpus_digest": corpus.corpus_digest,
-            "proposal_id": proposal.proposal_id,
-            "review_date": review_date,
-            "state": rec["state"] if rec else "unknown",
-        }
-        replay = (rec or {}).get("replay_evidence") or {}
-        if replay:
-            result["replay_equivalent"] = bool(replay.get("replay_equivalent"))
-            result["regressed_metrics"] = list(replay.get("regressed_metrics") or ())
-            result["wrong_count_delta"] = int(replay.get("wrong_count_delta", 0))
-        results.append(result)
-
-    if args.json:
-        print(json.dumps({"proposals": results}, indent=2, sort_keys=True))
-    else:
-        for r in results:
-            print(f"shape_category   : {r['shape_category']}")
-            print(f"corpus_path      : {r['corpus_path']}")
-            print(f"corpus_digest    : {r['corpus_digest'][:16]}...")
-            print(f"proposal_id      : {r['proposal_id']}")
-            print(f"state            : {r['state']}")
-            if "replay_equivalent" in r:
-                print(f"replay_equivalent: {r['replay_equivalent']}")
-                if r.get("regressed_metrics"):
-                    print(f"regressed_metrics: {', '.join(r['regressed_metrics'])}")
-                print(f"wrong_count_delta: {r['wrong_count_delta']}")
-            print(f"review_date      : {r['review_date']}")
-            print("--")
-    # Exit nonzero if any proposal auto-rejected.
-    if any(r["state"] != "pending" for r in results):
-        return 1
-    return 0
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_propose_from_exemplars(args)
 
 
-def _load_findings_jsonl(path: str) -> list:
-    """Load ContemplationFinding objects from a JSONL file (W-019)."""
-    from core.contemplation.schema import (
-        ContemplationEvidenceRef, ContemplationFinding, FindingKind,
-    )
-    from teaching.epistemic import EpistemicStatus
-
-    findings = []
-    for raw in _read_jsonl_file(Path(path)):
-        evidence_refs = tuple(
-            ContemplationEvidenceRef(
-                source_type=e["source_type"],
-                source_id=e["source_id"],
-                pointer=e["pointer"],
-                summary=e.get("summary", ""),
-            )
-            for e in raw.get("evidence_refs", [])
-        )
-        findings.append(ContemplationFinding(
-            kind=FindingKind(raw["kind"]),
-            subject=raw["subject"],
-            predicate=raw["predicate"],
-            object=raw.get("object"),
-            evidence_refs=evidence_refs,
-            proposed_action=raw["proposed_action"],
-            substrate_hash=raw.get("substrate_hash", ""),
-            epistemic_status=EpistemicStatus(
-                raw.get("epistemic_status", EpistemicStatus.SPECULATIVE.value)
-            ),
-            finding_id=raw.get("finding_id", ""),
-        ))
-    return findings
 
 
-def _read_jsonl_file(path: Path) -> list:
-    """Read a JSONL file and return a list of parsed dicts."""
-    lines = []
-    with path.open(encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if line:
-                lines.append(json.loads(line))
-    return lines
+
 
 
 def cmd_teaching_propose_miner(args: argparse.Namespace) -> int:
-    """W-019: build PackMutationProposals from miner ContemplationFinding JSONL."""
-    from teaching.from_miner import MinerProposalError, from_findings
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_propose_miner(args)
 
-    findings = _load_findings_jsonl(args.findings)
-    if not findings:
-        _die(f"no findings in {args.findings}", code=1)
-
-    revision = args.revision or _current_git_revision()
-    try:
-        batch = from_findings(
-            findings,
-            miner_id=args.miner_id,
-            emitted_at_revision=revision,
-        )
-    except MinerProposalError as exc:
-        _die(f"batch construction failed: {exc}", code=1)
-
-    out_path = Path(args.out) if args.out else None
-    _write_miner_curriculum_batch(batch.proposals, batch.rejections, out_path)
-    return 0 if batch.proposals else 1
 
 
 def cmd_teaching_propose_curriculum(args: argparse.Namespace) -> int:
-    """W-019: build PackMutationProposals from curriculum ContemplationFinding JSONL."""
-    from teaching.from_curriculum import CurriculumProposalError, from_findings
-
-    findings = _load_findings_jsonl(args.findings)
-    if not findings:
-        _die(f"no findings in {args.findings}", code=1)
-
-    revision = args.revision or _current_git_revision()
-    try:
-        batch = from_findings(
-            findings,
-            curriculum_id=args.curriculum_id,
-            emitted_at_revision=revision,
-        )
-    except CurriculumProposalError as exc:
-        _die(f"batch construction failed: {exc}", code=1)
-
-    out_path = Path(args.out) if args.out else None
-    _write_miner_curriculum_batch(batch.proposals, batch.rejections, out_path)
-    return 0 if batch.proposals else 1
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_propose_curriculum(args)
 
 
-def _current_git_revision() -> str:
-    """Return the current git HEAD SHA (first 12 chars) or 'unknown'."""
-    import subprocess
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--short=12", "HEAD"],
-            capture_output=True, text=True, timeout=5,
-        )
-        return result.stdout.strip() or "unknown"
-    except Exception:  # noqa: BLE001
-        return "unknown"
 
 
-def _write_miner_curriculum_batch(
-    proposals: tuple,
-    rejections: tuple,
-    out_path: Path | None,
-) -> None:
-    """Write PackMutationProposal batch to JSONL and print summary."""
-    lines = [json.dumps(p.as_dict(), sort_keys=True, ensure_ascii=False) for p in proposals]
-    if out_path is not None:
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
-        print(f"wrote {len(proposals)} proposal(s) → {out_path}")
-    else:
-        for line in lines:
-            print(line)
-    print(f"proposals : {len(proposals)}", file=sys.stderr)
-    print(f"rejections: {len(rejections)}", file=sys.stderr)
-    for rej in rejections:
-        print(f"  rejected {rej.get('finding_id', '?')}: {rej.get('reason', '?')}", file=sys.stderr)
+
 
 
 def cmd_teaching_proposals(args: argparse.Namespace) -> int:
-    from teaching.proposals import ProposalLog
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_proposals(args)
 
-    log_path = Path(args.log) if args.log else None
-    log = ProposalLog(log_path)
-    state = log.current_state()
-    if args.state:
-        state = {pid: rec for pid, rec in state.items() if rec["state"] == args.state}
-    if args.json:
-        print(json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True))
-        return 0
-    if not state:
-        print("(no proposals)")
-        return 0
-    for pid, rec in state.items():
-        chain = rec["proposal"]["proposed_chain"]
-        print(
-            f"{pid}  {rec['state']:<10}  "
-            f"{chain.get('subject')} {chain.get('connective')} {chain.get('object')} "
-            f"({chain.get('intent')})"
-        )
-    return 0
 
 
 def cmd_teaching_review(args: argparse.Namespace) -> int:
-    from teaching.proposals import (
-        ProposalError, ProposalLog,
-        accept_proposal, reject_proposal, withdraw_proposal,
-    )
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_review(args)
 
-    log_path = Path(args.log) if args.log else None
-    log = ProposalLog(log_path)
-    try:
-        if args.accept:
-            if not args.review_date:
-                _die("--accept requires --review-date YYYY-MM-DD", code=2)
-            from chat.teaching_grounding import _CORPUS_PATH
-            chain_id = accept_proposal(
-                args.proposal_id, log=log,
-                corpus_path=_CORPUS_PATH,
-                review_date=args.review_date,
-                operator_note=args.note,
-            )
-            print(f"accepted; appended chain_id = {chain_id}")
-        elif args.reject:
-            reject_proposal(args.proposal_id, log=log, operator_note=args.note)
-            print(f"{args.proposal_id} rejected")
-        elif args.withdraw:
-            withdraw_proposal(args.proposal_id, log=log, operator_note=args.note)
-            print(f"{args.proposal_id} withdrawn")
-    except ProposalError as exc:
-        _die(str(exc), code=1)
-    return 0
 
 
 def cmd_teaching_supersessions(args: argparse.Namespace) -> int:
-    """Pair each retired chain with its active replacement.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_supersessions(args)
 
-    Derived view over ``teaching.audit.audit_corpus`` — pure, read-only.
-    Surfaces orphan supersessions (retired chain with no live replacement
-    carrying the matching ``superseded_by``) so silent corpus drift is
-    inspectable.
-    """
-    from teaching.audit import audit_corpus, supersession_history
-
-    report = audit_corpus()
-    records = supersession_history(report)
-
-    if args.json:
-        print(json.dumps(
-            {
-                "corpus_id": report.corpus_id,
-                "corpus_path": report.corpus_path,
-                "supersessions": [r.as_dict() for r in records],
-            },
-            ensure_ascii=False, indent=2, sort_keys=True,
-        ))
-        return 0
-
-    if not records:
-        print("(no supersessions)")
-        return 0
-
-    has_orphan = False
-    for r in records:
-        if r.replacement is None:
-            has_orphan = True
-            print(
-                f"retired: {r.retired_chain_id}  (line {r.retired_line_no})\n"
-                f"  replaced_by: <ORPHAN — no live entry carries this superseded_by>"
-            )
-            continue
-        rep = r.replacement
-        prov = rep.provenance.raw or "(unknown)"
-        print(
-            f"retired: {r.retired_chain_id}  (line {r.retired_line_no})\n"
-            f"  replaced_by: {rep.chain_id}  (line {rep.line_no})\n"
-            f"    {rep.subject} {rep.connective} {rep.object}  [{rep.intent}]\n"
-            f"    provenance: {prov}"
-        )
-    return 1 if has_orphan else 0
 
 
 def cmd_teaching_supersede(args: argparse.Namespace) -> int:
-    """ADR-0057 follow-up — retire an active corpus chain by appending
-    a new chain marked ``superseded_by``.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_supersede(args)
 
-    Distinct from accept-a-proposal (no replay gate; this is a direct
-    operator action).  Validates pack-consistency / intent / completeness
-    before the append, and rolls back the corpus byte-identically on any
-    post-audit failure.
-    """
-    from chat.teaching_grounding import _CORPUS_PATH
-    from teaching.supersede import SupersessionError, supersede_chain
-
-    cross_pack = bool(getattr(args, "cross_pack", False))
-    subj_pack = (getattr(args, "subject_pack_id", "") or "").strip()
-    obj_pack = (getattr(args, "object_pack_id", "") or "").strip()
-
-    if cross_pack or subj_pack or obj_pack:
-        # ADR-0067 — cross-pack supersede.  Both pack ids are required
-        # when any cross-pack flag is set.
-        if not subj_pack or not obj_pack:
-            _die(
-                "cross-pack supersede requires --subject-pack-id and "
-                "--object-pack-id",
-                code=2,
-            )
-        from teaching.cross_pack_supersede import supersede_cross_pack_chain
-        try:
-            new_chain_id = supersede_cross_pack_chain(
-                old_chain_id=args.old_chain_id,
-                subject=args.subject,
-                intent=args.intent,
-                connective=args.connective,
-                object_=args.object,
-                subject_pack_id=subj_pack,
-                object_pack_id=obj_pack,
-                review_date=args.review_date,
-                new_chain_id=args.new_chain_id,
-            )
-        except SupersessionError as exc:
-            _die(str(exc), code=1)
-    else:
-        try:
-            new_chain_id = supersede_chain(
-                old_chain_id=args.old_chain_id,
-                subject=args.subject,
-                intent=args.intent,
-                connective=args.connective,
-                object_=args.object,
-                review_date=args.review_date,
-                corpus_path=_CORPUS_PATH,
-                operator_note=args.note,
-                new_chain_id=args.new_chain_id,
-            )
-        except SupersessionError as exc:
-            _die(str(exc), code=1)
-
-    print(f"superseded     : {args.old_chain_id}")
-    print(f"new chain_id   : {new_chain_id}")
-    print(f"review_date    : {args.review_date}")
-    if args.note:
-        print(f"note           : {args.note}")
-    return 0
 
 
 def cmd_teaching_compile_pack(args: argparse.Namespace) -> int:
-    """RAT-1 — regenerate compiled artifacts + manifest checksums for a pack.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_compile_pack(args)
 
-    Reads ``{pack}/frames/*.jsonl`` and ``{pack}/compositions/*.jsonl``
-    (the ratification handlers' write surfaces) and writes the runtime
-    artifacts ``{pack}/frames.jsonl`` + ``{pack}/compositions.jsonl``
-    plus the matching manifest checksum fields. Idempotent: identical
-    source → identical compiled bytes → unchanged manifest.
-
-    Closes the ratify→runtime gap: without this step a successful
-    ``apply_*_claim()`` writes a source file the runtime loader never
-    reads.
-    """
-    from pathlib import Path
-
-    from language_packs.compile_pack import compile_pack
-
-    pack_root = Path(args.pack) if args.pack else (
-        Path(__file__).resolve().parent.parent
-        / "language_packs" / "data" / "en_core_math_v1"
-    )
-    receipt = compile_pack(pack_root.resolve())
-
-    if args.json:
-        print(json.dumps({
-            "pack_path": str(receipt.pack_path),
-            "frame_checksum": receipt.frame_checksum,
-            "composition_checksum": receipt.composition_checksum,
-            "frame_bytes_written": receipt.frame_bytes_written,
-            "composition_bytes_written": receipt.composition_bytes_written,
-            "manifest_updated": receipt.manifest_updated,
-        }, indent=2, sort_keys=True))
-    else:
-        print(f"pack                 : {receipt.pack_path}")
-        print(f"frame_checksum       : {receipt.frame_checksum[:24]}...")
-        print(f"composition_checksum : {receipt.composition_checksum[:24]}...")
-        print(f"frame bytes          : {receipt.frame_bytes_written}")
-        print(f"composition bytes    : {receipt.composition_bytes_written}")
-        print(f"manifest_updated     : {receipt.manifest_updated}")
-    return 0
 
 
 def cmd_teaching_seed_recognizer(args: argparse.Namespace) -> int:
-    """RAT-1 — append a reviewed RatifiedRecognizer entry to the proposal log.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_seed_recognizer(args)
 
-    Operator-explicit seeding for new ``anchor_kind`` values that the
-    contemplation pipeline hasn't yet produced via exemplar harvest.
-    Writes ``created`` + ``transition(accepted)`` events to the proposal
-    log so :func:`generate.recognizer_registry.load_ratified_registry`
-    picks it up on next load.
-
-    This is a reviewed operator action — the operator must supply the
-    full spec inline. There is no inference, no auto-fill from
-    exemplars, no fallback. Every call appends one proposal pair.
-    """
-    import datetime
-    import hashlib
-    from pathlib import Path
-
-    from teaching.proposals import ProposalLog
-
-    log_path = Path(args.log) if args.log else None
-    log = ProposalLog(log_path)
-
-    review_date = args.review_date or datetime.date.today().isoformat()
-
-    canonical_pattern: dict[str, Any] = {
-        "anchor_kind": args.anchor_kind,
-        "shape_category": args.shape_category,
-        "outcome": "admissible",
-    }
-    if args.observed_currency_symbols:
-        canonical_pattern["observed_currency_symbols"] = sorted(
-            set(args.observed_currency_symbols)
-        )
-    if args.observed_per_units:
-        canonical_pattern["observed_per_units"] = sorted(
-            set(args.observed_per_units)
-        )
-    if args.observed_units:
-        canonical_pattern["observed_units"] = sorted(set(args.observed_units))
-    if args.anchor_count_min is not None:
-        canonical_pattern["anchor_count_min"] = args.anchor_count_min
-    if args.anchor_count_max is not None:
-        canonical_pattern["anchor_count_max"] = args.anchor_count_max
-    if args.graph_intent:
-        canonical_pattern["graph_intent"] = args.graph_intent
-    if getattr(args, "extract_values", False):
-        canonical_pattern["extract_values"] = True
-
-    recognizer_spec = {
-        "shape_category": args.shape_category,
-        "canonical_pattern": canonical_pattern,
-        "exemplar_count": 0,
-        "exemplar_digest": "",
-        "coverage": {},
-    }
-
-    # Build a deterministic proposal_id from the canonical pattern bytes.
-    spec_bytes = json.dumps(
-        canonical_pattern, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8")
-    spec_digest = hashlib.sha256(spec_bytes).hexdigest()
-    proposal_id = f"rat1-seed-{spec_digest[:16]}"
-    recognizer_spec["exemplar_digest"] = spec_digest
-
-    proposal_payload = {
-        "proposal_id": proposal_id,
-        "polarity": "affirms",
-        "claim_domain": "factual",
-        "evidence": [],
-        "proposed_chain": {
-            "subject": args.shape_category,
-            "intent": "recognizer_spec_seed",
-            "connective": "ratifies",
-            "object": args.anchor_kind,
-            "recognizer_spec": recognizer_spec,
-        },
-        "source": {
-            "kind": "exemplar_corpus",
-            "source_id": spec_digest,
-            "emitted_at_revision": "rat1-cli-seed",
-        },
-    }
-
-    # Append created + transition events directly via the log's writer.
-    log._append({"event": "created", "proposal": proposal_payload})
-    log._append({
-        "event": "transition",
-        "proposal_id": proposal_id,
-        "to": "accepted",
-        "note": args.note or "RAT-1 CLI seed",
-        "review_date": review_date,
-    })
-
-    print(f"seeded proposal_id   : {proposal_id}")
-    print(f"shape_category       : {args.shape_category}")
-    print(f"anchor_kind          : {args.anchor_kind}")
-    print(f"log_path             : {log.path}")
-    print(f"review_date          : {review_date}")
-    return 0
 
 
 def cmd_teaching_coverage(args: argparse.Namespace) -> int:
-    """Brief D — per-shape admission histogram with deltas vs committed baseline.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_coverage(args)
 
-    Reads (or runs, if ``--run``) the lane's ``report.json`` and emits
-    a clean histogram of counts + refusal taxonomy. Pure read by default.
-    Useful for measuring the effect of ratifications + matcher
-    extensions without re-eyeballing report.json.
-    """
-    from pathlib import Path
-
-    from teaching.coverage import (
-        build_coverage_report,
-        fetch_committed_baseline,
-    )
-
-    lane = args.lane or "gsm8k_math"
-    split = args.split or "train_sample"
-    version = args.version or "v1"
-
-    # Validate inputs against a strict whitelist before any path
-    # construction or subprocess invocation. The runner module name is
-    # built from these tokens (``f"evals.{lane}.{split}.{version}.runner"``)
-    # and passed to ``python -m``. Python's module loader would reject
-    # most malicious payloads, but a strict whitelist is the defense-in-
-    # depth response to the Sourcery security advisory: reject
-    # everything except ``[a-z0-9_]+``.
-    import re as _re
-    _safe_token_re = _re.compile(r"^[a-z0-9_]+$")
-    for label, value in (("lane", lane), ("split", split), ("version", version)):
-        if not _safe_token_re.match(value):
-            print(
-                f"ERROR: {label}={value!r} must match ^[a-z0-9_]+$",
-                file=sys.stderr,
-            )
-            return 1
-
-    repo_root = Path(__file__).resolve().parent.parent
-    lane_dir = repo_root / "evals" / lane / split / version
-    if not lane_dir.is_dir():
-        print(f"ERROR: lane directory not found: {lane_dir}", file=sys.stderr)
-        return 1
-    report_path = lane_dir / "report.json"
-
-    if args.run or not report_path.exists():
-        import subprocess
-        runner_module = f"evals.{lane}.{split}.{version}.runner"
-        runner_args = [sys.executable, "-m", runner_module]
-        try:
-            subprocess.run(
-                runner_args,
-                cwd=repo_root,
-                check=True,
-                capture_output=True,
-            )
-        except (subprocess.CalledProcessError, FileNotFoundError) as exc:
-            print(f"ERROR: runner failed: {exc}", file=sys.stderr)
-            return 1
-
-    baseline_path = None
-    if args.delta:
-        report_relpath = (
-            f"evals/{lane}/{split}/{version}/report.json"
-        )
-        baseline_path = fetch_committed_baseline(report_relpath, repo_root)
-
-    report = build_coverage_report(
-        report_path,
-        lane=lane,
-        split=split,
-        version=version,
-        baseline_path=baseline_path,
-    )
-
-    if args.json:
-        print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
-    else:
-        print(f"Lane: {report.lane}/{report.split}/{report.version}")
-        if report.delta:
-            print(
-                f"Counts: correct={report.counts.correct} "
-                f"refused={report.counts.refused} "
-                f"wrong={report.counts.wrong}  "
-                f"(Δ from HEAD: correct={report.delta['correct']:+d} "
-                f"refused={report.delta['refused']:+d} "
-                f"wrong={report.delta['wrong']:+d})"
-            )
-        else:
-            print(
-                f"Counts: correct={report.counts.correct} "
-                f"refused={report.counts.refused} "
-                f"wrong={report.counts.wrong}"
-            )
-        print()
-        if report.refusal_taxonomy:
-            print("Refusal taxonomy:")
-            for bucket, n in report.refusal_taxonomy.items():
-                print(f"  {n:>3}  {bucket}")
-            print()
-        wrong_ok = "✓" if report.counts.wrong == 0 else "✗"
-        hazard = report.case_0050_verdict
-        print(f"Wrong=0: {wrong_ok}")
-        if hazard is not None:
-            hazard_ok = "✓" if hazard == "refused" else "✗"
-            print(f"Case 0050 hazard pin: {hazard} {hazard_ok}")
-    return 0
 
 
 def cmd_teaching_refusal_taxonomy(args: argparse.Namespace) -> int:
-    """ADR-0163 Phase A — categorise refused statements by shape.
+    from core import cli_teaching
+    return cli_teaching.cmd_teaching_refusal_taxonomy(args)
 
-    Read-only.  Reads a JSONL of refused cases (defaults to the v1
-    refusal_taxonomy case set) and emits a histogram of shape categories.
-    Per ADR-0163, the categorizer is rules-only: no LLM call, no
-    embedding, no learned model.  --save writes the report to
-    ``evals/refusal_taxonomy/v1/report.json``.
-    """
-    import json
-    from pathlib import Path
-
-    from evals.framework import load_cases
-    from evals.refusal_taxonomy.runner import run_lane
-    from scripts.build_refusal_taxonomy_cases import build_cases
-
-    input_path = Path(args.input) if args.input else (
-        _REPO_ROOT / "evals" / "refusal_taxonomy" / "public" / "v1" / "cases.jsonl"
-    )
-    if not input_path.exists():
-        print(f"input not found: {input_path}", file=sys.stderr)
-        return 2
-
-    # Accept either a cases JSONL (one record per line) or a GSM8K-style
-    # eval report.json with a top-level ``per_case`` list of refusals.
-    if input_path.suffix == ".jsonl":
-        cases = load_cases(input_path)
-    else:
-        cases = build_cases(input_path)
-    report = run_lane(cases)
-    metrics = report.metrics
-
-    if args.json:
-        payload = {
-            "lane": "refusal_taxonomy",
-            "input": str(input_path),
-            "metrics": metrics,
-            "cases": report.case_details,
-        }
-        print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
-    else:
-        print(f"input              : {input_path}")
-        print(f"total              : {metrics['total']}")
-        print(f"categorized_rate   : {metrics['categorized_rate']:.3f}")
-        print(f"uncategorized      : {metrics['uncategorized']}")
-        print(f"case_digest        : {metrics['case_digest']}")
-        print("histogram:")
-        for category, count in sorted(
-            metrics["by_category"].items(), key=lambda kv: (-kv[1], kv[0]),
-        ):
-            print(f"  {count:3d}  {category}")
-
-    if args.save:
-        out = _REPO_ROOT / "evals" / "refusal_taxonomy" / "v1" / "report.json"
-        out.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
-            "lane": "refusal_taxonomy",
-            "version": "v1",
-            "split": "public",
-            "source_cases": str(input_path),
-            "metrics": metrics,
-            "cases": report.case_details,
-        }
-        out.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True)
-            + "\n"
-        )
-        print(f"saved              : {out}", file=sys.stderr)
-
-    return 0
 
 
 def cmd_pack_validate(args: argparse.Namespace) -> int:
-    """Run executable source-pack validation gates."""
-    pack_id = _safe_pack_id(args.pack_id)
-    pack_dir = _REPO_ROOT / "packs" / pack_id
-    validator_path = pack_dir / "validators.py"
+    from core import cli_pack
+    return cli_pack.cmd_pack_validate(args)
 
-    if not validator_path.exists():
-        _die(f"source-pack validator not found: {validator_path}", code=1)
-
-    if getattr(args, "dry_run", False):
-        if args.json:
-            print(json.dumps({
-                "pack_id": pack_id,
-                "validator_path": str(validator_path),
-                "would_execute": False,
-                "exists": True,
-            }, ensure_ascii=False, indent=2, sort_keys=True))
-        else:
-            print(f"dry-run: pack_id={pack_id}")
-            print(f"validator: {validator_path}")
-            print("status: validator exists, would not execute")
-        return 0
-
-    if not getattr(args, "allow_arbitrary_code", False):
-        _die(
-            "dynamic validator execution requires --allow-arbitrary-code",
-            code=2,
-        )
-
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location(f"{pack_id}_validators", validator_path)
-    if spec is None or spec.loader is None:
-        _die(f"cannot load source-pack validator: {validator_path}", code=1)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    report = module.validate_pack()
-    if args.json:
-        print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
-    else:
-        print(f"pack_id: {report['pack_id']}")
-        print(f"active : {report['active']}")
-        for name, result in report["gates"].items():
-            status = "PASS" if result["passed"] else "FAIL"
-            print(f"{status} {name:<12} {result['reason']}")
-    return 0 if report["active"] else 1
 
 
 def _print_rust_status() -> bool:
-    from algebra.backend import using_rust
+    from core import cli_rust
+    return cli_rust.print_rust_status(repo_root=_REPO_ROOT)
 
-    active = using_rust()
-    print(f"core_rs crate : {_CORE_RS_DIR}")
-    print(f"cargo manifest: {_CORE_RS_MANIFEST}")
-    print(f"rust backend  : {'active' if active else 'inactive'}")
-    if active:
-        import core_rs
 
-        print(f"core_rs module: {getattr(core_rs, '__file__', '<built-in>')}")
-    else:
-        print("activation    : run `core rust build`")
-    return active
+def _probe_core_rs() -> tuple[bool, str]:
+    from core import cli_rust
+    return cli_rust.probe_core_rs()
 
 
 def cmd_rust_status(args: argparse.Namespace) -> int:
     """Print Rust backend activation status."""
-    return 0 if _print_rust_status() or not args.require_active else 1
+    from core import cli_rust
+    return cli_rust.cmd_rust_status(args, repo_root=_REPO_ROOT)
 
 
 def cmd_rust_build(args: argparse.Namespace) -> int:
     """Build/install core_rs into the active Python environment."""
-    if not _CORE_RS_MANIFEST.exists():
-        _die(f"core-rs manifest not found: {_CORE_RS_MANIFEST}", code=1)
-    if shutil.which("uv") is not None:
-        rc = _run("uv", "pip", "install", "maturin")
-        if rc != 0:
-            return rc
-    cmd = [
-        sys.executable,
-        "-m",
-        "maturin",
-        "develop",
-        "--release",
-        "--manifest-path",
-        str(_CORE_RS_MANIFEST),
-    ]
-    if args.skip_auditwheel:
-        cmd.append("--skip-auditwheel")
-    return _run(*cmd)
+    from core import cli_rust
+    return cli_rust.cmd_rust_build(args, repo_root=_REPO_ROOT, run=_run, fail=_die, python_executable=sys.executable)
 
 
 def cmd_rust_test(args: argparse.Namespace) -> int:
     """Run Rust crate tests."""
-    if shutil.which("cargo") is None:
-        _die("cargo not found. Install a Rust toolchain first.", code=1)
-    return _run("cargo", "test", "--release", cwd=_CORE_RS_DIR)
+    from core import cli_rust
+    return cli_rust.cmd_rust_test(args, repo_root=_REPO_ROOT, run=_run, fail=_die)
 
 
 def cmd_contemplation(args: argparse.Namespace) -> int:
@@ -2484,218 +950,26 @@ def cmd_contemplation(args: argparse.Namespace) -> int:
 
 def cmd_doctor(args: argparse.Namespace) -> int:
     """Inspect import/package health for the CLI runtime path."""
-    checks = [
-        ("algebra", "algebra"),
-        ("alignment", "alignment.graph"),
-        ("chat", "chat.runtime"),
-        ("language_packs", "language_packs"),
-        ("morphology", "morphology.registry"),
-        ("sensorium", "sensorium.protocol"),
-    ]
-    ok = True
-    print(f"repo_root: {_REPO_ROOT}")
-    for label, module_name in checks:
-        try:
-            __import__(module_name)
-        except Exception as exc:
-            ok = False
-            print(f"FAIL {label:<14} {module_name}: {exc.__class__.__name__}: {exc}")
-        else:
-            print(f"OK   {label:<14} {module_name}")
-
-    if args.packs:
-        try:
-            from language_packs import list_packs
-
-            packs = list_packs()
-        except Exception as exc:
-            ok = False
-            print(f"FAIL packs          language_packs.list_packs: {exc.__class__.__name__}: {exc}")
-        else:
-            print("packs:")
-            if packs:
-                for pack_id in packs:
-                    print(f"  {pack_id}")
-            else:
-                print("  none found")
-    if args.rust:
-        rust_active = _print_rust_status()
-        if args.require_rust and not rust_active:
-            ok = False
-    return 0 if ok else 1
+    from core import cli_doctor
+    return cli_doctor.cmd_doctor(args, repo_root=_REPO_ROOT)
 
 
 def cmd_eval(args: argparse.Namespace) -> int:
-    """Run an eval lane by name, or list available lanes."""
-    if getattr(args, "lane", None) == "sensorium":
-        return cmd_eval_sensorium(args)
-    if getattr(args, "lane", None) == "environment-falsification":
-        return cmd_eval_environment_falsification(args)
-    if getattr(args, "lane", None) == "math-contemplation":
-        return cmd_eval_math_contemplation(args)
+    from core import cli_eval
+    return cli_eval.cmd_eval(args)
 
-    from evals._parallel import normalize_workers
-    from evals.framework import (
-        discover_lanes,
-        get_lane,
-        load_cases,
-        run_lane,
-        write_result,
-    )
-
-    if args.list_lanes:
-        lanes = discover_lanes()
-        if not lanes:
-            print("no eval lanes found")
-        for lane in lanes:
-            versions = ", ".join(lane.versions) if lane.versions else "none"
-            print(f"  {lane.name:20s}  versions: {versions}")
-        return 0
-
-    lane_name = args.lane
-    if not lane_name:
-        _die("eval requires a lane name. Use `core eval --list` to see available lanes.")
-
-    try:
-        lane = get_lane(lane_name)
-    except FileNotFoundError as exc:
-        _die(str(exc))
-
-    version = args.version or (lane.versions[0] if lane.versions else "v1")
-    split = args.split
-
-    if not args.json and lane_name == "cognition":
-        if split == "dev":
-            cases_path = lane.dev_cases_path()
-        elif split == "public":
-            cases_path = lane.public_cases_path(version)
-        else:
-            cases_path = lane.holdout_cases_path(version)
-        cases = load_cases(cases_path)
-        effective_workers = normalize_workers(
-            args.workers if args.workers is not None else 4,
-            len(cases),
-        )
-        print(f"workers        : {effective_workers}")
-
-    try:
-        result = run_lane(
-            lane,
-            version=version,
-            split=split,
-            workers=args.workers,
-        )
-    except FileNotFoundError as exc:
-        _die(str(exc))
-
-    if args.json:
-        print(json.dumps(result.as_dict(), ensure_ascii=False, indent=2, sort_keys=True))
-    else:
-        print(f"lane           : {result.lane}")
-        print(f"version        : {result.version}")
-        print(f"split          : {result.split}")
-        print(f"cases          : {result.metrics.get('total', 0)}")
-        for key, value in result.metrics.items():
-            if key == "total":
-                continue
-            if isinstance(value, float):
-                print(f"{key:15s}: {value:.1%}")
-            else:
-                print(f"{key:15s}: {value}")
-        if lane_name == "cognition":
-            # The cognition lane case_details carry `intent_correct` and
-            # `versor_closure` booleans; other lanes do not, so the
-            # cognition-specific failure printer is gated on lane identity to
-            # avoid spurious "failures" output for lanes that pass cleanly.
-            failures = [
-                c for c in result.case_details
-                if not c.get("intent_correct") or not c.get("versor_closure")
-            ]
-            if failures:
-                print(f"\nfailures ({len(failures)}):")
-                for c in failures:
-                    issues = []
-                    if not c.get("intent_correct"):
-                        issues.append("intent")
-                    if not c.get("versor_closure"):
-                        vc = c.get("versor_condition", 0)
-                        issues.append(f"versor={vc:.2e}")
-                    cid = c.get("case_id") or c.get("id") or "<unknown>"
-                    print(f"  {cid}: {', '.join(issues)}")
-
-    if args.save:
-        result_path = write_result(lane, result)
-        print(f"\nresult written: {result_path}", file=sys.stderr)
-
-    if args.report:
-        report_path = Path(args.report)
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(
-            json.dumps(result.as_dict(), ensure_ascii=False, indent=2, sort_keys=True)
-        )
-        print(f"\nreport written: {report_path}", file=sys.stderr)
-
-    return 0
 
 
 def cmd_eval_sensorium(args: argparse.Namespace) -> int:
-    """Run deterministic sensorium modality evidence reports."""
-    from evals.sensorium import build_sensorium_report
+    from core import cli_eval
+    return cli_eval.cmd_eval_sensorium(args)
 
-    modality = getattr(args, "modality", "vision") or "vision"
-    try:
-        report = build_sensorium_report(modality)
-    except ValueError as exc:
-        _die(str(exc), code=2)
-
-    if getattr(args, "json", False):
-        print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
-    else:
-        print(f"lane           : {report['lane']}")
-        print(f"modality       : {report['modality']}")
-        print(f"pack_id        : {report['pack_id']}")
-        print(f"gate_engaged   : {report['gate_engaged']}")
-        print(f"gate_closed    : {report['gate_closed']}")
-        print(f"cases          : {report['total']}")
-        print(f"passed         : {report['passed']}")
-        print(f"failed         : {report['failed']}")
-
-    if getattr(args, "report", None):
-        report_path = Path(args.report)
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(
-            json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True)
-        )
-        print(f"\nreport written: {report_path}", file=sys.stderr)
-
-    return 0 if report["failed"] == 0 and report["gate_closed"] else 1
 
 
 def cmd_eval_environment_falsification(args: argparse.Namespace) -> int:
-    """Run deterministic environmental falsification replay reports."""
-    from evals.environment_falsification import build_environment_falsification_report
+    from core import cli_eval
+    return cli_eval.cmd_eval_environment_falsification(args)
 
-    report = build_environment_falsification_report()
-
-    if getattr(args, "json", False):
-        print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
-    else:
-        print(f"lane           : {report['lane']}")
-        print(f"version        : {report['version']}")
-        print(f"cases          : {report['total']}")
-        print(f"passed         : {report['passed']}")
-        print(f"failed         : {report['failed']}")
-        print(f"report_sha256  : {report['report_sha256']}")
-
-    if getattr(args, "report", None):
-        report_path = Path(args.report)
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(
-            json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True)
-        )
-        print(f"\nreport written: {report_path}", file=sys.stderr)
-
-    return 0 if report["failed"] == 0 and report["expected_report_hash_ok"] else 1
 
 
 # ---------------------------------------------------------------------------
@@ -2751,78 +1025,9 @@ def _validate_output_path(raw: str | None) -> Path:
 
 
 def cmd_eval_math_contemplation(args: argparse.Namespace) -> int:
-    """ADR-0172 W3 — decompose an audit brief into refusal-shape proposals.
+    from core import cli_eval
+    return cli_eval.cmd_eval_math_contemplation(args)
 
-    Reads ``--audit`` (default: ``evals/gsm8k_math/train_sample/v1/audit_brief_11.json``),
-    runs :func:`teaching.math_contemplation.decompose_audit`, and writes one
-    ``canonical_bytes()`` JSON line per proposal to ``--output``
-    (default: ``teaching/math_proposals/proposals.jsonl``).
-
-    Idempotency: re-running on the same audit overwrites byte-identical bytes.
-    Output is sorted by ``proposal_id`` (matches the decomposer sort contract).
-
-    Exit codes:
-      0  success
-      1  audit file not found
-      2  parse error or path-traversal rejection
-
-    Forbidden by design: no proposal is auto-applied, no file outside
-    ``teaching/math_proposals/`` is written, the audit file is not mutated.
-    """
-    from teaching.math_contemplation import decompose_audit
-    from teaching.math_contemplation_proposal import to_jsonl_record
-
-    audit_raw = getattr(args, "audit", None)
-    output_raw = getattr(args, "output", None)
-
-    audit_path = Path(audit_raw) if audit_raw else _DEFAULT_AUDIT_PATH
-    if not audit_path.is_absolute():
-        audit_path = (_REPO_ROOT / audit_path).resolve()
-
-    if not audit_path.exists():
-        _die(f"audit file not found: {audit_path}", code=1)
-
-    output_path = _validate_output_path(output_raw)
-
-    try:
-        proposals = decompose_audit(audit_path)
-    except json.JSONDecodeError as exc:
-        _die(f"parse error in audit file {audit_path}: {exc}", code=2)
-
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Self-contained JSONL (ADR-0172 tightening follow-up #1): each line
-    # carries proposal_id, full evidence_pointers, and full
-    # reasoning_trace.steps so consumers can load without re-running the
-    # decomposer.
-    lines: list[bytes] = []
-    for proposal in proposals:
-        record = to_jsonl_record(proposal)
-        encoded = json.dumps(
-            record,
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        ).encode("utf-8")
-        lines.append(encoded + b"\n")
-    output_path.write_bytes(b"".join(lines))
-
-    if not getattr(args, "json", False):
-        print(f"proposals      : {len(proposals)}")
-        print(f"output         : {output_path}")
-    else:
-        print(
-            json.dumps(
-                {
-                    "proposals": len(proposals),
-                    "output": str(output_path),
-                },
-                ensure_ascii=False,
-                sort_keys=True,
-            )
-        )
-
-    return 0
 
 
 def cmd_workbench(args: argparse.Namespace) -> int:
@@ -5258,6 +3463,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     eval_cmd.set_defaults(func=cmd_eval)
+
+    from core.cli_ingest import register as _register_ingest
+    _register_ingest(subparsers)
 
     from formation.cli import register as _register_formation
     _register_formation(subparsers)
