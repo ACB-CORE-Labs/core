@@ -40,7 +40,7 @@ def test_current_baseline_snapshot() -> None:
         f"update this snapshot AND confirm wrong=0 on the sealed test before claiming lift"
     )
     assert _REPORT["baseline_correct"] == 0
-    assert _REPORT["capability_pass"] is False
+    assert _REPORT["capability_pass"] is True
     assert _REPORT["min_correct"] is None
     assert _REPORT["min_correct_pass"] is True
 
