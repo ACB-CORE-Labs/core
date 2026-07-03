@@ -9,7 +9,7 @@ The loader fails closed.  Missing file, malformed JSON, empty
 ``boundary_ids``, or — in production mode — unverified self-seal all
 cause ``SafetyPackError`` and prevent ``ChatRuntime`` startup.
 
-See ``docs/decisions/ADR-0029-safety-packs.md``.
+See ``docs/adr/ADR-0029-safety-packs.md``.
 """
 
 from packs.safety.check import (

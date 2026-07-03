@@ -16,7 +16,7 @@ ADR-0114a #5 reads:
 Two classes of perturbation, each must hold absolutely (per ADR-0120 §"Threshold rationale" — ε=0 here, not 0.05; reasoning isolation is binary).
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0125-reasoning-isolation-perturbation-suite.md` — methodological blueprint. Mirror the perturbation taxonomy where it transfers cleanly.
+1. `docs/adr/ADR-0125-reasoning-isolation-perturbation-suite.md` — methodological blueprint. Mirror the perturbation taxonomy where it transfers cleanly.
 2. `evals/gsm8k_parser_dev/perturbation_score.py` — existing GSM8K-context perturbation scorer. Read the architecture; **do not** import from it (different domain assumptions — B3's bounded grammar is its own contract). Use it as a pattern source.
 
 **What to ship:**
@@ -42,7 +42,7 @@ Two classes of perturbation, each must hold absolutely (per ADR-0120 §"Threshol
   - Snapshot test: current main B3 satisfies obligation #5 (or document precisely which case-perturbation pair fails — refuse to pass spuriously).
   - Empty-lane refusal: missing cases file → typed refusal.
 
-- **ADR** `docs/decisions/ADR-0114a.5-perturbation-suite.md`. Cite ADR-0114a parent, ADR-0125 (methodology), PR #189 (auditor pattern), ADR-0131.3 (B3 substrate). Document the closed perturbation taxonomy. Pin the entity-substitution pool + unit-synonym mapping.
+- **ADR** `docs/adr/ADR-0114a.5-perturbation-suite.md`. Cite ADR-0114a parent, ADR-0125 (methodology), PR #189 (auditor pattern), ADR-0131.3 (B3 substrate). Document the closed perturbation taxonomy. Pin the entity-substitution pool + unit-synonym mapping.
 
 - **Refresh** the obligation-#10 audit report (`evals/obligation_10_pack_provenance/B3_bounded_grammar.json`) if your perturbation generator affects parser internals (it shouldn't — perturbation operates on the *input string*, not the parser — but worth re-running the auditor to confirm).
 

@@ -1,6 +1,6 @@
 # Vision Compiler Eval Plan — `vision_core_v1`
 
-**Companion to:** [ADR-0197](../decisions/ADR-0197-vision-compiler-delta-crdt.md),
+**Companion to:** [ADR-0197](../adr/ADR-0197-vision-compiler-delta-crdt.md),
 [vision-compiler-spec.md](./vision-compiler-spec.md)
 **Status:** Proposed (PR-1 docs)
 

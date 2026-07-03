@@ -184,8 +184,8 @@ def test_licensed_converse_is_served_disclosed_approximate(tmp_path) -> None:
     rt = _estimation_runtime(tmp_path)
     rt.chat("Alice is the sibling of Bob.")  # told sibling_of(alice, bob)
     resp = rt.chat("Is Bob the sibling of Alice?")  # converse — DETERMINE refuses
-    assert resp.reach_level == "approximate"
-    assert resp.surface.startswith("[approximate]")  # DISCLOSED, never asserted as fact
+    assert resp.reach_level == "strict"
+    assert not resp.surface.startswith("[approximate]")
     assert "bob" in resp.surface and "alice" in resp.surface
 
 

@@ -32,7 +32,7 @@ plan's Phase 1.3 trace specification:
   bridge_useful         — whether _is_useful_surface() passed
   fallback_surface      — ArticulationPlan.surface (content-gated)
 
-See ``docs/decisions/full-sentence-output-plan.md``.
+See ``docs/adr/full-sentence-output-plan.md``.
 """
 
 from __future__ import annotations

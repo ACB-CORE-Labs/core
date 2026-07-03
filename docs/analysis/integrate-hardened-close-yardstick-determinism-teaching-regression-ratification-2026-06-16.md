@@ -43,7 +43,7 @@ Execute a *minimal, hermetic, documentation-primary + demo-embedding integration
    - `docs/testing-lanes.md` (as above; also ensure the new section references hermeticity rules, the prior Claim-B ratification, this ratification, contract.md, and the anti_regression_demo.md).
    - `evals/close_derived_climb/contract.md` (update the "Run:" line to the project-standard `uv run python -m ...`; add "Integrated into determinism lanes (testing-lanes.md) and anti-regression demo (see anti_regression_demo.md + this ratification)" + links).
    - `docs/evals/anti_regression_demo.md` (add a short "Complementary CLOSE flywheel protection" subsection noting that `core demo anti-regression` now also runs the hardened yardstick and surfaces its invariants; link to contract.md and the two ratifications).
-   - (If natural: a one-sentence cross-ref in `docs/runtime_contracts.md` under the determination surface section noting that semantic answerability for realized derived facts is now exercised by the CLOSE yardstick's `determine(..., rule='direct')` asserts.)
+   - (If natural: a one-sentence cross-ref in `docs/specs/runtime_contracts.md` under the determination surface section noting that semantic answerability for realized derived facts is now exercised by the CLOSE yardstick's `determine(..., rule='direct')` asserts.)
    - This ratification artifact itself (placed in docs/analysis/ per project pattern for such decisions).
    - No other dependent references required updates (confirmed via tree-wide grep before ratification; only self + historical analysis ratif + source + git history mentioned the new metrics).
 
@@ -82,7 +82,7 @@ Execute a *minimal, hermetic, documentation-primary + demo-embedding integration
 - Yardstick contract + runner: `evals/close_derived_climb/contract.md` + `runner.py`
 - Anti-regression demo surface: `evals/anti_regression/run_demo.py` + `tests/test_anti_regression_demo.py` + `docs/evals/anti_regression_demo.md`
 - Lanes / hermeticity: `docs/testing-lanes.md` + `Makefile`
-- Runtime contracts (determination surface): `docs/runtime_contracts.md`
+- Runtime contracts (determination surface): `docs/specs/runtime_contracts.md`
 - Post-merge verification commands (to be re-run): `uv run python -m evals.close_derived_climb` + `uv run python -m pytest tests/test_derived_close_proposals.py tests/test_architectural_invariants.py -q`
 
 **Ratification Status:** COMPLETE. This artifact was written on the branch *before any search_replace, edit, or other implementation code touched source files, tests, scripts, or docs (other than creation of this file itself)*. All exploration was read-only (git, list_dir, read_file, grep). 

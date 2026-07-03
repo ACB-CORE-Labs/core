@@ -8,7 +8,7 @@ learned models like Whisper are — and are **not** — involved.
 section. No one knows everything; this is the single greppable source of truth.
 
 **Authoritative sources this summarises** (read these for the binding contract):
-- [`docs/decisions/ADR-0181-audio-compiler-delta-crdt.md`](decisions/ADR-0181-audio-compiler-delta-crdt.md) — the decision.
+- [`docs/adr/ADR-0181-audio-compiler-delta-crdt.md`](adr/ADR-0181-audio-compiler-delta-crdt.md) — the decision.
 - [`docs/plans/audio-compiler-spec.md`](plans/audio-compiler-spec.md) — the compiler spec.
 - [`docs/plans/audio-compiler-eval-plan.md`](plans/audio-compiler-eval-plan.md) — eval gates + teacher policy.
 - Code: `sensorium/audio/{canonical,frames,lexer,parser,operators,compiler,checksum,arena,teachers}.py`.
@@ -207,7 +207,7 @@ in a thread-local, share-nothing `AudioArena`; the merge kernel folds arena
 snapshots into one **content-addressed, deduplicated, totally-ordered** set keyed
 by `merge_key`. The merge is permutation- and duplicate-invariant, so
 `hash(Sequential_Ingest) == hash(Concurrent_CRDT_Ingest)` — the proof obligation
-of [ADR-0180](decisions/ADR-0180-crdt-sharded-vault-concurrency.md). The Python
+of [ADR-0180](adr/ADR-0180-crdt-sharded-vault-concurrency.md). The Python
 layer mirrors the Rust `LocalArena`/`SemilatticeDelta`/`merge_kernel`
 (`core-rs/src/vault.rs`) so they stay in parity when the binding lands.
 
@@ -301,7 +301,7 @@ carries what the teacher bootstrapped. Two ways that holds:
   0-param. Whisper was just the bootstrap that helped build that vocabulary.
 
 Paths (A)/(B) are the subject of
-[ADR-0183 (stub)](decisions/ADR-0183-lawful-audio-lexeme-path.md) — deferred, but
+[ADR-0183 (stub)](adr/ADR-0183-lawful-audio-lexeme-path.md) — deferred, but
 on the record so the serving-path boundary isn't crossed silently.
 
 **The trap to avoid:** teaching with a model does **not** automatically transfer
@@ -388,5 +388,5 @@ order-invariant merge.
   `uv run pytest tests/test_audio_*.py -q`).
 - Compiler internals & rationale: [`docs/plans/audio-compiler-spec.md`](plans/audio-compiler-spec.md).
 - Eval gates & teacher policy: [`docs/plans/audio-compiler-eval-plan.md`](plans/audio-compiler-eval-plan.md).
-- The decision & trade-offs: [`docs/decisions/ADR-0181-audio-compiler-delta-crdt.md`](decisions/ADR-0181-audio-compiler-delta-crdt.md).
-- The concurrency substrate: [`docs/decisions/ADR-0180-crdt-sharded-vault-concurrency.md`](decisions/ADR-0180-crdt-sharded-vault-concurrency.md).
+- The decision & trade-offs: [`docs/adr/ADR-0181-audio-compiler-delta-crdt.md`](adr/ADR-0181-audio-compiler-delta-crdt.md).
+- The concurrency substrate: [`docs/adr/ADR-0180-crdt-sharded-vault-concurrency.md`](adr/ADR-0180-crdt-sharded-vault-concurrency.md).

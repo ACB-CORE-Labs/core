@@ -35,16 +35,14 @@ const fn build_blade_masks() -> [u8; 32] {
     // Hardcoded to guarantee exact parity with Python cl41.py.
     [
         // grade 0: ()
-        0b00000,
-        // grade 1: (0,), (1,), (2,), (3,), (4,)
+        0b00000, // grade 1: (0,), (1,), (2,), (3,), (4,)
         0b00001, 0b00010, 0b00100, 0b01000, 0b10000,
         // grade 2: (0,1), (0,2), (0,3), (0,4), (1,2), (1,3), (1,4), (2,3), (2,4), (3,4)
         0b00011, 0b00101, 0b01001, 0b10001, 0b00110, 0b01010, 0b10010, 0b01100, 0b10100, 0b11000,
         // grade 3: (0,1,2), (0,1,3), (0,1,4), (0,2,3), (0,2,4), (0,3,4), (1,2,3), (1,2,4), (1,3,4), (2,3,4)
         0b00111, 0b01011, 0b10011, 0b01101, 0b10101, 0b11001, 0b01110, 0b10110, 0b11010, 0b11100,
         // grade 4: (0,1,2,3), (0,1,2,4), (0,1,3,4), (0,2,3,4), (1,2,3,4)
-        0b01111, 0b10111, 0b11011, 0b11101, 0b11110,
-        // grade 5: (0,1,2,3,4)
+        0b01111, 0b10111, 0b11011, 0b11101, 0b11110, // grade 5: (0,1,2,3,4)
         0b11111,
     ]
 }
@@ -58,13 +56,6 @@ const fn build_mask_to_idx() -> [u8; 32] {
         i += 1;
     }
     lut
-}
-
-const fn popcount5(x: u8) -> u8 {
-    let mut n = x & 0x1F;
-    let mut c = 0u8;
-    while n != 0 { c += n & 1; n >>= 1; }
-    c
 }
 
 // Multiply two basis blades given as bitmasks. Returns (result_mask, sign).
@@ -106,17 +97,17 @@ const fn blade_product(a: u8, b: u8) -> (u8, i8) {
 }
 
 struct Table {
-    idx:  [[u8; 32]; 32],
+    idx: [[u8; 32]; 32],
     sign: [[i8; 32]; 32],
 }
 
 fn build_table() -> Table {
-    let mut idx  = [[0u8; 32]; 32];
+    let mut idx = [[0u8; 32]; 32];
     let mut sign = [[0i8; 32]; 32];
     for i in 0..32usize {
         for j in 0..32usize {
             let (result_mask, s) = blade_product(BLADE_MASKS[i], BLADE_MASKS[j]);
-            idx[i][j]  = MASK_TO_IDX[result_mask as usize];
+            idx[i][j] = MASK_TO_IDX[result_mask as usize];
             sign[i][j] = s;
         }
     }
@@ -137,10 +128,14 @@ pub fn geometric_product_f64(a: &[f64; 32], b: &[f64; 32]) -> [f64; 32] {
     let mut result = [0f64; 32];
     for i in 0..32 {
         let ai = a[i];
-        if ai == 0.0 { continue; }
+        if ai == 0.0 {
+            continue;
+        }
         for j in 0..32 {
             let bj = b[j];
-            if bj == 0.0 { continue; }
+            if bj == 0.0 {
+                continue;
+            }
             let k = t.idx[i][j] as usize;
             let s = t.sign[i][j] as f64;
             result[k] += s * ai * bj;
@@ -156,10 +151,14 @@ pub fn geometric_product_raw(a: &[f32; 32], b: &[f32; 32]) -> Result<[f32; 32], 
     let mut result = [0f32; 32];
     for i in 0..32 {
         let ai = a[i];
-        if ai == 0.0 { continue; }
+        if ai == 0.0 {
+            continue;
+        }
         for j in 0..32 {
             let bj = b[j];
-            if bj == 0.0 { continue; }
+            if bj == 0.0 {
+                continue;
+            }
             let k = t.idx[i][j] as usize;
             let s = t.sign[i][j] as f32;
             result[k] += s * ai * bj;
@@ -173,15 +172,23 @@ pub fn geometric_product_raw(a: &[f32; 32], b: &[f32; 32]) -> Result<[f32; 32], 
 /// Grade 0,1: +1.  Grade 2,3: -1.  Grade 4,5: +1.
 pub fn reverse_raw(a: &[f32; 32]) -> [f32; 32] {
     let mut r = *a;
-    for i in 6..=15 { r[i] = -r[i]; }
-    for i in 16..=25 { r[i] = -r[i]; }
+    for i in 6..=15 {
+        r[i] = -r[i];
+    }
+    for i in 16..=25 {
+        r[i] = -r[i];
+    }
     r
 }
 
 /// Reverse anti-automorphism (f64).
 pub fn reverse_f64(a: &[f64; 32]) -> [f64; 32] {
     let mut r = *a;
-    for i in 6..=15 { r[i] = -r[i]; }
-    for i in 16..=25 { r[i] = -r[i]; }
+    for i in 6..=15 {
+        r[i] = -r[i];
+    }
+    for i in 16..=25 {
+        r[i] = -r[i];
+    }
     r
 }

@@ -38,7 +38,7 @@ assert r2.refusal_reason is not None  # currently fails — this is the gap
 
 **Reference docs (read these, only these):**
 
-1. `docs/decisions/ADR-0131.G-gsm8k-coverage-probe.md` — iteration
+1. `docs/adr/ADR-0131.G-gsm8k-coverage-probe.md` — iteration
    discipline; axis cases are independent of GSM8K; `admitted_wrong == 0`
    is non-negotiable.
 2. `generate/math_candidate_parser.py` lines 685–750 — `_Q_TOTAL_RE` and
@@ -90,7 +90,7 @@ assert r2.refusal_reason is not None  # currently fails — this is the gap
     movement is expected (all 50 sample cases still refuse at statement
     parsing); gate on `admitted_wrong == 0`, not on admission rate.
 
-- **ADR** `docs/decisions/ADR-0131.G.5-aggregate-answer-composition.md`.
+- **ADR** `docs/adr/ADR-0131.G.5-aggregate-answer-composition.md`.
   Cite ADR-0131.G parent. Document the closed aggregate-cue vocabulary
   (`in total`, `altogether`, `combined`, `together`). State explicitly
   that the solver path (`entity is None` → sum) was pre-existing — this

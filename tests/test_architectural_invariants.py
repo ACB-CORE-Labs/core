@@ -912,7 +912,7 @@ class TestINV23VaultEpistemicFilter:
 #                         SPECULATIVE memory must count.
 #
 #   EVIDENCE_TELEMETRY  — feeds walk telemetry / trace evidence, NOT the
-#                         user-facing surface (per docs/runtime_contracts.md
+#                         user-facing surface (per docs/specs/runtime_contracts.md
 #                         §surface vs walk_surface).  Unfiltered recall is
 #                         tolerable because the walk does not shape claims.
 #                         If a future change routes the walk into the

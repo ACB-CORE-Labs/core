@@ -193,7 +193,11 @@ H = normalize(F · R)
 
 Where α ∈ [0,1] is the blend factor (default 0.5). The holonomy versor encodes not just which words appeared, but the order in which they appeared and the curvature of the path they traced.
 
-Implementation: `core-rs/src/holonomy.rs` — the entire computation is a single allocation-free Rust function. At 100-token inputs, this replaces 200+ Python dispatch calls with a single call crossing the PyO3 boundary.
+Implementation: `algebra/holonomy.py`. Holonomy remains Python-canonical because
+the current construction includes deterministic position rotors, f64 boundary
+semantics, and construction-time fallback through `construction_seed_versor`.
+There is no active Rust holonomy binding; a future native port must first prove
+byte-for-byte parity with this Python contract.
 
 **Boundedness invariant:**
 ```
@@ -371,19 +375,25 @@ Personas compose. Two persona motors can be combined into a single motor before 
 | Layer | Language | Entry point | Invariant |
 |---|---|---|---|
 | Orchestration | Python | `session/context.py` | Reads and writes `FieldState`. Never calls algebra directly — always via `algebra/backend.py`. |
-| Backend dispatch | Python | `algebra/backend.py` | Single switch: core_rs if available, pure Python fallback. |
-| Algebra kernel | Rust (PyO3) | `core-rs/src/lib.rs` | `[f32; 32]` in, `[f32; 32]` out. No heap allocation in hot path. All errors are `thiserror` named variants. |
+| Backend dispatch | Python | `algebra/backend.py` | Pure Python by default; `core_rs` only when `CORE_BACKEND=rust` / `core_rs` is explicit. |
+| Algebra kernel | Rust (PyO3) | `core-rs/src/lib.rs` | Active bindings: geometric product, closure-preserving versor apply, versor condition, CGA inner, exact vault recall, exp-map unitization, and diffusion step. |
 | Tensor ops | MLX | `field/propagate.py` | Used for batched matmul and field tensor operations. Stays in UMA. |
 
 **Zero-copy contract:**
 - Python passes numpy arrays to Rust via PyO3 buffer protocol
-- Rust reads into `[f32; 32]` stack arrays — one copy from Python heap to Rust stack
-- Rust returns new `[f32; 32]` as numpy array — one copy from Rust stack to Python heap
-- No intermediate heap allocation in the Rust kernel
+- Scalar 32-component bindings validate contiguous arrays and copy into fixed
+  `[f32; 32]` / `[f64; 32]` stack arrays before the kernel
+- Bulk bindings (`vault_recall`, `diffusion_step`) read contiguous numpy buffers
+  through `PyReadonlyArray` views without Python-list marshalling
+- Return values are owned numpy arrays or Python tuples/lists at the API boundary
+- No semantic state is mutated inside the Rust kernel
 
 **GIL contract:**
-- `vault_recall` (Rayon parallel scan) releases the GIL before entering Rayon and reacquires after
-- All other Rust functions hold the GIL for the duration of the call (fast enough that release is not worth the overhead)
+- Current PyO3 bindings hold the Python GIL for the duration of the call.
+- Rayon-backed kernels do not call back into Python while scoring, but the binding
+  does not currently wrap the scan in an explicit `Python::allow_threads`.
+- Any future GIL-release change is a performance change only and must preserve the
+  exact ordering and tie-break contracts.
 
 ---
 
@@ -625,8 +635,14 @@ These are structural contracts, not regression tests. A failing invariant means 
 | `versor_apply` | 3× geometric_product | No allocation; entire sandwich product in one stack frame |
 | `cga_inner` | O(32) | Called every token decode and every vault recall |
 | `vault_recall` | O(N × 32) | Rayon parallel scan across N stored versors |
-| `holonomy_encode` | O(2L × 32²) | 2L products for L-token prompt; replaces 2L Python dispatch calls |
-| `propagate_batch` | O(B × 32²) | B parallel versor_apply for beam search |
+| `diffusion_step` | O((N + E) × 32) | Zero-copy Rust step over field graph buffers; skipped explicitly when Rust is unavailable |
+
+Python-canonical operations that are not Rust bindings today:
+
+| Operation | Current status |
+|---|---|
+| `holonomy_encode` | Python-only; native port requires byte-for-byte parity with position-rotor/f64 construction semantics |
+| `propagate_batch` | Not an active runtime surface; future native propagation must use closure-preserving `versor_apply` semantics |
 
 **Build:**
 ```bash

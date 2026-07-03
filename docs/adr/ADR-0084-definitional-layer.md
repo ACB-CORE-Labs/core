@@ -205,7 +205,7 @@ co-pack lemmas. Targeted at the cases the prompt-diversity suite
   report updated.
 - New `packs/primitives/en_semantic_primitives_v1/` — ratified
   primitives pack; mounted by default; never auto-mutable.
-- `docs/runtime_contracts.md` — adds the definitional-layer contract
+- `docs/specs/runtime_contracts.md` — adds the definitional-layer contract
   (what a gloss is, what closure means, where primitives live).
 
 ### What does not change

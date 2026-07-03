@@ -12,8 +12,8 @@ cd ../core-adr-0131-3-bounded-grammar
 This is the benchmark that closes the GSM8K-arc lesson. Instead of paraphrase-chasing a benchmark designed to reward flexibility, B3 measures the architecture-aligned claim: *within a bounded grammar, deterministic end-to-end correctness*. The grammar's boundedness is the contract; coverage is a separate, honest, measurable property — not a promise.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0131-math-expert-rebench.md` — the composite-gate framing; B1 and B2 are siblings.
-2. `docs/decisions/ADR-0115-math-problem-parser-and-graph.md` + `ADR-0116-deterministic-solver.md` + `ADR-0117-solution-trace-verifier.md` — the existing pipeline B3 exercises. Read what they already do; do not reinvent.
+1. `docs/adr/ADR-0131-math-expert-rebench.md` — the composite-gate framing; B1 and B2 are siblings.
+2. `docs/adr/ADR-0115-math-problem-parser-and-graph.md` + `ADR-0116-deterministic-solver.md` + `ADR-0117-solution-trace-verifier.md` — the existing pipeline B3 exercises. Read what they already do; do not reinvent.
 
 **What to ship:**
 - `evals/math_bounded_grammar/v1/grammar.md` — the **bounded grammar specification**. A small, explicit set of sentence templates the parser recognizes. Examples (illustrative, not exhaustive — pick a coherent set and pin it):
@@ -36,7 +36,7 @@ This is the benchmark that closes the GSM8K-arc lesson. Instead of paraphrase-ch
   - Replay byte-equality of `report.json` across runs.
   - **Class diversity**: at least one case of each `expected` class (same load-bearing-gate logic as B2 v1.B).
   - Operation-kind coverage: each of the 8 `VALID_OPERATION_KINDS` exercised by at least one `solved_correct` case.
-- `docs/decisions/ADR-0131.3-bounded-grammar.md` — the ADR. Cite ADR-0131 parent, ADR-0115/-0116/-0117 (pipeline), ADR-0132 through ADR-0135 (binding graph) as foundation. Document the bounded grammar as a **scope statement, not a coverage claim** — pin language like "the architecture solves problems in this grammar; problems outside it refuse." Defer wider grammar expansion to v1.B / future ADRs.
+- `docs/adr/ADR-0131.3-bounded-grammar.md` — the ADR. Cite ADR-0131 parent, ADR-0115/-0116/-0117 (pipeline), ADR-0132 through ADR-0135 (binding graph) as foundation. Document the bounded grammar as a **scope statement, not a coverage claim** — pin language like "the architecture solves problems in this grammar; problems outside it refuse." Defer wider grammar expansion to v1.B / future ADRs.
 
 **Hard constraints:**
 - **Closed grammar.** Every recognized sentence matches exactly one template. Ambiguity → refuse. No paraphrase tolerance; the grammar is the contract.

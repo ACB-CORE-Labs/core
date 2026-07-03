@@ -62,7 +62,7 @@ Added to agent/architecture guidance:
 - `GROK.md`
 - `CLAUDE.md`
 - `docs/architecture/kernel-knowledge-layer-v1.md`
-- `docs/runtime_contracts.md`
+- `docs/specs/runtime_contracts.md`
 
 **Guard test:** `tests/test_kernel_no_new_legacy_derivation_surfaces.py`
 

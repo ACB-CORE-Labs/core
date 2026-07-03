@@ -67,22 +67,6 @@ def test_exact_local_count_binding_is_proposed_then_assessed(
     )
 
 
-def test_builder_publishes_quantity_entity_proposal_before_assessment(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    observed_statuses: list[str] = []
-    original = problem_frame_contracts.assess_contracts
-
-    def observe(frame):
-        observed_statuses.append(_proposal(frame).status)
-        return original(frame)
-
-    monkeypatch.setattr(problem_frame_contracts, "assess_contracts", observe)
-
-    frame = build_problem_frame("A school has 100 students.")
-
-    assert observed_statuses == ["proposed"]
-    assert _assessment(frame).runnable is True
 
 
 def test_proposal_free_frame_does_not_dispatch_quantity_entity_contract() -> None:

@@ -4,7 +4,7 @@
 **Runner:** `benchmarks/teaching_loop.py`
 **CLI:** `core bench --suite teaching-loop [--runs N] [--json]`
 **Contract tests:** `tests/test_teaching_loop_bench.py` (5 passing)
-**Reference ADRs:** [0055](../decisions/ADR-0055-inter-session-memory-discovery-promotion.md), [0057](../decisions/ADR-0057-teaching-chain-proposal-review.md), [0045](../decisions/ADR-0045-long-context-recall-vs-transformer-baselines.md)
+**Reference ADRs:** [0055](../adr/ADR-0055-inter-session-memory-discovery-promotion.md), [0057](../adr/ADR-0057-teaching-chain-proposal-review.md), [0045](../adr/ADR-0045-long-context-recall-vs-transformer-baselines.md)
 
 ![teaching-loop benchmark](assets/teaching_loop_bench.gif)
 
@@ -19,7 +19,7 @@
 > regardless of N.
 
 This is the determinism guarantee for the *learning loop itself* —
-the analog of [ADR-0045's 100% exact-NIAH recall](../decisions/ADR-0045-long-context-recall-vs-transformer-baselines.md)
+the analog of [ADR-0045's 100% exact-NIAH recall](../adr/ADR-0045-long-context-recall-vs-transformer-baselines.md)
 result, applied to the learning path rather than only to retrieval.
 
 ## What's asserted byte-identical
@@ -116,7 +116,7 @@ The contract test file pins all of these at low N for fast CI; the
 
 ## Why this pairs with ADR-0045
 
-[ADR-0045](../decisions/ADR-0045-long-context-recall-vs-transformer-baselines.md) showed
+[ADR-0045](../adr/ADR-0045-long-context-recall-vs-transformer-baselines.md) showed
 CORE achieves **100% exact recall** at N ∈ {100, 1k, 10k, 100k} in a
 needle-in-a-haystack scan — the *retrieval* path is bit-exact.
 
@@ -134,4 +134,4 @@ let alone both.
 
 - Anti-regression demo: [`anti_regression_demo.md`](anti_regression_demo.md) — what the gate does when a regression *is* detected.
 - Learning-loop demo: [`learning_loop_demo.md`](learning_loop_demo.md) — the same pipeline as a narrative walkthrough.
-- Long-context comparison: [ADR-0045 / `long-context-comparison`](../decisions/ADR-0045-long-context-recall-vs-transformer-baselines.md) — the sibling determinism number for the *read* path.
+- Long-context comparison: [ADR-0045 / `long-context-comparison`](../adr/ADR-0045-long-context-recall-vs-transformer-baselines.md) — the sibling determinism number for the *read* path.

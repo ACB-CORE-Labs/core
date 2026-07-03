@@ -10,7 +10,7 @@ cd ../core-binding-graph-p2
 **Scope.** Phase 2 of the binding-graph layer (ADR-0132 ratified Phase 1; #171 merged). Add a **pure-function adapter** that converts an existing `generate.math_problem_graph.MathProblemGraph` into a `SemanticSymbolicBindingGraph`. Still no runtime wiring — Phase 2 is structural translation only. Phases 3 (unit-aware equation binding), 4 (question-target binding), and 5 (bounded-grammar integration / B3) remain deferred to follow-up PRs.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0132-binding-graph-data-model.md` — your Phase 1 ADR; the data model is the codomain of the adapter.
+1. `docs/adr/ADR-0132-binding-graph-data-model.md` — your Phase 1 ADR; the data model is the codomain of the adapter.
 2. `generate/math_problem_graph.py` — the input type. Note its determinism guarantees (frozen+slots, order-of-introduction tuples, `canonical_bytes`). The adapter must preserve those.
 
 **What to ship:**
@@ -22,7 +22,7 @@ cd ../core-binding-graph-p2
   - `Unknown` → one `BoundUnknown` referencing the bound symbol whose value the solver must determine.
 - Public surface: add `bind_math_problem_graph` to `generate/binding_graph/__init__.py`.
 - `tests/test_binding_graph_adapter.py` — 30–40 tests covering: every operation kind round-trips, entity/quantity mapping is deterministic across orderings (introduction-order preserved), unknown-binding is single-target, `source_span` propagation when the `MathProblemGraph` carries span info (skip span fields cleanly when absent), refusal-first on malformed input (`AdapterError` typed exception, sibling of `BindingGraphError`), and a hash-stability test (`bind(g) == bind(g)` byte-equal across runs).
-- `docs/decisions/ADR-0133-binding-graph-adapter.md` — short ADR ratifying Phase 2; cite ADR-0132 parent and ADR-0115 (`MathProblemGraph` origin). Explicit "Phase 3+ deferred" section.
+- `docs/adr/ADR-0133-binding-graph-adapter.md` — short ADR ratifying Phase 2; cite ADR-0132 parent and ADR-0115 (`MathProblemGraph` origin). Explicit "Phase 3+ deferred" section.
 
 **Hard constraints:**
 - **Pure function, pure data.** No I/O, no parser calls, no solver calls, no `numpy`. The adapter is a deterministic translation.

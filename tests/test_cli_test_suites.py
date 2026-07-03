@@ -2,9 +2,34 @@
 
 from __future__ import annotations
 
+import tomllib
+from pathlib import Path
+
 import pytest
 
+from core import cli_rust
 from core import cli
+
+
+def test_pyproject_installs_core_console_script_under_uv() -> None:
+    pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+
+    assert data["project"]["scripts"]["core"] == "core.cli:main"
+    assert data["tool"]["uv"]["package"] is True
+    package_includes = data["tool"]["setuptools"]["packages"]["find"]["include"]
+    expected_runtime_packages = {
+        "benchmarks*",
+        "calibration*",
+        "core_ingest*",
+        "demos*",
+        "engine_state*",
+        "evals*",
+        "packs*",
+        "scripts*",
+        "teaching*",
+    }
+    assert expected_runtime_packages.issubset(package_includes)
 
 
 def test_core_test_lists_curated_suites(capsys) -> None:
@@ -127,6 +152,35 @@ def test_core_test_passthrough_still_accepts_arbitrary_pytest_args(monkeypatch) 
         "tests/test_core_semantic_seed_pack.py",
         "-q",
     )
+
+
+def test_core_rust_test_sets_pyo3_forward_compat(monkeypatch) -> None:
+    calls: list[tuple[tuple[str, ...], object, dict[str, str] | None]] = []
+
+    def fake_which(name: str) -> str | None:
+        return "/usr/bin/cargo" if name == "cargo" else None
+
+    def fake_run(
+        *args: str,
+        check: bool = False,
+        cwd=None,
+        env: dict[str, str] | None = None,
+    ) -> int:
+        calls.append((args, cwd, env))
+        return 0
+
+    monkeypatch.setattr(cli_rust.shutil, "which", fake_which)
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    rc = cli.main(["rust", "test"])
+
+    assert rc == 0
+    assert len(calls) == 1
+    args, cwd, env = calls[0]
+    assert args == ("cargo", "test", "--release")
+    assert cwd == cli_rust.CORE_RS_DIR
+    assert env is not None
+    assert env["PYO3_USE_ABI3_FORWARD_COMPATIBILITY"] == "1"
 
 
 def test_non_test_commands_still_reject_unknown_args() -> None:

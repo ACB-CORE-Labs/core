@@ -40,6 +40,8 @@ _ROUND_2 = (
     ("multiplicative_aggregation_v1.jsonl", ShapeCategory.MULTIPLICATIVE_AGGREGATION),
     ("currency_amount_v1.jsonl", ShapeCategory.CURRENCY_AMOUNT),
     ("temporal_aggregation_v2.jsonl", ShapeCategory.TEMPORAL_AGGREGATION),
+    ("comparative_with_unit_v1.jsonl", ShapeCategory.COMPARATIVE_WITH_UNIT),
+    ("unit_partition_v1.jsonl", ShapeCategory.UNIT_PARTITION),
 )
 _ALL_CORPORA = _ROUND_1 + _ROUND_2
 

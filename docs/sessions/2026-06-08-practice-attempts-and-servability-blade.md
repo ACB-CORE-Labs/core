@@ -326,7 +326,7 @@ build plan* must reuse existing organs, not fork parallel ones (CLAUDE.md: reuse
 [[feedback-adr-cross-reference-discipline]]). Three bindings:
 
 1. **`ServabilityDecision` / `ServabilityBlade` ⇒ advance ADR-0206 `core/response_governance/`, not
-   a new object.** [ADR-0206](../decisions/ADR-0206-response-governance-bridge.md) (the
+   a new object.** [ADR-0206](../adr/ADR-0206-response-governance-bridge.md) (the
    Response-Governance Bridge) already ships `ReachPolicy`, `govern_response`, and `shape_surface`,
    with `ReachLevel = STRICT < APPROXIMATE < EXTRAPOLATE < CREATIVE` and disclosure prefixes
    (`shape_surface` already emits `[approximate]`). It is gated **STRICT-only** today
@@ -377,7 +377,7 @@ state at a time, no bulk taxonomy expansion, no parallel policy object.
   (above); wiring waits.
 - **Preserved / not touched:** the wrong=0 verify gate, determinism/replay, the
   fail-closed safety/refusal path. The blade *consumes* these; it never weakens
-  them. Any future wiring PR bundles `docs/runtime_contracts.md` + contract-test
+  them. Any future wiring PR bundles `docs/specs/runtime_contracts.md` + contract-test
   updates (the surface contract changes shape), and gives the `context → admissible
   modes` table a meaningfully-failing test per branch (per the
   schema-defined-proof-obligation rule in CLAUDE.md).

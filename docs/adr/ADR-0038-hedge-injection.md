@@ -2,7 +2,7 @@
 
 **Status:** Accepted (2026-05-17)
 **Author:** Joshua Shay + planner pass
-**Companion docs:** [`ADR-0028-surface-preferences.md`](../decisions), [`ADR-0036-safety-refusal-policy.md`](ADR-0036-safety-refusal-policy.md), [`ADR-0037-per-predicate-ethics-refusal.md`](ADR-0037-per-predicate-ethics-refusal.md)
+**Companion docs:** [`ADR-0028-surface-preferences.md`](../adr), [`ADR-0036-safety-refusal-policy.md`](ADR-0036-safety-refusal-policy.md), [`ADR-0037-per-predicate-ethics-refusal.md`](ADR-0037-per-predicate-ethics-refusal.md)
 
 ## Context
 

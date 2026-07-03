@@ -183,7 +183,7 @@ with CORE's existing determinism + provenance discipline*:
 ### Gap 1 — Spaced reviewed-correction replay
 **Mapped to:** retrieval-with-spacing literature (most robust
 finding).
-**ADR:** [ADR-0129](../decisions/ADR-0129-spaced-correction-replay-deferred.md)
+**ADR:** [ADR-0129](../adr/ADR-0129-spaced-correction-replay-deferred.md)
 **Status:** Deferred.
 **Summary:** Periodic deterministic re-run of past reviewed
 corrections to verify they still produce intended outcomes
@@ -193,7 +193,7 @@ correction store and pack set evolves.
 ### Gap 2 — Pre-articulation calibration logging
 **Mapped to:** metacognitive calibration / prediction-outcome
 comparison literature.
-**ADR:** [ADR-0130](../decisions/ADR-0130-pre-articulation-calibration-deferred.md)
+**ADR:** [ADR-0130](../adr/ADR-0130-pre-articulation-calibration-deferred.md)
 **Status:** Deferred.
 **Summary:** When a correction is proposed, log CORE's
 pre-correction prediction; on acceptance, emit the gap.

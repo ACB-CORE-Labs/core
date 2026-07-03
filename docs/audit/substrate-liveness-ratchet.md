@@ -1,6 +1,6 @@
 # Substrate Liveness Ratchet — v5 (quick-wins lane cleared: W-011/W-012/W-015/W-016 closed)
 
-**Scope:** [substrate-liveness-audit-scope](../decisions/substrate-liveness-audit-scope.md) (v2)
+**Scope:** [substrate-liveness-audit-scope](../adr/substrate-liveness-audit-scope.md) (v2)
 **Companion:** [substrate-liveness-registry](./substrate-liveness-registry.md)
 **Status:** Active — append-only; revised as audit findings (L4-L9) and operator review refine the sequence.
 
@@ -581,11 +581,11 @@ ratchet shows all entries closed, **live mode is reached**.
 
 ## Cross-references
 
-- [substrate-liveness-audit-scope](../decisions/substrate-liveness-audit-scope.md) — defines the audit shape
+- [substrate-liveness-audit-scope](../adr/substrate-liveness-audit-scope.md) — defines the audit shape
 - [substrate-liveness-registry](./substrate-liveness-registry.md) — per-layer evidence
-- [L10-runtime-model-scope](../decisions/L10-runtime-model-scope.md) — gates W-003, W-007, W-009
-- [recognizer-storage-scope](../decisions/recognizer-storage-scope.md) — gates W-007
-- [teaching-derived-recognition-scope](../decisions/teaching-derived-recognition-scope.md) — parent of recognition arc
+- [L10-runtime-model-scope](../adr/L10-runtime-model-scope.md) — gates W-003, W-007, W-009
+- [recognizer-storage-scope](../adr/recognizer-storage-scope.md) — gates W-007
+- [teaching-derived-recognition-scope](../adr/teaching-derived-recognition-scope.md) — parent of recognition arc
 - [project-engine-identity-candidate](../../../.claude/projects/-Users-kaizenpro-Projects-core/memory/project-engine-identity-candidate.md) — shelved candidate
 - [feedback-adr-cross-reference-discipline](../../../.claude/projects/-Users-kaizenpro-Projects-core/memory/feedback-adr-cross-reference-discipline.md) — discipline applied
 - [feedback-cleanup-as-you-find](../../../.claude/projects/-Users-kaizenpro-Projects-core/memory/feedback-cleanup-as-you-find.md) — applies to W-006 if delete-path is chosen

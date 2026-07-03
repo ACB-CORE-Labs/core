@@ -16,7 +16,7 @@ Comparatives are an **operation kind** the binding graph already admits; the arc
 - Nested compositional (load-bearing — appears in baseline refusal `Jen has 10 more ducks than four times…`): `<EntityA> has N more <unit> than M times <EntityB>'s <unit>`. Treat as a *composed* `compare_additive(EntityA, compare_multiplicative(EntityB, M))` structure.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0131.G-gsm8k-coverage-probe.md` — iteration discipline (single axis, own coverage cases, GSM8K admission strictly increases or a refused-reason family is deliberately reduced, `admitted_wrong == 0`).
+1. `docs/adr/ADR-0131.G-gsm8k-coverage-probe.md` — iteration discipline (single axis, own coverage cases, GSM8K admission strictly increases or a refused-reason family is deliberately reduced, `admitted_wrong == 0`).
 2. `generate/math_problem_graph.py` (Comparison) + `generate/math_roundtrip.py` (anchor tables) — the contract the new emitter must satisfy. Do **not** redefine direction vocab; emit into the existing four `direction ∈ {more,fewer,times,fraction}` slots.
 
 **What to ship:**
@@ -24,7 +24,7 @@ Comparatives are an **operation kind** the binding graph already admits; the arc
 - **Curated coverage cases** at `evals/math_capability_axes/G2_comparatives/v1/cases.jsonl` (~25 cases): ≥4 per direction (`more`, `fewer`, `times`, `fraction`) + ≥3 nested-composition cases + ≥4 refusal cases for **paraphrases outside the closed set** (e.g. "as many … as", "compared to", "in comparison with"). The refusal cases pin the scope boundary.
 - **Runner + report** at `evals/math_capability_axes/G2_comparatives/v1/`.
 - **Tests** at `tests/test_adr_0131_G2_comparatives.py` (~12): per-direction at-least-one passing, nested-composition at-least-one passing, refusal cases all refuse with typed parser error, `wrong == 0`, replay byte-equality, **GSM8K probe re-run** with `admission_rate` strictly increases OR `refused_reasons_top` for comparative-shape clauses strictly decreases (whichever is honest — pick one in the ADR and gate on it).
-- **ADR** `docs/decisions/ADR-0131.G.2-comparatives.md`. Document closed-set anchor alternation; explicitly call out which paraphrases are deferred and why (they are not in the round-trip table either — admitting them would breach `wrong == 0`).
+- **ADR** `docs/adr/ADR-0131.G.2-comparatives.md`. Document closed-set anchor alternation; explicitly call out which paraphrases are deferred and why (they are not in the round-trip table either — admitting them would breach `wrong == 0`).
 - **Refresh** `evals/gsm8k_math/train_sample/v1/train_sample_coverage_report.json`.
 
 **Hard constraints:**

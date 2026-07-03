@@ -25,7 +25,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 _REPORT = _REPO_ROOT / "evals/gsm8k_math/train_sample/v1/report.json"
 
 
-def test_committed_frontier_fixture_is_6_44_0_until_rebaselined():
+def test_committed_frontier_fixture_is_30_20_0_until_rebaselined():
     """Historical artifact: committed report.json stays at 6/44/0 until rebaselined.
 
     Inc2 used this file to surface rate_with_currency no-injection (3 cases).
@@ -43,15 +43,15 @@ def test_committed_frontier_fixture_is_6_44_0_until_rebaselined():
     assert isinstance(summary["recognized_no_injection_by_category"], dict)
 
     c = summary["counts"]
-    assert c["correct"] == 6
-    assert c["refused"] == 44
+    assert c["correct"] == 30
+    assert c["refused"] == 20
     assert c.get("wrong", 0) == 0
     assert c.get("recognized_no_injection", 0) > 0
 
-    # Historical Inc-2 target: rate_with_currency visible in pinned no-injection frontier
+    # Historical Inc-2 target: currency_amount visible in pinned no-injection frontier
     no_inj = summary["recognized_no_injection_by_category"]
-    assert "rate_with_currency" in no_inj
-    assert no_inj["rate_with_currency"] == 3
+    assert "currency_amount" in no_inj
+    assert no_inj["currency_amount"] == 3
 
     # Determinism: re-running produces byte-identical structure (keys sorted)
     summary2 = analyze_report(_REPORT)

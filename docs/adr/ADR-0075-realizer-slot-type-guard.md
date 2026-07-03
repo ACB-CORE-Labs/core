@@ -228,7 +228,7 @@ tests/test_realizer_guard_holdout.py                     NEW
     prompts; every one rejected with expected rule_id.
   - Cognition eval cases: zero rejections (byte-identical baseline).
 
-docs/decisions/ADR-0075-realizer-slot-type-guard.md      NEW (this file)
+docs/adr/ADR-0075-realizer-slot-type-guard.md      NEW (this file)
 ```
 
 No pack mutation.  No composer rewrites.  No new dynamic imports.

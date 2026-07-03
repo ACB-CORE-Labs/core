@@ -1,8 +1,8 @@
 # Workbench Design System v1
 
 This document records the Branch 1 substrate for ADR-0162, cross-referenced with
-[ADR-0160](../decisions/ADR-0160-core-workbench-v1.md) and
-[ADR-0161](../decisions/ADR-0161-hitl-async-queue.md).
+[ADR-0160](../adr/ADR-0160-core-workbench-v1.md) and
+[ADR-0161](../adr/ADR-0161-hitl-async-queue.md).
 
 The implementation lives in `workbench-ui/`.  The preview page is `/preview`:
 

@@ -2,7 +2,7 @@
 
 Reads a ratified register pack from disk and constructs a frozen
 :class:`RegisterPack` for the runtime.  See
-``docs/decisions/ADR-0068-register-pack-class.md`` for context.
+``docs/adr/ADR-0068-register-pack-class.md`` for context.
 
 Loader contract (trust boundary):
 

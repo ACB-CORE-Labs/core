@@ -211,8 +211,8 @@ generate/intent.py                                       NARRATIVE / EXAMPLE enu
 tests/test_thread_context.py                             NEW (20 tests)
 tests/test_anaphora.py                                   NEW (12 tests)
 tests/test_narrative_example_intents.py                  NEW (30 tests)
-docs/decisions/ADR-0066-turn-level-composition.md        NEW (this file)
-docs/decisions/README.md                                 ADR-0066 index entry
+docs/adr/ADR-0066-turn-level-composition.md        NEW (this file)
+docs/adr/README.md                                 ADR-0066 index entry
 ```
 
 ---

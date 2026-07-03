@@ -236,7 +236,7 @@ tests/test_register_tour_demo.py                             NEW
   - surfaces_vary_at_least_once == True
   - JSON output schema is stable (snapshot pin)
 
-docs/decisions/ADR-0072-register-telemetry-operator-surface.md  NEW (this file)
+docs/adr/ADR-0072-register-telemetry-operator-surface.md  NEW (this file)
 ```
 
 ### Invariants pinned in CI at R5

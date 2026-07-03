@@ -153,7 +153,7 @@ Accepted when:
 - `tests/test_math_realizer.py` is green
 - All 50 dev-set cases realize without error
 - Smoke suite green
-- ADR linked from `docs/decisions/README.md` index and frontier
+- ADR linked from `docs/adr/README.md` index and frontier
 
 ---
 

@@ -18,7 +18,7 @@ It is NOT intended to be a generic chatbot shell.
 
 ## Doctrine
 
-- `../decisions/ADR-0160-core-workbench-v1.md`
+- `../adr/ADR-0160-core-workbench-v1.md`
 
 Defines:
 

@@ -52,6 +52,8 @@ _ROUND_2: tuple[tuple[str, ShapeCategory, int], ...] = (
     ),
     ("currency_amount_v1", ShapeCategory.CURRENCY_AMOUNT, 2),
     ("temporal_aggregation_v2", ShapeCategory.TEMPORAL_AGGREGATION, 2),
+    ("comparative_with_unit_v1", ShapeCategory.COMPARATIVE_WITH_UNIT, 2),
+    ("unit_partition_v1", ShapeCategory.UNIT_PARTITION, 2),
 )
 _ALL_CORPORA: tuple[tuple[str, ShapeCategory, int], ...] = _ROUND_1 + _ROUND_2
 _TEN_RECORD_CEILING_STEMS: frozenset[str] = frozenset({"temporal_aggregation_v2"})

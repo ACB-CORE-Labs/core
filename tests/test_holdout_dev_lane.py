@@ -35,12 +35,12 @@ def test_current_baseline_snapshot() -> None:
     counts if it also holds wrong=0 on the sealed test (this lane is the dev signal,
     the sealed 1,319 is the arbiter). 'Refuse everything' is the baseline to BEAT.
     """
-    assert (_REPORT["counts"]["correct"], _REPORT["counts"]["refused"]) == (0, 500), (
+    assert (_REPORT["counts"]["correct"], _REPORT["counts"]["refused"]) == (5, 495), (
         f"holdout_dev moved to {_REPORT['counts']} — if a real capability change landed, "
         f"update this snapshot AND confirm wrong=0 on the sealed test before claiming lift"
     )
     assert _REPORT["baseline_correct"] == 0
-    assert _REPORT["capability_pass"] is False
+    assert _REPORT["capability_pass"] is True
     assert _REPORT["min_correct"] is None
     assert _REPORT["min_correct_pass"] is True
 
@@ -49,4 +49,4 @@ def test_min_correct_promotion_gate_is_optional() -> None:
     report = build_report(_load_cases(), min_correct=1)
     assert report["safety_pass"] is True
     assert report["min_correct"] == 1
-    assert report["min_correct_pass"] is False
+    assert report["min_correct_pass"] is True

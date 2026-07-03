@@ -43,7 +43,7 @@ its atomicity tests are green.**
 
 **File-collision note (keeps Wave 1 parallel-safe):**
 - W1-A owns `engine_state/__init__.py`, `chat/runtime.py` checkpoint/loader
-  paths, and `docs/decisions/ADR-0219-*.md`.
+  paths, and `docs/adr/ADR-0219-*.md`.
 - W1-P owns `evals/l10_continuity/{predicates,runner,report,contract}.py` —
   *additive only* (new predicate + new captured signal; do not touch the
   checkpoint-write path).
@@ -117,7 +117,7 @@ in-progress `gen-*` dirs without a pointer entry are garbage, ignored.
 - `evals/l10_continuity/runner.py` — `_inject_orphan_tmp` and
   `read_recovered_turn_count` updated to the new layout (orphan = a half-written
   `gen-*` dir / temp `current`).
-- `docs/decisions/ADR-0219-generation-checkpoint-atomicity.md` — the ADR. Grep
+- `docs/adr/ADR-0219-generation-checkpoint-atomicity.md` — the ADR. Grep
   ADR-0146/0156/0157/0158 first ([[feedback-adr-cross-reference-discipline]]).
 
 **Legacy.** A pre-0219 flat `engine_state/` (manifest.json at root) must
@@ -140,7 +140,7 @@ pruned ([[feedback-no-silent-caps]]).
 **Validation.** New `tests/test_adr_0219_generation_checkpoint.py` (one test per
 gate bullet, each mutation-biting). `core test --suite smoke -q`, `--suite
 runtime -q`, then `PYTHONPATH=. .venv/bin/python -m evals.l10_continuity 12 3`
-(P1–P4 stay green). Update `docs/runtime_contracts.md` if the on-disk layout is
+(P1–P4 stay green). Update `docs/specs/runtime_contracts.md` if the on-disk layout is
 named there.
 
 **Forbidden.** Any restore-time `unitize`/grade-projection/drift repair; changing

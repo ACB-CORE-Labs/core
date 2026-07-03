@@ -11,7 +11,7 @@ proposals that generalize the shape.  The seeds must therefore be the cleanest,
 most canonical instances of their shape — ambiguous seeds produce ambiguous
 recognizers.
 
-See [ADR-0163 §Phase B](../../docs/decisions/ADR-0163-gsm8k-path-to-mastery.md)
+See [ADR-0163 §Phase B](../../docs/adr/ADR-0163-gsm8k-path-to-mastery.md)
 for the contract this file implements.
 
 ## Round 1 — categories

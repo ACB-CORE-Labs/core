@@ -4,7 +4,7 @@
 **Date:** 2026-05-23
 **Parent:** [ADR-0136](./ADR-0136-statement-layer-corridor.md)
 **Informed by:** [ADR-0136.S3-post-rescan](./ADR-0136.S3-post-rescan.md), [ADR-0136.S2-post-rescan](./ADR-0136.S2-post-rescan.md) (ADR-0137 deferral note)
-**Supersedes (in scope):** [ADR-0137](../decisions/) — closed without merging; reopened here in a lighter, shape-driven form
+**Supersedes (in scope):** [ADR-0137](../adr/) — closed without merging; reopened here in a lighter, shape-driven form
 
 ---
 

@@ -137,6 +137,6 @@ resolves to the main checkout). Verify: the new `frame_verdict` tests +
 
 ---
 
-**Source of truth:** `docs/decisions/ADR-0222-frame-verdict-closed-world.md` (ratified #780).
+**Source of truth:** `docs/adr/ADR-0222-frame-verdict-closed-world.md` (ratified #780).
 Where this brief and the ADR ever disagree, the ADR wins — open an amendment rather than
 diverging silently.

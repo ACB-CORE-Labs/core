@@ -1,7 +1,7 @@
 """ADR-0056 Phase C1 — contemplation loop tests.
 
 Verification matrix mirrors the acceptance criteria in
-``docs/decisions/ADR-0056-contemplation-loop-c1.md``:
+``docs/adr/ADR-0056-contemplation-loop-c1.md``:
 
   - Determinism across runs (byte-identical JSONL).
   - Empty corpus + empty pack → terminates with gap recorded.

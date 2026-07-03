@@ -1,37 +1,57 @@
 # Test debt quarantine
 
-The `QUARANTINE` set in [`/conftest.py`](../conftest.py) lists test IDs
-that are pre-existing failures predating the substrate-liveness audit
-work of 2026-05-24.
+Current quarantined tests: 0.
+
+The `QUARANTINE` set in [`/conftest.py`](../conftest.py) is the sole
+authorized registry for known-failing pytest nodeids. It is currently empty,
+so `pytest -m "not quarantine"` runs the same test population as plain pytest
+with respect to quarantine.
 
 The `full-pytest` CI gate at
 [`.github/workflows/full-pytest.yml`](../.github/workflows/full-pytest.yml)
-runs `pytest -m "not quarantine"` so these failures do not block PRs.
-But the suite is a **ratchet**: a test removed from `QUARANTINE` must
-pass on its own merits in CI from that PR onward.
+runs `pytest -m "not quarantine"`. If a quarantine entry is ever added, the
+suite remains a **ratchet**: a test removed from `QUARANTINE` must pass on its
+own merits in CI from that PR onward.
 
-## Origin
+## Current Policy
+
+Adding a test to `QUARANTINE` is strongly discouraged. If a new failure
+surfaces:
+
+- The default is to fix it in the PR that caused it.
+- If the failure is genuinely orthogonal to the PR's intent, open a small
+  fix-PR first, then resume the original work.
+- A legitimate addition must include a tracked follow-up issue and a
+  one-sentence justification in the adding PR.
+- The current count in this document must be updated in the same PR as any
+  `QUARANTINE` registry change.
+
+To remove a test from quarantine:
+
+1. Land a PR that makes the test pass.
+2. Delete its entry from `QUARANTINE` in `conftest.py` in the same PR.
+3. Update "Current quarantined tests" above.
+4. The `full-pytest` CI gate now requires the test to keep passing.
+
+## Historical Origin
 
 A full `pytest --durations=30` run on 2026-05-24 surfaced **45 failures
 + 3 errors** in a 30-minute suite. Bisect against commit `c1a1b7a`
-(the commit immediately before the first W-* PR of the audit
-sequence) showed **all 49 fail identically on baseline** — today's
-W-* work introduced zero new failures.
+(the commit immediately before the first W-* PR of the audit sequence)
+showed **all 49 failed identically on baseline**; the W-* work introduced
+zero new failures.
 
-These failures had accumulated because CI only verifies the lane SHA
-pin job + per-suite slices (`core test --suite smoke|teaching|...`).
-The full `pytest` lane was never gated, so feature evolution silently
-broke assertions without surfacing.
+Those historical failures had accumulated because CI only verified the lane
+SHA pin job plus per-suite slices (`core test --suite smoke|teaching|...`).
+The full `pytest` lane was not gated, so feature evolution silently broke
+assertions without surfacing. The full-pytest gate closed that loop, and the
+quarantine registry was used as a temporary IOU until those contracts were
+made to pass. The registry is now empty.
 
-The `full-pytest` gate added in this PR closes that loop. The
-`QUARANTINE` registry is the explicit IOU: 49 contracts we said we'd
-uphold, momentarily set aside to unblock the gate.
+## Historical Cluster Diagnoses
 
-## Cluster diagnoses
-
-The 49 failures fall into four shape-clusters. Each cluster is fixable
-by a small focused PR (same shape as W-002, which was a one-token
-extension after ADR-0120 promoted a ledger row).
+The 49 historical failures fell into five shape-clusters. This section is
+retained for archaeology only; it is not the current registry.
 
 ### Cluster A — ADR ledger row status drift (4 tests)
 
@@ -130,30 +150,6 @@ hot path.
 Affected:
 - `test_cli_test_suites::test_core_test_suite_accepts_pytest_flags_without_separator`
 - `test_comb_pass_hot_path::test_classify_compound_intent_called_once_per_turn`
-
-## Removal policy
-
-To remove a test from quarantine:
-
-1. Land a PR that makes the test pass.
-2. Delete its entry from `QUARANTINE` in `conftest.py` in the
-   **same PR** (so the gate immediately enforces the new contract).
-3. The `full-pytest` CI gate now requires the test to keep passing.
-
-## Adding policy
-
-**Adding a test to `QUARANTINE` is strongly discouraged.** If a new
-failure surfaces:
-
-- The right default is to fix it in the PR that caused it.
-- If the failure is genuinely orthogonal to the PR's intent, open a
-  small fix-PR first, then resume the original work.
-- The set should only shrink.
-
-The only legitimate addition is a test that surfaces a long-dormant
-issue (e.g., a new pytest version exposes a latent bug) with a
-tracked follow-up issue and a one-sentence justification in the
-adding PR.
 
 ## Cross-references
 

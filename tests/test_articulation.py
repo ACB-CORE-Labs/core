@@ -47,7 +47,7 @@ def test_realize_hebrew_surface_uses_hebrew_script_and_compact() -> None:
 
 
 def test_chat_surface_and_walk_surface_are_both_populated() -> None:
-    # Runtime contract (docs/runtime_contracts.md): surface = articulation_surface,
+    # Runtime contract (docs/specs/runtime_contracts.md): surface = articulation_surface,
     # walk_surface = retained token-walk telemetry. They are distinct fields and
     # are intentionally different when pack grounding applies.
     runtime = ChatRuntime(config=RuntimeConfig(output_language="en", frame_pack="en"))

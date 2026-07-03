@@ -82,7 +82,7 @@ fail-closed gate doesn't already cover.
    from the determine/derive path for certified propositional claims; fold the
    promotion digest into the turn `trace_hash` (the code notes this is the missing
    D4 step). Default-off flag first (mirror `vault_promotion_enabled`).
-3. **Disclosure + tests:** `verified` now reachable → update `docs/runtime_contracts.md`,
+3. **Disclosure + tests:** `verified` now reachable → update `docs/specs/runtime_contracts.md`,
    a non-vacuous test that a proof-backed claim becomes `verified` AND a
    non-proof-backed one stays `as_told`, and confirm no path emits `verified`
    without a replayed certificate.

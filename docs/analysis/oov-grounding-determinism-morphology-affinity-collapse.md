@@ -103,7 +103,8 @@ uv run python -m core.cli eval cognition --json
 # and versor_closure=true; this lane does not emit a separate wrong counter.
 ```
 
-Wrinkle: the repository declares a `core` console script in `pyproject.toml`, but
-`uv sync` reports that entry points are skipped because the project is not
-packaged in this checkout. The exact `uv run core ...` form therefore fails to
-spawn `core`; the verified equivalent is `uv run python -m core.cli ...`.
+Update, 2026-07-02: the repository now sets `tool.uv.package = true` in
+`pyproject.toml`, so uv installs the declared `core` console script during normal
+project sync/run. `uv run core ...` is the canonical invocation again; `uv run
+python -m core.cli ...` remains an equivalent source-tree fallback when an
+environment has not been synced.

@@ -3,7 +3,7 @@
 **Status:** Proposed (specification only — no code shipped)
 **Date:** 2026-05-20
 **Author:** Shay
-**Companion to:** [ADR-0087](../decisions/ADR-0087-rhetorical-style-axis.md)
+**Companion to:** [ADR-0087](../adr/ADR-0087-rhetorical-style-axis.md)
 
 ---
 
@@ -282,12 +282,12 @@ not pre-decided here:
 
 ## Cross-References
 
-- [ADR-0087](../decisions/ADR-0087-rhetorical-style-axis.md) — the
+- [ADR-0087](../adr/ADR-0087-rhetorical-style-axis.md) — the
   axis this harvester ultimately feeds.
-- [ADR-0084](../decisions/ADR-0084-definitional-layer.md) /
-  [ADR-0085](../decisions/ADR-0085-gloss-aware-cause.md) — substrate-
+- [ADR-0084](../adr/ADR-0084-definitional-layer.md) /
+  [ADR-0085](../adr/ADR-0085-gloss-aware-cause.md) — substrate-
   before-consumer sequencing pattern this spec adopts.
-- [ADR-0064](../decisions/ADR-0064-cross-pack-teaching.md) — cross-
+- [ADR-0064](../adr/ADR-0064-cross-pack-teaching.md) — cross-
   pack teaching corpora mechanism the harvester will reuse.
 - `teaching/store.py` — the proposal-queue integration point.
 - `core teaching propose / review / supersede` — the existing review

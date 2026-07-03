@@ -117,7 +117,7 @@ Do not introduce new local prose parsers inside derivation organs unless explici
 
 Before editing:
 1. Read this file.
-2. Read `docs/runtime_contracts.md`.
+2. Read `docs/specs/runtime_contracts.md`.
 3. Read the latest recent `HANDOFF-*.md` if relevant.
 4. Confirm repo root and inspect working tree state.
 5. Run the smallest relevant validation lane.
@@ -128,6 +128,33 @@ For non-trivial edits:
 - prefer semantics-preserving cleanup before new mechanisms
 - keep changes small and load-bearing
 - If working in Arena/parallel subagent mode, each subagent must independently satisfy `versor_condition` and results must be reconciled before merge. No subagent output becomes another subagent's unchecked input.
+
+### Repository topology discipline
+Before calling a directory, module, or file stale/redundant, classify its
+intrinsic role:
+- runtime boundary
+- candidate/provisional compiler
+- reviewed pack or corpus data
+- read-only Workbench/API projection
+- standalone demo envelope
+- benchmark/eval/report artifact
+- historical note or handoff
+- script/tooling surface
+
+Then verify with `rg` imports/callers, tests, docs/ADR references, and CLI
+routes before moving or deleting anything. A file is not dead merely because it
+is platform-specific, optional, generated-adjacent, or outside `core/`.
+
+When an intentional split exists, make the boundary local and enforceable:
+- add or update a short `README.md` at each side of the split;
+- state what owns mutation, what is read-only, and which validation lane proves it;
+- add or extend a lightweight hygiene/doctor/package test when drift is likely;
+- keep artifact namespaces non-executable unless they are deliberately promoted
+  to packages or moved under `scripts/`.
+
+Package and CLI changes must check fresh-install visibility, not just source-tree
+imports. Use `core doctor`, package include tests, and wheel inspection when a
+new top-level package or CLI-imported module is added.
 
 ### Workspace Hygiene + Branch Protocol
 Before branch movement or edits:
@@ -199,6 +226,7 @@ If it touched user input, files, dynamic imports, or logs, what trust boundary w
 
 `CLAUDE.md`, `GEMINI.md`, and any future provider file must:
 - be short
+- stay under 600 bytes unless there is a tool-specific reason reviewed in `AGENTS.md`
 - point here as canonical
 - avoid duplicating architecture
 - avoid introducing provider-only truth

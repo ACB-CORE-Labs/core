@@ -12,7 +12,7 @@ cd ../core-adr-0131-g1-verb-classes
 The architectural claim: each of these verbs introduces a quantity into the same `InitialPossession` shape `<Entity> <verb> <N> <unit>` — semantically equivalent to `has`, syntactically distinct. The candidate emitter widens; the binding graph and solver are untouched.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0131.G-gsm8k-coverage-probe.md` — the iteration discipline; every G.<n> must do all 4 items in its "Every subsequent ADR-0131.G.<n> must" section.
+1. `docs/adr/ADR-0131.G-gsm8k-coverage-probe.md` — the iteration discipline; every G.<n> must do all 4 items in its "Every subsequent ADR-0131.G.<n> must" section.
 2. `generate/math_candidate_parser.py` — extend `_INITIAL_HAS_RE` / `CandidateInitial` (do not branch into a new module; this is the same shape with a wider anchor alternation).
 
 **What to ship:**
@@ -20,7 +20,7 @@ The architectural claim: each of these verbs introduces a quantity into the same
 - **Curated coverage cases** at `evals/math_capability_axes/G1_verb_classes/v1/cases.jsonl` (~20 cases, split by verb): each is `<Entity> <verb> <N> <unit>.` followed by a question the existing pipeline can answer. These exercise the new capability **independently of GSM8K**.
 - **Runner** at `evals/math_capability_axes/G1_verb_classes/v1/runner.py` (pure adapter over `evals.gsm8k_math.runner` infrastructure or `chat/runtime` end-to-end; deterministic `report.json`).
 - **Tests** at `tests/test_adr_0131_G1_verb_classes.py` (~10): safety rail (`wrong == 0`) on the new axis; per-verb at-least-one passing case; closed outcome vocab; replay byte-equality; **GSM8K probe re-runs and `admission_rate` strictly increases** vs the baseline `0.0`; B3 lane unchanged.
-- **ADR** `docs/decisions/ADR-0131.G.1-verb-classes-initial-state.md`. Cite ADR-0131.G parent; document the closed verb set as a scope statement; declare what is *not* added (no rate verbs, no comparatives, no acquisition-with-cost semantics — those are sibling axes).
+- **ADR** `docs/adr/ADR-0131.G.1-verb-classes-initial-state.md`. Cite ADR-0131.G parent; document the closed verb set as a scope statement; declare what is *not* added (no rate verbs, no comparatives, no acquisition-with-cost semantics — those are sibling axes).
 - **Refresh** `evals/gsm8k_math/train_sample/v1/train_sample_coverage_report.json` (the diff-able number). PR title must include the new admission_rate.
 
 **Hard constraints:**

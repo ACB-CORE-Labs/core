@@ -50,7 +50,7 @@ wrong=0 hazard scope)
 
 Two new ADRs, modeled on ADR-0168 + ADR-0168.1:
 
-1. **`docs/decisions/ADR-0169-compositionclaim-ratification.md`** — the
+1. **`docs/adr/ADR-0169-compositionclaim-ratification.md`** — the
    doctrine. Same section structure as ADR-0168:
    - Status / Date / Author / Parent (ADR-0167) / Related
    - Context — why CompositionClaim is qualitatively different from
@@ -84,7 +84,7 @@ Two new ADRs, modeled on ADR-0168 + ADR-0168.1:
    - Sequencing — ADR-0166 Q1/Q2/Q3 answered
    - Acceptance gates for implementation PR
 
-2. **`docs/decisions/ADR-0169.1-math-compositionclaim-proposal-adapter.md`**
+2. **`docs/adr/ADR-0169.1-math-compositionclaim-proposal-adapter.md`**
    — the adapter pattern (analogous to ADR-0168.1):
    - Why ADR-0057's reviewed-evidence floor requires a math-specific
      proposal type
@@ -118,18 +118,18 @@ Two new ADRs, modeled on ADR-0168 + ADR-0168.1:
 
 ### Deliverables
 
-- `docs/decisions/ADR-0169-compositionclaim-ratification.md`
-- `docs/decisions/ADR-0169.1-math-compositionclaim-proposal-adapter.md`
+- `docs/adr/ADR-0169-compositionclaim-ratification.md`
+- `docs/adr/ADR-0169.1-math-compositionclaim-proposal-adapter.md`
 - No code changes. No test changes.
 
 ### Reads required before starting
 
-- `docs/decisions/ADR-0168-frameclaim-ratification.md` (the exact
+- `docs/adr/ADR-0168-frameclaim-ratification.md` (the exact
   template — every section in ADR-0169 should mirror this structure)
-- `docs/decisions/ADR-0168.1-math-frameclaim-proposal-adapter.md` (the
+- `docs/adr/ADR-0168.1-math-frameclaim-proposal-adapter.md` (the
   adapter template)
 - `docs/handoff/ADR-0167-FOLLOWUPS.md §1` (priority hint context)
-- `docs/decisions/ADR-0172-math-corpus-decomposition-mechanism.md`
+- `docs/adr/ADR-0172-math-corpus-decomposition-mechanism.md`
   (Tier 1.5 context — why CompositionClaim is the next handler)
 - The 20 audit rows under `quantity_extraction` + `multi_quantity_composition`
   in `evals/gsm8k_math/train_sample/v1/audit_brief_11.json` (the data

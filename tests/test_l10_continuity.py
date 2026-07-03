@@ -298,7 +298,8 @@ def test_p4_recovery_bites_on_corrupt_checkpoint(tmp_path: Path) -> None:
 
     state_dir = tmp_path / "es"
     run_soak(3, engine_state_dir=state_dir)
-    (state_dir / "manifest.json").write_text("{ torn-write garbage <<<", encoding="utf-8")
+    current = (state_dir / "current").read_text(encoding="utf-8").strip()
+    (state_dir / current / "manifest.json").write_text("{ torn-write garbage <<<", encoding="utf-8")
     with pytest.raises(Exception):
         ChatRuntime(config=RuntimeConfig(), engine_state_path=state_dir)
 

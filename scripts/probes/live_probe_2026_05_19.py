@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Live probe script — reproducer for notes/live_probe_2026-05-19.txt.
+"""Live probe reproducer for ``notes/live_probe_2026-05-19.txt``.
 
-Walks 51 prompts across 13 categories through fresh ChatRuntime()
-instances and prints the rendered surfaces.  Deterministic: same code,
-same packs, same glosses → byte-identical output every run.
+Walks 51 prompts across 13 categories through fresh ``ChatRuntime()`` instances
+and prints the rendered surfaces. Deterministic: same code, same packs, same
+glosses, same output every run.
 
 Run:
-    uv run python notes/live_probe_2026-05-19.py > /tmp/probe.txt
+    uv run python scripts/probes/live_probe_2026_05_19.py > /tmp/probe.txt
     diff notes/live_probe_2026-05-19.txt /tmp/probe.txt
-        # → no diff (modulo the header comment in the .txt)
+        # no diff, modulo the header comment in the .txt
 """
+
 from __future__ import annotations
 
 from collections import Counter
@@ -20,64 +21,92 @@ from chat.runtime import ChatRuntime
 
 CATEGORIES: dict[str, list[str]] = {
     "Cognition": [
-        "What is truth?", "Define knowledge.", "What is memory?",
-        "What does meaning mean?", "What is wisdom?",
+        "What is truth?",
+        "Define knowledge.",
+        "What is memory?",
+        "What does meaning mean?",
+        "What is wisdom?",
     ],
     "Speech-act / discourse": [
-        "What is a fact?", "What is an idea?", "What is a statement?",
-        "What does claim mean?", "Define argument.",
+        "What is a fact?",
+        "What is an idea?",
+        "What is a statement?",
+        "What does claim mean?",
+        "Define argument.",
     ],
     "Mental-state": [
-        "What is doubt?", "What does believe mean?", "What is the self?",
-        "Define mind.", "What is a view?",
+        "What is doubt?",
+        "What does believe mean?",
+        "What is the self?",
+        "Define mind.",
+        "What is a view?",
     ],
     "Adjectives (attitude)": [
-        "What is true?", "What does important mean?", "Define evident.",
-        "What is certain?", "What does necessary mean?",
+        "What is true?",
+        "What does important mean?",
+        "Define evident.",
+        "What is certain?",
+        "What does necessary mean?",
     ],
     "Temporal": [
-        "What is now?", "Define moment.", "What is the future?",
-        "What does before mean?", "What is time?",
+        "What is now?",
+        "Define moment.",
+        "What is the future?",
+        "What does before mean?",
+        "What is time?",
     ],
     "Spatial": [
-        "What is here?", "What is a place?", "Define above.",
+        "What is here?",
+        "What is a place?",
+        "Define above.",
         "What does between mean?",
     ],
     "Action verbs (infinitive-stripped)": [
-        "What is to create?", "What does make mean?", "What is to use?",
+        "What is to create?",
+        "What does make mean?",
+        "What is to use?",
         "Define change.",
     ],
     "Quantitative": [
-        "What does all mean?", "Define some.", "What is more?",
+        "What does all mean?",
+        "Define some.",
+        "What is more?",
         "What does enough mean?",
     ],
     "Causation": [
-        "What is an effect?", "Define outcome.", "What is a consequence?",
+        "What is an effect?",
+        "Define outcome.",
+        "What is a consequence?",
         "What does trigger mean?",
     ],
     "Polarity / frequency": [
-        "What is yes?", "What does always mean?", "Define never.",
+        "What is yes?",
+        "What does always mean?",
+        "Define never.",
         "What is maybe?",
     ],
     "Teaching-chain (multi-clause)": [
         "Why is truth important?",
     ],
     "Genuinely OOV (honesty control)": [
-        "What is a hypothesis?", "Define javascript.", "What is quasar?",
+        "What is a hypothesis?",
+        "Define javascript.",
+        "What is quasar?",
     ],
     "Cause without teaching chain (deferred SurfaceSelector target)": [
-        "How does memory work?", "What causes doubt?",
+        "How does memory work?",
+        "What causes doubt?",
     ],
 }
 
 
 _TAGS = {
-    "pack":     "PACK    ",
+    "pack": "PACK    ",
     "teaching": "TEACH   ",
-    "oov":      "OOV     ",
-    "none":     "NONE    ",
-    "vault":    "VAULT   ",
-    "partial":  "PARTIAL ",
+    "oov": "OOV     ",
+    "none": "NONE    ",
+    "vault": "VAULT   ",
+    "partial": "PARTIAL ",
 }
 
 
@@ -88,7 +117,7 @@ def _wrap(surface: str, indent: str = "            ", width: int = 78) -> str:
         if cut == -1:
             cut = width
         out.append(f"{indent}{surface[:cut]}")
-        surface = surface[cut + 1:]
+        surface = surface[cut + 1 :]
     if surface:
         out.append(f"{indent}{surface}")
     return "\n".join(out)

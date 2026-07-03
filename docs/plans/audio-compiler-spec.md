@@ -1,6 +1,6 @@
 # Audio Compiler Spec — `audio_core_v1`
 
-**Companion to:** [ADR-0181](../decisions/ADR-0181-audio-compiler-delta-crdt.md)
+**Companion to:** [ADR-0181](../adr/ADR-0181-audio-compiler-delta-crdt.md)
 **Status:** Proposed (PR-1 docs)
 **Scope:** the deterministic substrate (PR-2/PR-3) and its Delta-CRDT delta interface (PR-5).
 

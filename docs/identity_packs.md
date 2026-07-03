@@ -2,7 +2,7 @@
 
 **Status:** Operational reference doctrine. Update when pack format, loader contract, or CLI flag semantics change.
 **Last updated:** 2026-05-17
-**Companion docs:** [`decisions/ADR-0027-identity-packs.md`](decisions/ADR-0027-identity-packs.md), [`teaching_order.md`](teaching_order.md), [`runtime_contracts.md`](runtime_contracts.md)
+**Companion docs:** [`adr/ADR-0027-identity-packs.md`](adr/ADR-0027-identity-packs.md), [`teaching_order.md`](teaching_order.md), [`specs/runtime_contracts.md`](specs/runtime_contracts.md)
 
 ## What an identity pack is
 
@@ -85,7 +85,7 @@ Optional sub-block inside `surface_preferences` that lets the assembler call out
 }
 ```
 
-Each axis entry must supply `strong`, `soft`, and `qualifier` phrases (length 1–64).  When no deviating axis matches an `axis_hedges` entry, the generic phrases from §"Surface preferences" fire.  Depth languages (Hebrew, Koine Greek) ignore `axis_hedges` at v1 and continue to use the canonical phrases from [ADR-0030](decisions/ADR-0030-depth-language-hedge.md).
+Each axis entry must supply `strong`, `soft`, and `qualifier` phrases (length 1–64).  When no deviating axis matches an `axis_hedges` entry, the generic phrases from §"Surface preferences" fire.  Depth languages (Hebrew, Koine Greek) ignore `axis_hedges` at v1 and continue to use the canonical phrases from [ADR-0030](adr/ADR-0030-depth-language-hedge.md).
 
 ### Surface preferences (ADR-0028)
 
@@ -192,7 +192,7 @@ Each ratified pack ships alongside a `<pack_id>.mastery_report.json` companion f
 
 ## Known limits (read before designing around)
 
-1. ~~**Identity does not yet visibly differentiate articulation at the realizer.**~~ **Closed by [ADR-0028](decisions/ADR-0028-identity-surface-wiring.md) + [ADR-0030](decisions/ADR-0030-depth-language-hedge.md) (2026-05-17).** Pack `surface_preferences` now flow into the English, Hebrew, and Koine Greek assemblers. `core chat --identity precision_first_v1 "Q"` produces a visibly different surface than the default pack on the same prompt at the same alignment, *across all three foundational languages*. Per-pack depth-language phrase overrides remain a future concern (today's depth-language hedge phrases are canonical defaults in `generate/surface.py::_DEPTH_HEDGE_PHRASES`).
+1. ~~**Identity does not yet visibly differentiate articulation at the realizer.**~~ **Closed by [ADR-0028](adr/ADR-0028-identity-surface-wiring.md) + [ADR-0030](adr/ADR-0030-depth-language-hedge.md) (2026-05-17).** Pack `surface_preferences` now flow into the English, Hebrew, and Koine Greek assemblers. `core chat --identity precision_first_v1 "Q"` produces a visibly different surface than the default pack on the same prompt at the same alignment, *across all three foundational languages*. Per-pack depth-language phrase overrides remain a future concern (today's depth-language hedge phrases are canonical defaults in `generate/surface.py::_DEPTH_HEDGE_PHRASES`).
 2. **One pack at a time.** Multi-pack overlays (`--identity general,domain_medical`) are deferred to a follow-up ADR.
 3. **No language-specific identity yet.** Packs are language-neutral. Per-language identity is a future concern.
 4. **Safety axes are still in `chat/runtime.py`.** Once the safety pack ADR lands, safety boundaries will move out of `boundary_ids` and into a separately-loaded safety pack.
@@ -201,7 +201,7 @@ Each ratified pack ships alongside a `<pack_id>.mastery_report.json` companion f
 
 - Pack format spec: this doc §"Pack format (v1)".
 - Loader contract: this doc §"Loader contract".
-- Decision record: [ADR-0027](decisions/ADR-0027-identity-packs.md).
+- Decision record: [ADR-0027](adr/ADR-0027-identity-packs.md).
 - Teaching-order placement: [`teaching_order.md`](teaching_order.md) §"The Five-Layer Ordering Rule" Layer 1.
 - Identity-divergence eval: `evals/identity_divergence/contract.md`.
 - The geometric identity primitives: `core/physics/identity.py` (ADR-0010 implicit).

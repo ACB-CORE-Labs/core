@@ -18,7 +18,7 @@ Today CORE runs two largely independent paths to produce a turn:
    realize → generate (walk)`. The proposition is built by
    `_nearest_content_word(vocab, prompt_versor)` — geometric-nearest
    token selection wrapped in a frame. The walk afterward feeds
-   `walk_surface` (telemetry per `docs/runtime_contracts.md`).
+   `walk_surface` (telemetry per `docs/specs/runtime_contracts.md`).
 
 2. **Semantic path** (`core/cognition/pipeline.py:68`): `classify_intent
    → graph_from_intent → plan_articulation → realize_semantic`. When
@@ -481,7 +481,7 @@ with its own evidence.
 
 - CLAUDE.md — non-negotiable field invariant, normalization
   doctrine, surface contract, work sequencing.
-- `docs/runtime_contracts.md` — surface vs walk_surface
+- `docs/specs/runtime_contracts.md` — surface vs walk_surface
   separation.
 - ADR-0018 — typed deterministic operators, replay evidence.
 - ADR-0019 — exact vault recall (no ANN — this ADR preserves

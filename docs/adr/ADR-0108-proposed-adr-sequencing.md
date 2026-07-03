@@ -23,7 +23,7 @@ session and have not advanced. The frontier work since that day went into
 the ADR-0091→0105 evidence-governed domain chain (a different axis), so
 the stall is *orthogonal scope*, not contradiction or rejection.
 
-`docs/decisions/README.md` currently states "No ADR currently sits in a
+`docs/adr/README.md` currently states "No ADR currently sits in a
 'Proposed but unimplemented' state." That sentence is no longer true and
 the README will need updating once this sequencing decision is accepted.
 
@@ -95,7 +95,7 @@ lands and is replaced with the sequenced Proposed-ADR list.
 
 ### `proposed_adr_index_complete`
 
-Every ADR with `Status: Proposed` in `docs/decisions/` must appear in the
+Every ADR with `Status: Proposed` in `docs/adr/` must appear in the
 README "Current frontier" sequencing list. A Proposed ADR absent from the
 sequencing list is a documentation drift bug.
 
@@ -128,7 +128,7 @@ Accepted when the following land together:
 
 ## Consequences
 
-- "What's next?" becomes a one-screen read on `docs/decisions/README.md`
+- "What's next?" becomes a one-screen read on `docs/adr/README.md`
   rather than a four-file scan plus reasoning.
 - Reviewers can act on Proposed ADRs in declared order without
   cross-checking session memory.

@@ -1,6 +1,6 @@
 # ADR-0084 Pack-Content Build Brief
 
-**Audience:** A fresh dev agent (cheaper/faster tier). You have NO prior context — read this file and `docs/decisions/ADR-0084-definitional-layer.md` and act from there. Do not invent design decisions; if something is unclear, surface a question rather than guessing.
+**Audience:** A fresh dev agent (cheaper/faster tier). You have NO prior context — read this file and `docs/adr/ADR-0084-definitional-layer.md` and act from there. Do not invent design decisions; if something is unclear, surface a question rather than guessing.
 
 **Mission:** Produce the *content* required by ADR-0084 (Definitional Layer for Lexicon Packs). You are not implementing the schema parser, the composer integration, or any runtime code. You are only producing JSONL pack files and verifying they cohere.
 

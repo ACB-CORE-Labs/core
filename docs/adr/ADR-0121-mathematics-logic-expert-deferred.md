@@ -204,8 +204,8 @@ directly.
 
 ## Acceptance evidence
 
-- This ADR file exists in `docs/decisions/` and is linked from
-  `docs/decisions/README.md`
+- This ADR file exists in `docs/adr/` and is linked from
+  `docs/adr/README.md`
 - `tests/test_adr_0121_math_expert_deferred.py` pins the five
   invariants above; passes locally with `CORE_HOLDOUT_KEY` set;
   skips the decryption-dependent invariants gracefully without it

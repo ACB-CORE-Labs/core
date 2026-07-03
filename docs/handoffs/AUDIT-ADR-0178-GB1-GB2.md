@@ -7,7 +7,7 @@ No code was changed. This was reviewed through the GitHub connector only; no loc
 ## Sources reviewed
 
 - `docs/handoff/CHATGPT-REMOTE-BRIEF.md`
-- `docs/decisions/ADR-0178-compositional-structure.md`
+- `docs/adr/ADR-0178-compositional-structure.md`
 - `generate/derivation/clauses.py`
 - `generate/derivation/compose.py`
 - `generate/derivation/extract.py`

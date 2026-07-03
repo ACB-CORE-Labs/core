@@ -247,7 +247,7 @@ revision is a follow-up implementation PR.
 | 0131.2 | `evals/math_teaching_corpus_lane/` | Benchmark 2 substrate: pull from ratified packs, lane runner, byte-equality replay gate |
 | 0131.3 | `evals/math_bounded_grammar_v1/` | Benchmark 3 substrate: hand-curated cases with shape-category tags, public/sealed split, adversarial probes |
 | 0131.4 | `formation/ratify.py` + `formation/promote.py` | Update expert-promotion gate to consult the composite benchmark result |
-| 0131.5 | `docs/decisions/ADR-0120-amendment.md` | Companion amendment to ADR-0120 documenting the composite gate; cross-reference ADR-0131 |
+| 0131.5 | `docs/adr/ADR-0120-amendment.md` | Companion amendment to ADR-0120 documenting the composite gate; cross-reference ADR-0131 |
 | 0131.6 | Re-run promotion attempt | Run revised gate; emit expert-claims artifact; either land promotion or open new named-blocker ADR |
 
 Regression gates (must remain green at every phase):

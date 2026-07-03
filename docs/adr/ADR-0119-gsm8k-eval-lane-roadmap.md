@@ -285,8 +285,8 @@ phase regardless of `correct` rate.
 
 ADR-0119 is accepted when:
 
-- The ADR file exists in `docs/decisions/` and is linked from
-  `docs/decisions/README.md` (index + frontier)
+- The ADR file exists in `docs/adr/` and is linked from
+  `docs/adr/README.md` (index + frontier)
 - No code lands with this ADR; it's pure roadmap
 - README cross-references update to mention Phase 5 sub-phasing
 

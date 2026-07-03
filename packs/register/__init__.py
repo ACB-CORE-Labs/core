@@ -1,6 +1,6 @@
 """Register packs — presentation-axis siblings to identity/safety/ethics.
 
-See ``docs/decisions/ADR-0068-register-pack-class.md``.
+See ``docs/adr/ADR-0068-register-pack-class.md``.
 """
 
 from packs.register.loader import (

@@ -2,8 +2,8 @@
 
 Reads a ratified anchor-lens pack from disk and constructs a frozen
 :class:`AnchorLens` for the runtime.  See
-``docs/decisions/ADR-0073-anchor-lens-substrate.md`` (umbrella) and
-``docs/decisions/ADR-0073b-anchor-lens-class-loader.md`` (this phase)
+``docs/adr/ADR-0073-anchor-lens-substrate.md`` (umbrella) and
+``docs/adr/ADR-0073b-anchor-lens-class-loader.md`` (this phase)
 for context.
 
 Loader contract (trust boundary):

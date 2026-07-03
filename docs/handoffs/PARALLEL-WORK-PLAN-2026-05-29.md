@@ -21,7 +21,7 @@ all three. Never touch `chat/**`, `generate/math_roundtrip.py`, `algebra/**`,
 ## Track A — CP-1 cue-precision ledger substrate (ADR-0177)  ·  Opus/Sonnet
 
 **Files (only):** new package `generate/cue_precision/` (e.g. `ledger.py`) + new
-`tests/test_adr_0177_cp1_ledger.py`. **Read:** `docs/decisions/ADR-0177-cue-precision-learning.md`
+`tests/test_adr_0177_cp1_ledger.py`. **Read:** `docs/adr/ADR-0177-cue-precision-learning.md`
 §"Sub-phases" CP-1, and `core/reliability_gate/ledger.py` (mirror its `ClassTally`
 counts-only, refusals-excluded discipline).
 

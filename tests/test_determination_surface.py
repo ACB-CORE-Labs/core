@@ -4,7 +4,7 @@ When a question turn is Determined over realized knowledge, the user-facing ``su
 IS that answer (rendered honestly: "as I was told", never "verified"). The realizer's
 ``articulation_surface`` is retained as evidence — the determination is a selection, not
 a rewrite. Undetermined and flag-off keep the default surface. This is the contract test
-for the selection policy in docs/runtime_contracts.md.
+for the selection policy in docs/specs/runtime_contracts.md.
 """
 
 from __future__ import annotations

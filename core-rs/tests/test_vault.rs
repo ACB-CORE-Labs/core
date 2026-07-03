@@ -1,5 +1,5 @@
-use core_rs::vault::vault_recall_raw;
 use core_rs::cga::embed_point_raw;
+use core_rs::vault::vault_recall_raw;
 
 fn sample_point(seed: u64) -> [f32; 32] {
     let x = ((seed * 17 + 3) % 101) as f32 / 10.0;

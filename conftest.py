@@ -1,15 +1,14 @@
-"""Project-root conftest — quarantine registry for known-failing tests.
+"""Project-root conftest — test classification registries.
 
-The QUARANTINE set lists test IDs that are pre-existing failures
-predating the substrate-liveness audit work (verified via bisect
-against c1a1b7a, the commit immediately before the first W-* PR
-of 2026-05-24). The CI gate at .github/workflows/full-pytest.yml
-runs ``pytest -m "not quarantine"`` so these failures do not block
-PRs, but the suite is a ratchet: a quarantined test removed from
-this set must pass on its own merits.
+The QUARANTINE set is the only allowed registry for known-failing tests.
+It is currently empty. If it ever contains nodeids, the CI gate at
+.github/workflows/full-pytest.yml runs ``pytest -m "not quarantine"``
+so those explicitly tracked failures do not block unrelated PRs. The
+suite is a ratchet: a quarantined test removed from this set must pass
+on its own merits.
 
-See docs/test-debt-quarantine.md for cluster diagnoses, removal
-policy, and the per-test rationale.
+See docs/test-debt-quarantine.md for current policy and historical cluster
+diagnoses.
 
 To remove a test from quarantine:
   1. Land a PR that makes the test pass.

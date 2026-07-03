@@ -147,7 +147,7 @@ def _recall_state(state: FieldState, vault, top_k: int) -> tuple[FieldState, int
 
     # INV-24 recall role: EVIDENCE_TELEMETRY.  Hits become rotor transitions
     # on the generation walk, but the walk feeds `walk_surface` (telemetry-
-    # only per docs/runtime_contracts.md) — not the user-facing surface.
+    # only per docs/specs/runtime_contracts.md) — not the user-facing surface.
     # User-facing surface comes from realize(proposition, vocab), which is
     # pack-grounded.  SPECULATIVE walk influence remains visible in trace
     # evidence and is bounded by the recall score floor; no min_status

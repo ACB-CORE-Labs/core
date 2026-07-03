@@ -47,7 +47,11 @@ fn expected(name: &str) -> &'static str {
 
 fn assert_parity(name: &str, deltas: Vec<Delta>) {
     let merged = merge_kernel(&deltas);
-    assert_eq!(hex(&merged.canonical_bytes()), expected(name), "case {name}");
+    assert_eq!(
+        hex(&merged.canonical_bytes()),
+        expected(name),
+        "case {name}"
+    );
 }
 
 #[test]

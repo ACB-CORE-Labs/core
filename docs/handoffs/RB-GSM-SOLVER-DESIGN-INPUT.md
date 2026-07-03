@@ -6,7 +6,7 @@
 **Related docs:**
 
 - `docs/handoff/SEMANTIC-STATE-TRANSITION-BLUEPRINT.md`
-- `docs/decisions/ADR-0184-scoped-semantic-state-transitions.md`
+- `docs/adr/ADR-0184-scoped-semantic-state-transitions.md`
 
 ---
 

@@ -200,7 +200,7 @@ core demo pack-measurements                # ADR-0043 — pack-layer claims as p
 core demo long-context-comparison          # ADR-0045 — CORE NIAH recall + frozen transformer baselines
 core demo anti-regression                  # ADR-0057 — three-gate defense against learning harm
 # (CLOSE / idle consolidation now also climbs declared strict-order relations
-#  (less_than etc.); see docs/runtime_contracts.md § "Idle consolidation (Step D — CLOSE)"
+#  (less_than etc.); see docs/specs/runtime_contracts.md § "Idle consolidation (Step D — CLOSE)"
 #  and the PR-1 analysis note for contracts + evidence)
 core demo phase6                           # 3-condition comparative table (CORE vs baseline)
 core demo phase5                           # stratified 5-family mechanism-isolation
@@ -237,11 +237,11 @@ implementation evidence.
 
 | Layer | What it guarantees | ADR |
 |---|---|---|
-| **AdmissibilityRegion** | A typed region (`allowed_indices`, `relation_blade`, `frame_versor`) carried alongside every generation step. | [0022](docs/decisions/ADR-0022-forward-semantic-control.md) |
-| **Region intersection proof** | The admissible token set is honored at the language/salience intersection layer. | [0023](docs/decisions/ADR-0023-forward-semantic-control-proof.md) |
-| **Inner-loop destination check** | Each candidate's `cga_inner(versor(candidate), relation_blade)` is checked at the destination; rejection appears in `rejected_attempts`; exhaustion raises a typed `InnerLoopExhaustion`. | [0024](docs/decisions/ADR-0024-inner-loop-admissibility.md) |
-| **Rotor / frame admissibility** | The rotor's *effect* on the field state is additionally checked against `frame_versor` in `generate/rotor_admissibility.py` — separate from algebra closure (intentional). | [0025](docs/decisions/ADR-0025-rotor-frame-admissibility-design-note.md) |
-| **Ranked-with-margin gate** | Static-threshold tuning fails geometrically under Cl(4,1) signature; replaced with a scale-invariant margin gate (admit iff `score(top) − score(second) ≥ δ`). | [0026](docs/decisions/ADR-0026-ranked-admissibility-with-margin.md) |
+| **AdmissibilityRegion** | A typed region (`allowed_indices`, `relation_blade`, `frame_versor`) carried alongside every generation step. | [0022](docs/adr/ADR-0022-forward-semantic-control.md) |
+| **Region intersection proof** | The admissible token set is honored at the language/salience intersection layer. | [0023](docs/adr/ADR-0023-forward-semantic-control-proof.md) |
+| **Inner-loop destination check** | Each candidate's `cga_inner(versor(candidate), relation_blade)` is checked at the destination; rejection appears in `rejected_attempts`; exhaustion raises a typed `InnerLoopExhaustion`. | [0024](docs/adr/ADR-0024-inner-loop-admissibility.md) |
+| **Rotor / frame admissibility** | The rotor's *effect* on the field state is additionally checked against `frame_versor` in `generate/rotor_admissibility.py` — separate from algebra closure (intentional). | [0025](docs/adr/ADR-0025-rotor-frame-admissibility-design-note.md) |
+| **Ranked-with-margin gate** | Static-threshold tuning fails geometrically under Cl(4,1) signature; replaced with a scale-invariant margin gate (admit iff `score(top) − score(second) ≥ δ`). | [0026](docs/adr/ADR-0026-ranked-admissibility-with-margin.md) |
 
 The chain's three head-to-head claims, all CI-enforced:
 
@@ -253,7 +253,7 @@ The chain's three head-to-head claims, all CI-enforced:
 
 Full evidence:
 
-* Runtime contract: [`docs/runtime_contracts.md`](docs/runtime_contracts.md) — Refusal / Margin / Rotor admissibility sections
+* Runtime contract: [`docs/specs/runtime_contracts.md`](docs/specs/runtime_contracts.md) — Refusal / Margin / Rotor admissibility sections
 * Stratified findings: [`docs/evals/phase5_stratified_findings.md`](docs/evals/phase5_stratified_findings.md) — 5 failure-mode families, 20 cases, per-family pass rates
 * Comparative demo: [`docs/evals/phase6_comparative_demo.md`](docs/evals/phase6_comparative_demo.md) — three head-to-head conditions vs in-system baseline
 * Reports directory: `evals/forward_semantic_control/results/`
@@ -264,17 +264,17 @@ Full evidence:
 
 Sibling to the identity packs but architecturally distinct: the safety pack at `packs/safety/core_safety_axes_v1.json` carries the boundaries CORE will **never** cross — `no_fabricated_source`, `no_hot_path_repair`, `no_identity_override`, `no_silent_correction`, `preserve_versor_closure`. The pack loads unconditionally at runtime startup (fail-closed on missing or unverified), and its boundaries are unioned into whatever identity pack is selected. Identity packs may *add* boundaries on top, but may never remove safety boundaries.
 
-This is the architecture downstream robotics, healthcare, and other high-stakes deployments will need before they can build CORE into anything that matters. Full doctrine: [`docs/safety_packs.md`](docs/safety_packs.md); decision record: [ADR-0029](docs/decisions/ADR-0029-safety-packs.md).
+This is the architecture downstream robotics, healthcare, and other high-stakes deployments will need before they can build CORE into anything that matters. Full doctrine: [`docs/safety_packs.md`](docs/safety_packs.md); decision record: [ADR-0029](docs/adr/ADR-0029-safety-packs.md).
 
 ---
 
 ## Identity Packs
 
-CORE's identity is load-bearing: every reasoning trajectory is scored against an `IdentityManifold` of value axes, and a `PersonaMotor` derived from those axes biases every field walk. As of [ADR-0027](docs/decisions/ADR-0027-identity-packs.md) the manifold is no longer hardcoded — it is loaded at runtime from a swappable, content-addressed pack under `packs/identity/`.
+CORE's identity is load-bearing: every reasoning trajectory is scored against an `IdentityManifold` of value axes, and a `PersonaMotor` derived from those axes biases every field walk. As of [ADR-0027](docs/adr/ADR-0027-identity-packs.md) the manifold is no longer hardcoded — it is loaded at runtime from a swappable, content-addressed pack under `packs/identity/`.
 
 The shipping default `identity.default_general_v1` carries the previously-hardcoded three axes (`truthfulness`, `coherence`, `reverence`) so the default behavior is preserved. Two specialization packs ship alongside it for demonstrating identity-divergence: `identity.precision_first_v1` and `identity.generosity_first_v1`. Override on the chat surface with `core chat --identity <pack_id>`.
 
-[ADR-0028](docs/decisions/ADR-0028-identity-surface-wiring.md) makes the swap *visibly load-bearing*: each pack carries a `surface_preferences` block (hedge thresholds, hedge phrases, claim-strength policy) consumed by the assembler. On the same prompt at the same alignment, `precision_first_v1` hedges sooner with "Arguably," / "In some cases," while `generosity_first_v1` leaves the assertion bare — see `tests/test_identity_surface_divergence.py` for the proof.
+[ADR-0028](docs/adr/ADR-0028-identity-surface-wiring.md) makes the swap *visibly load-bearing*: each pack carries a `surface_preferences` block (hedge thresholds, hedge phrases, claim-strength policy) consumed by the assembler. On the same prompt at the same alignment, `precision_first_v1` hedges sooner with "Arguably," / "In some cases," while `generosity_first_v1` leaves the assertion bare — see `tests/test_identity_surface_divergence.py` for the proof.
 
 Robotics, personalization, and creative-tool builders author their own ratified identity packs via the formation pipeline's `identity_anchor` template, then ship them under `packs/identity/` in their deployment. Full format spec, loader contract, and authoring guide: [`docs/identity_packs.md`](docs/identity_packs.md).
 
@@ -290,7 +290,7 @@ Full doctrine, decision rules, and curriculum-platform locations: [`docs/teachin
 
 ## Inter-Session Memory — Reviewed Learning
 
-CORE extends its own teaching corpus through a four-tier path: session vault → turn-event audit → reviewed teaching corpus → ratified packs. No opaque gradient updates, no uncurated ingestion. The only path to active-corpus extension is the review-gated `TeachingChainProposal` ([ADR-0057](docs/decisions/ADR-0057-teaching-chain-proposal-review.md)), built from a contemplated `DiscoveryCandidate` ([ADR-0056](docs/decisions/ADR-0056-contemplation-loop.md)) emitted by the turn loop ([ADR-0055](docs/decisions/ADR-0055-inter-session-memory.md)).
+CORE extends its own teaching corpus through a four-tier path: session vault → turn-event audit → reviewed teaching corpus → ratified packs. No opaque gradient updates, no uncurated ingestion. The only path to active-corpus extension is the review-gated `TeachingChainProposal` ([ADR-0057](docs/adr/ADR-0057-teaching-chain-proposal-review.md)), built from a contemplated `DiscoveryCandidate` ([ADR-0056](docs/adr/ADR-0056-contemplation-loop.md)) emitted by the turn loop ([ADR-0055](docs/adr/ADR-0055-inter-session-memory.md)).
 
 Three independent gates every extension must pass:
 
@@ -326,32 +326,32 @@ core teaching supersessions                         # pair retired chains with r
 
 ## Evidence-Governed Domain Layer — The ADR-0091 Chain
 
-CORE distinguishes *contract-passing* from *demonstrated*. A pack that satisfies the nine ADR-0091 predicates earns a `reasoning-capable` ledger row; that's a structural claim, not an empirical one. Promotion to `audit_passed=true` (formerly `expert_demo`; renamed by [ADR-0113](docs/decisions/ADR-0113-rename-expert-demo-to-audit-passed.md)) requires a **reviewer-signed evidence-bundle digest** that reproduces byte-for-byte from on-disk lane results (ADR-0106 + ADR-0109).
+CORE distinguishes *contract-passing* from *demonstrated*. A pack that satisfies the nine ADR-0091 predicates earns a `reasoning-capable` ledger row; that's a structural claim, not an empirical one. Promotion to `audit_passed=true` (formerly `expert_demo`; renamed by [ADR-0113](docs/adr/ADR-0113-rename-expert-demo-to-audit-passed.md)) requires a **reviewer-signed evidence-bundle digest** that reproduces byte-for-byte from on-disk lane results (ADR-0106 + ADR-0109).
 
 > **What `audit-passed` actually means** — and what it does NOT mean.
-> The gate verifies CORE *claim-shape compliance*: signed digest, replay determinism, typed refusal, exact recall, grounding-source provenance. **These are claim shapes a transformer LLM cannot structurally produce regardless of raw accuracy.** A frontier LLM might score higher on the same benchmark but cannot pass this contract because it cannot produce a digest that re-derives, cannot guarantee typed refusal, cannot emit a deterministic trace hash, cannot replay byte-equal. **This is NOT a raw-capability claim.** The future `expert` ledger tier ([ADR-0114](docs/decisions/ADR-0114-expert-capability-roadmap-gsm8k-first.md)) is reserved for an actual benchmark-calibrated capability claim; no domain holds it yet.
+> The gate verifies CORE *claim-shape compliance*: signed digest, replay determinism, typed refusal, exact recall, grounding-source provenance. **These are claim shapes a transformer LLM cannot structurally produce regardless of raw accuracy.** A frontier LLM might score higher on the same benchmark but cannot pass this contract because it cannot produce a digest that re-derives, cannot guarantee typed refusal, cannot emit a deterministic trace hash, cannot replay byte-equal. **This is NOT a raw-capability claim.** The future `expert` ledger tier ([ADR-0114](docs/adr/ADR-0114-expert-capability-roadmap-gsm8k-first.md)) is reserved for an actual benchmark-calibrated capability claim; no domain holds it yet.
 
 | Layer | What it guarantees | ADR |
 |---|---|---|
-| **Domain Pack Contract v1** | Nine predicate checks on every ratified pack (lemma coverage, operator chain count, intent shapes, holdout coverage, reviewer-resolution, etc.). | [0091](docs/decisions/ADR-0091-domain-pack-contract-v1.md) |
-| **Reviewer Registry v1** | YAML-anchored, schema-validated reviewer roster. Wildcard `*` reserved for primary reviewers; domain-scoped reviewers gated by `can_review(domain, scope)`. | [0092](docs/decisions/ADR-0092-reviewer-registry-v1.md) |
-| **Fabrication-control eval lane** | Negative-control lane: phantom endpoints, cross-pack non-bridges, sibling collapses must all refuse. `fabricated=0` across all by-class buckets is the gate. | [0096](docs/decisions/ADR-0096-fabrication-control-eval-lane.md) |
-| **Audit-passed promotion contract** | Domain-aware, reviewer-signed, replay-deterministic. No domain promotes silently; every `audit_passed=true` row points to an `audit_passed_claims` entry whose SHA-256 reproduces. (Originally landed as `expert-demo`; renamed by ADR-0113.) | [0106](docs/decisions/ADR-0106-expert-demo-promotion-contract.md), [0113](docs/decisions/ADR-0113-rename-expert-demo-to-audit-passed.md) |
-| **Lane-shape registry** | Eight lane ids dispatch to five shapes (`cognition_shape`, `accuracy_shape`, `inference_shape`, `refusal_shape`, `symbolic_logic_shape`); unknown lanes fail-closed. | [0109](docs/decisions/ADR-0109-lane-shape-aware-thresholds.md) |
+| **Domain Pack Contract v1** | Nine predicate checks on every ratified pack (lemma coverage, operator chain count, intent shapes, holdout coverage, reviewer-resolution, etc.). | [0091](docs/adr/ADR-0091-domain-pack-contract-v1.md) |
+| **Reviewer Registry v1** | YAML-anchored, schema-validated reviewer roster. Wildcard `*` reserved for primary reviewers; domain-scoped reviewers gated by `can_review(domain, scope)`. | [0092](docs/adr/ADR-0092-reviewer-registry-v1.md) |
+| **Fabrication-control eval lane** | Negative-control lane: phantom endpoints, cross-pack non-bridges, sibling collapses must all refuse. `fabricated=0` across all by-class buckets is the gate. | [0096](docs/adr/ADR-0096-fabrication-control-eval-lane.md) |
+| **Audit-passed promotion contract** | Domain-aware, reviewer-signed, replay-deterministic. No domain promotes silently; every `audit_passed=true` row points to an `audit_passed_claims` entry whose SHA-256 reproduces. (Originally landed as `expert-demo`; renamed by ADR-0113.) | [0106](docs/adr/ADR-0106-expert-demo-promotion-contract.md), [0113](docs/adr/ADR-0113-rename-expert-demo-to-audit-passed.md) |
+| **Lane-shape registry** | Eight lane ids dispatch to five shapes (`cognition_shape`, `accuracy_shape`, `inference_shape`, `refusal_shape`, `symbolic_logic_shape`); unknown lanes fail-closed. | [0109](docs/adr/ADR-0109-lane-shape-aware-thresholds.md) |
 
 **Current ledger state** (per `core capability ledger`):
 
 | Domain | Status |
 |---|---|
-| `mathematics_logic` | **`audit-passed`** (first promotion, [ADR-0110](docs/decisions/ADR-0110-mathematics-logic-expert-demo-promotion.md); status string renamed by [ADR-0113](docs/decisions/ADR-0113-rename-expert-demo-to-audit-passed.md)) |
-| `physics` | **`audit-passed`** (second promotion, [ADR-0111](docs/decisions/ADR-0111-physics-expert-demo-promotion.md)) |
-| `systems_software` | **`audit-passed`** (third promotion, [ADR-0124](docs/decisions/ADR-0124-systems-software-audit-passed-promotion.md)) |
+| `mathematics_logic` | **`audit-passed`** (first promotion, [ADR-0110](docs/adr/ADR-0110-mathematics-logic-expert-demo-promotion.md); status string renamed by [ADR-0113](docs/adr/ADR-0113-rename-expert-demo-to-audit-passed.md)) |
+| `physics` | **`audit-passed`** (second promotion, [ADR-0111](docs/adr/ADR-0111-physics-expert-demo-promotion.md)) |
+| `systems_software` | **`audit-passed`** (third promotion, [ADR-0124](docs/adr/ADR-0124-systems-software-audit-passed-promotion.md)) |
 | `hebrew_greek_textual_reasoning` | `reasoning-capable` |
 | `philosophy_theology` | `reasoning-capable` |
 
-The contract has now demonstrated its load-bearing behavior end-to-end: refused one promotion attempt honestly ([ADR-0107](docs/decisions/ADR-0107-mathematics-logic-expert-demo-deferred.md)), amended its threshold rules once cleanly (ADR-0109), succeeded against `mathematics_logic` (ADR-0110), and succeeded against a second distinct domain `physics` without further contract change (ADR-0111). External readers can distinguish the two ceilings at a glance; the "math-only" objection is retired.
+The contract has now demonstrated its load-bearing behavior end-to-end: refused one promotion attempt honestly ([ADR-0107](docs/adr/ADR-0107-mathematics-logic-expert-demo-deferred.md)), amended its threshold rules once cleanly (ADR-0109), succeeded against `mathematics_logic` (ADR-0110), and succeeded against a second distinct domain `physics` without further contract change (ADR-0111). External readers can distinguish the two ceilings at a glance; the "math-only" objection is retired.
 
-**See the actual demonstration ([ADR-0112](docs/decisions/ADR-0112-runnable-expert-demo-showcase.md), renamed by [ADR-0113](docs/decisions/ADR-0113-rename-expert-demo-to-audit-passed.md)):**
+**See the actual demonstration ([ADR-0112](docs/adr/ADR-0112-runnable-expert-demo-showcase.md), renamed by [ADR-0113](docs/adr/ADR-0113-rename-expert-demo-to-audit-passed.md)):**
 
 ```bash
 core demo audit-passed --domain mathematics_logic
@@ -365,12 +365,12 @@ Each run re-derives the signed evidence-bundle digest from on-disk lane result f
 
 The `audit-passed` gate above is intentionally *not* a raw-capability claim. The
 honest path to one is laid out in [ADR-0114 — Expert-Capability Roadmap: GSM8K-Math
-First](docs/decisions/ADR-0114-expert-capability-roadmap-gsm8k-first.md). Phases 1–4
+First](docs/adr/ADR-0114-expert-capability-roadmap-gsm8k-first.md). Phases 1–4
 (parser, solver, verifier, stepped-realizer) and Phase 5 (GSM8K eval lane) have now
 all landed.
 
 **Phase 5 substrate is complete as of 2026-05-23.** All 8 sub-phases of
-[ADR-0119](docs/decisions/ADR-0119-gsm8k-eval-lane-roadmap.md) have landed.
+[ADR-0119](docs/adr/ADR-0119-gsm8k-eval-lane-roadmap.md) have landed.
 ADR-0114a's 10 anti-overfitting proof obligations are all discharged for the
 `gsm8k_math` lane.
 
@@ -387,7 +387,7 @@ evidence-derived digest and invalidated the signature. That revert is the
 contract's fail-closed property working as designed — CORE revoked its own expert
 claim rather than carry a stale one. **No domain is at `expert` today**, and when
 `expert` is held at all it rests on CORE-authored lanes, not external GSM8K. Full
-record: [ADR-0200](docs/decisions/ADR-0200-expert-claim-reconciliation.md) and
+record: [ADR-0200](docs/adr/ADR-0200-expert-claim-reconciliation.md) and
 [`docs/claims_ledger.md`](docs/claims_ledger.md).
 
 To run the GSM8K math eval lane:
@@ -397,7 +397,7 @@ core eval gsm8k_math            # run against CORE-original public split
 # evals/gsm8k_math/runner.py   # lane runner (LaneReport with correct/wrong/refused)
 ```
 
-Full ADR index, frontier, and chain notes: [`docs/decisions/README.md`](docs/decisions/README.md).
+Full ADR index, frontier, and chain notes: [`docs/adr/README.md`](docs/adr/README.md).
 
 ---
 

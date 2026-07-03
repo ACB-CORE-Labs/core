@@ -59,8 +59,8 @@ the property that makes this delegable.
   and mis-attributes units. Sub-phases EX-1…EX-6. **This is your build work.**
 
 Read these before starting:
-- `docs/decisions/ADR-0178-compositional-structure.md` (esp. §"wrong=0 obligations", §"Sub-phases")
-- `docs/decisions/ADR-0179-extraction-richness.md` (the full extraction plan)
+- `docs/adr/ADR-0178-compositional-structure.md` (esp. §"wrong=0 obligations", §"Sub-phases")
+- `docs/adr/ADR-0179-extraction-richness.md` (the full extraction plan)
 - `generate/derivation/extract.py` (~40 lines — the file you mostly edit)
 - `generate/derivation/clauses.py`, `generate/derivation/compose.py` (GB-1/GB-2)
 - `tests/test_adr_0178_gb1_clauses.py`, `tests/test_adr_0178_gb2_compose.py` (test style to mirror)

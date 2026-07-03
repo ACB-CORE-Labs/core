@@ -2,7 +2,7 @@
 
 **Status:** Accepted (2026-05-17)
 **Author:** Joshua Shay + planner pass
-**Companion docs:** [`identity_packs.md`](../identity_packs.md), [`ADR-0027-identity-packs.md`](ADR-0027-identity-packs.md), [`runtime_contracts.md`](../runtime_contracts.md)
+**Companion docs:** [`identity_packs.md`](../identity_packs.md), [`ADR-0027-identity-packs.md`](ADR-0027-identity-packs.md), [`runtime_contracts.md`](../specs/runtime_contracts.md)
 
 ## Context
 

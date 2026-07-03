@@ -4,7 +4,7 @@
 **Runner:** `evals/anti_regression/run_demo.py`
 **CLI:** `core demo anti-regression` (`--json` for machine-readable output)
 **Contract tests:** `tests/test_anti_regression_demo.py` (5 passing)
-**Reference ADRs:** [0055](../decisions/ADR-0055-inter-session-memory-discovery-promotion.md), [0056](../decisions/ADR-0056-contemplation-loop-c1.md), [0057](../decisions/ADR-0057-teaching-chain-proposal-review.md)
+**Reference ADRs:** [0055](../adr/ADR-0055-inter-session-memory-discovery-promotion.md), [0056](../adr/ADR-0056-contemplation-loop-c1.md), [0057](../adr/ADR-0057-teaching-chain-proposal-review.md)
 
 ![anti-regression demo](assets/anti_regression.gif)
 

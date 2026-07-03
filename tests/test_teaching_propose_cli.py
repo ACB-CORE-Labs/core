@@ -57,7 +57,7 @@ def _write_findings_jsonl(tmp_path: Path, findings: list) -> Path:
 # ---------------------------------------------------------------------------
 
 def test_load_findings_jsonl_round_trips(tmp_path: Path) -> None:
-    from core.cli import _load_findings_jsonl
+    from core.cli_teaching import _load_findings_jsonl
     finding = _good_finding()
     jsonl_path = _write_findings_jsonl(tmp_path, [finding])
     loaded = _load_findings_jsonl(str(jsonl_path))

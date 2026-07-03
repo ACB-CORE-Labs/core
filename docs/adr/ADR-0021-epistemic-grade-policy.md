@@ -189,7 +189,7 @@ a stated path.
   *Schema impact* above, with the non-hardening invariant
   test.  This is a Phase 5 parallel-track item alongside Rust
   parity.
-- `docs/runtime_contracts.md` must add an *Epistemic surface*
+- `docs/specs/runtime_contracts.md` must add an *Epistemic surface*
   section documenting the four statuses, the non-hardening
   invariant, and the curator review rule.
 - Pack mutation review tooling must record curator

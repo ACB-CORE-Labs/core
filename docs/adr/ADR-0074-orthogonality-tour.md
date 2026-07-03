@@ -107,7 +107,7 @@ tests/test_orthogonality_tour_demo.py                          NEW
   - all_claims_supported overall
   - grid shape sanity check (3 × 3 × 2 = 18 cells)
 
-docs/decisions/ADR-0074-orthogonality-tour.md                  NEW (this file)
+docs/adr/ADR-0074-orthogonality-tour.md                  NEW (this file)
 ```
 
 No runtime, composer, loader, pack, or schema changes.  The demo is

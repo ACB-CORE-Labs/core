@@ -112,9 +112,7 @@ fn merge_kernel_equals_semilattice_fold() {
         delta(vec![entry(5, "c")]),
         delta(vec![entry(2, "b"), entry(9, "d")]), // overlaps the first delta
     ];
-    let folded = deltas
-        .iter()
-        .fold(Delta::default(), |acc, d| acc.join(d));
+    let folded = deltas.iter().fold(Delta::default(), |acc, d| acc.join(d));
     // The cheap union-then-canonicalise path must equal the explicit
     // semilattice fold, or the kernel has silently diverged from the trait.
     assert_eq!(keys(&merge_kernel(&deltas)), keys(&folded));
@@ -141,7 +139,10 @@ fn merge_result_is_content_sorted() {
     let ks = keys(&d);
     let mut sorted = ks.clone();
     sorted.sort();
-    assert_eq!(ks, sorted, "merge output must be in content-addressed order");
+    assert_eq!(
+        ks, sorted,
+        "merge output must be in content-addressed order"
+    );
 }
 
 // --- LocalArena (ADR-0180 §2.1) -------------------------------------------

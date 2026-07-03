@@ -70,7 +70,7 @@ chat/runtime.py                                               wired cross-pack f
 chat/narrative_surface.py                                     aggregates cross-pack chains
 chat/example_surface.py                                       aggregates cross-pack reverse chains
 tests/test_cross_pack_chains.py                               NEW (31 tests)
-docs/decisions/ADR-0067-cross-pack-teaching-chains.md         NEW (this file)
+docs/adr/ADR-0067-cross-pack-teaching-chains.md         NEW (this file)
 ```
 
 ### Surface format

@@ -167,7 +167,7 @@ tests/test_register_invariant_grounding.py                   NEW
   - Asserts trace_hash invariant across all three (extends invariant C)
   - Asserts versor closure rate identical across all three
 
-docs/decisions/ADR-0070-register-pack-terse-v1.md            NEW (this file)
+docs/adr/ADR-0070-register-pack-terse-v1.md            NEW (this file)
 ```
 
 ### Wiring shape

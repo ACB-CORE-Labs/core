@@ -1,6 +1,6 @@
 # Issue — Proof-carrying coherence promotion (the logical arm of ADR-0021's v2 gap)
 
-**Status:** Capability landed — [ADR-0218 ratified 2026-06-11](../decisions/ADR-0218-proof-carrying-coherence-promotion.md).
+**Status:** Capability landed — [ADR-0218 ratified 2026-06-11](../adr/ADR-0218-proof-carrying-coherence-promotion.md).
 PR A shipped the obligations + INV-29; PR B the pure evidence substrate
 (`generate/proof_chain/certificate.py`); PR C (post-ratification) the P3
 promoter: `teaching/proof_promotion.py` (pure decider, fresh-read store
@@ -12,7 +12,7 @@ yet; the deterministic demo is PR D.
 **Raised:** 2026-06-11
 **Surface:** `teaching/epistemic.py`, `teaching/review.py`, the deductive
 engine (`deductive_logic_v1`), `vault/store.py`, INV-21 one-mutation-path
-**Governing ADR:** [ADR-0021 — Epistemic Grade Policy](../decisions/ADR-0021-epistemic-grade-policy.md)
+**Governing ADR:** [ADR-0021 — Epistemic Grade Policy](../adr/ADR-0021-epistemic-grade-policy.md)
 (this issue specifies one arm of that ADR's *"Named gap (v2 work, explicit)"*)
 **Requires before any code:** a ratified ADR (provisional **ADR-0218**, number
 to be confirmed against in-flight branches — current max committed is ADR-0217)

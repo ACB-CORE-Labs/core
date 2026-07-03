@@ -2,13 +2,17 @@
 
 ## Why Rust
 
-Three operations dominate CORE-AI's runtime:
+The active Rust extension is an opt-in native substrate for parity-gated hot
+paths, not a shadow cognition path. These operations currently justify Rust:
 
 1. `geometric_product` — O(32^2) = 1024 multiply-adds per call, called 2-3x per `versor_apply`
 2. `vault_recall` scan — O(N) CGA inner product calls, N = all stored versors, called during generation recall
 3. `cga_inner` — called by vocabulary/proposition nearest selection and vault recall
+4. `diffusion_step` — zero-copy graph diffusion over `(N, 32)` field buffers
 
-None of the Python fallback paths release the Python GIL. Rayon gives `vault_recall` true multithreaded parallelism across CPU cores. The geometric product loop is cache-friendly and compiler-optimized in release mode.
+None of the Python fallback paths release the Python GIL. Rayon gives
+`vault_recall` true multithreaded parallelism across CPU cores. The geometric
+product loop is cache-friendly and compiler-optimized in release mode.
 
 ## What is in Rust
 
@@ -18,6 +22,7 @@ None of the Python fallback paths release the Python GIL. Rayon gives `vault_rec
 | Versor ops | `versor.rs` | 3x geometric product per field step |
 | CGA inner product | `cga.rs` | Called by nearest search and recall |
 | Vault top-k scan | `vault.rs` | Rayon parallel scan |
+| Graph diffusion | `diffusion.rs` | Zero-copy field graph step |
 
 ## What stays in Python
 
@@ -27,10 +32,18 @@ None of the Python fallback paths release the Python GIL. Rayon gives `vault_rec
 | `SessionContext` | Orchestration, not arithmetic |
 | `FieldState` | Plain dataclass |
 | `PersonaMotor` | Motor construction is infrequent |
+| `holonomy_encode` | Python-canonical until a native port proves byte-for-byte parity with position-rotor/f64 construction semantics |
+| `propagate_batch` | Not an active runtime surface; future native propagation must use closure-preserving `versor_apply` semantics |
 
-## Zero-Copy Semantics
+## Buffer Semantics
 
-The runtime contract is numpy `float32` arrays of length 32. Rust reads them into stack `[f32; 32]` values, executes the hot loop, and returns a new numpy array. The Python fallback remains behaviorally available when `core_rs` is not installed.
+Scalar multivector bindings validate numpy-compatible arrays of length 32,
+copy them into fixed stack arrays, execute the kernel, and return a new numpy
+array. Bulk bindings (`vault_recall`, `diffusion_step`) consume contiguous
+numpy buffers via `PyReadonlyArray` views so they avoid Python-list marshalling.
+The Python fallback remains behaviorally available when `core_rs` is not
+installed or `CORE_BACKEND=rust` is not explicit. A fresh root install is
+therefore correct without the native extension, but not mechanically optimal.
 
 ## Build / Activate
 
@@ -42,6 +55,11 @@ core rust test
 core rust build
 core rust status --require-active
 ```
+
+`core rust build` and `core rust test` set
+`PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1` for their subprocesses so PyO3 0.21 can
+build from Python 3.13+ uv environments. Operators who need a specific Python
+interpreter can still override with `PYO3_PYTHON`.
 
 Equivalent explicit maturin command:
 
@@ -66,7 +84,7 @@ True
 ```bash
 core rust test
 # or
-cargo test --release --manifest-path core-rs/Cargo.toml
+PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 cargo test --release --manifest-path core-rs/Cargo.toml
 ```
 
 ## Type Safety Contract
@@ -78,7 +96,10 @@ All multivectors entering the Rust layer must be numpy-compatible `float32` arra
 If `core_rs` is absent or fails to import, `algebra.backend` silently falls back to Python. This keeps the engine correct but not mechanically optimal. Use:
 
 ```bash
+core doctor
 core doctor --rust --require-rust
 ```
 
-to fail fast when benchmarking or profiling requires the Rust backend.
+`core doctor` reports whether `core_rs` is importable without failing the Python
+runtime. `core doctor --rust --require-rust` fails fast when benchmarking or
+profiling requires the Rust backend.

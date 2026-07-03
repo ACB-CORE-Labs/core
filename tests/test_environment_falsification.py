@@ -45,8 +45,8 @@ def _ref(slot: str, name: str, pack_id: str = "vision_core_v1") -> ObservationUn
 
 def test_adr_0211_contract_is_documented():
     root = Path(__file__).resolve().parents[1]
-    adr = root / "docs" / "decisions" / "ADR-0211-conformal-falsification-bench.md"
-    runtime = root / "docs" / "runtime_contracts.md"
+    adr = root / "docs" / "adr" / "ADR-0211-conformal-falsification-bench.md"
+    runtime = root / "docs" / "specs" / "runtime_contracts.md"
     assert adr.exists()
     adr_text = adr.read_text(encoding="utf-8")
     runtime_text = runtime.read_text(encoding="utf-8")

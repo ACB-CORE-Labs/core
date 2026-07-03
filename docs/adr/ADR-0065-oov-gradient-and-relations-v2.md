@@ -183,7 +183,7 @@ tests/test_oov_surface.py                        NEW (22 tests)
 tests/test_partial_surface.py                    NEW (16 tests)
 tests/test_oov_pipeline.py                       NEW (24 tests)
 tests/test_en_core_relations_v2_pack.py          NEW (10 tests)
-docs/decisions/ADR-0065-oov-gradient-and-relations-v2.md  NEW (this file)
+docs/adr/ADR-0065-oov-gradient-and-relations-v2.md  NEW (this file)
 ```
 
 ---

@@ -1,7 +1,7 @@
 {
   "status": "ready_to_wire_when_proof_chain_lands",
-  "contract": "docs/decisions/ADR-0202-proposition-representation-contract.md",
-  "canonicalizer_contract": "docs/decisions/ADR-0201-proposition-canonicalizer.md",
+  "contract": "docs/adr/ADR-0202-proposition-representation-contract.md",
+  "canonicalizer_contract": "docs/adr/ADR-0201-proposition-canonicalizer.md",
   "not_wired_into_live_suite": true,
   "contains_concrete_formula_strings": true,
   "conformance_policy": {

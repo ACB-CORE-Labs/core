@@ -931,7 +931,7 @@ agent.
 Implement PR: feat(kernel): close proportional-decrease contracts and make readiness
 obligation-sound on branch codex/problemframe-proportional-change-closure.
 
-Read GPT55.md/your agent supplement, AGENTS.md, docs/runtime_contracts.md,
+Read GPT55.md/your agent supplement, AGENTS.md, docs/specs/runtime_contracts.md,
 docs/analysis/semantic-substrate-problem-solving-master-plan-2026-06-20.md,
 the ADR-0223 audit pack, and HANDOFF-gpt55-2026-06-20.md. Complete the repository
 bootstrap and pre-edit sweep before editing.

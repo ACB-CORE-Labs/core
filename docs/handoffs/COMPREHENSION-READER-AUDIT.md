@@ -210,7 +210,7 @@ frame parsing with real admission paths.
 ## Recommendation
 
 **Ship Option B (relabel) in this PR.** Add a `## Current Status` section to
-`docs/decisions/ADR-0164-incremental-comprehension-reader.md` recording:
+`docs/adr/ADR-0164-incremental-comprehension-reader.md` recording:
 
 - Phase 1: implemented, tested, 0 net new admissions (case 0027 already correct
   via regex; wrong=0 verified)
@@ -247,6 +247,6 @@ The claim "lexicon expansion is the highest-leverage next step" is falsifiable:
 - `generate/comprehension/state.py` — reader state types (828 lines)
 - `core/config.py:288` — flag declaration
 - `evals/gsm8k_math/train_sample/v1/runner.py` — sole production flag consumer
-- `docs/decisions/ADR-0164-incremental-comprehension-reader.md` — doctrine
+- `docs/adr/ADR-0164-incremental-comprehension-reader.md` — doctrine
 - `tests/test_reader_phase2.py` (19 tests), `test_reader_question_frame.py` (20 tests),
   `test_reader_coexistence.py` (13 tests)

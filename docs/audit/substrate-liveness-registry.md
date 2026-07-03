@@ -1,6 +1,6 @@
 # Substrate Liveness Registry
 
-**Scope:** [substrate-liveness-audit-scope](../decisions/substrate-liveness-audit-scope.md) (v2)
+**Scope:** [substrate-liveness-audit-scope](../adr/substrate-liveness-audit-scope.md) (v2)
 **Status:** Active audit — append-only as layers are completed.
 **Discipline:** [feedback-adr-cross-reference-discipline](../../../.claude/projects/-Users-kaizenpro-Projects-core/memory/feedback-adr-cross-reference-discipline.md), [feedback-cleanup-as-you-find](../../../.claude/projects/-Users-kaizenpro-Projects-core/memory/feedback-cleanup-as-you-find.md)
 
@@ -40,7 +40,7 @@ matters elsewhere.
 ### ADRs in scope for L0
 
 Triaged from the broader algebra/versor/CGA keyword grep against
-`docs/decisions/`:
+`docs/adr/`:
 
 | ADR | Title | Status | Belongs at L0? |
 |---|---|---|---|
@@ -208,7 +208,7 @@ is not on the current `ChatRuntime` / `CognitiveTurnPipeline` path.
 ### ADRs in scope for L1
 
 Triaged from the broader field / propagation / injection / normalization /
-energy keyword grep against `docs/decisions/`:
+energy keyword grep against `docs/adr/`:
 
 | ADR | Title | Status | Belongs at L1? |
 |---|---|---|---|
@@ -404,7 +404,7 @@ None. The scope's layering table correctly maps Layer L2 concerns (exact CGA rec
 
 ### ADRs in scope for L2
 
-Triaged from Keyword grep (vault / recall / crystallization / promotion / settled / coherence-residual) against `docs/decisions/`:
+Triaged from Keyword grep (vault / recall / crystallization / promotion / settled / coherence-residual) against `docs/adr/`:
 
 | ADR | Title | Status | Belongs at L2? |
 |---|---|---|---|
@@ -512,7 +512,7 @@ The scope's layering table cited `packs/` directories and ADRs ADR-0027..0047, A
 
 ### ADRs in scope for L3
 
-Triaged from Keyword grep against `docs/decisions/`:
+Triaged from Keyword grep against `docs/adr/`:
 
 | ADR | Title | Status | Belongs at L3? |
 |---|---|---|---|
@@ -679,7 +679,7 @@ implementation-debt closure that landed in `chat/dispatch_trace.py` and
 
 Triaged from recognition / anti-unification / epistemic / proposition
 graph / feature-bundle / dispatch-trace keyword grep against
-`docs/decisions/`:
+`docs/adr/`:
 
 | ADR | Title | Status | Belongs at L4? |
 |---|---|---|---|
@@ -1030,7 +1030,7 @@ belonging downstream to L7/L8/L9. The L1 forward note on
 
 Triaged from chat runtime / surface / grounding dispatch / telemetry /
 verdict / register / anchor-lens / cross-pack keyword grep against
-`docs/decisions/` and `docs/adr/`:
+`docs/adr/` and `docs/adr/`:
 
 | ADR | Title | Status | Belongs at L6? |
 |---|---|---|---|

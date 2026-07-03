@@ -17,15 +17,15 @@ cd ../core-adr-0131-g31-numerics-ext
 4. **Word-number-adjective compositions.** `five full boxes` per ADR-0127 substance-qualifier precedent. Adjective inserted between cardinal and unit head noun; treat as part of the unit phrase, not a separate value-slot widening.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0131.G.3-numerics.md` — the parent; what's already done, what's deferred, the canonical-unit decision you must respect.
-2. `docs/decisions/ADR-0127-units-pack-and-units-aware-parser.md` — substance-qualifier precedent for axis 4.
+1. `docs/adr/ADR-0131.G.3-numerics.md` — the parent; what's already done, what's deferred, the canonical-unit decision you must respect.
+2. `docs/adr/ADR-0127-units-pack-and-units-aware-parser.md` — substance-qualifier precedent for axis 4.
 
 **What to ship:**
 - **Parser extensions** in `generate/math_candidate_parser.py` (+ `generate/math_roundtrip.py` for new grounding cases).
 - **New axis lane** at `evals/math_capability_axes/G3_numerics/v1.1/` — additive sibling to v1. **Do not modify v1** (`evals/math_capability_axes/G3_numerics/v1/`); it's frozen as the audit-trail artifact for #183. v1.1 carries fresh `cases.jsonl`, `runner.py`, `report.json`.
 - **Curated cases:** ≥4 per axis + ≥4 refusal probes pinning what's still out of scope (percentages `50%`, scientific notation `1e3`, locale separators `1,000`, three-decimal money `$1.234`).
 - **Tests:** `tests/test_adr_0131_G31_numerics_extensions.py` — per-axis at-least-one passing, refusal probes refuse typed, `wrong == 0`, replay byte-equality, parent v1 lane still passes (no regression).
-- **ADR:** `docs/decisions/ADR-0131.G.3.1-numerics-extensions.md` — cite #183 parent + ADR-0127 substance-qualifier precedent. Document the axis-3 approach choice (extractor vs `_VALUE` widening).
+- **ADR:** `docs/adr/ADR-0131.G.3.1-numerics-extensions.md` — cite #183 parent + ADR-0127 substance-qualifier precedent. Document the axis-3 approach choice (extractor vs `_VALUE` widening).
 - **Refresh** `evals/gsm8k_math/train_sample/v1/train_sample_coverage_report.json` — fractions or compound cardinals may now unlock some GSM8K cases.
 
 **Hard constraints:**

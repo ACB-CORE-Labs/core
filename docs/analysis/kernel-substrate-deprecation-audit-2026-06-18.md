@@ -139,7 +139,7 @@ Surfaces like `half`, `quarter`, `percent`, `remaining` appear in:
 
 ## Guardrails added in this PR
 
-- **No-new-legacy rule** in `AGENTS.md`, `GROK.md`, `CLAUDE.md`, `docs/architecture/kernel-knowledge-layer-v1.md`, `docs/runtime_contracts.md`
+- **No-new-legacy rule** in `AGENTS.md`, `GROK.md`, `CLAUDE.md`, `docs/architecture/kernel-knowledge-layer-v1.md`, `docs/specs/runtime_contracts.md`
 - **`tests/test_kernel_no_new_legacy_derivation_surfaces.py`** — allowlisted legacy regex files; new regex in derivation paths requires `LEGACY_EXCEPTION`
 
 ---

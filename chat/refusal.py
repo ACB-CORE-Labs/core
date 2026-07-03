@@ -20,8 +20,8 @@ The refusal surface remains:
   ``refusal_commitments`` to count.  Safety is always in scope; the
   pack-layer doctrine in ADR-0029 prohibits opting safety out.
 
-See `docs/decisions/ADR-0036-safety-refusal-policy.md` and
-`docs/decisions/ADR-0037-per-predicate-ethics-refusal.md`.
+See `docs/adr/ADR-0036-safety-refusal-policy.md` and
+`docs/adr/ADR-0037-per-predicate-ethics-refusal.md`.
 """
 
 from __future__ import annotations

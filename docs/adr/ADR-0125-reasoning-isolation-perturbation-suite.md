@@ -132,7 +132,7 @@ Accepted when:
   - `swap_non_commuting_operations`: 17/17 = 1.0000
   - invariance-preserving: 207/207 = 1.0000
   - invariance-breaking: 17/17 = 1.0000
-- ADR linked from `docs/decisions/README.md` index and frontier
+- ADR linked from `docs/adr/README.md` index and frontier
 
 ---
 

@@ -14,7 +14,7 @@ Concretely: the question "How many apples does Tina have?" doesn't currently bin
 Still no runtime wiring, still no solver invocation. Phase 5 (bounded-grammar / B3 integration) remains deferred.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0132-binding-graph-data-model.md`, `ADR-0133-binding-graph-adapter.md`, `ADR-0134-binding-graph-admissibility.md` — your prior phases. `BoundUnknown` and the adapter's `Unknown → BoundUnknown` mapping are the contract you're refining.
+1. `docs/adr/ADR-0132-binding-graph-data-model.md`, `ADR-0133-binding-graph-adapter.md`, `ADR-0134-binding-graph-admissibility.md` — your prior phases. `BoundUnknown` and the adapter's `Unknown → BoundUnknown` mapping are the contract you're refining.
 2. `generate/math_problem_graph.py` — input shape; the operation sequence drives the state-index resolution.
 
 **What to ship:**
@@ -31,7 +31,7 @@ Still no runtime wiring, still no solver invocation. Phase 5 (bounded-grammar / 
 - Public surface: add `StateIndex`, `Operation` (state-index variant), `resolve_state_index`, `infer_question_form`, `bound_unknown_from_math_problem_graph`, `QuestionTargetError` to `generate/binding_graph/__init__.py`.
 - `tests/test_binding_graph_question_target.py` — 50–70 tests covering: each operation-kind family producing the expected `question_form`; `state_index` resolution at boundary cases (0 operations, 1 operation, many operations, unknown referencing an entity that no operation touches); refusal-first on the typed `QuestionTargetError` paths (unknown entity not in `entities`, ambiguous form when multiple operation kinds touch the same symbol with no clear precedence — pick one closed rule and document it).
 - `tests/test_binding_graph_adapter_question_target.py` — 30–40 integration tests covering: every Phase-2 adapter test case still round-trips with the refined `BoundUnknown`; new cases exercising `state_index` and `question_form` end-to-end; hash-stability across runs (Phase 2 invariant must not regress); a few intentionally-ambiguous `MathProblemGraph` inputs produce `QuestionTargetError`.
-- `docs/decisions/ADR-0135-binding-graph-question-target.md` — short ADR. Cite ADR-0132, ADR-0133, ADR-0134 parents. Explicit "Phase 5 deferred" section. Document the closed `question_form` vocabulary and the precedence rule when multiple operation kinds touch the same symbol.
+- `docs/adr/ADR-0135-binding-graph-question-target.md` — short ADR. Cite ADR-0132, ADR-0133, ADR-0134 parents. Explicit "Phase 5 deferred" section. Document the closed `question_form` vocabulary and the precedence rule when multiple operation kinds touch the same symbol.
 
 **Hard constraints:**
 - **Closed `question_form` vocabulary.** Exactly the six values above; do not invent more. If a `MathProblemGraph` shape doesn't fit any, refuse with `QuestionTargetError(reason="unmappable_question_form")`. Never silently coerce to "count" as a default.

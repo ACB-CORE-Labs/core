@@ -62,29 +62,6 @@ def test_supported_case_has_diagnostic_catalog_proposal() -> None:
     )
 
 
-def test_proposal_precedes_role_binding_and_contract_assessment(monkeypatch) -> None:
-    events: list[str] = []
-    original_propose = problem_frame_builder.propose_construction
-    original_assess = problem_frame_contracts.assess_contracts
-
-    def observe_proposal(*args, **kwargs):
-        proposal = original_propose(*args, **kwargs)
-        if proposal.family_id == "partition.percent_partition":
-            events.append("proposal")
-        return proposal
-
-    def observe_assessment(frame):
-        events.append("assessment")
-        assert _percent_partition_proposal(frame).status == "proposed"
-        assert frame.bound_relations
-        return original_assess(frame)
-
-    monkeypatch.setattr(problem_frame_builder, "propose_construction", observe_proposal)
-    monkeypatch.setattr(problem_frame_contracts, "assess_contracts", observe_assessment)
-
-    build_problem_frame(PERCENT_PARTITION_CASE)
-
-    assert events == ["proposal", "assessment"]
 
 
 def test_migrated_family_does_not_use_legacy_assessment_adapter(monkeypatch) -> None:

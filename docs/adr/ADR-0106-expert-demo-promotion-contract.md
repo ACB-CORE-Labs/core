@@ -111,7 +111,7 @@ Accepted when the following land together:
 - domain-aware `expert_demo` predicate in `core/capability/reporting.py`
 - new test `tests/test_expert_demo_contract.py` covering the three
   invariants above
-- updated `docs/decisions/README.md` index and "Accepted reasoning-capable
+- updated `docs/adr/README.md` index and "Accepted reasoning-capable
   domains" table noting the `expert_demo` column is contract-gated (not
   thresholded only)
 - no domain row's `expert_demo` field flips by this ADR — only the contract

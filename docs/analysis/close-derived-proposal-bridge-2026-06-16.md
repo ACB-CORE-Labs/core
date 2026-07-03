@@ -59,7 +59,7 @@ PR-2 completes the "comprehend → realize → determine → CLOSE consolidate �
 
 ## Documentation
 
-- `docs/runtime_contracts.md` — new subsection under idle passes documenting the bridge, eligibility, and contract.
+- `docs/specs/runtime_contracts.md` — new subsection under idle passes documenting the bridge, eligibility, and contract.
 - This note.
 - Tiny pointer in root README (if a learning-loop section existed; kept high-level).
 

@@ -2,7 +2,7 @@
 
 The refusal-taxonomy lane categorises every refused GSM8K statement by
 *statement shape*, not by content.  It is the load-bearing measurement
-that gates Phase B of [ADR-0163](decisions/ADR-0163-gsm8k-path-to-mastery.md):
+that gates Phase B of [ADR-0163](adr/ADR-0163-gsm8k-path-to-mastery.md):
 the top categories by count become the operator's input list for
 hand-authored exemplar corpora.
 

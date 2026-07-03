@@ -193,7 +193,7 @@ cd workbench-ui && pnpm install --frozen-lockfile
 - `workbench/schemas.py` (VaultSummary / VaultEntry) and
   `workbench/readers.py::read_vault_summary` / `list_vault_entries` —
   especially behavior when no persisted vault exists (`persisted: false`)
-- `docs/runtime_contracts.md` (memory contract; exact-recall doctrine)
+- `docs/specs/runtime_contracts.md` (memory contract; exact-recall doctrine)
 
 ### Deliverables
 

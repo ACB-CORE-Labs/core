@@ -21,7 +21,7 @@ Per ADR-0032:
   runtime_checkable=False`` so a downstream deployment that adds a
   novel boundary doesn't crash the runtime.
 
-See ``docs/decisions/ADR-0032-safety-check-surface.md``.
+See ``docs/adr/ADR-0032-safety-check-surface.md``.
 """
 
 from __future__ import annotations

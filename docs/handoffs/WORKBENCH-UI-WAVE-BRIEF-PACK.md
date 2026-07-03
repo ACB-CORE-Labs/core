@@ -79,9 +79,9 @@ git fetch origin main && \
 
 ### Reads required FIRST
 
-- `docs/decisions/ADR-0160-core-workbench-v1.md` §"Architecture choice" + §"Trust boundary"
-- `docs/decisions/ADR-0162-workbench-design-system.md` §"Token namespace", §"Typography", §"Color semantics", §"Motion", §"Keyboard contract", §"Layout shell", §"Component map — v1 must-ship", §"The no-go list", §"Implementation plan — Branch 1"
-- `docs/decisions/ADR-0173-workbench-ratification-trust-boundary.md` §"Keyboard contract", §"What the workbench MUST NOT do"
+- `docs/adr/ADR-0160-core-workbench-v1.md` §"Architecture choice" + §"Trust boundary"
+- `docs/adr/ADR-0162-workbench-design-system.md` §"Token namespace", §"Typography", §"Color semantics", §"Motion", §"Keyboard contract", §"Layout shell", §"Component map — v1 must-ship", §"The no-go list", §"Implementation plan — Branch 1"
+- `docs/adr/ADR-0173-workbench-ratification-trust-boundary.md` §"Keyboard contract", §"What the workbench MUST NOT do"
 - `docs/handoff/WORKBENCH-UI-WAVE-SCOPING.md` §"Guardrails"
 
 ### Outcome
@@ -214,11 +214,11 @@ git fetch origin main && \
   `/math-proposals`, `/math-proposals/{id}` (exact payload shapes)
 - `workbench/schemas.py` — `ProposalSummary`, `ProposalDetail`,
   `MathProposalSummary`, `MathProposalDetail`, `MathReasoningStep`
-- `docs/decisions/ADR-0162-workbench-design-system.md` §"Component map",
+- `docs/adr/ADR-0162-workbench-design-system.md` §"Component map",
   §"StableJsonViewer", §"Empty/error/loading state contract"
-- `docs/decisions/ADR-0173-workbench-ratification-trust-boundary.md`
+- `docs/adr/ADR-0173-workbench-ratification-trust-boundary.md`
   §"Keyboard contract" (queue + detail bindings)
-- `docs/decisions/ADR-0167-audit-as-teaching-evidence.md` §"Partition guarantees"
+- `docs/adr/ADR-0167-audit-as-teaching-evidence.md` §"Partition guarantees"
 
 ### Outcome
 
@@ -339,10 +339,10 @@ git fetch origin main && \
 
 ### Reads required FIRST
 
-- `docs/decisions/ADR-0173-workbench-ratification-trust-boundary.md` (entire ADR)
-- `docs/decisions/ADR-0167-audit-as-teaching-evidence.md` §"Partition guarantees"
-- `docs/decisions/ADR-0168-frameclaim-ratification.md` §"Acceptance gates"
-- `docs/decisions/ADR-0169-compositionclaim-ratification.md` §"Acceptance gates"
+- `docs/adr/ADR-0173-workbench-ratification-trust-boundary.md` (entire ADR)
+- `docs/adr/ADR-0167-audit-as-teaching-evidence.md` §"Partition guarantees"
+- `docs/adr/ADR-0168-frameclaim-ratification.md` §"Acceptance gates"
+- `docs/adr/ADR-0169-compositionclaim-ratification.md` §"Acceptance gates"
 - `teaching/math_lexical_ratification.py` — `apply_lexical_claim()`, exception types
 - `teaching/math_frame_ratification.py` — `apply_frame_claim()`, exception types
 - `teaching/math_composition_ratification.py` — `apply_composition_claim()`, exception types
@@ -506,9 +506,9 @@ git fetch origin main && \
 - `workbench/api.py` — `/trace/...`, `/replay/...` routes
 - `workbench/schemas.py` — `ReplayComparison`, `ReplayDivergence`,
   `ReplayDivergenceSeverity`, `ReplayStatus`
-- `docs/decisions/ADR-0160-core-workbench-v1.md` §"Trace Drawer",
+- `docs/adr/ADR-0160-core-workbench-v1.md` §"Trace Drawer",
   §"Replay Theater"
-- `docs/decisions/ADR-0162-workbench-design-system.md` §"Component map"
+- `docs/adr/ADR-0162-workbench-design-system.md` §"Component map"
 
 ### Outcome
 
@@ -577,8 +577,8 @@ git fetch origin main && \
 
 - `workbench/api.py` — `/evals`, `/evals/{id}`, `POST /evals/run` routes
 - `workbench/schemas.py` — `EvalLaneSummary`, `EvalRunResult`
-- `docs/decisions/ADR-0160-core-workbench-v1.md` §"Eval Center"
-- `docs/decisions/ADR-0166-measurement-capability-sequencing.md`
+- `docs/adr/ADR-0160-core-workbench-v1.md` §"Eval Center"
+- `docs/adr/ADR-0166-measurement-capability-sequencing.md`
   (do **not** introduce new eval lanes)
 
 ### Outcome

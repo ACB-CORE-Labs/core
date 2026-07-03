@@ -299,7 +299,7 @@ tests/test_register_invariant_grounding.py                   EDIT
 tests/test_register_runtime_threading.py                     UNCHANGED
   - decorate_surface is post-composer; not on the threaded list
 
-docs/decisions/ADR-0071-seeded-surface-variation.md          NEW (this file)
+docs/adr/ADR-0071-seeded-surface-variation.md          NEW (this file)
 ```
 
 ### Invariants pinned in CI at R4

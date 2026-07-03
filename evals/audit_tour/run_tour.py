@@ -340,7 +340,7 @@ def run_tour(*, emit_json: bool = False) -> dict[str, Any]:
         _say()
         _say("  Every claim is testable; every refusal/hedge is auditable;")
         _say("  every run is replayable.  See:")
-        _say("    - docs/decisions/ADR-0027 through ADR-0041")
+        _say("    - docs/adr/ADR-0027 through ADR-0041")
         _say("    - tests/test_safety_refusal.py")
         _say("    - tests/test_ethics_refusal_opt_in.py")
         _say("    - tests/test_hedge_injection.py")

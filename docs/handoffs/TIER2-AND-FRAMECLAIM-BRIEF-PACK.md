@@ -194,8 +194,8 @@ Modeled on `tests/test_math_lexical_ratification.py`:
 
 ### Reads required before starting
 
-- `docs/decisions/ADR-0168-frameclaim-ratification.md` (full doctrine)
-- `docs/decisions/ADR-0168.1-math-frameclaim-proposal-adapter.md` (data
+- `docs/adr/ADR-0168-frameclaim-ratification.md` (full doctrine)
+- `docs/adr/ADR-0168.1-math-frameclaim-proposal-adapter.md` (data
   shape + evidence floor)
 - `teaching/math_lexical_ratification.py` (the W2-D template — every
   pattern in F1 should mirror this)
@@ -303,7 +303,7 @@ def from_jsonl_record(d) -> MathReaderInferenceProposal: ...
 
 ### Reads required before starting
 
-- `docs/decisions/ADR-0172-math-corpus-decomposition-mechanism.md` §"Tier 2"
+- `docs/adr/ADR-0172-math-corpus-decomposition-mechanism.md` §"Tier 2"
 - `teaching/math_contemplation_proposal.py` — the Tier 1 W1 schema +
   post-#386 to_jsonl_record/from_jsonl_record pattern (mirror this exactly)
 - `teaching/math_reasoning_trace.py` — the trace substrate

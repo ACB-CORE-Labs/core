@@ -26,7 +26,7 @@ cd ../core-binding-graph-p1
   Use `@dataclass(frozen=True, slots=True)`. All collections immutable (`tuple`, `frozenset`, `MappingProxyType` if needed). No mutation methods.
 - `generate/binding_graph/allocation.py` — deterministic symbol allocator. Given a sorted iterable of NL noun-phrases, returns a stable `tuple[SymbolBinding, ...]`. Pure function. Deterministic across runs.
 - `tests/test_binding_graph_model.py` — 30–50 tests covering: frozen invariants, equality, hashability where applicable, allocation determinism, refusal on bad input (empty span, duplicate binding id, etc.), `SourceSpanLink` round-trip.
-- `docs/decisions/ADR-0132-binding-graph-data-model.md` — short ADR ratifying Phase 1; cite #170's proposal doc; explicit "Phase 2+ deferred" section.
+- `docs/adr/ADR-0132-binding-graph-data-model.md` — short ADR ratifying Phase 1; cite #170's proposal doc; explicit "Phase 2+ deferred" section.
 
 **Hard constraints:**
 - **Pure data layer.** No I/O, no parser calls, no algebra calls, no `numpy`, no runtime field touch.

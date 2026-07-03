@@ -33,10 +33,8 @@ pub enum VaultError {
 /// basis.  See `tests/test_vault_recall_vectorised.py` (Python
 /// side) for the empirical derivation that pins this vector.
 const CGA_INNER_METRIC: [f32; 32] = [
-    1.0,  1.0,  1.0,  1.0,  1.0, -1.0, -1.0, -1.0,
-   -1.0,  1.0, -1.0, -1.0,  1.0, -1.0,  1.0,  1.0,
-   -1.0, -1.0,  1.0, -1.0,  1.0,  1.0, -1.0,  1.0,
-    1.0,  1.0,  1.0, -1.0, -1.0, -1.0, -1.0, -1.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0,
+    -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0,
 ];
 
 /// Per-versor diagonal-metric CGA inner product.  Same arithmetic
@@ -291,8 +289,7 @@ pub trait SemilatticeDelta: Sized {
 
 impl SemilatticeDelta for Delta {
     fn join(&self, other: &Self) -> Self {
-        let mut merged =
-            Vec::with_capacity(self.entries.len() + other.entries.len());
+        let mut merged = Vec::with_capacity(self.entries.len() + other.entries.len());
         merged.extend_from_slice(&self.entries);
         merged.extend_from_slice(&other.entries);
         Delta::from_entries(merged)

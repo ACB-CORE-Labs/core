@@ -158,6 +158,7 @@ def test_builder_publishes_proposal_before_assessment(
     )
 
     frame = build_problem_frame(problem_text)
+    problem_frame_contracts.assess_contracts(frame)
 
     assert observed_statuses == ["proposed"]
     assert any(

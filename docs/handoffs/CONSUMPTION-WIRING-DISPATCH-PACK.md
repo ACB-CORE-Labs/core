@@ -87,7 +87,7 @@ git fetch origin main && \
 - `teaching/math_frame_ratification.py` — write side; entry schema:
   `(surface_form, frame_category, polarity, provenance, evidence_hashes)`
 - `language_packs/data/en_core_math_v1/manifest.json` — current shape + checksum semantics
-- `docs/decisions/ADR-0168-frameclaim-ratification.md` §"Mutation boundary", §"Initial safe category scope"
+- `docs/adr/ADR-0168-frameclaim-ratification.md` §"Mutation boundary", §"Initial safe category scope"
 - CLAUDE.md §"Semantic Pack Discipline" (manifest checksum rule)
 
 ### Outcome — new modules
@@ -184,7 +184,7 @@ Same worktree as CW-1 (one branch).
   `(surface_pattern, composition_category, polarity, provenance, evidence_hashes)`
 - `teaching/math_composition_proposal.py::SAFE_COMPOSITION_CATEGORIES`
   (the allowlist must be re-enforced at load)
-- `docs/decisions/ADR-0169-compositionclaim-ratification.md`
+- `docs/adr/ADR-0169-compositionclaim-ratification.md`
   §"Mutation boundary", §"Initial safe category scope"
 - `generate/recognizer_anchor_inject.py` — current injector entry
   points; refusal site for `recognized-but-uninjectable`

@@ -137,7 +137,7 @@ See the ratification for the full justification of why this (and only this) appr
 - Claim-B hardening: `docs/analysis/close-derived-climb-yardstick-claim-b-ratification-2026-06-16.md` (#791)
 - Prior integration (foundation for the embedding): `docs/analysis/integrate-hardened-close-yardstick-determinism-teaching-regression-ratification-2026-06-16.md` (#792)
 - Anti-regression demo (the primary high-value teaching/anti-regression flow that now participates in the surface): `docs/evals/anti_regression_demo.md`, `evals/anti_regression/run_demo.py`, `tests/test_anti_regression_demo.py`
-- Determination surface exercised by the semantic asserts: `docs/runtime_contracts.md`
+- Determination surface exercised by the semantic asserts: `docs/specs/runtime_contracts.md`
 - `Makefile` (the `test-close-flywheel` target is the named entry point)
 - Related heavy determinism context: the "Finding: the 975s `test_inner_loop_phase2` outlier" and inner-loop suite discussion above
 

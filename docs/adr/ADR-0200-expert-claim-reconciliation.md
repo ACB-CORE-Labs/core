@@ -76,7 +76,7 @@ STATE reconcile to the truth.**
 | `ADR-0120-math-expert-ledger-flip.md` | history | Add a dated header note: valid at 2026-05-23/#267; auto-reverted; current ledger = `audit-passed`; see ADR-0200. | A decision record stays true to its moment; the note prevents misreading it as current state. |
 | `evals/math_expert_claims/v1/expert_claims_math_v1_signed.json` | **current state** | **Regenerate** → `promote_admitted: false`, `reviewer_signature_matches: false`. | A machine-generated current-state file with a committed `true` is the live overclaim. The receipt survives in git history + the quarantined registry entry. |
 | `README.md` §"Path to expert" + line-81 test count | current state | Reconcile the "next gate" narrative to the built-attempted-reverted story; verify/correct the test count. | The ledger table is already accurate; only the narrative tense and the test count are stale. |
-| `docs/decisions/README.md` | current state | Repoint any "math = expert" reference to `audit-passed`. | Index must match the ledger. |
+| `docs/adr/README.md` | current state | Repoint any "math = expert" reference to `audit-passed`. | Index must match the ledger. |
 | `tests/test_mathlogic_expert_ledger_flip.py`, `tests/test_adr_0120_math_expert_promotion.py` | current state | Flip 3 currently-RED "is-expert" assertions into **fail-closed-revert** assertions (status==audit-passed; expert_reason explains the digest mismatch; `reviewer_signature_matches is False`). | These assert current machine state; reconciling them to the truth converts 3 red overclaim-tests into green mechanism-proving tests. |
 
 ### 4.1 Cascade safety (verified)

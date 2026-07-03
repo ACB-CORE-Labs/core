@@ -184,7 +184,7 @@ Wiring:
 | `generate/stream.py` (threshold mode)  | Per-candidate rotor check after destination admit; on reject, log rotor score in `rejected_attempts`, retry next candidate, escalate to `InnerLoopExhaustion` with `reason=ROTOR_REJECTION` on exhaustion (iff *any* rotor rejection occurred) |
 | `generate/stream.py` (margin mode)     | Rotor check on the top-ranked admissible candidate; on reject, immediate `InnerLoopExhaustion(reason=ROTOR_REJECTION)` carrying the destination ranking plus the rejected rotor's score |
 | `generate/exhaustion.py`               | `RefusalReason.ROTOR_REJECTION` enum member (Phase 2 plumbing carries it through traces unchanged) |
-| `docs/runtime_contracts.md`            | "Rotor admissibility contract" subsection documenting the seam, the algorithm, and the refusal taxonomy |
+| `docs/specs/runtime_contracts.md`            | "Rotor admissibility contract" subsection documenting the seam, the algorithm, and the refusal taxonomy |
 
 The check itself:
 
@@ -357,4 +357,4 @@ Phase 3.  No trace-hash migration required.
 * ADR-0026 — Ranked admissibility with margin (Phase 3)
 * `generate/rotor_admissibility.py` — the module
 * `tests/test_rotor_admissibility.py` — 11 tests pinning the contract
-* `docs/runtime_contracts.md` §"Rotor admissibility contract"
+* `docs/specs/runtime_contracts.md` §"Rotor admissibility contract"

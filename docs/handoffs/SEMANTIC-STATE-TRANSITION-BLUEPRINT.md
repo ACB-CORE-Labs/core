@@ -476,7 +476,7 @@ A small ADR prevents future code from treating this as another local composer tw
 Suggested file:
 
 ```text
-docs/decisions/ADR-0183-scoped-semantic-state-transitions.md
+docs/adr/ADR-0183-scoped-semantic-state-transitions.md
 ```
 
 If ADR numbering is already occupied, use the next available number.

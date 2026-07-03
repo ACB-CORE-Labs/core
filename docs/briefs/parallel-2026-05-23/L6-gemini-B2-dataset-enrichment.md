@@ -10,7 +10,7 @@ cd ../core-adr-0131-2b-enrichment
 **Scope.** Strengthen the B2 teaching-corpus math eval (shipped in #172, ADR-0131.2) so its lane gate is *load-bearing*, not trivially satisfied. The v1 dataset you shipped passes the gate as specified — but every chain has `expected="replay_equivalent"` and every chain cites the same cognition-pack evidence ref (`cause_truth_grounds_knowledge`). That makes `wrong == 0` mechanically true regardless of engine behavior. v1.B closes that gap.
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0131.2-teaching-corpus-eval.md` (your prior ADR; the v1 contract you're extending — not breaking).
+1. `docs/adr/ADR-0131.2-teaching-corpus-eval.md` (your prior ADR; the v1 contract you're extending — not breaking).
 2. `evals/math_symbolic_equivalence/v1/cases.jsonl` + `generated_cases.py` (post-#169 if it has merged, otherwise post-#167) — pattern reference for **positive + negative + refused** case mixing in a single lane file. Mirror that shape.
 
 **What to ship:**
@@ -24,7 +24,7 @@ cd ../core-adr-0131-2b-enrichment
 - `evals/math_teaching_corpus/v1/runner.py` (light modify): nothing structural — the existing `_score_one` already handles `rejected`/`pending`/`ProposalError` arms; the new cases just exercise the previously-untaken branches.
 - `evals/math_teaching_corpus/v1/README.md` (modify): document the v1.B mix (positive + negative + refused), update gate language to "wrong == 0 across all three case classes".
 - `tests/test_adr_0131_2_teaching_corpus_lane.py` (modify): add a test that asserts the dataset contains **at least one case of each expected class** (`replay_equivalent`, `not_equivalent`, `refused`). This is what makes the gate non-trivial — without diversity, the assertion is empty.
-- `docs/decisions/ADR-0131.2.B-teaching-corpus-enrichment.md` (new): short follow-up ADR; cite ADR-0131.2 parent; explicitly call out that v1's gate was trivially satisfied and v1.B is the load-bearing version. Be honest in the framing.
+- `docs/adr/ADR-0131.2.B-teaching-corpus-enrichment.md` (new): short follow-up ADR; cite ADR-0131.2 parent; explicitly call out that v1's gate was trivially satisfied and v1.B is the load-bearing version. Be honest in the framing.
 
 **Hard constraints:**
 - **Stay in the single bounded math micro-domain you chose for v1** (`en_mathematics_logic_v1`). Do not widen the domain — the bounded-domain rule from the original L1 brief still holds.

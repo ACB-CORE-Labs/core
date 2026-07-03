@@ -64,7 +64,7 @@ router-hygiene + off-serving greps are part of each batch's acceptance.
   (gold + reader lane).
 - **Lane.** reader **10 / 0 / 0**.
 - **Ledger.** `docs/analysis/r2-inventory-ledger-*.md`;
-  `docs/decisions/ADR-0217-r2-finite-integer-constraint-compiler.md`.
+  `docs/adr/ADR-0217-r2-finite-integer-constraint-compiler.md`.
 
 ### R3 — explicit single-rate (+ exact minute/hour conversion)
 

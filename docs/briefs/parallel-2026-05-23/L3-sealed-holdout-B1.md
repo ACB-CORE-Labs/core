@@ -10,7 +10,7 @@ cd ../core-adr-0131-1-sealed-holdout
 **Scope.** Add a pyrage-X25519 sealed-holdout split to Benchmark 1 (symbolic equivalence v1, merged in #167). Mirror the methodology already proven on ADR-0119.7 for GSM8K — same crypto, same exit-criterion shape, different content. This makes the B1 lane's claim externally credible (operator cannot have peeked at the holdout cases).
 
 **Reference docs (read these, only these):**
-1. `docs/decisions/ADR-0119.7-sealed-gsm8k-test.md` — your methodological blueprint. Copy the sealed-holdout structure exactly.
+1. `docs/adr/ADR-0119.7-sealed-gsm8k-test.md` — your methodological blueprint. Copy the sealed-holdout structure exactly.
 2. `evals/math_symbolic_equivalence/v1/` (on main, post-#167) — the lane you're hardening. Do not modify `cases.jsonl`; you are *adding* a sealed split, not replacing.
 
 **What to ship:**
@@ -18,7 +18,7 @@ cd ../core-adr-0131-1-sealed-holdout
 - `evals/math_symbolic_equivalence/v1/sealed_holdout.pubkey` — X25519 public key (private key stays off-repo per ADR-0119.7).
 - `evals/math_symbolic_equivalence/v1/sealed_runner.py` — CLI that decrypts (env var `CORE_SEALED_KEY`) and runs the lane; refuses cleanly with typed error when key absent. Writes `sealed_report.json`.
 - `tests/test_adr_0131_1_sealed_holdout.py` — 4–6 tests: encrypted file exists, decryption refuses without key, decrypted contents parse as valid case JSON, sealed-runner exit criterion matches public-runner (gate: `wrong == 0`, `correct_rate ≥ 0.95`).
-- `docs/decisions/ADR-0131.1.S-sealed-holdout.md` — short ADR; cite ADR-0131 parent, ADR-0119.7 as methodology source, and #167 as the lane being hardened.
+- `docs/adr/ADR-0131.1.S-sealed-holdout.md` — short ADR; cite ADR-0131 parent, ADR-0119.7 as methodology source, and #167 as the lane being hardened.
 
 **Hard constraints:**
 - **No peek.** The cases.jsonl on main is the public corpus; the sealed corpus must not duplicate any case_id or expression-pair from it. Lane test asserts disjointness post-decryption.
