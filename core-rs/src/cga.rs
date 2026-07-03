@@ -32,8 +32,13 @@ pub fn cga_inner_raw(x: &[f32; 32], y: &[f32; 32]) -> Result<f32, CgaError> {
 }
 
 /// Check if X is on the null cone: |X·X| < tol.
+///
+/// For identical operands, the symmetric inner product collapses to the
+/// scalar part of X*X, so compute the product once instead of routing through
+/// cga_inner_raw(x, x).
 pub fn is_null_raw(x: &[f32; 32], tol: f32) -> Result<bool, CgaError> {
-    Ok(cga_inner_raw(x, x)?.abs() < tol)
+    let xx = geometric_product_raw(x, x)?;
+    Ok(xx[0].abs() < tol)
 }
 
 /// Re-project X onto the null cone by extracting Euclidean components

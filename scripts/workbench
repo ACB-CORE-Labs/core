@@ -20,7 +20,8 @@ UI_PORT="${UI_PORT:-5173}"
 API_HOST="127.0.0.1"
 UI_HOST="127.0.0.1"
 MIN_NODE_MAJOR=20
-MIN_PY_MINOR=11  # requires-python >=3.11
+REQUIRED_PYTHON_VERSION="3.12.13"
+REQUIRED_PYTHON_SPEC="${REQUIRED_PYTHON_SPEC:-${REQUIRED_PYTHON_VERSION}}"
 
 # --- resolve repo root from this script's location (works from anywhere) -----
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -72,15 +73,14 @@ setup() {
   bold "Setup"
 
   if [ ! -x "$VENV/bin/python" ]; then
-    warn "creating Python venv (.venv) with uv"
-    uv venv "$VENV" >/dev/null
+    warn "creating Python venv (.venv) with uv (${REQUIRED_PYTHON_SPEC})"
+    uv venv --python "$REQUIRED_PYTHON_SPEC" "$VENV" >/dev/null
   fi
-  # Confirm the venv Python meets the minimum.
-  local py_minor
-  py_minor="$("$VENV/bin/python" -c 'import sys; print(sys.version_info[1])')"
-  [ "$py_minor" -ge "$MIN_PY_MINOR" ] \
-    || die "venv Python is 3.${py_minor}; need >= 3.${MIN_PY_MINOR}. Recreate: rm -rf .venv && uv venv --python 3.12"
-  ok "Python $("$VENV/bin/python" -c 'import platform; print(platform.python_version())')"
+  local py_version
+  py_version="$("$VENV/bin/python" -c 'import platform; print(platform.python_version())')"
+  [ "$py_version" = "$REQUIRED_PYTHON_VERSION" ] \
+    || die "venv Python is ${py_version}; need exactly ${REQUIRED_PYTHON_VERSION}. Recreate: rm -rf .venv && uv venv --python ${REQUIRED_PYTHON_SPEC} .venv"
+  ok "Python ${py_version}"
 
   if [ ! -x "$VENV/bin/core" ] || ! "$VENV/bin/python" -c 'import workbench.server' >/dev/null 2>&1; then
     warn "installing the CORE package into .venv (editable) — first run only, may take a minute"
