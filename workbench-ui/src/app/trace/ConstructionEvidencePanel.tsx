@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import type { ConstructionEvidence } from "../../types/constructionEvidence";
 import { MetadataTable } from "../../design/components/MetadataTable/MetadataTable";
 import { StableJsonViewer } from "../../design/components/StableJsonViewer";
@@ -17,6 +17,27 @@ export interface ConstructionEvidencePanelProps {
   error: unknown;
   turnId: number;
   errorMessage: (error: unknown) => string;
+}
+
+function renderValue(val: string | ReactNode) {
+  if (typeof val === "string" && val.includes("(invariant met: versor_error < 1e-6)")) {
+    const parts = val.split("(invariant met: versor_error < 1e-6)");
+    return (
+      <span className="flex flex-wrap items-center gap-1">
+        {parts.map((part, index) => (
+          <span key={index} className="flex items-center gap-1">
+            {part}
+            {index < parts.length - 1 && (
+              <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 ring-1 ring-inset ring-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
+                invariant met: versor_error &lt; 1e-6
+              </span>
+            )}
+          </span>
+        ))}
+      </span>
+    );
+  }
+  return val;
 }
 
 function rowValue(value: string) {
@@ -41,7 +62,7 @@ function DetailSection({ section }: { section: ConstructionEvidenceDetailSection
               <MetadataTable
                 rows={item.rows.map((row) => ({
                   key: row.key,
-                  value: row.value,
+                  value: renderValue(row.value),
                   mono: true,
                 }))}
               />
@@ -119,7 +140,7 @@ export function ConstructionEvidencePanel({
         <MetadataTable
           rows={model.assessmentRows.map((row) => ({
             key: row.key,
-            value: row.value,
+            value: renderValue(row.value),
           }))}
         />
       ) : null}
@@ -138,7 +159,7 @@ export function ConstructionEvidencePanel({
           <MetadataTable
             rows={model.sourceSpanRows.map((row) => ({
               key: row.key,
-              value: row.value,
+              value: renderValue(row.value),
               mono: true,
             }))}
           />

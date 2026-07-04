@@ -36,6 +36,7 @@ export interface MentionBindingView {
   source_mention_id: string;
   target_mention_id: string;
   evidence_spans: SourceSpanView[];
+  bindings?: AssessmentBindingView[];
 }
 
 export interface BoundRelationRoleView {
@@ -48,6 +49,12 @@ export interface BoundRelationView {
   relation_type: string;
   roles: BoundRelationRoleView[];
   evidence_spans: SourceSpanView[];
+}
+
+export interface AssessmentBindingView {
+  role: string;
+  target_id: string;
+  versor_error?: number;
 }
 
 export interface ContractAssessmentView {
