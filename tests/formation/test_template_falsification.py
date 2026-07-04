@@ -1,6 +1,7 @@
 """Tests for ``formation.templates.falsification``."""
 
 from __future__ import annotations
+import os
 
 import subprocess
 import sys
@@ -132,6 +133,6 @@ class TestCrossSession:
             [sys.executable, "-c", script],
             check=True, capture_output=True, text=True,
             cwd=str(repo_root),
-            env={"PYTHONHASHSEED": "random", "PATH": ""},
+            env={**os.environ, "PYTHONHASHSEED": "random", "PATH": ""},
         )
         assert result.stdout.strip() == in_proc
