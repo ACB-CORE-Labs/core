@@ -25,6 +25,7 @@ from generate.construction_affordances import (
 )
 from generate.kernel_facts import BoundRelation, GroundedMention, SourceSpan
 from generate.problem_frame import ProblemFrame
+from chat.pack_resolver import resolve_geometric_signature
 
 
 # ---------------------------------------------------------------------------
@@ -888,7 +889,7 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
             continue
             
         bindings = []
-        for span in prop.spans:
+        for span in prop.evidence_spans:
             signature = resolve_geometric_signature(span.text)
             if signature:
                 _, geom = signature
@@ -914,7 +915,7 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
             candidate_organ=candidate_organ,
             runnable=runnable,
             explanation="Assessed via geometric algebra.",
-            evidence_spans=tuple(prop.spans)
+            evidence_spans=prop.evidence_spans
         )
         assessments.append(assessment)
         

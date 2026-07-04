@@ -251,3 +251,99 @@ def clear_resolver_cache() -> None:
     """
     _pack_lexicon_for.cache_clear()
     _pack_glosses_for.cache_clear()
+    _pack_lemma_to_entry_id.cache_clear()
+    _pack_senses_for.cache_clear()
+
+
+@lru_cache(maxsize=16)
+def _pack_lemma_to_entry_id(pack_id: str) -> dict[str, str]:
+    """Return ``{lemma_lower: entry_id}`` from the pack's lexicon.jsonl."""
+    lexicon_path = _PACK_ROOT / pack_id / "lexicon.jsonl"
+    if not lexicon_path.exists():
+        return {}
+    out: dict[str, str] = {}
+    for line in lexicon_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(entry, dict):
+            continue
+        lemma = entry.get("lemma") or entry.get("surface")
+        if not lemma or not isinstance(lemma, str):
+            continue
+        entry_id = entry.get("entry_id")
+        if isinstance(entry_id, str) and entry_id.strip():
+            out[lemma.lower()] = entry_id.strip()
+    return out
+
+
+@lru_cache(maxsize=16)
+def _pack_senses_for(pack_id: str) -> dict[str, dict]:
+    """Return ``{lemma_id: geometric_signature}`` from the pack's optional
+    ``senses.jsonl`` file. Also maps ``lemma`` as a fallback key.
+    """
+    path = _PACK_ROOT / pack_id / "senses.jsonl"
+    if not path.exists():
+        return {}
+    out: dict[str, dict] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(entry, dict):
+            continue
+            
+        geometric_signature = entry.get("geometric_signature")
+        if not isinstance(geometric_signature, dict):
+            continue
+            
+        lemma_id = entry.get("lemma_id")
+        if isinstance(lemma_id, str) and lemma_id.strip():
+            out[lemma_id.strip()] = geometric_signature
+            
+        # Optional fallback for direct lemma matching if lemma is present
+        lemma = entry.get("lemma")
+        if isinstance(lemma, str) and lemma.strip():
+            out[lemma.strip().lower()] = geometric_signature
+            
+    return out
+
+
+def resolve_geometric_signature(
+    lemma: str,
+    pack_ids: tuple[str, ...] = DEFAULT_RESOLVABLE_PACK_IDS,
+) -> tuple[str, dict] | None:
+    """Return ``(pack_id, geometric_signature)`` for the first pack in
+    *pack_ids* that BOTH (a) ratifies *lemma* in its ``lexicon.jsonl``
+    AND (b) carries a geometric_signature for it in ``senses.jsonl``.
+    """
+    if not lemma or not isinstance(lemma, str):
+        return None
+    key = lemma.strip().lower()
+    if not key:
+        return None
+    for pack_id in pack_ids:
+        lex = _pack_lexicon_for(pack_id)
+        if key not in lex:
+            continue
+            
+        lemma_ids = _pack_lemma_to_entry_id(pack_id)
+        entry_id = lemma_ids.get(key)
+        
+        senses = _pack_senses_for(pack_id)
+        
+        if entry_id and entry_id in senses:
+            return (pack_id, senses[entry_id])
+            
+        if key in senses:
+            return (pack_id, senses[key])
+            
+    return None

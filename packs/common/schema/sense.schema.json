@@ -23,6 +23,23 @@
     "rank": {
       "type": ["number", "integer"],
       "description": "Priority rank among senses for the same lemma. 1 is most primary."
+    },
+    "geometric_signature": {
+      "type": "object",
+      "properties": {
+        "operator_type": {
+          "enum": ["static_blade", "parameterized_dilation", "parameterized_translation"]
+        },
+        "blade_values": {
+          "type": "array",
+          "items": { "type": "number" }
+        },
+        "generator_binding": {
+          "type": "string"
+        }
+      },
+      "required": ["operator_type", "blade_values"],
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
