@@ -12,7 +12,9 @@ Contract dispatch is deliberately narrow:
 from __future__ import annotations
 
 import re
+import numpy as np
 from dataclasses import dataclass
+from algebra.backend import versor_condition
 
 from generate.construction_affordances import (
     ConstructionContract,
@@ -70,13 +72,38 @@ def get_contract_family_id(candidate_organ: str) -> str | None:
 
 
 @dataclass(frozen=True, slots=True)
+class VersorBinding:
+    source_span: tuple[int, int]
+    semantic_identity: str
+    geometric_payload: np.ndarray
+    versor_error: float
+
+    def __post_init__(self):
+        if not isinstance(self.geometric_payload, np.ndarray):
+            raise TypeError("geometric_payload must be a numpy.ndarray")
+        if self.geometric_payload.dtype != np.float64:
+            raise TypeError("geometric_payload must be float64")
+        if not self.geometric_payload.flags.c_contiguous:
+            raise ValueError("geometric_payload must be C-contiguous")
+        if self.geometric_payload.shape != (32,):
+            raise ValueError("geometric_payload must be of shape (32,)")
+        
+        # Mathematically assert that versor_error < 1e-6
+        # Downcast strictly for the condition check since the core engine FFI expects f32
+        actual_error = float(versor_condition(self.geometric_payload.astype(np.float32)))
+        if self.versor_error >= 1e-6 or actual_error >= 1e-6:
+            raise ValueError(f"versor_error {max(self.versor_error, actual_error)} exceeds 1e-6 threshold")
+
+
+@dataclass(frozen=True, slots=True)
 class ContractAssessment:
-    candidate_organ: str
-    missing_bindings: tuple[str, ...]
-    unresolved_hazards: tuple[str, ...]
-    runnable: bool
-    explanation: str
-    evidence_spans: tuple[SourceSpan, ...]
+    bindings: list[VersorBinding]
+    
+    @property
+    def is_runnable(self) -> bool:
+        if not self.bindings:
+            return False
+        return all(b.versor_error < 1e-6 for b in self.bindings)
 
 
 def _roles(frame: ProblemFrame, relation_type: str) -> set[str]:
