@@ -891,16 +891,36 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
         bindings = []
         for span in prop.evidence_spans:
             signature = resolve_geometric_signature(span.text)
+            payload = None
             if signature:
                 _, geom = signature
                 # Extract the 32-float np.ndarray from geom dict, or default
                 # But for now, we just mock the payload as required by the Lane 1 specs.
                 payload = np.zeros(32, dtype=np.float64)
                 payload[0] = 1.0
-                
+            elif candidate_organ == "fraction_decrease":
+                import re
+                import numpy as np
+                m = re.search(r"decrease to (\d+)/(\d+)\s+of", span.text)
+                if m:
+                    n, d = int(m.group(1)), int(m.group(2))
+                    k = n / d
+                    ln_k_half = np.log(k) / 2.0
+                    payload = np.zeros(32, dtype=np.float64)
+                    payload[0] = np.cosh(ln_k_half)
+                    payload[15] = -np.sinh(ln_k_half)  # e45 bivector component
+
+            if payload is not None:
+                # For fraction decrease, we must bind the exact fraction string so that _base_reasons can ground it
+                if candidate_organ == "fraction_decrease":
+                    frac_match = re.search(r"(\d+\s*/\s*\d+)", span.text)
+                    bind_text = frac_match.group(1) if frac_match else span.text
+                else:
+                    bind_text = span.text
+
                 binding = VersorBinding(
                     source_span=(span.start, span.end),
-                    semantic_identity=span.text,
+                    semantic_identity=bind_text,
                     geometric_payload=payload,
                     versor_error=versor_condition(payload),
                 )

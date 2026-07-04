@@ -71,7 +71,7 @@ def _has_hazard_surface(problem_text: str, question_clause: str) -> bool:
 def _current_base_quantity(
     problem_text: str, question_clause: str, contract: ContractAssessment
 ) -> Quantity | None:
-    source_text = contract.bindings[0].source_span.text
+    source_text = contract.bindings[0].semantic_identity
     for clause in segment_clauses(problem_text):
         if source_text in clause:
             continue
@@ -96,7 +96,7 @@ def build_fraction_decrease(
     problem_text: str, contract: ContractAssessment
 ) -> GroundedDerivation | None:
     """Construct mathematical decrease delta, or ``None``."""
-    if not contract.is_runnable or not contract.bindings:
+    if not contract.runnable or not contract.bindings:
         return None
 
     question_clause = _question_clause(problem_text)
@@ -123,7 +123,7 @@ def build_fraction_decrease(
                 operand=Quantity(
                     value=new_value,
                     unit=base.unit,
-                    source_token=contract.bindings[0].source_span.text,
+                    source_token=contract.bindings[0].semantic_identity,
                 ),
                 cue="decrease",
             ),
@@ -142,7 +142,7 @@ def _self_verifies_fraction_decrease(
     if not contract.bindings:
         reasons.append("missing decrease-to fraction forecast")
     else:
-        token = contract.bindings[0].source_span.text
+        token = contract.bindings[0].semantic_identity
         if token not in problem_text:
             reasons.append(f"fraction token {token!r} not grounded in text")
 

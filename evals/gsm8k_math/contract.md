@@ -15,8 +15,8 @@ By using an original, curated set of 200 problems matching our own vocabulary an
 
 ## Splits and ID Schema
 
-- **Dev Set**: 50 cases (`gma-001` ... `gma-050`)
-- **Public Set**: 150 cases (`gma-101` ... `gma-250`)
+- **Dev Set**: 50 cases (`gma-001` ... `gma-050`). Authored manually to establish CORE grammar templates.
+- **Public Set**: 150 cases (`gma-101` ... `gma-250`). Synthetically generated via `scripts/generate_gsm8k_public_corpus.py` using grammar templates (e.g., `transfer`, `divide`, `proportional_change.decrease_to_fraction`) established by the dev set.
 - **Holdout Set**: Sealed, loaded dynamically in future phases.
 
 ## Metrics

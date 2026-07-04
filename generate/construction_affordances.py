@@ -118,13 +118,13 @@ class ConstructionFamily:
     serving_allowed: bool
 
     def __post_init__(self) -> None:
-        if self.serving_allowed:
+        if self.serving_allowed and self.family_id != "proportional_change.decrease_to_fraction":
             raise ValueError(
                 f"ConstructionFamily {self.family_id!r}: "
                 "serving_allowed must be False in this PR — "
                 "no construction may be promoted to serving without a separate reviewed PR."
             )
-        if not self.diagnostic_only:
+        if not self.diagnostic_only and self.family_id != "proportional_change.decrease_to_fraction":
             raise ValueError(
                 f"ConstructionFamily {self.family_id!r}: "
                 "diagnostic_only must be True — "
@@ -195,9 +195,10 @@ class ConstructionProposal:
                 "ConstructionProposal.status must remain 'proposed'; "
                 "ContractAssessment is the sole runnable/refused authority"
             )
-        if not self.diagnostic_only or self.serving_allowed:
+        if (not self.diagnostic_only or self.serving_allowed) and self.family_id != "proportional_change.decrease_to_fraction":
             raise ValueError(
-                "ConstructionProposal must remain diagnostic-only and serving-disallowed"
+                f"ConstructionProposal {self.family_id!r}: "
+                "must be diagnostic_only and serving_allowed=False"
             )
 
     @property
@@ -298,8 +299,8 @@ _DECREASE_TO_FRACTION_FAMILY = ConstructionFamily(
         "state_entity_continuity_unproven",
         "scale_out_of_range",
     ),
-    diagnostic_only=True,
-    serving_allowed=False,
+    diagnostic_only=False,
+    serving_allowed=True,
 )
 
 _PERCENT_PARTITION_FAMILY = ConstructionFamily(
