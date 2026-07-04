@@ -22,7 +22,7 @@ from generate.recognizer_match import (
     RecognizerMatch,
     _match_multiplicative_aggregation,
 )
-from language_packs.compile_compositions import compile_compositions
+from packs.compile_compositions import compile_compositions
 
 
 _SPEC: Mapping[str, Any] = {

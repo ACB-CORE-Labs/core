@@ -69,13 +69,13 @@ class PulseResult:
 
 def _load_manifold(use_glove: bool, max_words: int) -> VocabManifold:
     if use_glove:
-        from language_packs.en_seeder import seed_english_manifold
+        from packs.en_seeder import seed_english_manifold
         log.info("[pulse] Seeding English manifold (max_words=%d) …", max_words)
         manifold = seed_english_manifold(max_words=max_words)
         log.info("[pulse] Manifold ready: %d words", len(manifold))
         return manifold
 
-    from language_packs.compiler import load_pack
+    from packs.compiler import load_pack
     _, manifold = load_pack(COMPILED_PACK_ID)
     return manifold
 

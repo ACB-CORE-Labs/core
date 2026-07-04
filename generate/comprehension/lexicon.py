@@ -63,7 +63,7 @@ class Lexicon:
 
 _CACHE: dict[tuple[str, int, str], Lexicon] = {}
 
-_DEFAULT_PACK_RELPATH = Path("language_packs") / "data" / "en_core_math_v1"
+_DEFAULT_PACK_RELPATH = Path("packs") / "data" / "en_core_math_v1"
 
 
 def _repo_root() -> Path:

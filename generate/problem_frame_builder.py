@@ -38,7 +38,7 @@ from generate.problem_frame_proposals import (
     _quantity_entity_proposals,
     _unary_delta_proposals,
 )
-from language_packs.scalar_equivalence import extract_scalar_candidates
+from packs.scalar_equivalence import extract_scalar_candidates
 
 
 def build_problem_frame(problem_text: str) -> ProblemFrame:

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from language_packs.numerics_loader import (
+from packs.numerics_loader import (
     lookup_cardinal,
     lookup_comparison_anchor,
     lookup_comparison_anchors,

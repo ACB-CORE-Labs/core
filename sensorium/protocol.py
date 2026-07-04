@@ -28,7 +28,7 @@ from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
 
 import numpy as np
 
-from language_packs.schema import LanguageRole, OOVPolicy
+from packs.schema import LanguageRole, OOVPolicy
 
 # Surface type variable
 S = TypeVar("S")

@@ -15,7 +15,7 @@ the entities a problem talks about, rather than only counting their numbers. It 
 
 ## Why #449 as shipped delivered no benefit
 
-- **Inert** — nothing in `chat/`, `generate/`, `language_packs/`, or `core/`
+- **Inert** — nothing in `chat/`, `generate/`, `packs/`, or `core/`
   referenced it; `default = false`, `status = "draft"`. No runtime effect.
 - **Duplicated + mislocated** — shipped the same 9 files twice
   (`packs/everyday/` *and* `packs/everyday/atomic_definitions_everyday_v1/`),

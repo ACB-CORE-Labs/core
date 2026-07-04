@@ -69,7 +69,7 @@ DEFAULT_RESOLVABLE_PACK_IDS: tuple[str, ...] = (
     "en_collapse_anchors_v1",
 )
 
-_PACK_ROOT = Path(__file__).resolve().parent.parent / "language_packs" / "data"
+_PACK_ROOT = Path(__file__).resolve().parent.parent / "packs" / "data"
 
 
 @lru_cache(maxsize=16)

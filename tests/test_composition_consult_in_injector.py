@@ -33,7 +33,7 @@ from generate.math_candidate_parser import CandidateInitial
 from generate.math_problem_graph import InitialPossession, Quantity
 from generate.recognizer_anchor_inject import inject_from_match
 from generate.recognizer_match import RecognizerMatch
-from language_packs.compile_compositions import compile_compositions
+from packs.compile_compositions import compile_compositions
 
 
 _SHAPE = "bound(count) × bound(unit_cost)"

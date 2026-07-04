@@ -2,7 +2,7 @@
 
 This module is the explicit post-review mutation boundary for math-domain
 frame-opener evidence.  It edits only per-category source files under
-``language_packs/data/en_core_math_v1/frames/``; it does not regenerate the
+``packs/data/en_core_math_v1/frames/``; it does not regenerate the
 compiled lexicon and therefore does not rewrite the pack manifest checksum.
 
 Mirrors :mod:`teaching.math_lexical_ratification` (W2-D) but lifts the safe
@@ -125,7 +125,7 @@ def _repo_root() -> Path:
 
 
 def _default_pack_root() -> Path:
-    return _repo_root() / "language_packs" / "data" / "en_core_math_v1"
+    return _repo_root() / "packs" / "data" / "en_core_math_v1"
 
 
 def _sha256_file(path: Path) -> str:
@@ -339,7 +339,7 @@ def apply_frame_claim(
     after = _sha256_file(target_file)
 
     # RAT-1 — close the ratify→runtime gap (mirrors composition handler).
-    from language_packs.compile_pack import compile_pack
+    from packs.compile_pack import compile_pack
     compile_pack(root)
 
     return FrameRatificationReceipt(

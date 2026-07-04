@@ -1,7 +1,7 @@
 """Deterministic generator for the en_numerics_v1 ratified semantic pack.
 
 Writes lexicon.jsonl, glosses.jsonl, manifest.json, and a self-sealing
-.mastery_report.json under language_packs/data/en_numerics_v1/.
+.mastery_report.json under packs/data/en_numerics_v1/.
 
 Re-running yields byte-identical output. SHA-256 checksums hash the
 bytes actually written to disk (CLAUDE.md rule).
@@ -14,7 +14,7 @@ from pathlib import Path
 
 PACK_ID = "en_numerics_v1"
 PROVENANCE = "adr-0128:operator_seed:2026-05-23"
-PACK_DIR = Path(__file__).resolve().parent.parent / "language_packs" / "data" / PACK_ID
+PACK_DIR = Path(__file__).resolve().parent.parent / "packs" / "data" / PACK_ID
 
 
 def jline(d: dict) -> str:

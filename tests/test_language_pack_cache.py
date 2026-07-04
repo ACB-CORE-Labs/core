@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from language_packs.compiler import load_mounted_packs, load_pack, load_pack_entries
+from packs.compiler import load_mounted_packs, load_pack, load_pack_entries
 
 
 def test_load_pack_returns_defensive_manifold_copies() -> None:

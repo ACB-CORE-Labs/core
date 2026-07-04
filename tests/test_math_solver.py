@@ -210,7 +210,7 @@ class TestOperationProvenance:
         )
 
     def test_pack_lemma_resolves_to_real_lexicon_entry(self) -> None:
-        from language_packs.compiler import load_pack_entries
+        from packs.compiler import load_pack_entries
 
         entries = load_pack_entries(REQUIRED_PACK_ID)
         lemmas = {e.lemma for e in entries}

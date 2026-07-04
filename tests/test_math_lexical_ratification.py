@@ -27,7 +27,7 @@ from teaching.math_lexical_ratification import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PACK_ROOT = REPO_ROOT / "language_packs" / "data" / "en_core_math_v1"
+PACK_ROOT = REPO_ROOT / "packs" / "data" / "en_core_math_v1"
 CASES_PATH = REPO_ROOT / "evals" / "gsm8k_math" / "train_sample" / "v1" / "cases.jsonl"
 
 

@@ -1,6 +1,6 @@
 """CW-2 — compile compositions/*.jsonl into a deterministic compositions.jsonl artifact.
 
-Mirrors :mod:`language_packs.compile_frames` for the composition surface.
+Mirrors :mod:`packs.compile_frames` for the composition surface.
 Reads per-category source files under ``{pack}/compositions/*.jsonl`` and
 writes ``{pack}/compositions.jsonl`` with entries sorted by
 ``(composition_category, surface_pattern)``.

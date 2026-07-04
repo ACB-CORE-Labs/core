@@ -60,7 +60,7 @@ _ANCHOR_LENS_SUBSTRATE_PACK_IDS: dict[str, tuple[str, ...]] = {
 
 _PACK_LEXICON_PATH = (
     Path(__file__).resolve().parent.parent
-    / "language_packs"
+    / "packs"
     / "data"
     / PACK_ID
     / "lexicon.jsonl"
@@ -76,7 +76,7 @@ _PACK_LEXICON_PATH = (
 # lemmas — only lens-engagement reads from here.
 _COLLAPSE_ANCHORS_LEXICON_PATH = (
     Path(__file__).resolve().parent.parent
-    / "language_packs"
+    / "packs"
     / "data"
     / "en_collapse_anchors_v1"
     / "lexicon.jsonl"
@@ -130,7 +130,7 @@ def _frame_gloss(lemma: str, pos: str, gloss: str) -> str:
       *  (unknown)  -> "{Lemma}: {gloss}."  (back-compat fallback)
 
     The glosses are authored to match these frames exactly (see
-    the subagent briefs and ``language_packs/data/<pack>/glosses.jsonl``).
+    the subagent briefs and ``packs/data/<pack>/glosses.jsonl``).
     Capitalization is applied only to the framed surface, never to
     the lemma in the lexicon (which stays lowercase by convention).
     """
@@ -253,7 +253,7 @@ def _substrate_lexicon_by_entry_id(pack_id: str) -> dict[str, tuple[str, ...]]:
     """
     lexicon_path = (
         Path(__file__).resolve().parent.parent
-        / "language_packs"
+        / "packs"
         / "data"
         / pack_id
         / "lexicon.jsonl"

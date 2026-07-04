@@ -86,13 +86,13 @@ git fetch origin main && \
 - `generate/comprehension/lexicon.py::load_lexicon` (lines 90–188) — **the template**
 - `teaching/math_frame_ratification.py` — write side; entry schema:
   `(surface_form, frame_category, polarity, provenance, evidence_hashes)`
-- `language_packs/data/en_core_math_v1/manifest.json` — current shape + checksum semantics
+- `packs/data/en_core_math_v1/manifest.json` — current shape + checksum semantics
 - `docs/adr/ADR-0168-frameclaim-ratification.md` §"Mutation boundary", §"Initial safe category scope"
 - CLAUDE.md §"Semantic Pack Discipline" (manifest checksum rule)
 
 ### Outcome — new modules
 
-1. **`language_packs/compile_frames.py`** (or extend the existing
+1. **`packs/compile_frames.py`** (or extend the existing
    compile mechanism if one exists — read first):
    - Reads `frames/*.jsonl` sorted alphabetically
    - Produces compiled artifact `frames.jsonl` with entries sorted
@@ -149,9 +149,9 @@ git fetch origin main && \
 
 ### Deliverables (CW-1 portion)
 
-- `language_packs/compile_frames.py` (or extension)
+- `packs/compile_frames.py` (or extension)
 - `generate/comprehension/frame_registry.py`
-- `language_packs/data/en_core_math_v1/manifest.json` schema bump
+- `packs/data/en_core_math_v1/manifest.json` schema bump
 - Reader wire (one call site, typically in
   `generate/comprehension/*` or `generate/recognizer_match.py`)
 - All CW-1 tests green
@@ -193,7 +193,7 @@ Same worktree as CW-1 (one branch).
 
 ### Outcome — new modules
 
-1. **`language_packs/compile_compositions.py`** — analogous to CW-1's
+1. **`packs/compile_compositions.py`** — analogous to CW-1's
    compile_frames; reads `compositions/*.jsonl`; produces
    compiled `compositions.jsonl` sorted by
    `(composition_category, surface_pattern)`; returns sha256.
@@ -240,7 +240,7 @@ Same worktree as CW-1 (one branch).
 - **Empty-registry no-op** — eval byte-identical when
   `compositions/` is empty (currently has 1 entry locally from my
   2026-05-27 session; remove via `git clean -fd
-  language_packs/data/en_core_math_v1/compositions/` before
+  packs/data/en_core_math_v1/compositions/` before
   starting, OR keep it as the literal canary — see Truth Test)
 - **Case 0050 hazard pin** — synthetic CompositionClaim under
   every entry in `SAFE_COMPOSITION_CATEGORIES`; case 0050 must
@@ -267,7 +267,7 @@ Same worktree as CW-1 (one branch).
 
 ### Deliverables (CW-2 portion)
 
-- `language_packs/compile_compositions.py`
+- `packs/compile_compositions.py`
 - `generate/comprehension/composition_registry.py`
 - Injector wire in `generate/recognizer_anchor_inject.py`
 - All CW-2 tests green including the case-0019 truth test

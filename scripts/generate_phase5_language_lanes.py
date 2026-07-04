@@ -26,7 +26,7 @@ import json
 from pathlib import Path
 
 # Triples drawn from the seed packs.  Surface forms taken from
-# language_packs/data/<pack>/lexicon.jsonl.
+# packs/data/<pack>/lexicon.jsonl.
 # Triples use only verbs/nouns present in he_core_cognition_v1
 # (12 NOUN, 3 VERB: גילה reveal, מצא find, קדם precede).
 HEBREW_TRIPLES: list[tuple[str, str, str]] = [

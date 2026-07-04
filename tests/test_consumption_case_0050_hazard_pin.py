@@ -30,7 +30,7 @@ import pytest
 from generate.comprehension.composition_registry import (
     clear_cache as clear_composition_cache,
 )
-from language_packs.compile_compositions import compile_compositions
+from packs.compile_compositions import compile_compositions
 from teaching.math_composition_ratification import SAFE_COMPOSITION_CATEGORIES
 
 
@@ -44,7 +44,7 @@ def _stage_pack(tmp_path: Path) -> Path:
     repo = here
     while repo.parent != repo and not (repo / "pyproject.toml").exists():
         repo = repo.parent
-    src = repo / "language_packs" / "data" / "en_core_math_v1"
+    src = repo / "packs" / "data" / "en_core_math_v1"
     dst = tmp_path / "en_core_math_v1"
     shutil.copytree(src, dst)
     # Strip any pre-existing composition entries — start clean.

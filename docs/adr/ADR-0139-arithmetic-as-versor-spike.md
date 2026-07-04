@@ -311,7 +311,7 @@ The spike is governed by the same invariants as the rest of CORE:
 - Null inputs to `versor_apply` stay null. Verified by `cga_inner(R, R)
   ≈ 0` on every result.
 - No normalization is introduced outside the allowed sites
-  (`ingest/gate.py`, `language_packs/compiler.py`,
+  (`ingest/gate.py`, `packs/compiler.py`,
   `algebra/versor.py`). The new functions live in a new module —
   proposed path `generate/math_versor_arithmetic.py` — and call only
   existing primitives. They do not add any new normalization.

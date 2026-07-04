@@ -28,14 +28,14 @@ from chat.pack_resolver import (
 )
 
 
-_PACK_ROOT = Path(__file__).resolve().parent.parent / "language_packs" / "data"
+_PACK_ROOT = Path(__file__).resolve().parent.parent / "packs" / "data"
 
 
 @pytest.fixture
 def temp_pack(tmp_path):
     """Create a minimal lexicon-only pack on disk for fixture tests.
 
-    Builds the pack inside the real ``language_packs/data`` tree so the
+    Builds the pack inside the real ``packs/data`` tree so the
     resolver's hard-coded _PACK_ROOT finds it; tears down on exit.
     Tests using this fixture should clear the resolver cache.
     """
@@ -210,7 +210,7 @@ class TestDualChecksumManifest:
         """A pack that ships no glosses.jsonl and no glosses_checksum
         in its manifest must continue to load (back-compat invariant).
         We use en_minimal_v1 which deliberately ships no glosses."""
-        from language_packs.compiler import load_pack
+        from packs.compiler import load_pack
         manifest, _ = load_pack("en_minimal_v1")
         assert manifest.glosses_checksum is None
 
@@ -218,7 +218,7 @@ class TestDualChecksumManifest:
         """Packs that DO ship glosses (en_core_cognition_v1 et al.
         after Phase C) must carry a non-None glosses_checksum on the
         loaded manifest."""
-        from language_packs.compiler import load_pack
+        from packs.compiler import load_pack
         manifest, _ = load_pack("en_core_cognition_v1")
         assert isinstance(manifest.glosses_checksum, str)
         assert len(manifest.glosses_checksum) == 64
@@ -251,7 +251,7 @@ class TestDualChecksumManifest:
             "oov_policy": "tagged_fallback",
         }) + "\n", encoding="utf-8")
         clear_resolver_cache()
-        from language_packs.compiler import load_pack, _load_pack_cached
+        from packs.compiler import load_pack, _load_pack_cached
         _load_pack_cached.cache_clear()
         with pytest.raises(ValueError, match="Glosses checksum mismatch"):
             load_pack(pack_id)
@@ -281,7 +281,7 @@ class TestDualChecksumManifest:
             "oov_policy": "tagged_fallback",
         }) + "\n", encoding="utf-8")
         clear_resolver_cache()
-        from language_packs.compiler import load_pack, _load_pack_cached
+        from packs.compiler import load_pack, _load_pack_cached
         _load_pack_cached.cache_clear()
         manifest, _ = load_pack(pack_id)
         assert manifest.glosses_checksum == right_checksum

@@ -54,7 +54,7 @@ include = [
     "formation*",
     "generate*",
     "ingest*",
-    "language_packs*",
+    "packs*",
     "morphology*",
     "persona*",
     "packs*",

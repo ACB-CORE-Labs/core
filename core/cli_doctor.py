@@ -20,7 +20,7 @@ IMPORT_CHECKS: tuple[tuple[str, str], ...] = (
     ("demos", "demos.claude_tool_authority"),
     ("engine_state", "engine_state"),
     ("evals", "evals.framework"),
-    ("language_packs", "language_packs"),
+    ("packs", "packs"),
     ("morphology", "morphology.registry"),
     ("packs", "packs.safety.loader"),
     ("scripts", "scripts.run_pulse"),
@@ -54,13 +54,13 @@ def cmd_doctor(args: argparse.Namespace, *, repo_root: Path = DEFAULT_REPO_ROOT)
 
     if args.packs:
         try:
-            from language_packs import list_packs
+            from packs import list_packs
 
             packs = list_packs()
         except Exception as exc:
             ok = False
             print(
-                f"FAIL packs          language_packs.list_packs: {exc.__class__.__name__}: {exc}"
+                f"FAIL packs          packs.list_packs: {exc.__class__.__name__}: {exc}"
             )
         else:
             print("packs:")

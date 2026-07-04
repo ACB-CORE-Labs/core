@@ -16,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from fractions import Fraction
 
-from language_packs.loader import (
+from packs.loader import (
     lookup_dimension,
     lookup_unit,
     get_conversion_graph,

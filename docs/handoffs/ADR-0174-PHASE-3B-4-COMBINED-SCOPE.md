@@ -158,7 +158,7 @@ The multi-actor pronoun hazard defense (PR #423) currently refuses on ambiguity.
   → admit hypothesis_0 (Alice + buy 2)
 ```
 
-The pack consulted is a new closed-set artifact: `language_packs/data/en_core_names_v1/gender.jsonl` (or similar). Building this pack is part of Phase 4 scope — small (~200 entries covering common English first names), reviewed through the standard HITL corridor (ADR-0150/0152), refusal-preferring on unknown names.
+The pack consulted is a new closed-set artifact: `packs/data/en_core_names_v1/gender.jsonl` (or similar). Building this pack is part of Phase 4 scope — small (~200 entries covering common English first names), reviewed through the standard HITL corridor (ADR-0150/0152), refusal-preferring on unknown names.
 
 ### Constraints
 

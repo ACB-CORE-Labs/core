@@ -162,7 +162,7 @@ class TestContractPresence:
 #
 # P1 / P2 require fully compiled packs and so are exercised against the
 # in-tree packs in `TestProductionPacks` below rather than against synthetic
-# fixtures (the language_packs.compiler.load_pack call cannot resolve a
+# fixtures (the packs.compiler.load_pack call cannot resolve a
 # synthetic data root in the same way).
 # ---------------------------------------------------------------------------
 

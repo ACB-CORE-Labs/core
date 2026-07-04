@@ -1,10 +1,10 @@
-"""Tests for language_packs/unit_dimensions.py."""
+"""Tests for packs/unit_dimensions.py."""
 from __future__ import annotations
 
 from fractions import Fraction
 import pytest
 
-from language_packs.unit_dimensions import (
+from packs.unit_dimensions import (
     classify_dimension,
     are_dimensions_compatible,
     exact_conversion,

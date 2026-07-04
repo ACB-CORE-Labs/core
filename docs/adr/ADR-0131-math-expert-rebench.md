@@ -86,7 +86,7 @@ structural disadvantage on this task.)
 
 **What:** Run the math expert against the math teaching corpus's
 own evaluation lane. Problems are sourced from ratified
-teaching chains in `language_packs/data/en_arithmetic_v1` +
+teaching chains in `packs/data/en_arithmetic_v1` +
 en_units_v1 + en_numerics_v1; the parser's grammar matches the
 corpus's surface forms *by construction* (no paraphrase-variance
 gap because both sides of the eval consume the same ratified

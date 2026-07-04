@@ -27,7 +27,7 @@ gaps that prove the gap is real.
 ## Evidence
 
 `mathematics_logic` attaches three eval lanes via
-`language_packs/data/en_mathematics_logic_v1/manifest.json`:
+`packs/data/en_mathematics_logic_v1/manifest.json`:
 
 | Lane | Public split | Holdout split | Notes |
 |---|---|---|---|

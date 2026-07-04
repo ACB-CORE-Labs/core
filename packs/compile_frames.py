@@ -1,6 +1,6 @@
 """CW-1 — compile frames/*.jsonl into a deterministic frames.jsonl artifact.
 
-Mirrors the lexicon compile pattern (see ``language_packs/compiler.py``).
+Mirrors the lexicon compile pattern (see ``packs/compiler.py``).
 Reads per-category source files under ``{pack}/frames/*.jsonl``, normalizes
 ordering, and writes the compiled artifact ``{pack}/frames.jsonl`` with
 entries sorted by ``(frame_category, surface_form)``.

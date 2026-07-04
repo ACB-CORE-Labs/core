@@ -90,7 +90,7 @@ New raw-prose/local-regex parsing inside a derivation organ requires an explicit
 
 ## 8. Kernel Pack Model
 
-Every Kernel Pack is structured as a declarative, immutable resource directory under `language_packs/data/<pack_name>_v1/` containing:
+Every Kernel Pack is structured as a declarative, immutable resource directory under `packs/data/<pack_name>_v1/` containing:
 - `manifest.json`: Defines pack metadata, determinism class (`D0`), and cryptographic file checksums.
 - `lexicon.jsonl`: Contains individual lexeme or concept definitions.
 - `glosses.jsonl`: Human-readable descriptions explaining the exact semantic scope.

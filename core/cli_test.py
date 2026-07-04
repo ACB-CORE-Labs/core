@@ -248,7 +248,7 @@ def cmd_check(
         "field",
         "generate",
         "ingest",
-        "language_packs",
+        "packs",
         "morphology",
         "persona",
         "sensorium",

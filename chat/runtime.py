@@ -107,7 +107,7 @@ from generate.result import GenerationResult
 from generate.stream import generate
 from generate.surface import SentenceAssembler, SentencePlan, SurfaceContext
 from ingest.gate import inject
-from language_packs import OOVPolicy, load_mounted_packs, load_pack, load_pack_entries
+from packs import OOVPolicy, load_mounted_packs, load_pack, load_pack_entries
 from persona.motor import PersonaMotor
 from session.context import SessionContext
 from session.correction import CorrectionPass

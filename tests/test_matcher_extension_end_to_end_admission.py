@@ -25,7 +25,7 @@ from generate.comprehension.composition_registry import (
 from generate.math_candidate_parser import CandidateInitial
 from generate.recognizer_anchor_inject import inject_from_match
 from generate.recognizer_match import RecognizerMatch, _match_rate_with_currency
-from language_packs.compile_compositions import compile_compositions
+from packs.compile_compositions import compile_compositions
 
 
 _SPEC: Mapping[str, Any] = {

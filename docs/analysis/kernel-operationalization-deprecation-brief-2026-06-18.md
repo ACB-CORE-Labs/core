@@ -124,9 +124,9 @@ raw text
 
 The builder should use the #829 substrate modules:
 
-- `language_packs.scalar_equivalence.extract_scalar_candidates`
-- `language_packs.unit_dimensions`
-- `language_packs.ambiguity_hazards`
+- `packs.scalar_equivalence.extract_scalar_candidates`
+- `packs.unit_dimensions`
+- `packs.ambiguity_hazards`
 - `generate.process_frames`
 - `generate.kernel_facts`
 - `generate.problem_frame`

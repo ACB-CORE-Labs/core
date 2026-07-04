@@ -979,7 +979,7 @@ _DEFAULT_OUTPUT_PATH = _MATH_PROPOSALS_DIR / "proposals.jsonl"
 def _validate_output_path(raw: str | None) -> Path:
     """Reject output paths that escape teaching/math_proposals/.
 
-    Mirrors :func:`language_packs.compiler._validate_pack_id` trust-boundary
+    Mirrors :func:`packs.compiler._validate_pack_id` trust-boundary
     discipline: path-traversal and absolute paths are rejected before any
     filesystem access.
 
@@ -3362,7 +3362,7 @@ def build_parser() -> argparse.ArgumentParser:
     teaching_compile_pack.add_argument(
         "--pack",
         default=None,
-        help="pack root path (default: language_packs/data/en_core_math_v1)",
+        help="pack root path (default: packs/data/en_core_math_v1)",
     )
     teaching_compile_pack.add_argument(
         "--json",

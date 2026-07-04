@@ -109,7 +109,7 @@ checksum = hashlib.sha256(Path(lexicon_path).read_bytes()).hexdigest()
 `grc_logos_cognition_v1/manifest.json` and
 `he_core_cognition_v1/manifest.json` are updated with the new
 checksums of their post-enrichment lexicon.jsonl files.
-`python -m language_packs verify <pack_id>` is the canonical gate.
+`python -m packs verify <pack_id>` is the canonical gate.
 
 ---
 
@@ -136,7 +136,7 @@ runtime change.
 
 L1.1 touches user-influenceable content (pack files) but the gate
 remains the same as for every other language pack: manifest
-checksum + `python -m language_packs verify`.  The new entries are
+checksum + `python -m packs verify`.  The new entries are
 authored by hand here, not ingested from an external source.
 
 No dynamic imports, no filesystem traversal, no shell passthrough.
@@ -146,9 +146,9 @@ No dynamic imports, no filesystem traversal, no shell passthrough.
 ## Verification
 
 ```
-python -m language_packs verify grc_logos_cognition_v1   → OK
-python -m language_packs verify he_core_cognition_v1     → OK
-python -m language_packs list                            → both packs listed,
+python -m packs verify grc_logos_cognition_v1   → OK
+python -m packs verify he_core_cognition_v1     → OK
+python -m packs list                            → both packs listed,
                                                             entry counts 29 / 23
 python -m core.cli test --suite packs -q                 → green
 python -m core.cli eval cognition                        → public 100/100/91.7/100

@@ -102,7 +102,7 @@ layering, expected to refine:
 | L0 — Algebra primitives | versor application, CGA inner product, null vector preservation, sandwich closure | `algebra/versor.py`, `algebra/backend/`; invariant `versor_condition < 1e-6` |
 | L1 — Field substrate | injection gate, propagation, energy operator, normalization sites | `field/propagate.py`, `ingest/gate.py`, `core/physics/energy.py`; ADR-0006 |
 | L2 — Vault | exact CGA recall, indexing, batching, promotion gate | `vault/store.py`, `core/physics/learning.py`; ADR-0014, ADR-0054 |
-| L3 — Language packs | compiler, lexicons, identity, safety, ethics, anchor lens, register | `language_packs/`, `packs/`; ADR-0027..0047, ADR-0070..0073 |
+| L3 — Language packs | compiler, lexicons, identity, safety, ethics, anchor lens, register | `packs/`, `packs/`; ADR-0027..0047, ADR-0070..0073 |
 | L4 — Recognition | anti-unifier, multi-resolution decoding, epistemic carrier, dispatch trace | `recognition/`; ADR-0143, ADR-0144 |
 | L5 — Cognition pipeline | intent classification, ratification, articulation target, deterministic realizer | `core/cognition/`, `generate/intent.py`, `generate/realizer.py`; ADR-0048..0053 |
 | L6 — Chat runtime + surface composition | turn loop, surface composition, grounding dispatch, telemetry, verdicts, register, anchor lens, cross-pack composition | `chat/runtime.py`; ADR-0058..0099 (audit must enumerate per-ADR — this range spans surface composition, correction telemetry, cross-pack resolution; not all are runtime-loop concerns) |

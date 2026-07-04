@@ -212,7 +212,7 @@ After dispatch: every operator can run `core teaching coverage` after any ratifi
 
 ### Why
 
-RAT-1 (PR #406) added `compile_pack()` auto-call at the end of `apply_frame_claim` + `apply_composition_claim` so source-file writes immediately reach the runtime. **`apply_lexical_claim` was deliberately skipped** because the existing `language_packs/compiler.py` already compiles `lexicon.jsonl`. But the lexicon compiler runs at pack-build time, not after a runtime ratification.
+RAT-1 (PR #406) added `compile_pack()` auto-call at the end of `apply_frame_claim` + `apply_composition_claim` so source-file writes immediately reach the runtime. **`apply_lexical_claim` was deliberately skipped** because the existing `packs/compiler.py` already compiles `lexicon.jsonl`. But the lexicon compiler runs at pack-build time, not after a runtime ratification.
 
 So today: `core teaching` ratifies a LexicalClaim → writes `lexicon/{category}.jsonl` → the **next runtime turn doesn't see it** because nothing triggers re-compile + manifest update.
 
@@ -225,8 +225,8 @@ Plus: ensure `compile_pack()` regenerates the lexicon compiled artifact `lexicon
 ### Reads required FIRST
 
 - `teaching/math_lexical_ratification.py::apply_lexical_claim`
-- `language_packs/compile_pack.py` (the RAT-1 helper)
-- `language_packs/compiler.py::_load_pack_cached` (existing lexicon compile)
+- `packs/compile_pack.py` (the RAT-1 helper)
+- `packs/compiler.py::_load_pack_cached` (existing lexicon compile)
 - `generate/comprehension/lexicon.py::load_lexicon` (the runtime consumer)
 
 ### Hard requirements

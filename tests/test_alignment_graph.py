@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 
 from alignment.graph import load_alignment
-from language_packs.schema import AlignmentEdge, HolonomyAlignmentCase
+from packs.schema import AlignmentEdge, HolonomyAlignmentCase
 from algebra.holonomy import holonomy_encode, holonomy_similarity
-from language_packs import load_pack
+from packs import load_pack
 
 
 # ---------------------------------------------------------------------------

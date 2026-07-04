@@ -2,7 +2,7 @@
 
 This module is the explicit post-review mutation boundary for math-domain
 composition-pattern evidence.  It edits only per-category source files
-under ``language_packs/data/en_core_math_v1/compositions/``; it does not
+under ``packs/data/en_core_math_v1/compositions/``; it does not
 regenerate the compiled lexicon and therefore does not rewrite the pack
 manifest checksum.
 
@@ -137,7 +137,7 @@ def _repo_root() -> Path:
 
 
 def _default_pack_root() -> Path:
-    return _repo_root() / "language_packs" / "data" / "en_core_math_v1"
+    return _repo_root() / "packs" / "data" / "en_core_math_v1"
 
 
 def _sha256_file(path: Path) -> str:
@@ -365,7 +365,7 @@ def apply_composition_claim(
     # composition artifact and update the pack manifest's
     # composition_checksum so the next runtime turn loads the new entry.
     # Idempotent; identical source → identical compiled bytes.
-    from language_packs.compile_pack import compile_pack
+    from packs.compile_pack import compile_pack
     compile_pack(root)
 
     return CompositionRatificationReceipt(

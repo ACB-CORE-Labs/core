@@ -13,7 +13,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from language_packs.schema import AlignmentEdge, LexicalEntry, MorphologyEntry
+from packs.schema import AlignmentEdge, LexicalEntry, MorphologyEntry
 from workbench.schemas import (
     LogosAlignmentRow,
     LogosAlignmentTargetIssue,
@@ -29,7 +29,7 @@ from workbench.schemas import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-LANGUAGE_PACK_ROOT = REPO_ROOT / "language_packs" / "data"
+LANGUAGE_PACK_ROOT = REPO_ROOT / "packs" / "data"
 READ_CHUNK_BYTES = 64 * 1024
 SAFE_LOGOS_PACK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
 
@@ -347,7 +347,7 @@ def _read_jsonl_objects(path: Path) -> list[dict[str, Any]]:
 
 
 def _load_lexicon(pack_dir: Path) -> list[LexicalEntry]:
-    from language_packs.compiler import _parse_entry
+    from packs.compiler import _parse_entry
 
     return [
         _parse_entry(payload)
@@ -506,7 +506,7 @@ def _checksum_status(
 
     if not errors and root == LANGUAGE_PACK_ROOT.resolve():
         try:
-            from language_packs.compiler import load_pack
+            from packs.compiler import load_pack
 
             load_pack(pack_id)
         except ValueError as exc:
@@ -515,6 +515,6 @@ def _checksum_status(
 
 
 def _domain_contract_status(pack_id: str, root: Path) -> dict[str, Any]:
-    from language_packs.domain_contract import validate_domain_contract_pack
+    from packs.domain_contract import validate_domain_contract_pack
 
     return validate_domain_contract_pack(pack_id, data_root=root).as_dict()

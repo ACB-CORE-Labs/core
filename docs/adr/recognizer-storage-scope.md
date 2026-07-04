@@ -41,7 +41,7 @@ status follows.
 
 | Concern | Mechanism | Status | Verification |
 |---|---|---|---|
-| Region excitation | Injection pressure raises `EnergyClass` | **Live** | `FieldEnergyOperator` called by `ingest/gate.py:292`, `field/propagate.py:26`, `language_packs/compiler.py:72` |
+| Region excitation | Injection pressure raises `EnergyClass` | **Live** | `FieldEnergyOperator` called by `ingest/gate.py:292`, `field/propagate.py:26`, `packs/compiler.py:72` |
 | Cooling | `recency = clamp(activation_count,0,8)/8 * exp(-age/12)` contribution | **Live** | `core/physics/energy.py:94`, exercised via callers above |
 | Crystallization gate | E0/E1 = `vault_candidate`; promotion requires `coherence_residual ≤ residual_threshold` (default 0.05) | **Dormant** | `VaultPromotionPolicy` defined in `core/physics/learning.py`, but `core.physics.learning` is imported by **no module outside `core/physics/`** as of 2026-05-24 |
 | Re-activation on recall | Vault recall transiently raises region to E2, then cools | **Specified, not verified live** | Documented in ADR-0006 §"Integration Points"; no code path traced from vault recall back to energy re-injection |

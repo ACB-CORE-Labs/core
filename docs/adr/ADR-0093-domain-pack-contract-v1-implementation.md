@@ -12,7 +12,7 @@
 
 Accepted after Domain Pack Contract v1 was implemented as an enforced validator/ledger predicate path:
 
-- `language_packs/domain_contract.py` parses `domain_contract_version=1` and contract fields.
+- `packs/domain_contract.py` parses `domain_contract_version=1` and contract fields.
 - `core/capability/domain_contract_predicates.py` evaluates the nine ADR-0091 predicates.
 - `core/capability/reviewers.py` and `docs/reviewers.yaml` provide ADR-0092 reviewer resolution for predicate P8.
 - `evals/domain_contract_validation/contract.md` documents the validation lane.

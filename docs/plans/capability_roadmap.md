@@ -23,7 +23,7 @@ a roadmap rewrite — that pass is queued):
   disclosed assumptions; current measurement is 48–149× cheaper per turn than
   frontier LLMs.
 * **`core pulse` import fix** — 2026-05-17 hex-literal bug in
-  `language_packs/en_seeder.py` repaired; pulse path is operational again.
+  `packs/en_seeder.py` repaired; pulse path is operational again.
 
 Closed gates (vs the Phase 1 "Foundational Triple"):
 

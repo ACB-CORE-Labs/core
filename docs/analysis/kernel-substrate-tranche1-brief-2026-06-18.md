@@ -67,7 +67,7 @@ If the branch becomes too large to review, split only at natural substrate bound
 Create:
 
 ```text
-language_packs/scalar_equivalence.py
+packs/scalar_equivalence.py
 ```
 
 Purpose:
@@ -93,7 +93,7 @@ Respect ADR-0128. If ADR-0128 refuses a surface such as `.5` or `1 / 2`, do not 
 Create or extend a facade around ADR-0127/en_units_v1:
 
 ```text
-language_packs/unit_dimensions.py
+packs/unit_dimensions.py
 ```
 
 Purpose:
@@ -166,7 +166,7 @@ Rules:
 Create:
 
 ```text
-language_packs/ambiguity_hazards.py
+packs/ambiguity_hazards.py
 ```
 
 Purpose:
@@ -317,8 +317,8 @@ This tranche should test breadth, not a single example.
 Required test files may include:
 
 ```text
-tests/test_language_packs_scalar_equivalence.py
-tests/test_language_packs_unit_dimensions.py
+tests/test_packs_scalar_equivalence.py
+tests/test_packs_unit_dimensions.py
 tests/test_kernel_facts.py
 tests/test_ambiguity_hazards.py
 tests/test_process_frames.py
@@ -345,8 +345,8 @@ Recommended local sequence:
 
 ```bash
 git diff --check origin/main...HEAD
-pytest tests/test_language_packs_scalar_equivalence.py -q
-pytest tests/test_language_packs_unit_dimensions.py -q
+pytest tests/test_packs_scalar_equivalence.py -q
+pytest tests/test_packs_unit_dimensions.py -q
 pytest tests/test_kernel_facts.py -q
 pytest tests/test_ambiguity_hazards.py -q
 pytest tests/test_process_frames.py -q

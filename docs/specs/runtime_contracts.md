@@ -554,7 +554,7 @@ judgment is curator-mediated, with one rule:
 |-----------------------------------------|----------------------------------------|-----------------------|
 | `teaching.PackMutationProposal`         | `epistemic_status: EpistemicStatus`    | `SPECULATIVE`         |
 | `teaching.ReviewedTeachingExample`      | `epistemic_status: EpistemicStatus`    | `SPECULATIVE`         |
-| `language_packs.schema.LexicalEntry`    | `epistemic_status: str`                | `"coherent"` (seed)   |
+| `packs.schema.LexicalEntry`    | `epistemic_status: str`                | `"coherent"` (seed)   |
 | `core.cognition.trace.compute_trace_hash` | `teaching_epistemic_status: str`     | `""` if no proposal   |
 
 Promotion of a proposal's status uses the immutable updater
@@ -821,7 +821,7 @@ Required properties:
 
 - Deterministic ordering of scalars, units, hazards, and process-frame candidates.
 - Exact `problem_text` source spans where grounding is available.
-- Hazards preserved from `language_packs.ambiguity_hazards` and scalar candidates.
+- Hazards preserved from `packs.ambiguity_hazards` and scalar candidates.
 - Process frames attached as **candidates**, not conclusions.
 - No answer derivation, no case-id behavior, no serving admission from ProblemFrame alone.
 

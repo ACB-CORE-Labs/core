@@ -325,14 +325,14 @@ def canonical_unit_for(dimension: str) -> str:
 # ---------------------------------------------------------------------------
 # ADR-0128 numerics-pack re-exports (deferred coordination from ADR-0128 brief)
 #
-# en_numerics_v1's loader functions live in language_packs/numerics_loader.py
+# en_numerics_v1's loader functions live in packs/numerics_loader.py
 # (per the brief's concurrency clause that allowed parallel development).
 # Re-exporting them here gives callers a single import path
-# (`from language_packs.loader import lookup_cardinal`) while keeping the
+# (`from packs.loader import lookup_cardinal`) while keeping the
 # numerics implementation in its own domain-cohesive module.
 # ---------------------------------------------------------------------------
 
-from language_packs.numerics_loader import (  # noqa: E402
+from packs.numerics_loader import (  # noqa: E402
     CardinalEntry,
     ComparisonAnchorEntry,
     FractionEntry,

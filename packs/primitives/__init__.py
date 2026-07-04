@@ -10,7 +10,7 @@ The primitives pack is sister to :mod:`packs.safety` and :mod:`packs.identity`:
 * swappable like :mod:`packs.identity` (operators may fork the floor)
 * never auto-mutable like :mod:`packs.safety`
 * ratified through a manifest checksum (same discipline as
-  ``language_packs/`` glosses_checksum)
+  ``packs/`` glosses_checksum)
 
 This package exposes :func:`load_primitives_pack` and the immutable
 :class:`PrimitivesPack` dataclass.  It is NEVER mountable as a teaching

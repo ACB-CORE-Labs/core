@@ -117,7 +117,7 @@ invocation in trace, replay byte-equal.
 
 `public_showcase_pure_composition` — grep gate refuses any symbol in
 the showcase's import graph not already exported by `core/`, `chat/`,
-`generate/`, `language_packs/`, `teaching/`, or `core.commands.demo_*`.
+`generate/`, `packs/`, `teaching/`, or `core.commands.demo_*`.
 
 `public_showcase_all_claims_supported` — CI fails if showcase exits
 with `all_claims_supported=False` or runtime >30s.

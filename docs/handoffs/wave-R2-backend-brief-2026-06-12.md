@@ -35,7 +35,7 @@ For each endpoint: deterministic ordering, `?limit=&offset=` pagination on
 lists, 404 (not synthetic data) for unknown ids, no mutation anywhere, and
 the W-026 16 MiB read ceiling.
 
-1. **`GET /packs`, `GET /packs/{pack_id}`** — sources: `language_packs/data/*`
+1. **`GET /packs`, `GET /packs/{pack_id}`** — sources: `packs/data/*`
    manifests (and identity packs if cleanly readable). Surface manifest
    checksums VERBATIM (the UI's DigestBadge verify affordance depends on
    byte-honesty). **Trust boundary (mandatory):** validate `pack_id` against

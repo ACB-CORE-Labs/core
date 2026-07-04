@@ -1,6 +1,6 @@
 """ADR-0134 — Pure unit algebra for binding-graph admissibility.
 
-Closed dimensional vocabulary sourced from ``language_packs/data/en_units_v1``
+Closed dimensional vocabulary sourced from ``packs/data/en_units_v1``
 (ADR-0127). Every unit id used in admissibility checking must canonicalize to a
 lemma in that pack — otherwise :func:`parse_unit` refuses with
 :class:`UnitAlgebraError` (``unknown_unit``). The module performs **no I/O at
@@ -157,7 +157,7 @@ _NON_UNIT_DOMAINS: Final[frozenset[str]] = frozenset(
 
 _UNITS_PACK_LEXICON: Final[Path] = (
     Path(__file__).resolve().parents[2]
-    / "language_packs"
+    / "packs"
     / "data"
     / "en_units_v1"
     / "lexicon.jsonl"

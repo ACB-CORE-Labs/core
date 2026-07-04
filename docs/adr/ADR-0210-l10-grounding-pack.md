@@ -15,7 +15,7 @@ This ADR proposes an additive seed pack and an additive adversarial fixture set 
 
 ## Decision
 
-Adopt `language_packs/data/l10_grounding_v1/` as the first L10-oriented grounding pack.
+Adopt `packs/data/l10_grounding_v1/` as the first L10-oriented grounding pack.
 
 The pack contains finite-domain relational primitives only:
 
@@ -64,7 +64,7 @@ This is especially load-bearing for:
 
 ## Checksums
 
-- `language_packs/data/l10_grounding_v1/lexicon.jsonl`: `829efd10d7f5fa74f1189ec6d621f2a12bc5e7a022fd7a3de436655fc8fe5603`
+- `packs/data/l10_grounding_v1/lexicon.jsonl`: `829efd10d7f5fa74f1189ec6d621f2a12bc5e7a022fd7a3de436655fc8fe5603`
 - `evals/deductive_logic/fixtures/l10_adversarial.jsonl`: `beda988f019b5431a3ab6e817b463a165bde719c7597f3b6a7f572107e1db123`
 
 ## Consequences

@@ -30,7 +30,7 @@ ALLOWED_IMPORT_PREFIXES: tuple[str, ...] = (
     "core.",
     "chat.",
     "generate.",
-    "language_packs.",
+    "packs.",
     "teaching.",
     "evals.",
 )

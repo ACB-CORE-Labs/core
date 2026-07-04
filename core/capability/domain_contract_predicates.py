@@ -2,7 +2,7 @@
 
 Wires the five follow-up items from ADR-0091 §"Follow-up Work" into a
 single evidence-bearing report. The existing parser
-(:func:`language_packs.domain_contract.parse_domain_contract`) handles
+(:func:`packs.domain_contract.parse_domain_contract`) handles
 structural validation; this module layers the nine semantic predicates
 from ADR-0091 §"Validation Semantics" on top.
 
@@ -34,7 +34,7 @@ from core.capability.reviewers import (
     load_reviewer_registry,
 )
 from core.capability.sources import LEDGER_SOURCES
-from language_packs.domain_contract import (
+from packs.domain_contract import (
     DomainContractValidation,
     DomainPackContract,
     validate_domain_contract_pack,
@@ -113,7 +113,7 @@ def _predicate_p1_manifest_valid(
     lands, this predicate inherits the improvement.
     """
     try:
-        from language_packs import compiler as pack_compiler
+        from packs import compiler as pack_compiler
 
         loader = getattr(pack_compiler, "load_pack", None)
         if loader is None:
@@ -121,7 +121,7 @@ def _predicate_p1_manifest_valid(
                 predicate_id="P1",
                 title="manifest/checksum valid",
                 passed=False,
-                notes="language_packs.compiler.load_pack not available",
+                notes="packs.compiler.load_pack not available",
             )
         loader(pack_id)
     except Exception as exc:  # pylint: disable=broad-except
@@ -486,7 +486,7 @@ def evaluate_domain_contract(
     - ``reviewer_registry`` injects a parsed registry (avoids re-loading
       from disk per pack).
     """
-    root = data_root or (_REPO_ROOT / "language_packs" / "data")
+    root = data_root or (_REPO_ROOT / "packs" / "data")
 
     validation: DomainContractValidation = validate_domain_contract_pack(
         pack_id, data_root=root

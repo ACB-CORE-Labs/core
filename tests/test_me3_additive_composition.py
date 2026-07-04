@@ -28,7 +28,7 @@ from generate.recognizer_match import (
     _match_multiplicative_aggregation,
 )
 from generate.recognizer_registry import RatifiedRecognizer
-from language_packs.compile_compositions import compile_compositions
+from packs.compile_compositions import compile_compositions
 
 
 _SPEC: Mapping[str, Any] = {

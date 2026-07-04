@@ -13,7 +13,7 @@ from algebra.versor import unitize_versor
 from core.epistemic_state import EpistemicState
 from core.physics.energy import FieldEnergyOperator
 from core.physics.valence import lift_valence
-from language_packs.schema import (
+from packs.schema import (
     LanguagePackManifest,
     LanguageRole,
     LexicalEntry,

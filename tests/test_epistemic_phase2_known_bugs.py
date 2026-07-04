@@ -7,7 +7,7 @@ import pytest
 
 from evals.gsm8k_math import runner as gsm8k_runner
 from generate.math_realizer import RealizerError
-from language_packs.evidence import mean_pair_score, resonance_evidence
+from packs.evidence import mean_pair_score, resonance_evidence
 
 
 class _DummyManifold:

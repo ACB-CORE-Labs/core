@@ -283,7 +283,7 @@ def test_full_w026_route_table_preserves_teaching_and_pack_bytes() -> None:
     guarded = {
         "teaching": repo_root / "teaching",
         "packs": repo_root / "packs",
-        "language_packs/data": repo_root / "language_packs" / "data",
+        "packs/data": repo_root / "packs" / "data",
     }
     before = {name: _snapshot(path) for name, path in guarded.items()}
     engine_state = repo_root / "engine_state"

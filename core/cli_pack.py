@@ -11,7 +11,7 @@ from core.cli import _die, _REPO_ROOT, _run
 
 def cmd_pack_list(args: argparse.Namespace) -> int:
     """List compiled language packs."""
-    from language_packs import list_packs
+    from packs import list_packs
 
     packs = list_packs()
     if not packs:
@@ -24,7 +24,7 @@ def cmd_pack_list(args: argparse.Namespace) -> int:
 
 def cmd_pack_verify(args: argparse.Namespace) -> int:
     """Verify one language pack checksum."""
-    return _run(sys.executable, "-m", "language_packs", "verify", args.pack_id)
+    return _run(sys.executable, "-m", "packs", "verify", args.pack_id)
 
 
 def cmd_pack_validate(args: argparse.Namespace) -> int:

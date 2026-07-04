@@ -280,7 +280,7 @@ CC-3) maps the audit's `(refusal_reason, missing_operator)` pairs into
 A `CompositionClaim` ratification MAY mutate only:
 
 - reviewed composition-pattern registries:
-  `language_packs/data/en_core_math_v1/compositions/{category}.jsonl`
+  `packs/data/en_core_math_v1/compositions/{category}.jsonl`
 - proposal-layer artifacts (append-only proposal log)
 
 A `CompositionClaim` ratification MUST NOT directly mutate:

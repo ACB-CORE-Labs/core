@@ -55,7 +55,7 @@ architecture to get a fair empirical reading on the train sample.
 
 ## Decision
 
-Add a `language_packs/data/en_numerics_v1/` ratified semantic pack
+Add a `packs/data/en_numerics_v1/` ratified semantic pack
 that exhaustively encodes the English linguistic forms of
 quantities. Parser changes are minimal — most pack content
 replaces today's scattered hard-coded tables with ratified
@@ -299,8 +299,8 @@ addresses re: scope mismatch.
 
 | Phase | Module | Description |
 |-------|--------|-------------|
-| 0128.1 | `language_packs/data/en_numerics_v1/` | Pack content (lexicon + manifest + glosses + mastery report) |
-| 0128.2 | `language_packs/loader.py` | `lookup_cardinal`, `lookup_ordinal`, `lookup_fraction`, `lookup_quantifier`, `match_number_format` |
+| 0128.1 | `packs/data/en_numerics_v1/` | Pack content (lexicon + manifest + glosses + mastery report) |
+| 0128.2 | `packs/loader.py` | `lookup_cardinal`, `lookup_ordinal`, `lookup_fraction`, `lookup_quantifier`, `match_number_format` |
 | 0128.3 | `generate/math_roundtrip.py` | Replace hard-coded `WORD_NUMBERS` + `COMPARE_*_ANCHORS` with pack-backed lookups |
 | 0128.4 | `generate/math_candidate_parser.py` | `normalize_value_token` helper; quantifier-driven refusal |
 | 0128.5 | `tests/test_adr_0128_*.py` | Pack ratification (exhaustiveness gates) + parser integration + format regex corpus |

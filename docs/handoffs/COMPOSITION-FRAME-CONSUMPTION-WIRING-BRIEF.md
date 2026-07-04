@@ -12,7 +12,7 @@
 
 The end-to-end CompositionClaim ratification ran cleanly on 2026-05-27
 post-#393 merge. The handler appended one entry to
-`language_packs/data/en_core_math_v1/compositions/multiplicative_composition.jsonl`
+`packs/data/en_core_math_v1/compositions/multiplicative_composition.jsonl`
 with provenance `adr_0169_composition_ratified_shay_2026-05-27`.
 
 **The eval did not change.** `train_sample` re-ran with the reader on
@@ -24,9 +24,9 @@ Why: **no runtime code reads `compositions/*.jsonl` or `frames/*.jsonl`**.
 
 | Directory | Has handler (writes) | Has consumer (reads) |
 |---|---|---|
-| `language_packs/data/en_core_math_v1/lexicon/` | ✓ LexicalClaim (W2-D) | ✓ `generate/comprehension/lexicon.py::load_lexicon` |
-| `language_packs/data/en_core_math_v1/frames/` | ✓ FrameClaim (#389 / ADR-0168) | ✗ none |
-| `language_packs/data/en_core_math_v1/compositions/` | ✓ CompositionClaim (#393 / ADR-0169) | ✗ none |
+| `packs/data/en_core_math_v1/lexicon/` | ✓ LexicalClaim (W2-D) | ✓ `generate/comprehension/lexicon.py::load_lexicon` |
+| `packs/data/en_core_math_v1/frames/` | ✓ FrameClaim (#389 / ADR-0168) | ✗ none |
+| `packs/data/en_core_math_v1/compositions/` | ✓ CompositionClaim (#393 / ADR-0169) | ✗ none |
 
 Two of three sub-types ship the **ratification half** of the loop
 but not the **consumption half**. The handler-side compounding loop
@@ -112,8 +112,8 @@ Both CW-1 and CW-2 mirror this pattern.
 - `generate/comprehension/lexicon.py::load_lexicon` (the template)
 - `teaching/math_frame_ratification.py` (write side — entry schema)
 - `docs/adr/ADR-0168-frameclaim-ratification.md` §"Mutation boundary"
-- `language_packs/data/en_core_math_v1/manifest.json` (current shape)
-- The empty `language_packs/data/en_core_math_v1/frames/` directory
+- `packs/data/en_core_math_v1/manifest.json` (current shape)
+- The empty `packs/data/en_core_math_v1/frames/` directory
 
 **Outcome.**
 

@@ -287,7 +287,7 @@ def test_journal_does_not_write_teaching_pack_or_engine_state_roots(
     guarded = {
         "teaching": repo_root / "teaching",
         "packs": repo_root / "packs",
-        "language_packs/data": repo_root / "language_packs" / "data",
+        "packs/data": repo_root / "packs" / "data",
         "engine_state": repo_root / "engine_state",
     }
     before = {name: _snapshot(path) for name, path in guarded.items()}

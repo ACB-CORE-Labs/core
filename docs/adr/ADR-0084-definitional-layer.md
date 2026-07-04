@@ -198,9 +198,9 @@ co-pack lemmas. Targeted at the cases the prompt-diversity suite
 
 ### What changes
 
-- `language_packs/compiler.py` — schema accepts the optional
+- `packs/compiler.py` — schema accepts the optional
   `definition` block; ratification gate enforces closure.
-- `language_packs/data/en_core_cognition_v1/` — pilot pack gains
+- `packs/data/en_core_cognition_v1/` — pilot pack gains
   glosses end-to-end; manifest checksum refreshed; companion mastery
   report updated.
 - New `packs/primitives/en_semantic_primitives_v1/` — ratified

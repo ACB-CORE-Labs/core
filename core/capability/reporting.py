@@ -29,7 +29,7 @@ from core.capability.reviewers import (
 )
 from core.capability.sources import LEDGER_SOURCES
 from core.config import DEFAULT_CONFIG
-from language_packs.domain_contract import validate_domain_contract_pack
+from packs.domain_contract import validate_domain_contract_pack
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _CHAINS_PER_OPERATOR_DOMAIN = 8
@@ -109,12 +109,12 @@ def _latest_eval_result(lane: str, version: str, split: str) -> dict[str, Any]:
 
 
 def _manifest_for_pack(pack_id: str) -> dict[str, Any]:
-    path = _REPO_ROOT / "language_packs" / "data" / pack_id / "manifest.json"
+    path = _REPO_ROOT / "packs" / "data" / pack_id / "manifest.json"
     return _load_json(path)
 
 
 def _pack_lemmas(pack_id: str) -> set[str]:
-    root = _REPO_ROOT / "language_packs" / "data" / pack_id
+    root = _REPO_ROOT / "packs" / "data" / pack_id
     path = root / "lexicon.jsonl"
     lemmas: set[str] = set()
     if not path.exists():
@@ -139,7 +139,7 @@ def _count_jsonl(path: Path) -> int:
 
 
 def _pack_metrics(pack_id: str) -> dict[str, Any]:
-    root = _REPO_ROOT / "language_packs" / "data" / pack_id
+    root = _REPO_ROOT / "packs" / "data" / pack_id
     manifest = _manifest_for_pack(pack_id)
     lexicon_path = root / str(manifest.get("lexicon", "lexicon.jsonl"))
     glosses_path = root / "glosses.jsonl"

@@ -8,8 +8,8 @@ This is a content-only brief. Do not add new infrastructure, new loaders, or new
 
 **Target packs:**
 
-- `language_packs/data/grc_logos_cognition_v1`
-- `language_packs/data/he_core_cognition_v1`
+- `packs/data/grc_logos_cognition_v1`
+- `packs/data/he_core_cognition_v1`
 
 **Estimated effort:** One content pass per pack plus validation.
 
@@ -37,7 +37,7 @@ python3 - <<'PY'
 from pathlib import Path
 import json
 
-for pack in [Path('language_packs/data/grc_logos_cognition_v1'), Path('language_packs/data/he_core_cognition_v1')]:
+for pack in [Path('packs/data/grc_logos_cognition_v1'), Path('packs/data/he_core_cognition_v1')]:
     lexicon = pack / 'lexicon.jsonl'
     count = sum(1 for line in lexicon.read_text(encoding='utf-8').splitlines() if line.strip())
     print(pack.name, count)

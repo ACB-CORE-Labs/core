@@ -23,7 +23,7 @@ The sharp consequence: **the `R` in listen → comprehend → *recall* → think
 
 **The question:** Can `versor_condition(F) < 1e-6` *and* exact CGA recall hold over indefinite uptime **by construction**, with **no per-turn repair op** — or is continuous-field residency structurally blocked by CLAUDE.md's no-hot-path-repair rule?
 
-**Verified evidence (this session, direct source read):** `session/context.py` already carries a per-turn **"drift fix" family** — `_hemisphere_consistent_field` (Drift fix 2) and `_anchor_pull` (Drift fix 3, α=0.05, *"continuous conjugate correction against slow angular drift"*) both run every turn in `finalize_turn` (lines 254–255), plus "Drift fix 1" magnitude-preserving EMA at line 143. `session/context.py` is **not** a CLAUDE.md-sanctioned normalization site (sanctioned: `ingest/gate.py`, `language_packs/compiler.py`, `algebra/versor.py`, `sensorium/*/canonical.py`).
+**Verified evidence (this session, direct source read):** `session/context.py` already carries a per-turn **"drift fix" family** — `_hemisphere_consistent_field` (Drift fix 2) and `_anchor_pull` (Drift fix 3, α=0.05, *"continuous conjugate correction against slow angular drift"*) both run every turn in `finalize_turn` (lines 254–255), plus "Drift fix 1" magnitude-preserving EMA at line 143. `session/context.py` is **not** a CLAUDE.md-sanctioned normalization site (sanctioned: `ingest/gate.py`, `packs/compiler.py`, `algebra/versor.py`, `sensorium/*/canonical.py`).
 
 So the field **already needs per-turn correction even within a single session.** The architect must rule:
 

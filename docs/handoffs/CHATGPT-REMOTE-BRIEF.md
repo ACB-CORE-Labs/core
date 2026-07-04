@@ -151,7 +151,7 @@ its test, and that **serving is untouched** (you did not edit `chat/` or
 - **Never merge a PR.** Leave every PR open. Claude merges after CLI verification.
 - **Never touch** any of: `chat/**`, `generate/math_roundtrip.py` (esp.
   `_value_grounds`), `algebra/**`, `field/**`, `vault/**`, `generate/stream.py`,
-  `ingest/gate.py`, `language_packs/compiler.py`, identity/safety/ethics packs, CI
+  `ingest/gate.py`, `packs/compiler.py`, identity/safety/ethics packs, CI
   workflow files, or any test that currently passes (don't "fix" green tests).
 - **Do EX-1, EX-3, EX-4, EX-5 only.** **Do NOT do EX-2** (currency/decimal) — it is
   entangled with a wrong=0-sensitive grounding change in `_value_grounds` that

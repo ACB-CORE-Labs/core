@@ -131,7 +131,7 @@ Example category set (closed, ADR-tracked, extended only by ratification):
 | `entity_pronoun` | she, he, they, it | binds resolved entity |
 | `proper_noun_entity` | Tina, Marion, Jen, … | binds entity directly |
 
-The lexicon lives under `language_packs/data/en_core_math_v1/` parallel to
+The lexicon lives under `packs/data/en_core_math_v1/` parallel to
 `en_core_cognition_v1` and `en_core_relations_v1`, with the same loader
 discipline, the same manifest-checksum rule (CLAUDE.md §Semantic Pack
 Discipline), and the same review pathway (ADR-0150/0152/0155/0161). New

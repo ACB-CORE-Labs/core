@@ -27,7 +27,7 @@ shipped, separately-tested adapter.
 - ``pure_composition_no_new_mechanism`` — grep gate over
   ``core/demos/showcase.py``'s import graph refuses any symbol whose
   module path is not within the existing shipped packages
-  (``core/``, ``chat/``, ``generate/``, ``language_packs/``,
+  (``core/``, ``chat/``, ``generate/``, ``packs/``,
   ``teaching/``, ``evals/`` for adapter-lane bridges).
 
 ## Determinism

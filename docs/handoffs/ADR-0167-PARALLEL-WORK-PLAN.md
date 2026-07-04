@@ -175,7 +175,7 @@ connector keeps it coordinated with #348's lexicon work.
 - `teaching/math_lexical_ratification.py` (new) — function
   `apply_lexical_claim(claim: MathReaderRefusalEvidence, category: str,
   reviewer: str) -> RatificationReceipt`
-- Writes to `language_packs/data/en_core_math_v1/lexicon/<category>.jsonl`
+- Writes to `packs/data/en_core_math_v1/lexicon/<category>.jsonl`
   with the rules established by #348 (alphabetical sort, provenance tag,
   alias-vs-lemma decision)
 - Provenance tag: `phase_2_reader_ratified_<reviewer>_<YYYY-MM-DD>`

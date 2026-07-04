@@ -14,7 +14,7 @@ from generate.kernel_facts import (
     RelationRole,
     CandidateRelation,
 )
-from language_packs.scalar_equivalence import ScalarCandidate
+from packs.scalar_equivalence import ScalarCandidate
 from generate.process_frames import frame_by_name
 
 

@@ -6,7 +6,7 @@ and the gendered-pronoun resolution use case wired against the new
 
 All tests are skipped until the implementer:
   1. Creates ``generate/comprehension/contemplate.py`` per the scope brief
-  2. Moves the ``en_core_names_v1`` pack into ``language_packs/data/``
+  2. Moves the ``en_core_names_v1`` pack into ``packs/data/``
   3. Wires ``contemplate`` at the ``len(survivors) >= 2`` site in
      ``generate/math_candidate_graph.py``
   4. Removes the ``@pytest.mark.skip`` decorators

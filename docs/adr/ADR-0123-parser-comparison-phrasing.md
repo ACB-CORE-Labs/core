@@ -187,7 +187,7 @@ exists to render.
   modified.
 - `generate/math_verifier.py` — comparison-step verification is
   already shipped; not modified.
-- `language_packs/data/en_arithmetic_v1/*` — `en-arith-006`
+- `packs/data/en_arithmetic_v1/*` — `en-arith-006`
   (compare_additive) and `en-arith-007` (compare_multiplicative)
   are already shipped at manifest version 1.1.0; this ADR adds
   no further pack vocabulary.

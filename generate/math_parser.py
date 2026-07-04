@@ -133,7 +133,7 @@ def _canonical_unit(raw: str) -> str:
     s = raw.lower()
     # Check if the unit is registered in en_units_v1
     try:
-        from language_packs.loader import lookup_unit
+        from packs.loader import lookup_unit
         entry = lookup_unit(s)
         if entry is not None:
             return entry.plural.lower()

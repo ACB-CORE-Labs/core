@@ -446,14 +446,14 @@ class TestArithmeticPackExtension:
     """
 
     def test_apply_rate_lemma_present_in_lexicon(self) -> None:
-        from language_packs.compiler import load_pack_entries
+        from packs.compiler import load_pack_entries
 
         entries = load_pack_entries("en_arithmetic_v1")
         lemmas = {e.lemma for e in entries}
         assert "apply_rate" in lemmas
 
     def test_manifest_checksum_matches_lexicon_bytes(self) -> None:
-        pack_root = _REPO_ROOT / "language_packs" / "data" / "en_arithmetic_v1"
+        pack_root = _REPO_ROOT / "packs" / "data" / "en_arithmetic_v1"
         manifest = json.loads((pack_root / "manifest.json").read_text())
         actual_lex_sha = hashlib.sha256(
             (pack_root / "lexicon.jsonl").read_bytes()

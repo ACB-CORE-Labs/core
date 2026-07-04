@@ -35,7 +35,7 @@ from core.physics.energy import FieldEnergyOperator, EnergyClass
 from core.physics.valence import ValenceBundle
 from algebra.holonomy import holonomy_encode
 from field.state import FieldState
-from language_packs.schema import MorphologyEntry
+from packs.schema import MorphologyEntry
 
 
 @dataclass(frozen=True, slots=True)

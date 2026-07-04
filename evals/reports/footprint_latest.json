@@ -4,7 +4,7 @@
       "bytes_on_disk": 23420,
       "human": "22.87 KiB",
       "name": "language_pack:en_core_cognition_v1",
-      "path": "language_packs/data/en_core_cognition_v1",
+      "path": "packs/data/en_core_cognition_v1",
       "present": true
     },
     {

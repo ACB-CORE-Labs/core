@@ -83,7 +83,7 @@ ALLOWED_ARTIFACT_ROOTS = (
 )
 
 MATH_PROPOSALS_JSONL = REPO_ROOT / "teaching" / "math_proposals" / "proposals.jsonl"
-LANGUAGE_PACK_ROOT = REPO_ROOT / "language_packs" / "data"
+LANGUAGE_PACK_ROOT = REPO_ROOT / "packs" / "data"
 RUNTIME_PACK_ROOT = REPO_ROOT / "packs"
 WORKBENCH_TELEMETRY_ROOT = REPO_ROOT / "workbench_data"
 DEMOS_ROOT = REPO_ROOT / "demos"

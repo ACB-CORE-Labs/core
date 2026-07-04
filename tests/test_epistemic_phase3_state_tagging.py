@@ -5,9 +5,9 @@ import numpy as np
 from chat.telemetry import serialize_turn_event
 from core.epistemic_state import EpistemicState, NormativeClearance
 from core.physics.identity import TurnEvent
-from language_packs.compiler import compile_entries_to_manifold
-from language_packs.loader import lookup_unit
-from language_packs.schema import LexicalEntry
+from packs.compiler import compile_entries_to_manifold
+from packs.loader import lookup_unit
+from packs.schema import LexicalEntry
 from teaching.epistemic import EpistemicStatus
 from vault.store import VaultStore, epistemic_state_for_vault_status
 

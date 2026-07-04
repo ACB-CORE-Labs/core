@@ -111,7 +111,7 @@ Constructing a finding with `COHERENT`, `CONTESTED`, or `FALSIFIED` is rejected.
 
 ### 2. No pack mutation
 
-The contemplation runner must not write to `language_packs/`, ratification outputs, teaching corpora, or runtime pack manifests.
+The contemplation runner must not write to `packs/`, ratification outputs, teaching corpora, or runtime pack manifests.
 
 ### 3. Replay determinism
 

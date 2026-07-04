@@ -26,7 +26,7 @@ These tests pin:
 
 from __future__ import annotations
 
-from language_packs.compiler import load_pack, load_pack_entries
+from packs.compiler import load_pack, load_pack_entries
 
 
 PACK_ID = "en_core_relations_v1"

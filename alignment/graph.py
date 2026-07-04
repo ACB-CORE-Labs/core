@@ -17,9 +17,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from language_packs.schema import AlignmentEdge
+from packs.schema import AlignmentEdge
 
-_DATA_DIR = Path(__file__).parent.parent / "language_packs" / "data"
+_DATA_DIR = Path(__file__).parent.parent / "packs" / "data"
 
 
 class AlignmentGraph:
@@ -74,7 +74,7 @@ def load_alignment(
     """
     Load AlignmentEdge records from <data_root>/<pack_id>/alignment.jsonl.
 
-    ``data_root`` defaults to the committed ``language_packs/data`` tree; pass
+    ``data_root`` defaults to the committed ``packs/data`` tree; pass
     an alternate root (e.g. a test-fixture copy) to read packs from elsewhere
     without forking the parser.
 

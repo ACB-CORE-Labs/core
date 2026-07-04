@@ -25,7 +25,7 @@ import numpy as np
 import hashlib
 
 from algebra.versor import construction_seed_versor, versor_condition
-from language_packs.schema import LanguageRole, OOVPolicy
+from packs.schema import LanguageRole, OOVPolicy
 from sensorium.protocol import (
     CL41_DIM,
     Modality,

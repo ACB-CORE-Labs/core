@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from language_packs.definitions import (
+from packs.definitions import (
     ClosureViolation,
     DefinitionalSchemaError,
     GlossEntry,
@@ -158,7 +158,7 @@ def _write_temp_pack(
     pack_id: str = "fixture_pack_v1",
 ) -> str:
     """Create a fake pack in tmp_path and point _PACK_ROOT at it."""
-    from language_packs import definitions as _def
+    from packs import definitions as _def
 
     pack_dir = tmp_path / pack_id
     pack_dir.mkdir(parents=True, exist_ok=True)
@@ -172,7 +172,7 @@ class TestLoadPackGlosses:
     def test_missing_glosses_returns_empty(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        from language_packs import definitions as _def
+        from packs import definitions as _def
 
         monkeypatch.setattr(_def, "_PACK_ROOT", tmp_path)
         clear_definitions_cache()
@@ -457,7 +457,7 @@ class TestPrimitivesLoader:
 
 class TestManifestField:
     def test_default_is_false(self) -> None:
-        from language_packs.schema import LanguagePackManifest, LanguageRole
+        from packs.schema import LanguagePackManifest, LanguageRole
 
         manifest = LanguagePackManifest(
             pack_id="x",
@@ -478,7 +478,7 @@ class TestManifestField:
         # The 9 core packs + 4 relations packs + collapse-anchors opted
         # in via PR #65; the non-English cognition packs and en_minimal
         # remain non-opted at the time of writing.
-        from language_packs.compiler import load_pack
+        from packs.compiler import load_pack
 
         for pack_id in (
             "en_minimal_v1",
@@ -495,7 +495,7 @@ class TestManifestField:
         # surface it through the manifest loader.  This proves the
         # substrate's loader propagation works against real ratified
         # content, not just fixture packs.
-        from language_packs.compiler import load_pack
+        from packs.compiler import load_pack
 
         for pack_id in ("en_core_cognition_v1", "en_core_relations_v1"):
             manifest, _ = load_pack(pack_id)

@@ -25,7 +25,7 @@ from generate.comprehension.audit import audit_problem
 from generate.comprehension.state import ReaderRefusal
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PACK_DIR = REPO_ROOT / "language_packs/data/en_core_math_v1"
+PACK_DIR = REPO_ROOT / "packs/data/en_core_math_v1"
 DRAIN_PATH = PACK_DIR / "lexicon/drain_token.jsonl"
 CASES_PATH = REPO_ROOT / "evals/gsm8k_math/train_sample/v1/cases.jsonl"
 

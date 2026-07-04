@@ -52,7 +52,7 @@ def test_intentional_topology_splits_have_local_readmes() -> None:
         "core_ingest",
         "demos",
         "ingest",
-        "language_packs",
+        "packs",
         "notes",
         "packs",
         "workbench",

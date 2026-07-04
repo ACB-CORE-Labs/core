@@ -44,7 +44,7 @@ it does not perturb ``comprehend``'s templates or their wrong=0 tests.
 
 from __future__ import annotations
 
-from language_packs.compiler import load_pack_entries
+from packs.compiler import load_pack_entries
 
 from generate.meaning_graph.model import (
     Entity,

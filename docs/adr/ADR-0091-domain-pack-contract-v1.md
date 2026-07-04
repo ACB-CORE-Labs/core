@@ -11,7 +11,7 @@
 
 Accepted after ADR-0093 implementation wired Domain Pack Contract v1 into the validator and capability ledger:
 
-- `language_packs/domain_contract.py` parses the optional contract fields and rejects malformed structure.
+- `packs/domain_contract.py` parses the optional contract fields and rejects malformed structure.
 - `core/capability/domain_contract_predicates.py` evaluates the nine ADR-0091 semantic predicates.
 - `tests/test_capability_cli.py` verifies `core capability ledger --json` emits reasoning-capable rows for the ratified domains.
 - `tests/test_adr_0097_mathematics_logic_ratification.py` and `tests/test_adr_0100_0102_sibling_ratifications.py` verify all nine predicates pass for the ratified domain packs.

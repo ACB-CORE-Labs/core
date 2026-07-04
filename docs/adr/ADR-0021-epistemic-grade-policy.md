@@ -131,7 +131,7 @@ typed surfaces:
   `ACCEPTED` / `REJECTED_IDENTITY` axis.  Accepting a proposal
   is not the same as ratifying it as `COHERENT` — the two are
   orthogonal and both required for admission as evidence.
-- `language_packs/data/*/lexicon.jsonl` — new optional field
+- `packs/data/*/lexicon.jsonl` — new optional field
   `epistemic_status` (default `COHERENT` for the seed
   vocabulary; deliberate-curator-reviewed at pack version
   bumps).  No retroactive tagging without review.

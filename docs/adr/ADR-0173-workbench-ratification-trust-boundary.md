@@ -40,7 +40,7 @@ Each handler is:
 - partition-tested (math/cognition isolation)
 - idempotent (`AlreadyRatified` on duplicate)
 - append-only on a reviewed JSONL artifact under
-  `language_packs/data/en_core_math_v1/{lexicon,frames,compositions}/*.jsonl`
+  `packs/data/en_core_math_v1/{lexicon,frames,compositions}/*.jsonl`
 - accessible only via local Python entrypoints
 
 The original ADR-0160 prohibition was a safety stance against

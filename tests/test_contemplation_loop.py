@@ -133,7 +133,7 @@ def test_contemplation_runner_is_replay_deterministic(tmp_path: Path) -> None:
 def test_contemplation_runner_does_not_mutate_pack_tree(tmp_path: Path) -> None:
     report = tmp_path / "frontier_wave1.json"
     _sample_frontier_report(report)
-    pack_root = Path("language_packs")
+    pack_root = Path("packs")
     before = sorted(
         (p.relative_to(pack_root).as_posix(), p.stat().st_mtime_ns, p.stat().st_size)
         for p in pack_root.rglob("*")

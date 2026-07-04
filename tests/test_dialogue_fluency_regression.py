@@ -111,7 +111,7 @@ def test_running_dialogue_blade_stays_nonzero_after_three_turns() -> None:
         )
 
     from session.context import SessionContext
-    from language_packs import load_pack
+    from packs import load_pack
     _, vocab = load_pack("en_core_cognition_v1")
     ctx = SessionContext(vocab)
 

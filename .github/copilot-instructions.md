@@ -26,7 +26,7 @@ The cognitive path is centered on:
 - `teaching/correction.py`, `teaching/review.py`, `teaching/store.py`
 - `evals/*`
 - `calibration/*`
-- `language_packs/data/en_core_cognition_v1`
+- `packs/data/en_core_cognition_v1`
 
 The runtime response contract is documented in `docs/runtime_contracts.md`.
 Follow it.
@@ -42,7 +42,7 @@ versor_condition(F) < 1e-6
 Allowed construction/closure sites:
 
 - `ingest/gate.py`
-- `language_packs/compiler.py` / vocabulary construction
+- `packs/compiler.py` / vocabulary construction
 - `algebra/versor.py`
 
 Forbidden hot-path repair sites:

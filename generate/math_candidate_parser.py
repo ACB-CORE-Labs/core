@@ -158,7 +158,7 @@ _ACTOR_OR_PRONOUN: Final[str] = (
 #   - Slash fraction literal: ``N/M``. Denominator-zero refused at
 #     resolve time, not regex.
 #   - Hyphenated multi-word cardinal: ``twenty-five``, ``ninety-nine``.
-#     Resolved via :func:`language_packs.numerics_loader.parse_compound_cardinal`.
+#     Resolved via :func:`packs.numerics_loader.parse_compound_cardinal`.
 #   - Digit run.
 #   - Single-word cardinal (legacy ``WORD_NUMBERS`` set).
 
@@ -447,7 +447,7 @@ def _resolve_value(value_token: str) -> _ResolvedValue | None:
         return None
     # Hyphenated multi-word cardinal: twenty-five, ninety-nine, etc.
     if "-" in t:
-        from language_packs.numerics_loader import parse_compound_cardinal
+        from packs.numerics_loader import parse_compound_cardinal
 
         parsed = parse_compound_cardinal(t)
         if parsed is None:
@@ -469,7 +469,7 @@ def _is_indefinite_quantifier(token: str) -> bool:
     rather than guessed — preserves wrong == 0.
     """
     try:
-        from language_packs.loader import lookup_quantifier
+        from packs.loader import lookup_quantifier
         entry = lookup_quantifier(token.lower())
         if entry is not None and entry.semantic_type == "indefinite":
             return True
@@ -712,7 +712,7 @@ def _canonicalize_unit(unit_raw: str) -> str:
     """
     lowered = unit_raw.lower()
     try:
-        from language_packs.loader import lookup_unit
+        from packs.loader import lookup_unit
         entry = lookup_unit(lowered)
         if entry is not None:
             return entry.plural.lower()
@@ -1588,7 +1588,7 @@ def _multi_word_cardinal_candidates(sentence: str) -> list[CandidateInitial]:
     if m is None:
         return []
     value_raw = m.group("value")
-    from language_packs.numerics_loader import parse_compound_cardinal
+    from packs.numerics_loader import parse_compound_cardinal
     parsed = parse_compound_cardinal(value_raw)
     if parsed is None:
         return []

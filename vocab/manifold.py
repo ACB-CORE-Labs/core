@@ -35,7 +35,7 @@ from algebra.versor import versor_unit_residual
 from core.epistemic_state import EpistemicState, coerce_epistemic_state
 from core.physics.energy import EnergyProfile
 from core.physics.valence import ValenceBundle
-from language_packs.schema import MorphologyEntry
+from packs.schema import MorphologyEntry
 
 _MANIFOLD_RESIDUAL_TOLERANCE = 1e-5
 

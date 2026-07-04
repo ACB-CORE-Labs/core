@@ -9,7 +9,7 @@ UI showed there is **no robust proof to make legible yet.**
 ## Claim under test
 
 The "crown proof" of the three-language design (`HolonomyAlignmentCase`,
-`language_packs/schema.py`): *aligned canonical clauses across Hebrew / Greek /
+`packs/schema.py`): *aligned canonical clauses across Hebrew / Greek /
 English produce nearby holonomies — closer than a misaligned negative — without
 flattening their distinctions.* The flagship case is HAC-001:
 `word/דבר/λόγος + beginning/ראשית/ἀρχή + truth/אמת/ἀλήθεια`, negative = truth→ζωή

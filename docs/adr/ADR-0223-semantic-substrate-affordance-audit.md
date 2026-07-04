@@ -4,7 +4,7 @@
 
 **Date:** 2026-06-19
 
-**Domains:** `language_packs/`, `generate/kernel_facts.py`, `generate/problem_frame.py`, `generate/problem_frame_builder.py`, `generate/problem_frame_contracts.py`, `scripts/gsm8k_problem_frame_adequacy.py`, `scripts/gsm8k_substrate_morphology.py`, `generate/derivation/`, `generate/math_candidate_graph.py`, `recognition/`, `generate/graph_planner.py`, `vault/`, `field/`, `algebra/`, `docs/adr/`, `docs/analysis/`, and related tests.
+**Domains:** `packs/`, `generate/kernel_facts.py`, `generate/problem_frame.py`, `generate/problem_frame_builder.py`, `generate/problem_frame_contracts.py`, `scripts/gsm8k_problem_frame_adequacy.py`, `scripts/gsm8k_substrate_morphology.py`, `generate/derivation/`, `generate/math_candidate_graph.py`, `recognition/`, `generate/graph_planner.py`, `vault/`, `field/`, `algebra/`, `docs/adr/`, `docs/analysis/`, and related tests.
 
 **Depends on:** #829 Kernel Substrate Tranche 1, #830 ProblemFrame operationalization / legacy-deprecation guardrails, #831 ProblemFrame bindings and contract-readiness diagnostics, ADR-0144 (graph/carrier separation), ADR-0207 (typed adapters / anti-universal-IR posture), ADR-0218 (proof-carrying promotion), INV-25 (independent gold), INV-30 (open-world determination never asserts False), and existing wrong-zero serving discipline.
 

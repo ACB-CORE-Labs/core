@@ -30,7 +30,7 @@ The agent who wrote the initial glosses used bare lemma forms (uninflected dicti
 
 ## What you ARE changing
 
-For each gloss entry in `language_packs/data/<pack>/glosses.jsonl` where the gloss reads ungrammatically when slotted into the composer's POS frame:
+For each gloss entry in `packs/data/<pack>/glosses.jsonl` where the gloss reads ungrammatically when slotted into the composer's POS frame:
 
 | POS | Composer frame | Example before | Example after |
 |---|---|---|---|
@@ -68,7 +68,7 @@ Run this from the repo root to get an honest list:
 PYTHONPATH=. python3 - <<'EOF'
 import json, re
 from pathlib import Path
-ROOT = Path('language_packs/data')
+ROOT = Path('packs/data')
 
 # Patterns flagging fluency issues likely visible in the composer surface.
 # These are heuristics — manually verify each hit.
@@ -137,9 +137,9 @@ When in doubt, **leave it.** A slightly stilted gloss that reads OK is better th
 For each pack you touched, recompute `glosses_checksum`:
 
 ```bash
-for pack in $(ls language_packs/data); do
-  gloss_path=language_packs/data/$pack/glosses.jsonl
-  manifest_path=language_packs/data/$pack/manifest.json
+for pack in $(ls packs/data); do
+  gloss_path=packs/data/$pack/glosses.jsonl
+  manifest_path=packs/data/$pack/manifest.json
   if [ ! -f "$gloss_path" ]; then continue; fi
   new_sha=$(python3 -c "import hashlib; print(hashlib.sha256(open('$gloss_path','rb').read()).hexdigest())")
   old_sha=$(python3 -c "import json; print(json.load(open('$manifest_path')).get('glosses_checksum',''))")

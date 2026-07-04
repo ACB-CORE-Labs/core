@@ -16,7 +16,7 @@ from generate.intent import IntentTag
 
 @pytest.fixture()
 def vocab():
-    from language_packs import load_pack
+    from packs import load_pack
     _manifest, manifold = load_pack("en_core_cognition_v1")
     return manifold
 

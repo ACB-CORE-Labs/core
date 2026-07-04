@@ -15,7 +15,7 @@ from workbench.api import WorkbenchApi
 from workbench import readers
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PACK_ROOT = REPO_ROOT / "language_packs" / "data" / "en_core_math_v1"
+PACK_ROOT = REPO_ROOT / "packs" / "data" / "en_core_math_v1"
 
 def setup_isolated_workbench(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> WorkbenchApi:
     # 1. Copy en_core_math_v1 to tmp_path

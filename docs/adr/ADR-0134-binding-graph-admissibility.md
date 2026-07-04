@@ -32,7 +32,7 @@ Add three deliverables under `generate/binding_graph/`:
 1. **`units.py`** — pure unit algebra over an integer exponent vector
    on six base dimensions (`length, time, mass, money, count,
    temperature`). The closed vocabulary is loaded once from
-   `language_packs/data/en_units_v1/lexicon.jsonl` at first call and
+   `packs/data/en_units_v1/lexicon.jsonl` at first call and
    memoized. Composite unit ids of the form `"<num>_per_<denom>"`
    resolve recursively as `unit_quotient(parse_unit(num),
    parse_unit(denom))`. `parse_unit` refuses with

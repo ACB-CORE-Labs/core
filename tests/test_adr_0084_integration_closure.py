@@ -29,8 +29,8 @@ from __future__ import annotations
 
 import pytest
 
-from language_packs.compiler import load_pack_entries
-from language_packs.definitions import (
+from packs.compiler import load_pack_entries
+from packs.definitions import (
     load_pack_glosses,
     verify_definitional_closure,
 )

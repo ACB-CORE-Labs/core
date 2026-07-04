@@ -4,7 +4,7 @@ from __future__ import annotations
 from fractions import Fraction
 
 from generate.problem_frame_builder import build_problem_frame
-from language_packs.scalar_equivalence import extract_scalar_candidates, list_unsupported_surfaces
+from packs.scalar_equivalence import extract_scalar_candidates, list_unsupported_surfaces
 
 
 def _frame_names(text: str) -> tuple[str, ...]:

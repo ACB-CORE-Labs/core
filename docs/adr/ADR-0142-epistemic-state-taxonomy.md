@@ -103,11 +103,11 @@ The following is implemented and merged:
 - `chat/runtime.py` — `ChatResponse` carries all three fields; both stub and
   main paths populate them from verdicts and grounding source.
 - `chat/telemetry.py` — serializes state axes into JSONL turn events.
-- `language_packs/loader.py` — `UnitEntry` carries `epistemic_state`; curated
+- `packs/loader.py` — `UnitEntry` carries `epistemic_state`; curated
   entries tagged DECODED, composition-rule entries tagged INFERRED.
 - `vocab/manifold.py` — `add()` accepts `epistemic_state`; `add_transient()`
   tags words UNVERIFIED_NOVEL; `epistemic_state_for_word()` exposed.
-- `language_packs/compiler.py` — passes `epistemic_state` through compile,
+- `packs/compiler.py` — passes `epistemic_state` through compile,
   clone, and cached-load paths.
 - `vault/store.py` — `epistemic_state_for_vault_status()` mapping;
   `epistemic_state` stamped into metadata on `store()`; recall results expose

@@ -152,7 +152,7 @@ def bench_backend_speedup() -> BenchResult:
     will be tracked when the doctrine clock advances.
     """
     from field.operators import GraphDiffusionOperator
-    from language_packs.compiler import load_pack
+    from packs.compiler import load_pack
     from scripts.run_pulse import _build_manifold
 
     _, manifold = load_pack("en_core_cognition_v1")
@@ -225,7 +225,7 @@ def bench_versor_closure_audit() -> BenchResult:
     """Run pulse for all eval cases, verify versor_condition < 1e-6 at every step."""
     from algebra.backend import versor_condition
     from field.operators import GraphDiffusionOperator, ConstraintCorrectionOperator
-    from language_packs.compiler import load_pack
+    from packs.compiler import load_pack
     from scripts.run_pulse import _build_manifold
 
     _, manifold = load_pack("en_core_cognition_v1")

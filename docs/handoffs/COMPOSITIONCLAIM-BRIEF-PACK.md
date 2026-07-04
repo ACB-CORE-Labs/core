@@ -156,7 +156,7 @@ Three new/modified modules and the dispatch wire:
 2. **`teaching/math_composition_ratification.py`** —
    `apply_composition_claim()` handler. Mirror
    `teaching/math_frame_ratification.py` exactly. Mutates ONLY
-   `language_packs/data/en_core_math_v1/compositions/{category}.jsonl`
+   `packs/data/en_core_math_v1/compositions/{category}.jsonl`
    files. Does NOT touch solver / parser / decomposer / runtime.
 
 3. **`workbench/readers.py`** — extend `_HANDLER_DISPATCH`:
@@ -252,7 +252,7 @@ Mirror `tests/test_math_frame_ratification.py` exactly:
 - `workbench/readers.py` — extend `_HANDLER_DISPATCH` + `suggested_cli`
 - `teaching/math_contemplation_proposal.py` — Literal extension +
   serializer round-trip
-- `language_packs/data/en_core_math_v1/compositions/.gitkeep` (new dir)
+- `packs/data/en_core_math_v1/compositions/.gitkeep` (new dir)
 - `tests/test_math_composition_ratification.py` (new file, 15 tests)
 - `tests/test_adr_0172_w1_shape_proposal.py` — add round-trip test for
   `composition_reclassification`

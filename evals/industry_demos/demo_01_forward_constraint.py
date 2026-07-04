@@ -36,7 +36,7 @@ import sys
 def run() -> dict:
     from generate.graph_planner import GraphNode, PropositionGraph
     from generate.graph_constraint import build_graph_constraint
-    from language_packs import load_pack
+    from packs import load_pack
     from algebra.cga import cga_inner
     import numpy as np
 

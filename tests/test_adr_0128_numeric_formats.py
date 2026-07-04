@@ -11,7 +11,7 @@ from fractions import Fraction
 
 import pytest
 
-from language_packs.numerics_loader import match_number_format
+from packs.numerics_loader import match_number_format
 
 
 # ---------------------------------------------------------------------------

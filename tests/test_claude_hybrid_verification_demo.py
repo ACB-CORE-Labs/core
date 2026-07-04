@@ -458,7 +458,7 @@ _FIRST_PARTY_ROOTS = (
     "evals",
     "field",
     "generate",
-    "language_packs",
+    "packs",
     "sensorium",
     "teaching",
     "vault",
