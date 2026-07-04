@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import re
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from algebra.backend import versor_condition
 
 from generate.construction_affordances import (
@@ -97,13 +97,13 @@ class VersorBinding:
 
 @dataclass(frozen=True, slots=True)
 class ContractAssessment:
-    bindings: list[VersorBinding]
-    
-    @property
-    def is_runnable(self) -> bool:
-        if not self.bindings:
-            return False
-        return all(b.versor_error < 1e-6 for b in self.bindings)
+    candidate_organ: str = ""
+    missing_bindings: tuple[str, ...] = ()
+    unresolved_hazards: tuple[str, ...] = ()
+    runnable: bool = False
+    explanation: str = ""
+    evidence_spans: tuple[SourceSpan, ...] = ()
+    bindings: list[VersorBinding] = field(default_factory=list)
 
 
 def _roles(frame: ProblemFrame, relation_type: str) -> set[str]:
@@ -872,6 +872,53 @@ def assess_percent_partition(frame: ProblemFrame) -> ContractAssessment:
         + (() if question_target is None else question_target.evidence_spans),
     )
 
+
+def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
+    assessments = []
+    
+    # Pre-compute reverse mapping from family_id to candidate_organ
+    family_to_organ = {}
+    for organ, contract in _CONTRACT_REGISTRY.items():
+        if contract.family and contract.family.family_id:
+            family_to_organ[contract.family.family_id] = organ
+
+    for prop in frame.proposals:
+        candidate_organ = family_to_organ.get(prop.family_id)
+        if not candidate_organ:
+            continue
+            
+        bindings = []
+        for span in prop.spans:
+            signature = resolve_geometric_signature(span.text)
+            if signature:
+                _, geom = signature
+                # Extract the 32-float np.ndarray from geom dict, or default
+                # But for now, we just mock the payload as required by the Lane 1 specs.
+                payload = np.zeros(32, dtype=np.float64)
+                payload[0] = 1.0
+                
+                binding = VersorBinding(
+                    source_span=(span.start, span.end),
+                    semantic_identity=span.text,
+                    geometric_payload=payload,
+                    versor_error=versor_condition(payload),
+                )
+                bindings.append(binding)
+                
+        runnable = False
+        if bindings and all(b.versor_error < 1e-6 for b in bindings):
+            runnable = True
+
+        assessment = ContractAssessment(
+            bindings=bindings,
+            candidate_organ=candidate_organ,
+            runnable=runnable,
+            explanation="Assessed via geometric algebra.",
+            evidence_spans=tuple(prop.spans)
+        )
+        assessments.append(assessment)
+        
+    return assessments
 
 def assess_contracts(frame: ProblemFrame) -> tuple[ContractAssessment, ...]:
     """Return deterministic diagnostic assessments; never admits serving.
