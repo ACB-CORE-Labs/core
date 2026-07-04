@@ -338,6 +338,30 @@ def _validate_per_category(
         assert graph["outcome"] == "admissible", f"{path}:{idx} outcome"
         return
 
+    if category is ShapeCategory.COMPARATIVE_WITH_UNIT:
+        assert len(anchors) >= 1, f"{path}:{idx} comparative_with_unit needs anchors"
+        for a in anchors:
+            _check_keys(path, idx, a, {
+                "kind", "subject_role", "factor_token",
+                "factor_kind", "direction", "unit_token", "reference_actor_token",
+            })
+            assert a["kind"] == "comparative_multiplicative", f"{path}:{idx} anchor kind"
+        assert graph["graph_intent"] == "compare", f"{path}:{idx} graph_intent"
+        assert graph["outcome"] == "admissible", f"{path}:{idx} outcome"
+        return
+
+    if category is ShapeCategory.UNIT_PARTITION:
+        assert len(anchors) >= 1, f"{path}:{idx} unit_partition needs anchors"
+        for a in anchors:
+            _check_keys(path, idx, a, {
+                "kind", "subject_role", "chunk_size_token",
+                "chunk_unit_token", "counted_noun_token", "partition_verb_token",
+            })
+            assert a["kind"] == "unit_partition", f"{path}:{idx} anchor kind"
+        assert graph["graph_intent"] == "partition", f"{path}:{idx} graph_intent"
+        assert graph["outcome"] == "admissible", f"{path}:{idx} outcome"
+        return
+
     raise AssertionError(f"unhandled category in dispatch: {category!r}")
 
 
