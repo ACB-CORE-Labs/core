@@ -65,7 +65,7 @@ def test_composition_registry_imports_no_cognition_modules():
 def test_compile_modules_import_no_cognition():
     repo = _repo_root()
     for mod in ("compile_frames.py", "compile_compositions.py"):
-        imports = _module_imports(repo / "language_packs" / mod)
+        imports = _module_imports(repo / "packs" / mod)
         cognition_taints = {
             i for i in imports
             if i.startswith("cognition.") or i.startswith("teaching.cognition")

@@ -160,7 +160,7 @@ def canonical_json(payload: dict[str, Any]) -> bytes:
 _TRACKED_MODULES: tuple[str, ...] = (
     "chat.telemetry",
     "chat.runtime",
-    "language_packs.compiler",
+    "packs.compiler",
 )
 
 

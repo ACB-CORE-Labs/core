@@ -1,5 +1,5 @@
 """
-language_packs/en_seeder.py — English Supervised Seeding Epoch (V1).
+packs/en_seeder.py — English Supervised Seeding Epoch (V1).
 
 Downloads GloVe-6B-50d (822 MB compressed, ~2.2M lines) on first run and
 caches it at ~/.cache/core/glove.6B.50d.txt.  Subsequent runs load from
@@ -20,11 +20,11 @@ structured bivector projection that encodes relational energy without
 disturbing the horosphere constraint.
 
 Usage:
-    from language_packs.en_seeder import seed_english_manifold
+    from packs.en_seeder import seed_english_manifold
     manifold = seed_english_manifold(max_words=50_000)
 
 Standalone:
-    python -m language_packs.en_seeder
+    python -m packs.en_seeder
 """
 
 from __future__ import annotations

@@ -161,7 +161,7 @@ def _names_pack_path() -> Path:
         if (repo_root / "pyproject.toml").exists():
             break
     return (
-        repo_root / "language_packs" / "data" / "en_core_names_v1"
+        repo_root / "packs" / "data" / "en_core_names_v1"
         / "gender.jsonl"
     )
 

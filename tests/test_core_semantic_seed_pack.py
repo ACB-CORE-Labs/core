@@ -6,7 +6,7 @@ from chat.runtime import ChatRuntime
 from core.config import DEFAULT_CONFIG
 from generate.intent import IntentTag, classify_intent
 from generate.graph_planner import graph_from_intent, plan_articulation
-from language_packs.compiler import load_mounted_packs, load_pack, load_pack_entries
+from packs.compiler import load_mounted_packs, load_pack, load_pack_entries
 
 
 _REQUIRED_CONCEPTS = frozenset({

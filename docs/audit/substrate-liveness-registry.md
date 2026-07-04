@@ -75,7 +75,7 @@ Sample of live callers (full grep: `grep -rn "from algebra\|import algebra" --in
 
 - `field/propagate.py:23` — versor application during field propagation (L1 → L0)
 - `ingest/gate.py:33` — versor/energy at injection boundary (L1 → L0)
-- `language_packs/compiler.py:14` — versor construction during pack compilation (L3 → L0)
+- `packs/compiler.py:14` — versor construction during pack compilation (L3 → L0)
 - `chat/runtime.py` — versor operations in the live turn loop (L6 → L0)
 - `generate/intent_ratifier.py`, `generate/admissibility.py`, `generate/proposition.py` — versor-gated generation (L5 → L0)
 - `core/cli.py:446-469` — versor diagnostics surfaced to operator (CLI → L0)
@@ -110,7 +110,7 @@ only environment; not a closure gap).
 | `versor_condition` | `core/cognition/trace.py:34`, `evals/cognition/runner.py:60` (gated in evals at `< 1e-6`) |
 | `normalize_to_versor` | `generate/intent_ratifier.py`, `generate/admissibility.py` |
 | `cga_inner` | `vault/store.py`, `algebra/backend.py` (`_CGA_INNER_METRIC`), `evals/lab/vault_epistemic_trace.py` |
-| `embed_point`, `is_null`, `null_project` | `vault/store.py`, `language_packs/compiler.py`, `field/operators.py` |
+| `embed_point`, `is_null`, `null_project` | `vault/store.py`, `packs/compiler.py`, `field/operators.py` |
 | `using_rust`, `vault_recall` (backend) | `vault/store.py`, all Rust-parity tests |
 | `word_transition_rotor`, `make_rotor_from_angle` | `field/operators.py`, `generate/intent_ratifier.py` |
 | `holonomy_encode`, `holonomy_similarity` | `vault/store.py`, `evals/lab/` |
@@ -252,7 +252,7 @@ Sample of live callers (full greps used the required shape, e.g.
 - `generate/stream.py:18`, `core/cognition/pipeline.py:21`,
   `core/cognition/result.py:13`, `chat/runtime.py:80`, and
   `session/context.py:15` — live `FieldState` consumers.
-- `language_packs/compiler.py:14,72` and `ingest/gate.py:33,292` —
+- `packs/compiler.py:14,72` and `ingest/gate.py:33,292` —
   `FieldEnergyOperator` computes pack/injection energy.
 - `vocab/manifold.py:36,74,227`, `generate/salience.py:44`, and
   `packs/common/runtime_rules.py:113,120` — energy profile/class consumers.
@@ -292,7 +292,7 @@ Additional evidence for the pulse-only field-operator path:
 | `FieldState.holonomy` / `energy` / `valence` | carried by `session/context.py` and `generate/stream.py`; `energy` also consumed by `generate/salience.py` through vocab energy and by runtime surface helpers |
 | `EnergyClass` / `EnergyProfile.energy_class` | `ingest/gate.py`, `packs/common/runtime_rules.py`, `core_ingest/compiler.py`, `core/physics/learning.py` |
 | `EnergyClass.vault_candidate` | `core/physics/learning.py` (L2 follow-up; internal physics import, not a live L1 turn-loop consumer) |
-| `FieldEnergyOperator.compute` | `ingest/gate.py`, `language_packs/compiler.py`, `field/propagate.py` |
+| `FieldEnergyOperator.compute` | `ingest/gate.py`, `packs/compiler.py`, `field/propagate.py` |
 | `aspect_weight` | Internal to `FieldEnergyOperator.compute`; direct tests only |
 | `FieldState.advance` | Tests only (`tests/test_energy.py`) |
 | `ManifoldState.with_fields` / `ManifoldState.advance` | Tests only (`tests/test_manifold_state.py`) |
@@ -516,7 +516,7 @@ Triaged from Keyword grep against `docs/adr/`:
 
 | ADR | Title | Status | Belongs at L3? |
 |---|---|---|---|
-| ADR-0005 | Language Pack Contract | Accepted | Yes — defines `language_packs/` format, schemas, and loader contract |
+| ADR-0005 | Language Pack Contract | Accepted | Yes — defines `packs/` format, schemas, and loader contract |
 | ADR-0015 | Language Packs as Compiled Linguistic Manifolds | Accepted | Yes — compiled linguistic manifolds and holonomy resonance |
 | ADR-0027 | Identity Packs — Load-Bearing, Swappable, Ratified | Accepted | Yes — defines swappable, ratified identity packs |
 | ADR-0028 | Identity Surface Wiring | Accepted | Boundary-only — L3 compiles/loads identity packs; realizer/composition is L6 |
@@ -544,16 +544,16 @@ Triaged from Keyword grep against `docs/adr/`:
 
 | Module | Lines | Live-import sites (outside own package, outside `tests/`) | Test-import sites | Status |
 |---|---|---|---|---|
-| `language_packs` | 74 | 31 | 53 | Live |
-| `language_packs.__main__` | 157 | 0 | 0 | Live (CLI entrypoint) |
-| `language_packs.compiler` | 620 | 7 | 31 | Live |
-| `language_packs.definitions` | 312 | 0 | 4 | Dormant (ADR-0084 proposed) |
-| `language_packs.domain_contract` | 217 | 3 | 1 | Live |
-| `language_packs.en_seeder` | 276 | 1 | 0 | Live (Scripts/run_pulse) |
-| `language_packs.evidence` | 64 | 0 | 1 | Dormant (ADR-0015 test only) |
-| `language_packs.loader` | 387 | 5 | 3 | Live |
-| `language_packs.numerics_loader` | 459 | 3 | 3 | Live |
-| `language_packs.schema` | 202 | 6 | 4 | Live |
+| `packs` | 74 | 31 | 53 | Live |
+| `packs.__main__` | 157 | 0 | 0 | Live (CLI entrypoint) |
+| `packs.compiler` | 620 | 7 | 31 | Live |
+| `packs.definitions` | 312 | 0 | 4 | Dormant (ADR-0084 proposed) |
+| `packs.domain_contract` | 217 | 3 | 1 | Live |
+| `packs.en_seeder` | 276 | 1 | 0 | Live (Scripts/run_pulse) |
+| `packs.evidence` | 64 | 0 | 1 | Dormant (ADR-0015 test only) |
+| `packs.loader` | 387 | 5 | 3 | Live |
+| `packs.numerics_loader` | 459 | 3 | 3 | Live |
+| `packs.schema` | 202 | 6 | 4 | Live |
 | `packs.anchor_lens` | 25 | 3 | 4 | Live |
 | `packs.anchor_lens.loader` | 422 | 3 | 2 | Live |
 | `packs.common.runtime_rules` | 122 | 8 | 0 | Live |
@@ -590,10 +590,10 @@ Triaged from Keyword grep against `docs/adr/`:
 ### Caller-trace evidence
 
 Exposed symbols of the layer are cleanly resolved through static imports across multiple layers:
-- `language_packs.compiler.load_pack` is called by `chat/runtime.py` to mount the live vocabulary.
-- `language_packs.compiler.load_mounted_packs` is used in `tests/test_oov_grounding_cache.py` and `tests/test_dialogue.py`.
-- `language_packs.loader.lookup_unit` is consumed by the math parsers `generate/math_parser.py:120` and `generate/math_candidate_parser.py:660`.
-- `language_packs.loader.lookup_cardinal` / `parse_compound_cardinal` are consumed in `generate/math_roundtrip.py:377,400`.
+- `packs.compiler.load_pack` is called by `chat/runtime.py` to mount the live vocabulary.
+- `packs.compiler.load_mounted_packs` is used in `tests/test_oov_grounding_cache.py` and `tests/test_dialogue.py`.
+- `packs.loader.lookup_unit` is consumed by the math parsers `generate/math_parser.py:120` and `generate/math_candidate_parser.py:660`.
+- `packs.loader.lookup_cardinal` / `parse_compound_cardinal` are consumed in `generate/math_roundtrip.py:377,400`.
 - `packs.common.validator.validate_pack_dir` is called by every pack-specific validation entrypoint (`packs/<lang>/validators.py`).
 
 ### Exercising suite lane
@@ -628,8 +628,8 @@ Exposed symbols of the layer are cleanly resolved through static imports across 
 | `validate_pack_dir` | `packs/he/validators.py:7`, `packs/grc/validators.py:7`, `packs/el/validators.py:7`, `packs/en/validators.py:7` |
 
 **Pass 2 — semantic (three load-bearing invariants checked):**
-1. **Pack manifest checksums match bytes on disk:** Verified in `language_packs/compiler.py` and `language_packs/__main__.py` that manifest checksums are computed using `hashlib.sha256(Path(...).read_bytes()).hexdigest()`. This ensures byte-level disk hashing instead of serialization of Python strings, fully respecting CLAUDE.md guidelines.
-2. **Pack mutation is proposal-only:** Grep scans confirm that no production runtime code path in `language_packs/` or `packs/` writes to or mutates on-disk ratified packs. Changes are strictly proposed via `PackMutationProposal` / `TeachingChainProposal` and applied via offline reviewed CLI commands (e.g. `core teaching review --accept`).
+1. **Pack manifest checksums match bytes on disk:** Verified in `packs/compiler.py` and `packs/__main__.py` that manifest checksums are computed using `hashlib.sha256(Path(...).read_bytes()).hexdigest()`. This ensures byte-level disk hashing instead of serialization of Python strings, fully respecting CLAUDE.md guidelines.
+2. **Pack mutation is proposal-only:** Grep scans confirm that no production runtime code path in `packs/` or `packs/` writes to or mutates on-disk ratified packs. Changes are strictly proposed via `PackMutationProposal` / `TeachingChainProposal` and applied via offline reviewed CLI commands (e.g. `core teaching review --accept`).
 3. **E0 vs E2 readback handling:** Checked `readback_from_intent` in `packs/common/runtime_rules.py`. While it receives `field_state.energy` and places its value into the `SurfaceRealization` metadata dataclass, it silently treats E0 identically to active E1/E2/E3 regions, returning the raw requested surface without modulating tense, framing, or hedging. This is a semantic inconsistency with ADR-0006/0007.
 
 ### Semantic mismatches flagged for human review
@@ -642,7 +642,7 @@ Exposed symbols of the layer are cleanly resolved through static imports across 
 | Criterion | Status | Evidence |
 |---|---|---|
 | 1. Design artifact | ✅ | ADR-0005, ADR-0015, ADR-0027, ADR-0029, ADR-0033, ADR-0051, ADR-0068, ADR-0070, ADR-0073, ADR-0091, ADR-0093, ADR-0102 |
-| 2. Code artifact | ✅ | `language_packs/` (compiler, loader, schema), `packs/` (common rules, check loaders, register loader) |
+| 2. Code artifact | ✅ | `packs/` (compiler, loader, schema), `packs/` (common rules, check loaders, register loader) |
 | 3. Live caller | ⚠️ PARTIAL | Live turn loop mounts packs and resolves vocabulary, but local pack readback rules are dormant and unwired |
 | 4. Exercised by suite lane | ✅ | `packs` exercises compilation/ratification; `smoke` exercises turn pipeline e2e |
 | 5. Cross-layer consistency | ⚠️ PARTIAL | Local readback rules silently treat E0/E2/E3 identically, conflicting with ADR-0006/0007 modulation rules |
@@ -817,7 +817,7 @@ alias except the broad `full` alias. `smoke` covers the default
    phrase "same teaching examples" if "example" includes labels/bundles.
 3. **Vocabulary source:** Recognition does **not** consume L3's compiled
    `VocabManifold`, domain namespaces, or pack-resident lexicon. Grep
-   across `recognition/` found no `VocabManifold`, `language_packs`,
+   across `recognition/` found no `VocabManifold`, `packs`,
    `load_pack`, `compiled`, `lexicon`, or `vocab` references except a
    prose comment in `outcome.py`. `derive_recognizer()` operates on raw
    token sequences plus taught `FeatureBundle` evidence.
@@ -1311,7 +1311,7 @@ The scope's layering table cited Layer L7 concerns as: correction extraction, re
 | `teaching/cross_pack_supersede.py` | 206 | 1 (`core/cli.py`) | 1 | Live |
 | `teaching/discovery.py` | 326 | 2 (`teaching/proposals.py`, `core/cli.py`) | 2 | Live |
 | `teaching/discovery_sink.py` | 105 | 1 (`core/contemplation/__main__.py`) | 3 | Live |
-| `teaching/epistemic.py` | 56 | 6 (`core/cognition/pipeline.py`, `generate/proposition.py`, `vault/store.py`, `session/context.py`, `language_packs/compiler.py`, `formation/promote.py`) | 6 | Live |
+| `teaching/epistemic.py` | 56 | 6 (`core/cognition/pipeline.py`, `generate/proposition.py`, `vault/store.py`, `session/context.py`, `packs/compiler.py`, `formation/promote.py`) | 6 | Live |
 | `teaching/from_curriculum.py` | 275 | 0 | 1 | Partially live (test-only logic) |
 | `teaching/from_miner.py` | 370 | 0 | 1 | Partially live (test-only logic) |
 | `teaching/gaps.py` | 206 | 1 (`core/cli.py`) | 1 | Live |
@@ -1537,7 +1537,7 @@ Tier 4 ratified packs are read by pack resolvers and pack grounding. Pack mutati
 | T1 — session vault | ✅ `VaultStore` via `SessionContext` | ✅ live session ingest/finalization writes session entries | ✅ exact CGA recall in runtime/generation/decomposition | Live |
 | T2 — turn-event audit trail | ✅ `turn_log`; optional telemetry JSONL sink | ✅ every chat turn appends a `TurnEvent`; stub path participates | ✅ telemetry readers/tests and discovery extraction over current turn | Live, sink opt-in |
 | T3 — reviewed teaching corpus | ✅ JSONL corpora under `teaching/*_chains*` | ⚠️ reviewed append via L7 is live; automated T1/T2 discovery promotion remains absent | ✅ teaching/cross-pack grounding loaders | PARTIAL |
-| T4 — ratified packs | ✅ `packs/*`, `language_packs/data/*` | ⚠️ pack mutation is proposal-only; ratification is outside L8 live turn loop | ✅ pack resolver / grounding / contemplation pack probes | PARTIAL by design |
+| T4 — ratified packs | ✅ `packs/*`, `packs/data/*` | ⚠️ pack mutation is proposal-only; ratification is outside L8 live turn loop | ✅ pack resolver / grounding / contemplation pack probes | PARTIAL by design |
 
 ### Semantic mismatches flagged for human review
 

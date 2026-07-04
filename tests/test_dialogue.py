@@ -8,7 +8,7 @@ from generate.dialogue import (
     propose_dialogue,
 )
 from generate.proposition import FrameRegistry
-from language_packs.compiler import load_mounted_packs
+from packs.compiler import load_mounted_packs
 from session.context import SessionContext
 
 

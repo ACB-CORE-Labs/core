@@ -60,7 +60,7 @@ behind the units pack.
 
 ## Decision
 
-Add a `language_packs/data/en_units_v1/` ratified semantic pack and
+Add a `packs/data/en_units_v1/` ratified semantic pack and
 extend the ADR-0126 candidate parser to consult it during candidate
 emission. **No new operation kinds.** **No new ADR-0114a
 obligations.** **No new exit gates beyond ADR-0126's** (`correct ≥
@@ -372,8 +372,8 @@ against decoration without integration.
 
 | Phase | Module | Description |
 |-------|--------|-------------|
-| 0127.1 | `language_packs/data/en_units_v1/` | Pack content: lexicon (dimensions + units + containers + rate connectors) + `conversions.jsonl` + manifest + glosses + mastery report |
-| 0127.2 | `language_packs/loader.py` (or sibling) | Pack loader API: `lookup_unit(token) -> UnitEntry \| None`; `get_conversion_graph(dimension) -> ConversionGraph` |
+| 0127.1 | `packs/data/en_units_v1/` | Pack content: lexicon (dimensions + units + containers + rate connectors) + `conversions.jsonl` + manifest + glosses + mastery report |
+| 0127.2 | `packs/loader.py` (or sibling) | Pack loader API: `lookup_unit(token) -> UnitEntry \| None`; `get_conversion_graph(dimension) -> ConversionGraph` |
 | 0127.3 | `generate/math_roundtrip.py` | Optional `require_pack_typed_unit` parameter on `roundtrip_admissible` |
 | 0127.4 | `generate/math_candidate_parser.py` | Three new initial-possession shapes + rate-declaration extractor, consulting the pack loader |
 | 0127.5 | `generate/math_unit_conversion.py` (new) | `canonicalize_to_dimension_canonical(quantity, graph)`; shortest-path lookup + edges-fired provenance for `SolutionTrace.steps` |

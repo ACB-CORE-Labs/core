@@ -48,7 +48,7 @@ def _ratified_pack_lanes() -> set[str]:
         for pack_id in packs:
             manifest_path = (
                 _REPO_ROOT
-                / "language_packs"
+                / "packs"
                 / "data"
                 / pack_id
                 / "manifest.json"

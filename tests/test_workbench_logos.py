@@ -12,7 +12,7 @@ from workbench.schemas import LogosMorphologyLinkIssue, SafetyVerdict, to_data
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DATA_ROOT = REPO_ROOT / "language_packs" / "data"
+DATA_ROOT = REPO_ROOT / "packs" / "data"
 LOGOS_PACK_IDS = [
     "grc_logos_cognition_v1",
     "grc_logos_micro_v1",
@@ -22,7 +22,7 @@ LOGOS_PACK_IDS = [
 
 
 def _copy_language_pack_root(tmp_path: Path) -> Path:
-    root = tmp_path / "language_packs_data"
+    root = tmp_path / "packs_data"
     shutil.copytree(DATA_ROOT, root)
     return root
 

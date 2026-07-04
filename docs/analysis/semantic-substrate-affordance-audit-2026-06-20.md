@@ -163,9 +163,9 @@ The no-new-legacy guard currently allowlists 31 derivation files. Representative
 
 | File/function | Recognizes | Classification | Evidence | Recommendation |
 |---|---|---|---|---|
-| `language_packs/scalar_equivalence.py` and numerics loader | exact numeric surfaces and values | allowed lexical normalization | pack-backed entries, exact `Fraction`, spans | retain; extend only through reviewed lexical data |
-| `language_packs/unit_dimensions.py` | exact unit aliases/dimensions | allowed lexical normalization | pack lookup with deterministic result | retain; improve lexical coverage without sentence grammar |
-| `language_packs/ambiguity_hazards.py` | known ambiguous surfaces | allowed corrective scaffold | centralized deterministic registry | retain and connect hazards to construction/contract blocking |
+| `packs/scalar_equivalence.py` and numerics loader | exact numeric surfaces and values | allowed lexical normalization | pack-backed entries, exact `Fraction`, spans | retain; extend only through reviewed lexical data |
+| `packs/unit_dimensions.py` | exact unit aliases/dimensions | allowed lexical normalization | pack lookup with deterministic result | retain; improve lexical coverage without sentence grammar |
+| `packs/ambiguity_hazards.py` | known ambiguous surfaces | allowed corrective scaffold | centralized deterministic registry | retain and connect hazards to construction/contract blocking |
 | `generate/problem_frame_builder.py::_extract_process_frame_candidates` | process families from trigger surfaces | diagnostic scaffold; duplicate semantic source | scans Python `ProcessFrame.trigger_surfaces`; no pack/CGA lookup | replace incrementally with pack-backed construction proposals |
 | builder entity/question/actor regexes | local mentions, bindings, question object | diagnostic scaffold / foundation risk | grammar-bearing regexes at lines 280–298 | freeze; replace family-by-family through construction binding |
 | builder `_TRANSFER_RE` / `_bound_relations` | one transfer form and generic fraction/percent links | diagnostic scaffold / legacy parser risk | fixed clause shape and positional whole selection | use only as migration evidence; do not broaden |

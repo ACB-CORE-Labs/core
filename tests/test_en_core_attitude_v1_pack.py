@@ -28,11 +28,11 @@ from pathlib import Path
 
 from chat.pack_resolver import DEFAULT_RESOLVABLE_PACK_IDS, resolve_lemma
 from core.config import RuntimeConfig
-from language_packs.compiler import load_pack
+from packs.compiler import load_pack
 
 
 PACK_ID = "en_core_attitude_v1"
-_PACK_ROOT = Path(__file__).resolve().parent.parent / "language_packs" / "data" / PACK_ID
+_PACK_ROOT = Path(__file__).resolve().parent.parent / "packs" / "data" / PACK_ID
 
 EXPECTED_TOTAL = 40
 

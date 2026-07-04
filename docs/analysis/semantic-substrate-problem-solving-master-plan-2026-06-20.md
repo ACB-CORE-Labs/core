@@ -92,10 +92,10 @@ The hard safety floor remains `wrong_ids == []`.
 |---|---|---|
 | Geometric field transitions | `algebra/versor.py`, `field/propagate.py` | Live and load-bearing; preserve `versor_condition(F) < 1e-6`. |
 | Exact CGA neighborhood/recall | `algebra/cga.py`, `algebra/backend.py`, `vocab/manifold.py`, `vault/store.py` | Exact deterministic scan exists; no ANN, cosine substitution, or stochastic ranking is needed. |
-| Checksummed language-pack compilation | `language_packs/compiler.py`, manifests, immutable pack bytes | Correct reviewed source boundary for lexical state. |
-| Exact scalar normalization | `language_packs/scalar_equivalence.py`, `language_packs/numerics_loader.py` | Produces exact `Fraction` values and source spans. |
-| Unit and dimension facts | `language_packs/unit_dimensions.py` | Useful typed lexical facts; coverage is narrow but the boundary is sound. |
-| Central ambiguity vocabulary | `language_packs/ambiguity_hazards.py` | Correct place for reusable corrective conditions. |
+| Checksummed language-pack compilation | `packs/compiler.py`, manifests, immutable pack bytes | Correct reviewed source boundary for lexical state. |
+| Exact scalar normalization | `packs/scalar_equivalence.py`, `packs/numerics_loader.py` | Produces exact `Fraction` values and source spans. |
+| Unit and dimension facts | `packs/unit_dimensions.py` | Useful typed lexical facts; coverage is narrow but the boundary is sound. |
+| Central ambiguity vocabulary | `packs/ambiguity_hazards.py` | Correct place for reusable corrective conditions. |
 | Provenance-bearing kernel facts | `generate/kernel_facts.py` | Immutable facts, exact spans, and provenance distinctions are sound. |
 | Purpose-specific graph separation | `ProblemFrame`, `EpistemicGraph`, math state, `PropositionGraph` | Healthy separation; preserve it. |
 | Existing math verifier/admission discipline | derivation verification and GSM8K runner | The `wrong == 0` safety posture is the reference constraint. |
@@ -413,7 +413,7 @@ they must not collapse gates to chase score.
 | Title | `feat(packs): compile reviewed math construction catalog` |
 | Branch | `codex/math-construction-catalog` |
 | Purpose | Give construction signatures, roles, hazards, and negative licenses a checksummed source of truth in reviewed pack bytes. Seed proportional decrease and a minimal cross-family set. |
-| Likely files | `language_packs/compile_frames.py`, a typed frame/construction loader, `language_packs/schema.py` or manifest validation, `language_packs/data/en_core_math_v1/frames/*.jsonl`, compiled `frames.jsonl`, manifest checksum, pack/compiler tests. |
+| Likely files | `packs/compile_frames.py`, a typed frame/construction loader, `packs/schema.py` or manifest validation, `packs/data/en_core_math_v1/frames/*.jsonl`, compiled `frames.jsonl`, manifest checksum, pack/compiler tests. |
 | Non-goals | No runtime proposal retrieval, no organ logic in data, no broad grammar, no dynamic regex/code, no serving. |
 | Tests | Canonical bytes, checksum-from-written-bytes, schema rejection, deterministic ordering, unknown field/version failure, source/compiled parity. |
 | Expected movement | No serving or runnable change. Empty math-frame checksum becomes a reviewed non-empty artifact. |
@@ -771,8 +771,8 @@ uv run python -m pytest -q \
   tests/test_gsm8k_problem_frame_adequacy.py \
   tests/test_gsm8k_morphology_missing_kernel_labels.py \
   tests/test_process_frames.py \
-  tests/test_language_packs_scalar_equivalence.py \
-  tests/test_language_packs_unit_dimensions.py \
+  tests/test_packs_scalar_equivalence.py \
+  tests/test_packs_unit_dimensions.py \
   tests/test_ambiguity_hazards.py
 ```
 

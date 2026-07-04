@@ -97,7 +97,7 @@ class TestPureCompositionGate:
     """ADR-0099 invariant: ``public_showcase_pure_composition``.
 
     Showcase imports must come from already-shipped packages
-    (``core/``, ``chat/``, ``generate/``, ``language_packs/``,
+    (``core/``, ``chat/``, ``generate/``, ``packs/``,
     ``teaching/``, ``evals/``) plus the stdlib. Any other import is
     a new mechanism and must be blocked.
     """
@@ -106,7 +106,7 @@ class TestPureCompositionGate:
         "core.",
         "chat.",
         "generate.",
-        "language_packs.",
+        "packs.",
         "teaching.",
         "evals.",
     )

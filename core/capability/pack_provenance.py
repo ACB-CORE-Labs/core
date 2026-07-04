@@ -49,7 +49,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 # The math domain's operator pack — same constant the solver uses.
 DEFAULT_MATH_PACK_ID: str = "en_arithmetic_v1"
 DEFAULT_MATH_LEXICON: Path = (
-    _REPO_ROOT / "language_packs" / "data" / DEFAULT_MATH_PACK_ID / "lexicon.jsonl"
+    _REPO_ROOT / "packs" / "data" / DEFAULT_MATH_PACK_ID / "lexicon.jsonl"
 )
 
 # Default B3 lane location.

@@ -772,11 +772,11 @@ class TestINV21OneMutationPath:
 # revision graph at SPECULATIVE. Defaulting to COHERENT would substitute
 # pack authority for coherence judgment — exactly the bias the schema
 # refuses. This test is the regression guard for the original Leak A:
-# `language_packs/compiler.py:331` previously defaulted to "coherent",
+# `packs/compiler.py:331` previously defaulted to "coherent",
 # silently promoting every unmarked pack row to admissible-as-evidence.
 
-from language_packs.schema import LexicalEntry
-from language_packs.compiler import _parse_entry
+from packs.schema import LexicalEntry
+from packs.compiler import _parse_entry
 
 
 class TestINV22PackDefaultSpeculative:
@@ -807,7 +807,7 @@ class TestINV22PackDefaultSpeculative:
         assert entry.epistemic_status == "speculative", (
             "Compiler default for missing epistemic_status is "
             f"{entry.epistemic_status!r} — must be 'speculative'. "
-            "language_packs/compiler.py:331 was the original Leak A site; do not regress."
+            "packs/compiler.py:331 was the original Leak A site; do not regress."
         )
 
     def test_explicit_coherent_is_preserved(self):
@@ -1503,7 +1503,7 @@ import dataclasses as _dataclasses
 # component is one of these is project code (a potential shared decoding pathway);
 # stdlib and third-party (numpy, ...) are not.
 _FIRST_PARTY_ROOTS: frozenset[str] = frozenset({
-    "generate", "core", "algebra", "field", "language_packs", "vault", "chat",
+    "generate", "core", "algebra", "field", "packs", "vault", "chat",
     "teaching", "sensorium", "calibration", "evals", "ingest", "recognition",
     "formation", "morphology", "vocab", "session", "contemplation", "persona",
     "alignment", "probe", "core_ingest", "core_rs",

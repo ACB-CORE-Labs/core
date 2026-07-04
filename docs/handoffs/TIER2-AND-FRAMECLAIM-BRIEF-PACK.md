@@ -76,7 +76,7 @@ Two new modules and the proposal→handler wiring:
    Modeled exactly on `teaching/math_lexical_ratification.py` (the W2-D
    template). Mutates ONLY:
    - reviewed frame-category registries (e.g. a frame_opener JSON file under
-     `language_packs/data/en_core_math_v1/frames/`)
+     `packs/data/en_core_math_v1/frames/`)
    - reviewed verb→frame mappings (same dir)
    - proposal-layer artifacts
 
@@ -173,7 +173,7 @@ Modeled on `tests/test_math_lexical_ratification.py`:
 - `teaching/math_frame_ratification.py` (new file, ≤400 lines —
   W2-D-shaped)
 - `workbench/readers.py` — wire `frame_reclassification` dispatch
-- `language_packs/data/en_core_math_v1/frames/.gitkeep` if the dir doesn't exist (the
+- `packs/data/en_core_math_v1/frames/.gitkeep` if the dir doesn't exist (the
   ratification handler mutates files under here)
 - `tests/test_math_frame_ratification.py` (new file, 14 tests above)
 - `core/cli.py` — add the test file to the `teaching` suite tuple

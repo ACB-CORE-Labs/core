@@ -92,7 +92,7 @@ class TestChecksum:
         # Copy the real pack into a temp location.
         real_pack = (
             Path(__file__).resolve().parent.parent
-            / "language_packs" / "data" / "en_core_math_v1"
+            / "packs" / "data" / "en_core_math_v1"
         )
         fake_pack = tmp_path / "en_core_math_v1"
         shutil.copytree(real_pack, fake_pack)
@@ -221,7 +221,7 @@ class TestCacheHit:
         import shutil
         real_pack = (
             Path(__file__).resolve().parent.parent
-            / "language_packs" / "data" / "en_core_math_v1"
+            / "packs" / "data" / "en_core_math_v1"
         )
         fake_pack = tmp_path / "en_core_math_v1"
         shutil.copytree(real_pack, fake_pack)
@@ -243,7 +243,7 @@ class TestMutualExclusion:
 
         real_pack = (
             Path(__file__).resolve().parent.parent
-            / "language_packs" / "data" / "en_core_math_v1"
+            / "packs" / "data" / "en_core_math_v1"
         )
         conflict_pack = tmp_path / "en_core_math_v1"
         shutil.copytree(real_pack, conflict_pack)

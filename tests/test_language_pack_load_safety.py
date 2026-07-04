@@ -1,8 +1,8 @@
-"""Trust-boundary tests for ``language_packs.compiler`` pack loading (ADR-0051).
+"""Trust-boundary tests for ``packs.compiler`` pack loading (ADR-0051).
 
 These tests guard the path-traversal boundary at every public entrypoint
 that takes a ``pack_id`` string and resolves it into a filesystem path
-under ``language_packs/data/``.  The guard runs *before* any
+under ``packs/data/``.  The guard runs *before* any
 :class:`pathlib.Path` join so a malicious id cannot escape the data
 directory even briefly.
 """
@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from language_packs.compiler import (
+from packs.compiler import (
     _validate_pack_id,
     load_mounted_packs,
     load_pack,

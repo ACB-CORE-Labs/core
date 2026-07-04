@@ -15,7 +15,7 @@ It is intentionally narrow: implement a `ScalarEquivalence` facade over the exis
 
 The implementation should reuse existing pack machinery rather than create a duplicate scalar pack.
 
-`language_packs/numerics_loader.py` already exposes:
+`packs/numerics_loader.py` already exposes:
 
 - `lookup_cardinal(token)`
 - `lookup_ordinal(token)`
@@ -41,7 +41,7 @@ The facade should respect those invariants unless a later ADR explicitly extends
 Create:
 
 ```text
-language_packs/scalar_equivalence.py
+packs/scalar_equivalence.py
 ```
 
 The facade should expose source-grounded scalar candidates with canonical rational values and ambiguity hazards.
@@ -239,7 +239,7 @@ A scalar value produced by arithmetic is not a `ScalarLexeme` and must not be re
 Create:
 
 ```text
-tests/test_language_packs_scalar_equivalence.py
+tests/test_packs_scalar_equivalence.py
 ```
 
 Required tests:
@@ -297,7 +297,7 @@ Run:
 
 ```bash
 git diff --check origin/main...HEAD
-pytest tests/test_language_packs_scalar_equivalence.py -q
+pytest tests/test_packs_scalar_equivalence.py -q
 pytest tests/test_adr_0128_numeric_formats.py -q
 pytest tests/test_math_candidate_graph_xhigh_sprint13_lift.py -q
 pytest tests/test_math_candidate_graph_sprint12_singleton_contract_lift.py -q

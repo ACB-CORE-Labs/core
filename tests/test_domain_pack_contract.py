@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from language_packs.domain_contract import parse_domain_contract, validate_domain_contract_pack
+from packs.domain_contract import parse_domain_contract, validate_domain_contract_pack
 
 
 def test_absent_domain_contract_is_valid_noop() -> None:

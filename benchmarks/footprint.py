@@ -288,7 +288,7 @@ def run_footprint(*, pack_id: str = "en_core_cognition_v1") -> FootprintReport:
     rss_post = _rss_bytes()
     py_bytes, py_modules = _measure_python_runtime()
 
-    pack_path = PROJECT_ROOT / "language_packs" / "data" / pack_id
+    pack_path = PROJECT_ROOT / "packs" / "data" / pack_id
     vault_path = PROJECT_ROOT / "vault"
     rust_path = _rust_artifact_path()
     seed_packs_path = PROJECT_ROOT / "packs"

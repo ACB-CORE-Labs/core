@@ -34,8 +34,8 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from language_packs.compile_compositions import compile_compositions
-from language_packs.compile_frames import compile_frames
+from packs.compile_compositions import compile_compositions
+from packs.compile_frames import compile_frames
 
 
 @dataclass(frozen=True, slots=True)

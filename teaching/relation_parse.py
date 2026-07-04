@@ -8,7 +8,7 @@ relation graph that the teaching store represents.
 
 Determinism: pure regex-driven extraction; no learned classifier; no
 external IO.  The relation vocabulary is drawn from the cognition pack's
-relation predicates (see ``language_packs/data/en_core_cognition_v1``).
+relation predicates (see ``packs/data/en_core_cognition_v1``).
 """
 
 from __future__ import annotations

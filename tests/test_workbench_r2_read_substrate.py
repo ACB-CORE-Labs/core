@@ -378,7 +378,7 @@ def test_r2_read_routes_do_not_mutate_guarded_roots() -> None:
     guarded = {
         "teaching": repo_root / "teaching",
         "packs": repo_root / "packs",
-        "language_packs/data": repo_root / "language_packs" / "data",
+        "packs/data": repo_root / "packs" / "data",
         "engine_state": repo_root / "engine_state",
     }
     before = {name: _snapshot(path) for name, path in guarded.items()}

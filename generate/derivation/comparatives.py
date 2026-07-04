@@ -27,7 +27,7 @@ from generate.math_roundtrip import WORD_NUMBERS
 
 _PACK_DIR: Final[Path] = (
     Path(__file__).resolve().parents[2]
-    / "language_packs"
+    / "packs"
     / "data"
     / "en_core_comparatives_v1"
 )

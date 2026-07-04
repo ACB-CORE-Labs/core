@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from chat.runtime import ChatRuntime
-from language_packs import load_pack, load_pack_entries
+from packs import load_pack, load_pack_entries
 
 
 def test_load_pack_and_vocab_size():

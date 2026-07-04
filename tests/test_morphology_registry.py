@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from language_packs import load_pack_entries
+from packs import load_pack_entries
 from morphology.registry import MorphologyRegistry, load_morphology
 
 

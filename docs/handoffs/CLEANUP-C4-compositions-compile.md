@@ -2,15 +2,15 @@
 
 **Classification**: Half-built producer/consumer loop (audit finding C4)  
 **Risk**: Low — purely additive, wrong == 0 guaranteed by registry design  
-**Scope**: `language_packs/data/en_core_math_v1/`, `language_packs/compile_compositions.py`
+**Scope**: `packs/data/en_core_math_v1/`, `packs/compile_compositions.py`
 
 ---
 
 ## Problem
 
-`language_packs/data/en_core_math_v1/compositions/multiplicative_composition.jsonl`
+`packs/data/en_core_math_v1/compositions/multiplicative_composition.jsonl`
 was ratified via ADR-0169 and is present on disk. But
-`language_packs/data/en_core_math_v1/compositions.jsonl` (the compiled
+`packs/data/en_core_math_v1/compositions.jsonl` (the compiled
 artifact that the runtime reads) **does not exist**.
 
 The consumer chain is:
@@ -38,9 +38,9 @@ stable; the ratified claims simply have no effect on runtime decisions.
 ```bash
 uv run python -c "
 from pathlib import Path
-from language_packs.compile_compositions import compile_pack_compositions
+from packs.compile_compositions import compile_pack_compositions
 
-pack = Path('language_packs/data/en_core_math_v1')
+pack = Path('packs/data/en_core_math_v1')
 result = compile_pack_compositions(pack)
 print('written to:', result.output_path)
 print('sha256:', result.sha256)
@@ -59,9 +59,9 @@ compiled artifact is committed, `manifest.json` should be updated to declare
 `CompositionRegistryLoadError` at load time (defense in depth).
 
 ```bash
-sha=$(sha256sum language_packs/data/en_core_math_v1/compositions.jsonl | cut -d' ' -f1)
+sha=$(sha256sum packs/data/en_core_math_v1/compositions.jsonl | cut -d' ' -f1)
 # or on macOS:
-sha=$(shasum -a 256 language_packs/data/en_core_math_v1/compositions.jsonl | cut -d' ' -f1)
+sha=$(shasum -a 256 packs/data/en_core_math_v1/compositions.jsonl | cut -d' ' -f1)
 ```
 
 Then add `"composition_checksum": "<sha>"` to `manifest.json`.
@@ -89,8 +89,8 @@ uv run core test --suite smoke -q
 ### Step 5 — Commit
 
 ```
-language_packs/data/en_core_math_v1/compositions.jsonl   (new)
-language_packs/data/en_core_math_v1/manifest.json        (updated: composition_checksum)
+packs/data/en_core_math_v1/compositions.jsonl   (new)
+packs/data/en_core_math_v1/manifest.json        (updated: composition_checksum)
 ```
 
 Commit message:

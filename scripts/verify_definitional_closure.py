@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = REPO_ROOT / "language_packs" / "data"
+DATA_ROOT = REPO_ROOT / "packs" / "data"
 PRIMITIVES_PATH = REPO_ROOT / "packs" / "primitives" / "en_semantic_primitives_v1" / "primitives.jsonl"
 TOKEN_RE = re.compile(r"[A-Za-z_]+")
 STOPWORDS = {"is", "of", "to", "by", "the", "a", "an", "that", "which"}

@@ -21,7 +21,7 @@ doctrine and converts the live properties into type-level and test-level
 guards:
 
 1. `core pack validate` dynamic validator execution.
-2. Language / source pack loading via `language_packs.compiler`.
+2. Language / source pack loading via `packs.compiler`.
 3. OOV token grounding error messages.
 4. Pack mutation proposal-only enforcement.
 
@@ -50,7 +50,7 @@ boundary holds.  Result: the boundary is doctrinally complete.
 
 ### Surface 2 — Language / source pack loading
 
-**Audited state — gap found.**  `language_packs/compiler.py` exposed
+**Audited state — gap found.**  `packs/compiler.py` exposed
 three public entrypoints — `load_pack(pack_id)`,
 `load_pack_entries(pack_id)`, and `load_mounted_packs(pack_ids)` — that
 concatenated their argument straight into a filesystem path
@@ -149,7 +149,7 @@ fallback, approximate recall, and unreviewed mutation*.  This ADR:
   deterministic and pure.
 - **Adds no broad infrastructure.**  Two new small modules
   (`core/_safe_display.py`, the `_validate_pack_id` helper inside
-  `language_packs/compiler.py`) and three new test files.
+  `packs/compiler.py`) and three new test files.
 - **Pins the boundary in tests.**  The invariants previously enforced
   by convention now fail closed in CI.
 
@@ -161,7 +161,7 @@ fallback, approximate recall, and unreviewed mutation*.  This ADR:
 
 - New module `core/_safe_display.py` — central sanitiser for user-
   controlled fragments in error / log messages.
-- `language_packs/compiler.py` gains `_validate_pack_id` and wires it
+- `packs/compiler.py` gains `_validate_pack_id` and wires it
   into `load_pack`, `load_pack_entries`, and `load_mounted_packs`.
 - Three new test files:
   - `tests/test_safe_display.py` (20 tests)

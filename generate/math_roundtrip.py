@@ -385,7 +385,7 @@ def _value_grounds(value_token: str, haystack_tokens: frozenset[str]) -> bool:
             return True
     if "-" in value_token and not value_token[0].isdigit():
         try:
-            from language_packs.numerics_loader import parse_compound_cardinal
+            from packs.numerics_loader import parse_compound_cardinal
             parsed = parse_compound_cardinal(value_token)
             if parsed is not None:
                 components = [c for c in value_token.lower().split("-") if c]
@@ -404,7 +404,7 @@ def _value_grounds(value_token: str, haystack_tokens: frozenset[str]) -> bool:
     # isn't mounted (e.g., in legacy test environments) we silently fall
     # through to the hard-coded table.
     try:
-        from language_packs.loader import lookup_cardinal
+        from packs.loader import lookup_cardinal
         entry = lookup_cardinal(lowered)
         if entry is not None:
             digit = str(entry.numeric_value)
@@ -428,7 +428,7 @@ def _value_grounds(value_token: str, haystack_tokens: frozenset[str]) -> bool:
             return True
     # Pack-backed reverse lookup: digit -> cardinal surface in haystack
     try:
-        from language_packs.loader import lookup_cardinal
+        from packs.loader import lookup_cardinal
         for tok in haystack_tokens:
             entry = lookup_cardinal(tok)
             if entry is not None and entry.numeric_value == n:

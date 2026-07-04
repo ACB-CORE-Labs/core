@@ -32,7 +32,7 @@ As of PR-0, the baseline scoring metrics after #827 are:
 ## PR 2: ScalarEquivalence Facade
 - **Purpose:** Introduce the `ScalarEquivalence` facade layer querying over the existing [ADR-0128](../adr/ADR-0128-numerics-pack.md) `en_numerics_v1` pack to map and canonicalize number words, fractions, and percentages, unless a later ADR proves a separate pack is necessary.
 - **Files Likely Touched:**
-  - `language_packs/scalar_equivalence.py` [NEW]
+  - `packs/scalar_equivalence.py` [NEW]
 - **Tests Required:**
   - Unit tests validating mapping of `half`, `0.5`, `50%`, and unicode fraction symbols to their canonical scalar values.
 - **Explicit Non-Goals:** Integrating this facade into any parser or serving code path.
@@ -59,8 +59,8 @@ As of PR-0, the baseline scoring metrics after #827 are:
 ## PR 4: Units/Dimensions Kernel v1
 - **Purpose:** Unify the units and numerics loaders to standardize dimension checks.
 - **Files Likely Touched:**
-  - `language_packs/loader.py`
-  - `language_packs/numerics_loader.py`
+  - `packs/loader.py`
+  - `packs/numerics_loader.py`
 - **Tests Required:**
   - Standard unit conversion tests.
 - **Explicit Non-Goals:** Implementing new physical dimensions.

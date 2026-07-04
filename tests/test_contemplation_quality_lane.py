@@ -400,7 +400,7 @@ class TestReadOnlyInvariant:
         guarded = {
             "teaching/corpora": repo_root / "teaching" / "corpora",
             "packs": repo_root / "packs",
-            "language_packs/data": repo_root / "language_packs" / "data",
+            "packs/data": repo_root / "packs" / "data",
         }
         before = {k: self._snapshot(v) for k, v in guarded.items()}
 

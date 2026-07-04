@@ -59,7 +59,7 @@ Fix the operator or construction boundary that violated it.
 ### Allowed normalization boundaries
 Normalization / closure / canonicalization belongs only at explicit construction or algebra boundaries, such as:
 - `ingest/gate.py`
-- `language_packs/compiler.py`
+- `packs/compiler.py`
 - `algebra/versor.py`
 - `sensorium/*/canonical.py`
 - `session/context.py` for session-scoped **semantic anchoring** of the field toward the session concept-attractor (the anchor pull, hemisphere consistency). Allowed ONLY because every such op (1) preserves `versor_condition` BY CONSTRUCTION — composed from `rotor_power` / `word_transition_rotor` / `versor_apply` on the Spin manifold, never a post-hoc `unitize`/grade-projection — AND (2) carries semantic meaning in the cognitive model.

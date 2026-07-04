@@ -1,7 +1,7 @@
 """CW-2 — runtime composition registry loader.
 
 Reads ``{pack}/compositions.jsonl`` (compiled by
-:mod:`language_packs.compile_compositions`) and exposes a frozen lookup
+:mod:`packs.compile_compositions`) and exposes a frozen lookup
 surface for the recognizer/injector path.
 
 Structural twin of :mod:`generate.comprehension.frame_registry` plus
@@ -79,7 +79,7 @@ class CompositionRegistry:
 
 _CACHE: dict[tuple[str, int, str], CompositionRegistry] = {}
 
-_DEFAULT_PACK_RELPATH = Path("language_packs") / "data" / "en_core_math_v1"
+_DEFAULT_PACK_RELPATH = Path("packs") / "data" / "en_core_math_v1"
 
 _VALID_POLARITIES: frozenset[str] = frozenset({"affirms", "falsifies"})
 

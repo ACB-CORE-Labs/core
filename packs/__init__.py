@@ -1,5 +1,5 @@
 """
-language_packs — compiled linguistic manifold schemas.
+packs — compiled linguistic manifold schemas.
 
 Language packs are not datasets. They are pinned, checksummed, compiled
 linguistic manifolds: surface forms, morphology, grammar attractors,

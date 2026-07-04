@@ -26,7 +26,7 @@ from chat.pack_resolver import (
 )
 
 
-_DATA = Path(__file__).resolve().parent.parent / "language_packs" / "data"
+_DATA = Path(__file__).resolve().parent.parent / "packs" / "data"
 
 
 def _packs_with_glosses() -> list[str]:

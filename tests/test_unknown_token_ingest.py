@@ -5,7 +5,7 @@ import numpy as np
 from algebra.backend import cga_inner
 from algebra.versor import unitize_versor, versor_condition
 from ingest.gate import inject
-from language_packs.compiler import load_mounted_packs
+from packs.compiler import load_mounted_packs
 from session.context import SessionContext
 
 

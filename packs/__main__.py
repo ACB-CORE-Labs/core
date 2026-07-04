@@ -1,11 +1,11 @@
 """
-python -m language_packs <command> [pack_id]
+python -m packs <command> [pack_id]
 
 Commands
 --------
 compile <pack_id>   Compile pack, verify checksum, print manifold stats.
 verify  <pack_id>   Verify on-disk checksum against manifest only.
-list                List all packs in language_packs/data/ with metadata.
+list                List all packs in packs/data/ with metadata.
 
 Checksum contract
 -----------------
@@ -38,7 +38,7 @@ def _available_packs() -> list[str]:
 def cmd_list(_args) -> int:
     packs = _available_packs()
     if not packs:
-        print("No packs found in language_packs/data/")
+        print("No packs found in packs/data/")
         return 0
     print(f"{'pack_id':<30} {'role':<20} {'entries':>7} {'checksum_ok'}")
     print("-" * 70)
@@ -93,7 +93,7 @@ def cmd_compile(args) -> int:
         return rc
 
     pack_id = args.pack_id
-    from language_packs.compiler import load_pack, load_pack_entries
+    from packs.compiler import load_pack, load_pack_entries
 
     try:
         manifest, manifold = load_pack(pack_id)
@@ -127,7 +127,7 @@ def cmd_compile(args) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="python -m language_packs",
+        prog="python -m packs",
         description="CORE language-pack compiler and verifier.",
     )
     sub = parser.add_subparsers(dest="command")
@@ -135,10 +135,10 @@ def main() -> int:
     sub.add_parser("list", help="List all available packs.")
 
     p_verify = sub.add_parser("verify", help="Verify pack checksum.")
-    p_verify.add_argument("pack_id", help="Pack ID (directory name under language_packs/data/).")
+    p_verify.add_argument("pack_id", help="Pack ID (directory name under packs/data/).")
 
     p_compile = sub.add_parser("compile", help="Compile pack and print manifold stats.")
-    p_compile.add_argument("pack_id", help="Pack ID (directory name under language_packs/data/).")
+    p_compile.add_argument("pack_id", help="Pack ID (directory name under packs/data/).")
 
     args = parser.parse_args()
 

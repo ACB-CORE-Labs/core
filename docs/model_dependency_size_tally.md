@@ -37,7 +37,7 @@ files. Append a dated line to the [Changelog](#changelog).
 |---|---|---|---|
 | Algebra / versor engine (`algebra/`, `core-rs/`) | 0 | 0 | pure Cl(4,1) math |
 | Field / propagation / vault (`field/`, `vault/`) | 0 | 0 | exact CGA recall, no ANN/embeddings |
-| Language packs (`language_packs/`, `packs/`) | 0 | 0 | curated symbolic data, not trained |
+| Language packs (`packs/`, `packs/`) | 0 | 0 | curated symbolic data, not trained |
 | Audio compiler substrate (`sensorium/audio/`) | 0 | 0 | DSP + frozen operator rotor table |
 | Generation / comprehension (`generate/`) | 0 | 0 | deterministic |
 | **Total** | **0** | **0** | — |

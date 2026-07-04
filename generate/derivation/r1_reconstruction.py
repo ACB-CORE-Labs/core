@@ -33,7 +33,7 @@ from generate.math_problem_graph import (
 )
 from generate.math_solver import SolveError, solve
 from generate.math_verifier import verify
-from language_packs.numerics_loader import parse_compound_cardinal
+from packs.numerics_loader import parse_compound_cardinal
 
 
 @dataclass(frozen=True, slots=True)

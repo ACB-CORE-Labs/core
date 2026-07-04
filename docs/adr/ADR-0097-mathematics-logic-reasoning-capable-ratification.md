@@ -12,7 +12,7 @@
 
 Accepted after `mathematics_logic` became a mechanically ratified `reasoning-capable` ledger row:
 
-- `language_packs/data/en_mathematics_logic_v1/manifest.json` carries Domain Pack Contract v1 fields.
+- `packs/data/en_mathematics_logic_v1/manifest.json` carries Domain Pack Contract v1 fields.
 - `teaching/domain_chains/mathematics_logic_chains_v1.jsonl` supplies reviewed active chains.
 - `core/capability/domain_contract_predicates.py` verifies all nine ADR-0091 predicates.
 - `tests/test_adr_0097_mathematics_logic_ratification.py` pins:
@@ -28,7 +28,7 @@ Accepted after `mathematics_logic` became a mechanically ratified `reasoning-cap
 
 The mathematics/logic substrate is structurally complete:
 
-- `language_packs/data/en_mathematics_logic_v1/` ships with manifest,
+- `packs/data/en_mathematics_logic_v1/` ships with manifest,
   lexicon, glosses.
 - `teaching/domain_chains/mathematics_logic_chains_v1.jsonl` exists.
 - `evals/elementary_mathematics_ood/` exists.

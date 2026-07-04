@@ -114,7 +114,7 @@ class TestHonestEvidence:
 
         # 1. Load lemma IDs from permitted packs
         for pack_id in ("en_mathematics_logic_v1", "en_arithmetic_v1", "en_units_v1"):
-            pack_path = _ROOT / "language_packs" / "data" / pack_id / "lexicon.jsonl"
+            pack_path = _ROOT / "packs" / "data" / pack_id / "lexicon.jsonl"
             if pack_path.exists():
                 with pack_path.open("r", encoding="utf-8") as fh:
                     for line in fh:

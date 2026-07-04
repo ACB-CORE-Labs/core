@@ -12,7 +12,7 @@
 
 Accepted after `physics` became a mechanically ratified `reasoning-capable` ledger row:
 
-- `language_packs/data/en_physics_v1/manifest.json` carries Domain Pack Contract v1 fields.
+- `packs/data/en_physics_v1/manifest.json` carries Domain Pack Contract v1 fields.
 - `teaching/domain_chains/physics_chains_v1.jsonl` supplies reviewed active chains.
 - `tests/test_adr_0100_0102_sibling_ratifications.py` pins:
   - all nine predicates pass for `en_physics_v1`
@@ -28,7 +28,7 @@ Accepted after `physics` became a mechanically ratified `reasoning-capable` ledg
 
 The physics substrate is structurally complete:
 
-- `language_packs/data/en_physics_v1/` ships with manifest, lexicon, glosses.
+- `packs/data/en_physics_v1/` ships with manifest, lexicon, glosses.
 - `teaching/domain_chains/physics_chains_v1.jsonl` exists.
 - `evals/foundational_physics_ood/` exists with dev/public/holdout coverage.
 - `docs/gaps.md` marks physics gaps closed.

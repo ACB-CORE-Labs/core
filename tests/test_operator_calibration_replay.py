@@ -98,7 +98,7 @@ class TestCalibrationDoesNotMutateIdentityOrPacks:
         import hashlib
         from pathlib import Path
 
-        pack_dir = Path(__file__).resolve().parent.parent / "language_packs" / "data"
+        pack_dir = Path(__file__).resolve().parent.parent / "packs" / "data"
         before = {}
         for f in sorted(pack_dir.rglob("*.jsonl")):
             before[str(f)] = hashlib.sha256(f.read_bytes()).hexdigest()

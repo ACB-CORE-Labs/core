@@ -123,7 +123,7 @@ light, life, spirit, truth, covenant, grace, kingdom, creation.
 
 ## Implementation Order
 
-1. Terminology and schema foundation (`language_packs/schema.py`).
+1. Terminology and schema foundation (`packs/schema.py`).
 2. Pack roles and OOV policy in `sensorium`.
 3. Split text adapters into English, Hebrew, Koine Greek specializations.
 4. Add grammar scaffold artifacts.

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from language_packs.loader import (
+from packs.loader import (
     lookup_unit,
     lookup_container,
     lookup_dimension,

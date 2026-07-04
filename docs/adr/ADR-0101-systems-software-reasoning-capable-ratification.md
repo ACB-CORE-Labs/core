@@ -12,7 +12,7 @@
 
 Accepted after `systems_software` became a mechanically ratified `reasoning-capable` ledger row:
 
-- `language_packs/data/en_systems_software_v1/manifest.json` carries Domain Pack Contract v1 fields.
+- `packs/data/en_systems_software_v1/manifest.json` carries Domain Pack Contract v1 fields.
 - `teaching/domain_chains/systems_software_chains_v1.jsonl` supplies reviewed active chains.
 - `tests/test_adr_0100_0102_sibling_ratifications.py` pins:
   - all nine predicates pass for `en_systems_software_v1`
@@ -28,7 +28,7 @@ Accepted after `systems_software` became a mechanically ratified `reasoning-capa
 
 The systems_software substrate is structurally complete:
 
-- `language_packs/data/en_systems_software_v1/` ships with manifest, lexicon, glosses.
+- `packs/data/en_systems_software_v1/` ships with manifest, lexicon, glosses.
 - `teaching/domain_chains/systems_software_chains_v1.jsonl` exists.
 - `evals/symbolic_logic/` exists with dev/public/holdout coverage as the closest in-tree lane for systems/software reasoning at v1.
 - `docs/gaps.md` marks systems_software gaps closed.

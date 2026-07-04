@@ -165,10 +165,10 @@ def _resolve_pack_lemmas() -> dict[str, str]:
     solver cannot emit a trace step without a resolved pack-lemma id.
     """
     try:
-        from language_packs.compiler import load_pack_entries
+        from packs.compiler import load_pack_entries
     except ImportError as exc:
         raise SolveError(
-            f"cannot import language_packs.compiler: {exc}"
+            f"cannot import packs.compiler: {exc}"
         ) from exc
 
     try:

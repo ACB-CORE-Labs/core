@@ -1,10 +1,10 @@
-"""Tests for language_packs/scalar_equivalence.py."""
+"""Tests for packs/scalar_equivalence.py."""
 from __future__ import annotations
 
 from fractions import Fraction
 import pytest
 
-from language_packs.scalar_equivalence import (
+from packs.scalar_equivalence import (
     PROVENANCE_PROBLEM_TEXT,
     canonicalize_scalar,
     extract_scalar_candidates,
@@ -12,7 +12,7 @@ from language_packs.scalar_equivalence import (
     list_unsupported_surfaces,
     ScalarCandidate,
 )
-from language_packs.unit_dimensions import classify_dimension
+from packs.unit_dimensions import classify_dimension
 
 
 def test_fraction_words_canonicalization() -> None:

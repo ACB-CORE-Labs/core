@@ -175,7 +175,7 @@ ADR-0162 §"Implementation plan — Branch 1":
 - Tests green; CI workbench-ui-build job green
 - No backend changes
 - No changes to `core/`, `chat/`, `teaching/`, `field/`,
-  `generate/`, `algebra/`, `language_packs/`
+  `generate/`, `algebra/`, `packs/`
 
 ### Forbidden
 

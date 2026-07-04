@@ -127,7 +127,7 @@ runs and ADR-0055 discovery candidates.
 | SPECULATIVE-only invariant | `ContemplationFinding.__post_init__` raises on any non-SPECULATIVE status | always | ✅ pinned by test |
 | Deterministic replay | two `contemplate_*` calls on the same inputs → identical `run_id` and `as_dict()` | byte-identical | ✅ pinned by test |
 | Sink path is additive | the `ContemplationRun` blob is byte-identical whether or not a sink is supplied | byte-identical | ✅ pinned by test |
-| No pack mutation | `language_packs/` tree mtimes unchanged across a `contemplate_*` invocation | true | ✅ pinned by test |
+| No pack mutation | `packs/` tree mtimes unchanged across a `contemplate_*` invocation | true | ✅ pinned by test |
 | Predicate split | `missed_contradiction` and `false_contradiction_flag` produce distinct `proposed_action` text | distinct | ✅ pinned by test |
 | Lane config_hash separation | `contemplate_frontier_reports` and `contemplate_contradiction_reports` produce distinct `config_hash` on identical input paths | distinct | ✅ pinned by test |
 

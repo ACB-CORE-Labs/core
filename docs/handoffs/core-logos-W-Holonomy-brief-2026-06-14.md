@@ -12,7 +12,7 @@ because no pack-level `holonomy.jsonl` exists yet. This wave fills that.
 Holonomy is the **crown proof** of the tri-language design: aligned canonical
 clauses (Hebrew path, Greek path, English path) must produce *nearby holonomies
 without flattening their distinctions*. The `HolonomyAlignmentCase` schema
-already exists (`language_packs/schema.py`) and **test-level** proof cases exist
+already exists (`packs/schema.py`) and **test-level** proof cases exist
 (`tests/test_alignment_graph.py`), but **no logos pack carries `holonomy.jsonl`**
 and there is **no serving-path holonomy proof evaluator**.
 

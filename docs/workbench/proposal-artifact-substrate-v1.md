@@ -434,7 +434,7 @@ Current maturity: no proposal forge yet. Target next state: `proposal_only` firs
 
 Sources:
 
-- `language_packs/data/<pack_id>/manifest.json`
+- `packs/data/<pack_id>/manifest.json`
 - `lexicon.jsonl`
 - `glosses.jsonl`
 - morphology files
@@ -722,7 +722,7 @@ This substrate is ready to implement when reviewers agree the following are true
 
 - No direct pack editor.
 - No generic `apply_patch` endpoint.
-- No browser write to `language_packs/data/*`.
+- No browser write to `packs/data/*`.
 - No ratification affordance for proposal-only subjects.
 - No auto-ratify.
 - No batch ratification.

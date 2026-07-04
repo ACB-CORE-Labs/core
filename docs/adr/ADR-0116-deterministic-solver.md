@@ -58,7 +58,7 @@ JSON. Two solves of the same graph produce byte-equal bytes.
 ### Operation provenance via `en_arithmetic_v1`
 
 A new operator-vocabulary pack ships under
-`language_packs/data/en_arithmetic_v1/`. Five entries, all `pos=VERB`:
+`packs/data/en_arithmetic_v1/`. Five entries, all `pos=VERB`:
 
 | entry_id | lemma | semantic domain |
 |---|---|---|
@@ -72,7 +72,7 @@ A new operator-vocabulary pack ships under
 domain contract). Manifest carries `provenance: adr-0116:operator_seed:2026-05-22`.
 
 The solver loads this pack at every `solve()` call via
-`language_packs.compiler.load_pack_entries`. Each operation kind in
+`packs.compiler.load_pack_entries`. Each operation kind in
 the input graph is dispatched through the pack's lemma table; a
 missing or unloadable pack raises `SolveError` immediately.
 
@@ -178,7 +178,7 @@ Accepted when:
 
 - `generate/math_solver.py` exports `solve`, `SolutionTrace`,
   `SolutionStep`, `SolveError`, and `REQUIRED_PACK_ID`
-- `language_packs/data/en_arithmetic_v1/` ships with manifest,
+- `packs/data/en_arithmetic_v1/` ships with manifest,
   lexicon (5 entries), and glosses; checksums verified
 - `tests/test_math_solver.py` (109 cases) is green
 - Smoke suite is green
@@ -197,7 +197,7 @@ Accepted when:
 - Four ADR-0114a obligations are now load-bearing in code, not
   promissory. Future expert-tier work can rely on them.
 - The arithmetic operator vocabulary is now a first-class pack,
-  inspectable by external readers (`cat language_packs/data/en_arithmetic_v1/lexicon.jsonl`).
+  inspectable by external readers (`cat packs/data/en_arithmetic_v1/lexicon.jsonl`).
 - The "operations bind to concepts, not hardcoded strings"
   architectural claim is now true rather than rhetorical. Inspecting
   any `SolutionTrace` shows the path from English verb (via the

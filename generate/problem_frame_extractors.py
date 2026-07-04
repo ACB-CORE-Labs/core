@@ -20,13 +20,13 @@ from generate.kernel_facts import (
 )
 from generate.problem_frame import QuestionTarget
 from generate.process_frames import ProcessFrame, all_frames
-from language_packs.ambiguity_hazards import (
+from packs.ambiguity_hazards import (
     AmbiguityHazard,
     all_registered_surfaces,
     lookup_hazards,
 )
-from language_packs.scalar_equivalence import ScalarCandidate
-from language_packs.unit_dimensions import classify_dimension
+from packs.scalar_equivalence import ScalarCandidate
+from packs.unit_dimensions import classify_dimension
 
 _UNIT_TOKEN_RE: re.Pattern[str] = re.compile(r"\b\d+(?:\.\d+)?\s+([a-zA-Z]+)\b")
 

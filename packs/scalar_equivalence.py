@@ -20,8 +20,8 @@ import re
 from dataclasses import dataclass
 from fractions import Fraction
 
-from language_packs.ambiguity_hazards import lookup_hazards
-from language_packs.numerics_loader import (
+from packs.ambiguity_hazards import lookup_hazards
+from packs.numerics_loader import (
     FractionEntry,
     MultiplierEntry,
     ParsedNumber,

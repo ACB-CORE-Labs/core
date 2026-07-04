@@ -16,7 +16,7 @@ from chat.teaching_grounding import TeachingCorpusSpec, _load_corpus
 
 
 PACK_ID = "en_core_relations_v1"
-PACK_DIR = Path("language_packs/data") / PACK_ID
+PACK_DIR = Path("packs/data") / PACK_ID
 LEXICON_PATH = PACK_DIR / "lexicon.jsonl"
 MANIFEST_PATH = PACK_DIR / "manifest.json"
 CHAINS_PATH = Path("teaching/relations_chains/relations_chains_v1.jsonl")

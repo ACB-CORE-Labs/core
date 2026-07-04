@@ -13,7 +13,7 @@ production line that shipped Wave R/M. Briefs are dispatch-ready; Shay dispatche
 ## Scope decision (locked)
 
 - **Holonomy: honest absent-state now.** No logos pack carries `holonomy.jsonl`;
-  the `HolonomyAlignmentCase` *schema* exists (`language_packs/schema.py`) and
+  the `HolonomyAlignmentCase` *schema* exists (`packs/schema.py`) and
   test-level proof cases exist (`tests/test_alignment_graph.py`), but there is no
   pack-level data instance. The Studio renders `holonomy_case_count = 0` +
   `missing_evidence`; **no Holonomy tab, no proof cards, no success state**
@@ -29,8 +29,8 @@ production line that shipped Wave R/M. Briefs are dispatch-ready; Shay dispatche
 - **Backend-reader-first, no theater.** LG-1 (Python) lands and gates the
   frontend. Every surface reads *real* pack artifacts.
 - **Never re-implement engine/pack truth in React or in a new validator.**
-  Checksums via `language_packs.compiler`; domain contract via
-  `language_packs.domain_contract`; alignment via `alignment.graph`; morphology
+  Checksums via `packs.compiler`; domain contract via
+  `packs.domain_contract`; alignment via `alignment.graph`; morphology
   via `morphology.registry`. The only *new* deterministic checks permitted are
   pure-schema link-integrity checks (dangling morphology link, invalid alignment
   target) — pure stdlib, no algebra, with non-vacuous tests.
@@ -51,13 +51,13 @@ production line that shipped Wave R/M. Briefs are dispatch-ready; Shay dispatche
 | Need | Reuse | Notes |
 |---|---|---|
 | Manifest fields/checksums | existing `workbench/readers.py` `_read_json_object`, `_sha256_file`, `SAFE_PACK_ID_RE`, `_display_path` | `read_pack` is manifest-only today — do **not** extend it; put logos readers in a NEW `workbench/logos.py` (avoids `readers.py` merge contention) |
-| Lexicon rows | `language_packs.compiler._parse_entry(payload) → LexicalEntry` | `epistemic_status` defaults to `"speculative"` per ADR-0021 — most rows will read speculative; that is honest, not alarming |
+| Lexicon rows | `packs.compiler._parse_entry(payload) → LexicalEntry` | `epistemic_status` defaults to `"speculative"` per ADR-0021 — most rows will read speculative; that is honest, not alarming |
 | Gloss rows | **none** — read `glosses.jsonl` as raw rows → workbench-layer projection | Do NOT commit a core `GlossEntry` dataclass speculatively (defer-vocab-commitment) |
 | Morphology | `morphology.registry.load_morphology(pack_id) → MorphologyRegistry` (`.entries`, `.get`) | `MorphologyEntry` ordering is load-bearing (root→prefix_chain→stem→inflection→suffix_chain) — render in schema order, never re-sort |
 | Alignment | `alignment.graph.load_alignment(pack_id) → AlignmentGraph` (`.edges`, `.edges_from`, `.get_edge`) | Edge rows have **no explicit id** → derive a deterministic id `sha256(f"{source_id}|{target_id}|{relation}")[:16]` for the evidence address |
-| Checksum verify | `language_packs.compiler` checksum + glosses dual-checksum path | already verifies bytes-on-disk |
-| Domain contract | `language_packs.domain_contract.validate_domain_contract_pack(pack_id) → DomainContractValidation` | reuse verbatim |
-| Schemas | dataclasses already in `language_packs/schema.py` | `LexicalEntry`, `MorphologyEntry`, `AlignmentEdge`, `HolonomyAlignmentCase`, `LanguagePackManifest` |
+| Checksum verify | `packs.compiler` checksum + glosses dual-checksum path | already verifies bytes-on-disk |
+| Domain contract | `packs.domain_contract.validate_domain_contract_pack(pack_id) → DomainContractValidation` | reuse verbatim |
+| Schemas | dataclasses already in `packs/schema.py` | `LexicalEntry`, `MorphologyEntry`, `AlignmentEdge`, `HolonomyAlignmentCase`, `LanguagePackManifest` |
 
 **Logos-pack predicate (Pack Universe filter — define explicitly, deterministic):**
 a pack qualifies iff `alignment.jsonl` exists in its data dir OR manifest `role`

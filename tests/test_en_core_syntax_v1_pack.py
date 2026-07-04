@@ -7,7 +7,7 @@ reference handling, polarity, and evidence-span discipline.
 
 Contracts pinned here:
 
-- checksum-verified load through ``language_packs.compiler.load_pack``;
+- checksum-verified load through ``packs.compiler.load_pack``;
 - every entry's primary semantic namespace is syntax/claim/provenance;
 - contiguous zero-padded entry ids;
 - one gloss per lexicon lemma, with manifest checksum discipline;
@@ -28,11 +28,11 @@ from chat.pack_resolver import (
     resolve_gloss,
     resolve_lemma,
 )
-from language_packs.compiler import load_pack
+from packs.compiler import load_pack
 
 
 PACK_ID = "en_core_syntax_v1"
-_PACK_ROOT = Path(__file__).resolve().parent.parent / "language_packs" / "data" / PACK_ID
+_PACK_ROOT = Path(__file__).resolve().parent.parent / "packs" / "data" / PACK_ID
 
 EXPECTED_TOTAL = 24
 EXPECTED_POS_COUNTS = {"NOUN": 24}

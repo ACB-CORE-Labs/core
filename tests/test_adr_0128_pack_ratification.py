@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from language_packs.numerics_loader import (
+from packs.numerics_loader import (
     QUANTIFIER_SEMANTIC_TYPES,
     PACK_ROOT,
     _index,

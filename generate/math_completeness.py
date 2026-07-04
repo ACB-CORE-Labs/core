@@ -45,7 +45,7 @@ import re
 from typing import TYPE_CHECKING
 
 from generate.math_candidate_parser import _CURRENCY_SYMBOLS, _resolve_value
-from language_packs.numerics_loader import (
+from packs.numerics_loader import (
     lookup_cardinal,
     lookup_multiplier,
     parse_compound_cardinal,

@@ -49,7 +49,7 @@ turn  ─►  session vault      (ephemeral, exact CGA recall)
                                        │
                                        ▼
                           ratified packs
-        (packs/identity/, packs/safety/, packs/ethics/, language_packs/)
+        (packs/identity/, packs/safety/, packs/ethics/, packs/)
 ```
 
 ### Tier 1 — Session vault (`vault/store.py`)
@@ -90,7 +90,7 @@ turn  ─►  session vault      (ephemeral, exact CGA recall)
 ### Tier 4 — Ratified packs
 
 - `packs/identity/`, `packs/safety/`, `packs/ethics/`,
-  `language_packs/data/*`.
+  `packs/data/*`.
 - Self-sealed via companion `.mastery_report.json`; verified at
   startup in production mode.
 - `PackMutationProposal` (ADR-0051 lineage) is the only path that

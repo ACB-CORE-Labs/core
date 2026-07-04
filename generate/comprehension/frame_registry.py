@@ -1,6 +1,6 @@
 """CW-1 — runtime frame registry loader.
 
-Reads ``{pack}/frames.jsonl`` (compiled by :mod:`language_packs.compile_frames`)
+Reads ``{pack}/frames.jsonl`` (compiled by :mod:`packs.compile_frames`)
 and exposes a frozen lookup surface for the comprehension reader's
 frame-opener decision path.
 
@@ -68,7 +68,7 @@ class FrameRegistry:
 
 _CACHE: dict[tuple[str, int, str], FrameRegistry] = {}
 
-_DEFAULT_PACK_RELPATH = Path("language_packs") / "data" / "en_core_math_v1"
+_DEFAULT_PACK_RELPATH = Path("packs") / "data" / "en_core_math_v1"
 
 _VALID_POLARITIES: frozenset[str] = frozenset({"affirms", "falsifies"})
 

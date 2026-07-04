@@ -21,7 +21,7 @@ from field.operators import (
     ConstraintCorrectionOperator,
     GraphDiffusionOperator,
 )
-from language_packs.compiler import load_pack
+from packs.compiler import load_pack
 from scripts.run_pulse import _build_manifold, run_pulse
 
 

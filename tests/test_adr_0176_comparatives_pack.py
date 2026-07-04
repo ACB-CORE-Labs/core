@@ -14,7 +14,7 @@ from pathlib import Path
 
 from generate.derivation import ComparativeScalar, extract_comparative_scalars
 
-_PACK = Path(__file__).resolve().parents[1] / "language_packs" / "data" / "en_core_comparatives_v1"
+_PACK = Path(__file__).resolve().parents[1] / "packs" / "data" / "en_core_comparatives_v1"
 
 
 # ---------------------------------------------------------------------------

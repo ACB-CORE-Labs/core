@@ -18,9 +18,9 @@ from generate.problem_frame_builder import (
 from generate.problem_frame_contracts import assess_contracts, recommended_migration_target as contract_target
 from generate.problem_frame_extractors import surface_in_text
 from generate.process_frames import frame_by_name, lookup_frame
-from language_packs.loader import lookup_container
-from language_packs.scalar_equivalence import list_unsupported_surfaces
-from language_packs.unit_dimensions import classify_dimension
+from packs.loader import lookup_container
+from packs.scalar_equivalence import list_unsupported_surfaces
+from packs.unit_dimensions import classify_dimension
 
 _AMBIGUOUS_SURFACES = (
     "half", "quarter", "third", "percent", "percentage points", "times",

@@ -4,8 +4,8 @@ import numpy as np
 
 from algebra.cga import cga_inner
 from algebra.holonomy import holonomy_encode, holonomy_similarity
-from language_packs import load_pack
-from language_packs.compiler import compile_entries_to_manifold, load_mounted_packs, load_pack_entries
+from packs import load_pack
+from packs.compiler import compile_entries_to_manifold, load_mounted_packs, load_pack_entries
 from morphology.registry import load_morphology
 
 

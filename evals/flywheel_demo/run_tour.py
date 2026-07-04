@@ -106,7 +106,7 @@ def _isolated_pack() -> Iterator[Path]:
     repo_root = Path(__file__).resolve()
     while repo_root.parent != repo_root and not (repo_root / "pyproject.toml").exists():
         repo_root = repo_root.parent
-    src = repo_root / "language_packs" / "data" / "en_core_math_v1"
+    src = repo_root / "packs" / "data" / "en_core_math_v1"
     with tempfile.TemporaryDirectory(prefix="core_flywheel_demo_") as td:
         dst = Path(td) / "en_core_math_v1"
         shutil.copytree(src, dst)

@@ -23,7 +23,7 @@ if TYPE_CHECKING:
         KernelProvenance,
         SourceSpan,
     )
-    from language_packs.scalar_equivalence import ScalarCandidate
+    from packs.scalar_equivalence import ScalarCandidate
     from generate.process_frames import ProcessFrame
     from generate.construction_affordances import ConstructionProposal
 

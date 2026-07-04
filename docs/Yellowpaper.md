@@ -662,7 +662,7 @@ domain.
 
 #### Domain Pack Contract v1 (ADR-0091)
 
-A pack manifest at `language_packs/data/<pack_id>/manifest.json`
+A pack manifest at `packs/data/<pack_id>/manifest.json`
 satisfies the contract iff all nine predicates hold:
 
 1. **lemma_coverage** — declared lemmas resolve in `lexicon.jsonl`.

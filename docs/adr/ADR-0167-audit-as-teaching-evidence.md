@@ -142,7 +142,7 @@ proves the wiring without committing the harder sub-types.
    (Likely: yes, with a "previously rejected" annotation; no silent
    suppression.)
 6. **First-write target**. `LexicalClaim` ratification writes to
-   `language_packs/data/en_core_math_v1/lexicon/*.jsonl`. Confirm the
+   `packs/data/en_core_math_v1/lexicon/*.jsonl`. Confirm the
    loader's per-category source-file path is the canonical mutation site,
    not the compiled `lexicon.jsonl`.
 

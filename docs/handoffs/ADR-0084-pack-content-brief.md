@@ -9,7 +9,7 @@
 ## What already exists (do not duplicate)
 
 ```
-language_packs/data/
+packs/data/
 ├── en_core_cognition_v1/      ← HAS glosses.jsonl (78 entries)
 ├── en_core_meta_v1/           ← HAS glosses.jsonl (72)
 ├── en_core_attitude_v1/       ← HAS glosses.jsonl (40)
@@ -107,14 +107,14 @@ Compute `checksum` as `hashlib.sha256(Path("primitives.jsonl").read_bytes()).hex
 - File exists at the path above.
 - 40 ≤ `primitive_count` ≤ 60.
 - Every line of `primitives.jsonl` is valid JSON with the schema above.
-- No primitive lemma appears in any existing `glosses.jsonl` (run a quick `grep -l "\"lemma\":\"<word>\"" language_packs/data/*/glosses.jsonl` for each — should return empty).
+- No primitive lemma appears in any existing `glosses.jsonl` (run a quick `grep -l "\"lemma\":\"<word>\"" packs/data/*/glosses.jsonl` for each — should return empty).
 - Manifest `checksum` matches `sha256` of `primitives.jsonl` bytes.
 
 ---
 
 ## Phase 2 — Extend existing 9 core glosses to ADR-0084 schema
 
-For each pack in `language_packs/data/` that already has a `glosses.jsonl`, extend each entry to:
+For each pack in `packs/data/` that already has a `glosses.jsonl`, extend each entry to:
 
 ```jsonc
 {
@@ -133,7 +133,7 @@ For each pack in `language_packs/data/` that already has a `glosses.jsonl`, exte
 Every content word in `gloss` (skip articles, prepositions, "is", "of", "to", "by", "the", "a", "an", "that", "which") must be in `definitional_atoms`. Each entry in `definitional_atoms` must resolve to EXACTLY ONE of:
 
 1. Another lemma in the SAME pack's `lexicon.jsonl` or `glosses.jsonl`.
-2. A lemma in another pack's `lexicon.jsonl` or `glosses.jsonl` under `language_packs/data/`.
+2. A lemma in another pack's `lexicon.jsonl` or `glosses.jsonl` under `packs/data/`.
 3. A primitive in `packs/primitives/en_semantic_primitives_v1/primitives.jsonl`.
 
 If a word in the gloss does not resolve, do ONE of:
@@ -190,7 +190,7 @@ DO NOT touch these in this brief:
 
 Write a stand-alone Python script at `scripts/verify_definitional_closure.py` that:
 
-1. Loads every `glosses.jsonl` under `language_packs/data/` whose pack manifest has `"definitional_layer": true`.
+1. Loads every `glosses.jsonl` under `packs/data/` whose pack manifest has `"definitional_layer": true`.
 2. Loads `packs/primitives/en_semantic_primitives_v1/primitives.jsonl`.
 3. For each gloss entry, for each token in `definitional_atoms`, checks it resolves to ONE of (a) same-pack lemma, (b) other-pack lemma, (c) primitive.
 4. Prints a report:
@@ -233,7 +233,7 @@ If any of these breaks, STOP and surface the failure. Do not patch around it —
 ## Things you must NOT do
 
 - DO NOT modify any file under `chat/`, `core/`, `generate/`, `vault/`, `field/`, `algebra/`, `teaching/`, `evals/` (except for reading them).
-- DO NOT modify `language_packs/compiler.py` or `language_packs/data/<pack>/manifest.json` fields other than `checksum`, `provenance`, and the new `definitional_layer` flag.
+- DO NOT modify `packs/compiler.py` or `packs/data/<pack>/manifest.json` fields other than `checksum`, `provenance`, and the new `definitional_layer` flag.
 - DO NOT introduce any LLM-generated glosses by routing through an external API. Every gloss is hand-written, drawn from primitives + co-pack vocabulary. If a lemma is genuinely outside your domain knowledge, surface it as a question instead of guessing.
 - DO NOT touch Greek / Hebrew packs (per ADR scope limit).
 - DO NOT add `predicates_invited` you cannot defend — empty is the correct default for uncertainty.

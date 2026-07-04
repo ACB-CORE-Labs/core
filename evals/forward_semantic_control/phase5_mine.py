@@ -133,7 +133,7 @@ def main() -> int:
     runtime = ChatRuntime()
     vocab = runtime.session.vocab
 
-    with open("language_packs/data/en_core_cognition_v1/lexicon.jsonl") as f:
+    with open("packs/data/en_core_cognition_v1/lexicon.jsonl") as f:
         surfaces_all = [json.loads(l)["surface"] for l in f]
     surfaces = surfaces_all[: args.n_tokens]
 

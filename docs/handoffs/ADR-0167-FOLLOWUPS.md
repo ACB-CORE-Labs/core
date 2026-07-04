@@ -181,7 +181,7 @@ explanations for the convergence:
    land in the same regions of the manifold because the morphology
    operators encode equivalent semantic structure.
 2. **Blend-induced.** `_apply_mounted_primary_domain_resonance`
-   (`language_packs/compiler.py:558`) nudges Hebrew/Greek versors
+   (`packs/compiler.py:558`) nudges Hebrew/Greek versors
    toward an English prototype at 40% blend, and the test passes
    because both packs have been pulled close to the English anchor
    regardless of structural derivation.
@@ -192,12 +192,12 @@ not a *proof* that the depth packs are structurally independent
 operators converging coherently with the articulation surface.
 
 **Where breadcrumbs live.**
-- `language_packs/compiler.py::_apply_mounted_primary_domain_resonance`
+- `packs/compiler.py::_apply_mounted_primary_domain_resonance`
   — the architectural-invariant comment names this gap explicitly and
   references this section
 - `tests/test_alignment_graph.py:73` — the existing positive-closer-
   than-negative assertion
-- `language_packs/schema.py::HolonomyAlignmentCase` — the schema type
+- `packs/schema.py::HolonomyAlignmentCase` — the schema type
   whose nominal contract is "proves structural divergence with
   coherent convergence"
 

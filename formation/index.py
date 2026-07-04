@@ -9,7 +9,7 @@ Append-only — entries are never overwritten or deleted by ordinary
 operations.  Each entry pins a ``MasteryReport`` by its self-sealing SHA.
 
 This is governance metadata, not runtime state — it does not live in
-``vault/`` (exact-recall runtime) and not in ``language_packs/`` (mutable pack
+``vault/`` (exact-recall runtime) and not in ``packs/`` (mutable pack
 data).  ``packs/mastered_courses.json`` keeps it visible in source control.
 """
 

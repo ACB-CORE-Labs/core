@@ -17,9 +17,9 @@ PR #827 and PR #828 introduced the core semantic packs (`en_units_v1` and `en_nu
 Seven new Python modules have been introduced to establish the substrate layer:
 
 1. `generate/kernel_facts.py` — Immutable, typed records for facts, hazard annotations, and provenance verification.
-2. `language_packs/scalar_equivalence.py` — Facade over the numerics loader returning exact rational fractions for scalar surfaces.
-3. `language_packs/unit_dimensions.py` — Facade over the units loader offering dimension compatibility checks and exact conversions.
-4. `language_packs/ambiguity_hazards.py` — Registry of known ambiguous terms, their hazard categories, and required resolving contexts.
+2. `packs/scalar_equivalence.py` — Facade over the numerics loader returning exact rational fractions for scalar surfaces.
+3. `packs/unit_dimensions.py` — Facade over the units loader offering dimension compatibility checks and exact conversions.
+4. `packs/ambiguity_hazards.py` — Registry of known ambiguous terms, their hazard categories, and required resolving contexts.
 5. `generate/process_frames.py` — Declarative, non-arithmetic process frame schemas declaring semantic roles and triggers.
 6. `generate/problem_frame.py` — Target IR skeleton (`ProblemFrame`) and builder class (`ProblemFrameBuilder`) for intermediate problem state representation.
 7. `scripts/gsm8k_substrate_morphology.py` — Diagnostic script mapping refused problems to missing-substrate categories.
@@ -30,7 +30,7 @@ Seven new Python modules have been introduced to establish the substrate layer:
 
 ### Canonicalize vs grounded extraction
 
-`language_packs/scalar_equivalence.py` exposes two complementary APIs:
+`packs/scalar_equivalence.py` exposes two complementary APIs:
 
 - **`canonicalize_scalar(surface)`** — pack-level helper for detached surface strings.
   Returns a `ScalarCandidate` with canonical `Fraction`, source kind, entry id, and
@@ -60,7 +60,7 @@ Exposed scalar surfaces via the facade:
 
 ## 5. Unit / Dimension Coverage
 
-Exposed via `language_packs/unit_dimensions.py`:
+Exposed via `packs/unit_dimensions.py`:
 - **Supported Families:** `count` (items), `money` (dollars, cents), `time` (seconds, minutes, hours, days, weeks), `length` (inches, feet, yards, miles).
 - **Rate Dimensions:** wage (`money/time`), speed (`length/time`), unit price (`money/count`), frequency (`count/time`), density (`mass/volume`), items per container (`count/container`).
 - **Compatibility:** Two dimensions are compatible if they match exactly, or if both are rate dimensions with compatible numerator and denominator components.
@@ -82,7 +82,7 @@ Exposed via `generate/kernel_facts.py`:
 
 ## 7. Ambiguity Hazard Model
 
-Exposed via `language_packs/ambiguity_hazards.py`:
+Exposed via `packs/ambiguity_hazards.py`:
 - **16 Required Surfaces:** `half`, `quarter`, `third`, `percent`, `percentage points`, `times`, `more than`, `less than`, `of`, `per`, `each`, `some`, `remaining`, `left`, `total`, `altogether`.
 - **16 Required Categories:** `unbound_base_quantity`, `half_duration`, `quarter_coin`, `quarter_calendar_period`, `quarter_school_term`, `third_ordinal`, `ordinal_context`, `currency_context`, `temporal_context`, `percent_change_vs_percent_of`, `multiplicative_vs_occurrence_times`, `comparative_direction_ambiguity`, `indefinite_quantity`, `remainder_context_required`, `total_question_target_required`, `blocked_provenance_gap`.
 - **Design:** Statically built at module load. Provides deterministic categories and hazard ID lists (`haz-0001` to `haz-0021`) indicating resolving signals (like `numeric_base_quantity` for `half`).
@@ -166,8 +166,8 @@ After grounding scalar spans and tightening morphology label semantics:
 1. **`git diff --check origin/main...HEAD`** — no whitespace errors.
 2. **Kernel substrate unit tests** — all pass:
    - `tests/test_kernel_facts.py`
-   - `tests/test_language_packs_scalar_equivalence.py` (includes span/provenance extraction)
-   - `tests/test_language_packs_unit_dimensions.py`
+   - `tests/test_packs_scalar_equivalence.py` (includes span/provenance extraction)
+   - `tests/test_packs_unit_dimensions.py`
    - `tests/test_ambiguity_hazards.py`
    - `tests/test_process_frames.py`
    - `tests/test_problem_frame_skeleton.py`

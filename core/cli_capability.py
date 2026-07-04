@@ -48,7 +48,7 @@ def cmd_capability_domain_contract(args: argparse.Namespace) -> int:
     The legacy structural-only output remains available via
     ``--structural-only`` for callers that depend on the prior shape.
     """
-    from language_packs.domain_contract import validate_domain_contract_pack
+    from packs.domain_contract import validate_domain_contract_pack
 
     if getattr(args, "structural_only", False):
         report = validate_domain_contract_pack(args.pack_id).as_dict()

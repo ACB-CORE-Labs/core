@@ -166,8 +166,8 @@ in this section. Each is also a row in
 
 ### ~~Leak A — Pack vocabulary defaults to COHERENT~~ — CLOSED 2026-05-17
 
-**Original gap:** `language_packs/compiler.py:331` and
-`language_packs/schema.py::LexicalEntry` defaulted unmarked pack rows
+**Original gap:** `packs/compiler.py:331` and
+`packs/schema.py::LexicalEntry` defaulted unmarked pack rows
 to `"coherent"`, silently admitting pack authority as a substitute
 for coherence judgment.
 

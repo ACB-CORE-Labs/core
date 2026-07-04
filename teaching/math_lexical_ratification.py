@@ -86,7 +86,7 @@ def _repo_root() -> Path:
 
 
 def _default_pack_root() -> Path:
-    return _repo_root() / "language_packs" / "data" / "en_core_math_v1"
+    return _repo_root() / "packs" / "data" / "en_core_math_v1"
 
 
 def _sha256_file(path: Path) -> str:

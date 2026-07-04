@@ -323,7 +323,7 @@ def _tree_digest(root: Path) -> str:
 def test_lane_run_does_not_mutate_protected_trees():
     teaching = _REPO_ROOT / "teaching"
     packs = _REPO_ROOT / "packs"
-    lp_data = _REPO_ROOT / "language_packs" / "data"
+    lp_data = _REPO_ROOT / "packs" / "data"
 
     before = (
         _tree_digest(teaching),
@@ -341,5 +341,5 @@ def test_lane_run_does_not_mutate_protected_trees():
     )
     assert before == after, (
         "refusal-taxonomy lane must be read-only over teaching/, packs/, "
-        "and language_packs/data/"
+        "and packs/data/"
     )

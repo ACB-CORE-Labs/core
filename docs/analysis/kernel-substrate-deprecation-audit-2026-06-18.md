@@ -105,9 +105,9 @@ routes half+percent split problems to this organ.
 | File | Class | Notes |
 |---|---|---|
 | `generate/problem_frame_builder.py` | **target path** | `build_problem_frame` — substrate-backed, no solving |
-| `language_packs/scalar_equivalence.py` | **target path** | ADR-0128 facade; `extract_scalar_candidates` |
-| `language_packs/unit_dimensions.py` | **target path** | ADR-0127 facade |
-| `language_packs/ambiguity_hazards.py` | **target path** | Hazard registry |
+| `packs/scalar_equivalence.py` | **target path** | ADR-0128 facade; `extract_scalar_candidates` |
+| `packs/unit_dimensions.py` | **target path** | ADR-0127 facade |
+| `packs/ambiguity_hazards.py` | **target path** | Hazard registry |
 | `generate/process_frames.py` | **target path** | Declarative process-frame candidates |
 | `generate/kernel_facts.py` | **target path** | Typed fact/provenance model |
 | `generate/problem_frame.py` | **target path** | ProblemFrame IR skeleton |

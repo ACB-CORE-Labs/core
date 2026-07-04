@@ -14,7 +14,7 @@ from generate.comprehension.frame_registry import (
     load_frame_registry,
     lookup,
 )
-from language_packs.compile_frames import compile_frames
+from packs.compile_frames import compile_frames
 
 
 @pytest.fixture

@@ -23,7 +23,7 @@ from generate.comprehension.composition_registry import (
     load_composition_registry,
     lookup,
 )
-from language_packs.compile_compositions import compile_compositions
+from packs.compile_compositions import compile_compositions
 from teaching.math_composition_ratification import SAFE_COMPOSITION_CATEGORIES
 
 

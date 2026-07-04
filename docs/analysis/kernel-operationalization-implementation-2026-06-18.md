@@ -22,9 +22,9 @@ breaking serving (`train_sample: 30 / 20 / 0`, `wrong_ids: []`).
 PR #829 (`58a94c8e`) added:
 
 - `generate/kernel_facts.py`
-- `language_packs/scalar_equivalence.py`
-- `language_packs/unit_dimensions.py`
-- `language_packs/ambiguity_hazards.py`
+- `packs/scalar_equivalence.py`
+- `packs/unit_dimensions.py`
+- `packs/ambiguity_hazards.py`
 - `generate/process_frames.py`
 - `generate/problem_frame.py` (IR skeleton)
 - `scripts/gsm8k_substrate_morphology.py` (v1 labels)

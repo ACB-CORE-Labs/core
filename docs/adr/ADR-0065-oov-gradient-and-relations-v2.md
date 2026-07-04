@@ -174,7 +174,7 @@ chat/runtime.py                                  fall-through refactor + attach_
 chat/teaching_grounding.py                       relations_chains_v2 registered
 core/cli.py                                      oov-gaps + oov-queue subcommands
 core/config.py                                   relations_v2 in input_packs defaults
-language_packs/data/en_core_relations_v2/        NEW pack (8 lemmas + manifest)
+packs/data/en_core_relations_v2/        NEW pack (8 lemmas + manifest)
 teaching/oov_sink.py                             NEW (~150 lines)
 teaching/oov_gaps.py                             NEW (~165 lines)
 teaching/oov_promotion.py                        NEW (~120 lines)

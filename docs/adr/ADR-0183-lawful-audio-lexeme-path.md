@@ -3,7 +3,7 @@
 **Status:** Proposed (stub — placeholder to record the fork; not yet a full design)
 **Date:** 2026-05-29
 **Authors:** Joshua M. Shay, Core R&D Engine
-**Domains:** `sensorium/audio/`, `language_packs/`, (future) `generate/`
+**Domains:** `sensorium/audio/`, `packs/`, (future) `generate/`
 **Depends on:** ADR-0013 (Sensorium Protocol), ADR-0181 (Audio Compiler), ADR-0180 (Delta-CRDT substrate)
 **Related:** [`docs/audio_pipeline_overview.md`](../audio_pipeline_overview.md) §9 (teacher boundary), [`docs/plans/audio-compiler-eval-plan.md`](../plans/audio-compiler-eval-plan.md) §4 (teacher policy)
 

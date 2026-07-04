@@ -71,7 +71,7 @@ loop.  ``None`` means "no vault probe in this contemplation pass."
 _DEFAULT_MAX_DEPTH: int = 8
 _MATH_PACK_PATH = (
     Path(__file__).resolve().parent.parent
-    / "language_packs"
+    / "packs"
     / "data"
     / "en_core_math_v1"
 )

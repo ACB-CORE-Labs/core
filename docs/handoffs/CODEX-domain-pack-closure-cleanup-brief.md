@@ -42,9 +42,9 @@ PYTHONPATH=. python3 -m core.cli eval cognition > /tmp/eval_baseline.json
 For each of these three manifest files, change exactly one line:
 
 ```
-language_packs/data/en_mathematics_logic_v1/manifest.json
-language_packs/data/en_physics_v1/manifest.json
-language_packs/data/en_systems_software_v1/manifest.json
+packs/data/en_mathematics_logic_v1/manifest.json
+packs/data/en_physics_v1/manifest.json
+packs/data/en_systems_software_v1/manifest.json
 ```
 
 Before:
@@ -63,7 +63,7 @@ Do not touch any other field. Do not touch `glosses.jsonl`, `lexicon.jsonl`, `ax
 
 ## Phase 2 - Refresh manifest checksum
 
-The `checksum` field on each manifest hashes the bytes of the lexicon file (see `language_packs/loader.py`'s checksum policy). Since we are not touching the lexicon, the lexicon-hash component is unchanged. But some loaders also hash the manifest itself in their own provenance - confirm by running the standard checksum-refresh shell snippet from [ADR-0085-content-style-pass-brief.md](./ADR-0085-content-style-pass-brief.md) Phase 3, applied only to these three packs.
+The `checksum` field on each manifest hashes the bytes of the lexicon file (see `packs/loader.py`'s checksum policy). Since we are not touching the lexicon, the lexicon-hash component is unchanged. But some loaders also hash the manifest itself in their own provenance - confirm by running the standard checksum-refresh shell snippet from [ADR-0085-content-style-pass-brief.md](./ADR-0085-content-style-pass-brief.md) Phase 3, applied only to these three packs.
 
 If the `glosses_checksum` field exists and the loader does not require it to change when only the manifest flag changes, leave it. If you are unsure, run:
 

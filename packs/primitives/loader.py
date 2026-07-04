@@ -3,13 +3,13 @@
 Loads ``packs/primitives/<pack_id>/{manifest.json,primitives.jsonl}``
 with byte-checksum verification and strict schema parsing.
 
-Why a separate loader (not :mod:`language_packs.compiler`)
+Why a separate loader (not :mod:`packs.compiler`)
 ----------------------------------------------------------
 
 Primitives are not lexicon entries — they have no surface, no morphology,
 no semantic-domain assignment, no manifold coordinate.  They are a flat
 set of terminal symbols consulted by
-:func:`language_packs.definitions.verify_definitional_closure` as the
+:func:`packs.definitions.verify_definitional_closure` as the
 ``floor`` argument.  Treating them as a degenerate ``LexicalEntry`` would
 import irrelevant machinery and blur the substrate boundary the ADR is
 deliberately drawing.

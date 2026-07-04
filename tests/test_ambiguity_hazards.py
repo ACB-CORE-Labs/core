@@ -1,9 +1,9 @@
-"""Tests for language_packs/ambiguity_hazards.py."""
+"""Tests for packs/ambiguity_hazards.py."""
 from __future__ import annotations
 
 import pytest
 
-from language_packs.ambiguity_hazards import (
+from packs.ambiguity_hazards import (
     lookup_hazards,
     all_hazard_categories,
     all_registered_surfaces,

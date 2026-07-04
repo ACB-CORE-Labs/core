@@ -18,11 +18,11 @@ As of PR-0, the baseline scoring metrics after #827 are:
 ## 2. Files Inspected
 
 The following key parts of the repository were analyzed:
-- `language_packs/numerics_loader.py`
-- `language_packs/loader.py`
+- `packs/numerics_loader.py`
+- `packs/loader.py`
 - `scripts/generate_en_numerics_v1.py`
-- `language_packs/data/en_numerics_v1/manifest.json`, `lexicon.jsonl`
-- `language_packs/data/en_units_v1/manifest.json`, `lexicon.jsonl`, `conversions.jsonl`
+- `packs/data/en_numerics_v1/manifest.json`, `lexicon.jsonl`
+- `packs/data/en_units_v1/manifest.json`, `lexicon.jsonl`, `conversions.jsonl`
 - `generate/derivation/calendar_grounding.py`
 - `generate/derivation/piecewise_daily_hours_total.py`
 - `generate/derivation/nested_fraction_remainder_total.py`
@@ -93,8 +93,8 @@ Multiple derivation organs independently handle scalar scalars (like "half" and 
 
 ## 12. Existing Pack Machinery That Should Be Reused
 
-- **`language_packs/numerics_loader.py`:** The `lookup_cardinal`, `lookup_fraction`, and `match_number_format` methods are already fully functional and will be imported.
-- **`language_packs/loader.py`:** The units registry (`_UNITS_MAP` and `_DIMENSIONS_MAP`) and dimensional conversions graph will be utilized.
+- **`packs/numerics_loader.py`:** The `lookup_cardinal`, `lookup_fraction`, and `match_number_format` methods are already fully functional and will be imported.
+- **`packs/loader.py`:** The units registry (`_UNITS_MAP` and `_DIMENSIONS_MAP`) and dimensional conversions graph will be utilized.
 
 ---
 
@@ -113,7 +113,7 @@ Multiple derivation organs independently handle scalar scalars (like "half" and 
 ## 15. Recommended PR Sequence
 
 1. **PR-0:** Documentation & Architecture Inventory (This PR).
-2. **PR-1:** Refactor `language_packs` to combine numerics and units loaders.
+2. **PR-1:** Refactor `packs` to combine numerics and units loaders.
 3. **PR-2:** ScalarEquivalence facade over `en_numerics_v1`.
 4. **PR-3:** Refactor `percent_partition.py` and `nested_fraction_remainder_total.py` to use the facade.
 

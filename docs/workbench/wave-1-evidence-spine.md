@@ -177,7 +177,7 @@ runtime telemetry; it records the exact evidence the operator already saw.
       surfaces. Document this in `workbench_data/README.md` (not as a text
       header in the JSONL file — every line must be valid JSON)
 - [x] Path confinement: journal writes only to `workbench_data/`
-- [x] No journal writes to `teaching/`, `packs/`, `language_packs/data/`, or
+- [x] No journal writes to `teaching/`, `packs/`, `packs/data/`, or
       `engine_state/`. Note: existing chat turns DO write `engine_state/`
       through the normal runtime checkpoint path governed by ADR-0146/0150 —
       that is existing behavior, not journal behavior.
@@ -197,7 +197,7 @@ runtime telemetry; it records the exact evidence the operator already saw.
 - [x] Stable ordering: entries are sequential by turn_id
 - [x] Prompt/content size limits respected (max 4096 chars prompt)
 - [x] Path confinement: journal cannot write outside `workbench_data/`
-- [x] No journal writes to `teaching/`, `packs/`, `language_packs/data/`; no
+- [x] No journal writes to `teaching/`, `packs/`, `packs/data/`; no
       NEW writes to `engine_state/` beyond existing chat checkpoint behavior
       (ADR-0146/0150)
 - [x] Journal digest is deterministic for identical content

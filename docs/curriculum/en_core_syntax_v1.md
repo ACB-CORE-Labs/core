@@ -99,9 +99,9 @@ foundation_syntax_v1:reviewed:2026-05-30
 ## Files
 
 ```text
-language_packs/data/en_core_syntax_v1/manifest.json
-language_packs/data/en_core_syntax_v1/lexicon.jsonl
-language_packs/data/en_core_syntax_v1/glosses.jsonl
+packs/data/en_core_syntax_v1/manifest.json
+packs/data/en_core_syntax_v1/lexicon.jsonl
+packs/data/en_core_syntax_v1/glosses.jsonl
 tests/test_en_core_syntax_v1_pack.py
 ```
 

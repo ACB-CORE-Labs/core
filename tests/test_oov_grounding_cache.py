@@ -8,7 +8,7 @@ from algebra.versor import versor_condition
 from core.config import DEFAULT_CONFIG
 from ingest import gate
 from ingest.gate import inject
-from language_packs.compiler import load_mounted_packs
+from packs.compiler import load_mounted_packs
 from persona.motor import PersonaMotor
 from session.context import SessionContext
 

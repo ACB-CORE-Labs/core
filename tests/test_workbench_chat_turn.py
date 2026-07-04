@@ -202,7 +202,7 @@ def test_chat_turn_preserves_teaching_and_pack_bytes(api: WorkbenchApi) -> None:
     guarded = {
         "teaching": repo_root / "teaching",
         "packs": repo_root / "packs",
-        "language_packs/data": repo_root / "language_packs" / "data",
+        "packs/data": repo_root / "packs" / "data",
     }
     before = {name: _snapshot(path) for name, path in guarded.items()}
     engine_state = repo_root / "engine_state"

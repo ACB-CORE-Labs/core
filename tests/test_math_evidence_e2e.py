@@ -4,7 +4,7 @@ Closes the LexicalClaim-first slice: refusal → adapter → signature →
 ratification → re-audit → row movement.
 
 Pure tests.  Every ratification uses a tmpdir pack copy; the real
-``language_packs/data/en_core_math_v1/`` is byte-identical before and
+``packs/data/en_core_math_v1/`` is byte-identical before and
 after the suite runs.
 """
 
@@ -47,7 +47,7 @@ AUDIT_ARTIFACT_PATH = (
 CASES_PATH = (
     REPO_ROOT / "evals" / "gsm8k_math" / "train_sample" / "v1" / "cases.jsonl"
 )
-PACK_ROOT = REPO_ROOT / "language_packs" / "data" / "en_core_math_v1"
+PACK_ROOT = REPO_ROOT / "packs" / "data" / "en_core_math_v1"
 PACK_HAZARD_CASE_ID = "gsm8k-train-sample-v1-0050"
 
 

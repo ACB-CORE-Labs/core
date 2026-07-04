@@ -277,7 +277,7 @@ def test_capacity_refusal_does_not_mutate_system():
     dirs = [
         project_root / "teaching" / "cognition_chains",
         project_root / "packs",
-        project_root / "language_packs" / "data",
+        project_root / "packs" / "data",
     ]
 
     before_snapshots = {}

@@ -116,7 +116,7 @@ display it honestly.
    - Prompt/content size limits: max 4096 chars prompt (matching existing
      `/chat/turn` validation)
    - Path confinement: journal writes only to `workbench_data/`
-   - No journal writes to `teaching/`, `packs/`, `language_packs/data/`
+   - No journal writes to `teaching/`, `packs/`, `packs/data/`
    - No NEW writes to `engine_state/` beyond existing chat checkpoint behavior
      (ADR-0146/0150)
    - Journal digest is deterministic for identical content

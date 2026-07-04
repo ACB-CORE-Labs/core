@@ -229,7 +229,7 @@ Mutation boundary:
 - A chat turn may write `engine_state/` through the normal runtime checkpoint
   path governed by ADR-0146 and ADR-0150. `checkpoint_emitted` reports whether
   that occurred.
-- A chat turn must not mutate `teaching/`, `packs/`, or `language_packs/data/`.
+- A chat turn must not mutate `teaching/`, `packs/`, or `packs/data/`.
 - A chat turn must not auto-accept proposals.
 - `proposal_candidates` contains candidate identifiers only; it does not expose
   proposal acceptance/rejection affordances or candidate surfaces.
@@ -416,7 +416,7 @@ create event stores, run stores, pack stores, or vault persistence.
 
 Purpose:
 
-List readable pack manifests from `language_packs/data/*/manifest.json` and
+List readable pack manifests from `packs/data/*/manifest.json` and
 cleanly readable JSON manifests under `packs/*/*/manifest.json`.
 
 Query:
@@ -441,7 +441,7 @@ Response:
       {
         "pack_id": "en_core_cognition_v1",
         "source": "language_pack",
-        "manifest_path": "language_packs/data/en_core_cognition_v1/manifest.json",
+        "manifest_path": "packs/data/en_core_cognition_v1/manifest.json",
         "version": "1.2.0",
         "language": "en",
         "modality": null,

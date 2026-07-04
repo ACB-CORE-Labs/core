@@ -130,7 +130,7 @@ class KernelProvenance:
 class KernelHazard:
     """An ambiguity or risk annotation on a substrate fact or surface.
 
-    The hazard registry (:mod:`language_packs.ambiguity_hazards`) owns the
+    The hazard registry (:mod:`packs.ambiguity_hazards`) owns the
     canonical set of hazard categories; this record carries a reference to
     one of them.
     """

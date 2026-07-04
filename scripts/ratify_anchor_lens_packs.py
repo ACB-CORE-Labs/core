@@ -30,7 +30,7 @@ from typing import Any
 from formation.hashing import self_seal
 
 PACKS_DIR = Path(__file__).resolve().parents[1] / "packs" / "anchor_lens"
-LANG_DATA_DIR = Path(__file__).resolve().parents[1] / "language_packs" / "data"
+LANG_DATA_DIR = Path(__file__).resolve().parents[1] / "packs" / "data"
 ISSUED_AT = "2026-05-20T00:00:00Z"
 
 # All anchor-lens pack ids to ratify, in declaration order.

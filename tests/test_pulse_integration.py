@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from scripts.run_pulse import run_pulse, _build_manifold, PulseResult
-from language_packs.compiler import load_pack
+from packs.compiler import load_pack
 from field.operators import (
     ConstraintCorrectionOperator,
     GraphDiffusionOperator,

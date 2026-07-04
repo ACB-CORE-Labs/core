@@ -21,7 +21,7 @@ at learning from contemplation/practice. **Tested rigorously. Refuted.**
 ## What is actually true (verified, high confidence)
 
 ### Axis A — promoting a *lexicon* entry to coherent is compile-and-display-only
-- `language_packs/compiler.py:75-92` maps a `coherent` lexical row → `EpistemicState.DECODED`,
+- `packs/compiler.py:75-92` maps a `coherent` lexical row → `EpistemicState.DECODED`,
   stored per-surface on the manifold (`compiler.py:357` → `vocab/manifold.py:114`).
 - **No reasoning/recall/realize/learning path reads that tag.** The only non-test
   reads (`compiler.py:406`, `:559`) merely copy it forward; `workbench/logos.py`

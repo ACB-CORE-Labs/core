@@ -142,7 +142,7 @@ def test_telemetry_guard_fields_empty_on_pre_c1_events():
 # ---------- AST seam ----------
 
 
-_PRODUCTION_MODULE_ROOTS = ("chat", "generate", "packs", "core", "language_packs")
+_PRODUCTION_MODULE_ROOTS = ("chat", "generate", "packs", "core", "packs")
 _GUARD_MODULE_NAME = "generate.realizer_guard"
 _ALLOWED_IMPORTERS = {"chat/runtime.py"}
 

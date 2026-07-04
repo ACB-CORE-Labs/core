@@ -30,7 +30,7 @@ substrates**, not the same thing in different clothes.  That axis is
 
 The substrate to deliver it already sits half-built on disk.
 
-* `language_packs/data/grc_logos_micro_v1` (11 entries, alignment),
+* `packs/data/grc_logos_micro_v1` (11 entries, alignment),
   `grc_logos_cognition_v1` (20 entries, **no alignment**),
   `he_logos_micro_v1` (9 entries, alignment),
   `he_core_cognition_v1` (20 entries, **no alignment**) —

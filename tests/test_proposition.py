@@ -3,7 +3,7 @@ from __future__ import annotations
 from algebra.cga import cga_inner
 from generate.proposition import FrameRegistry, Proposition, propose
 from ingest.gate import inject
-from language_packs.compiler import load_mounted_packs
+from packs.compiler import load_mounted_packs
 from vault.store import VaultStore
 
 

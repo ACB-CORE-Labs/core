@@ -192,7 +192,7 @@ home (ADR-XXXX or new).
   sequences and taught `FeatureBundle` evidence without consuming L3's
   compiled `VocabManifold`, domain namespaces, or pack-resident
   lexicon. Grep across `recognition/` confirms no `VocabManifold` /
-  `language_packs` / `load_pack` / `compiled` / `lexicon` / `vocab`
+  `packs` / `load_pack` / `compiled` / `lexicon` / `vocab`
   references except a prose comment in `outcome.py`.
 - **Dependency:** operator decision — is the token-level spike
   intentional (raw tokens are the right substrate for anti-unification)
@@ -326,7 +326,7 @@ stay on it.
   correction and anchor pull with `unitize_versor()`. The site is
   test-covered, but no ADR documents it as an allowed normalization
   boundary. Per CLAUDE.md normalization rules, the only sanctioned
-  unitize sites are `ingest/gate.py`, `language_packs/compiler.py`,
+  unitize sites are `ingest/gate.py`, `packs/compiler.py`,
   and `algebra/versor.py`. The `session/context.py` site does not
   appear in that list — it is either an undocumented allowed boundary
   or a discipline violation.

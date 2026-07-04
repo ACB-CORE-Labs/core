@@ -346,7 +346,7 @@ core eval math-contemplation [--audit-path PATH] [--output PATH]
 - Re-running the command on the same audit overwrites with identical bytes
   (idempotent).
 - Exit code 0 on success, 1 on audit-file-not-found, 2 on parse error.
-- Output path validated (no traversal — apply `language_packs/compiler.py::_validate_pack_id` pattern).
+- Output path validated (no traversal — apply `packs/compiler.py::_validate_pack_id` pattern).
 
 ### CLI wiring
 

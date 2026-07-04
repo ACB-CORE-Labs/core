@@ -27,7 +27,7 @@ from generate.recognizer_match import (
     _match_multiplicative_aggregation,
     _match_rate_with_currency,
 )
-from language_packs.compile_compositions import compile_compositions
+from packs.compile_compositions import compile_compositions
 from teaching.math_composition_ratification import SAFE_COMPOSITION_CATEGORIES
 
 

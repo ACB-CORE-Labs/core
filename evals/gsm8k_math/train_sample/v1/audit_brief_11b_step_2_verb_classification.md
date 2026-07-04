@@ -184,7 +184,7 @@ This PR makes **no** change to:
 - `generate/comprehension/lifecycle.py`
 - `generate/comprehension/lexicon.py`
 - `generate/comprehension/audit.py`
-- `language_packs/data/en_core_math_v1/**`
+- `packs/data/en_core_math_v1/**`
 
 Therefore the reader runtime and the audit artifact
 (`audit_brief_11.json`) are bit-identical to PR #345 (Brief 11B), and

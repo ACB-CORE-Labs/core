@@ -40,9 +40,9 @@ recall and determinism are the discriminators — see
 | Architecture | `generate/math_candidate_parser.py` | Candidate-emitting sentence parser (17 tests, ADR-0126 P2) |
 | Architecture | `generate/math_candidate_graph.py` | Branch enumeration + decision rule (22 tests, ADR-0126 P3) |
 | Architecture | `evals/gsm8k_math/runner.py::_score_one_candidate_graph` | Runner wiring (9 tests, ADR-0126 P4) |
-| Substrate | `language_packs/data/en_units_v1/` | 284 lemmas, 401 conversion edges, NIST/ISO provenance (Gemini, PR #164) |
-| Substrate | `language_packs/data/en_numerics_v1/` | 130 lemmas across cardinals/ordinals/fractions/multipliers/quantifiers/comparison-anchors/format-rules (Opus #2, PR #163) |
-| Loader | `language_packs/loader.py` re-exports | Single import path for both packs (ADR-0127/0128 deferred coordination) |
+| Substrate | `packs/data/en_units_v1/` | 284 lemmas, 401 conversion edges, NIST/ISO provenance (Gemini, PR #164) |
+| Substrate | `packs/data/en_numerics_v1/` | 130 lemmas across cardinals/ordinals/fractions/multipliers/quantifiers/comparison-anchors/format-rules (Opus #2, PR #163) |
+| Loader | `packs/loader.py` re-exports | Single import path for both packs (ADR-0127/0128 deferred coordination) |
 | Integration | `generate/math_candidate_parser.py::_canonicalize_unit` | Pack-aware unit canonicalization — handles irregular plurals (feet, children, etc.) via pack lookup |
 | Integration | `generate/math_candidate_parser.py::extract_initial_candidates` | Widened to `<Entity> has N <unit> [of <substance>]` + `There are N <unit> [in <place>]` shapes |
 | Integration | `generate/math_candidate_parser.py::_is_indefinite_quantifier` | ADR-0128.4 quantifier-driven refusal (`some`, `many`, etc. → no candidate emitted; preserves wrong == 0) |

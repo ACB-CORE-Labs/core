@@ -15,12 +15,12 @@ from pathlib import Path
 
 import pytest
 
-from language_packs.compiler import load_pack, load_pack_entries
+from packs.compiler import load_pack, load_pack_entries
 
 PACK_ID = "en_core_math_v1"
 
 _PACK_DIR = (
-    Path(__file__).parent.parent / "language_packs" / "data" / PACK_ID
+    Path(__file__).parent.parent / "packs" / "data" / PACK_ID
 )
 _LEXICON_DIR = _PACK_DIR / "lexicon"
 

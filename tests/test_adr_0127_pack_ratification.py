@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from collections import deque
-from language_packs.loader import (
+from packs.loader import (
     lookup_unit,
     lookup_dimension,
     get_conversion_graph,
@@ -11,7 +11,7 @@ from language_packs.loader import (
     UnitEntry,
 )
 
-DATA_DIR = Path(__file__).parent.parent / "language_packs" / "data" / "en_units_v1"
+DATA_DIR = Path(__file__).parent.parent / "packs" / "data" / "en_units_v1"
 
 def _load_raw_lexicon():
     lexicon_path = DATA_DIR / "lexicon.jsonl"

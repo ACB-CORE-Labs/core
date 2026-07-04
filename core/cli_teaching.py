@@ -876,14 +876,14 @@ def cmd_teaching_compile_pack(args: argparse.Namespace) -> int:
     """
     from pathlib import Path
 
-    from language_packs.compile_pack import compile_pack
+    from packs.compile_pack import compile_pack
 
     pack_root = (
         Path(args.pack)
         if args.pack
         else (
             Path(__file__).resolve().parent.parent
-            / "language_packs"
+            / "packs"
             / "data"
             / "en_core_math_v1"
         )

@@ -23,7 +23,7 @@ from generate.determine.estimate import converse_class_name
 
 _LEXICON = (
     Path(__file__).resolve().parents[2]
-    / "language_packs"
+    / "packs"
     / "data"
     / "en_core_relational_predicates_v1"
     / "lexicon.jsonl"
