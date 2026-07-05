@@ -23,6 +23,7 @@ with the ADR-0193 aggregate question (proven below).
 from __future__ import annotations
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.math_candidate_parser import extract_initial_candidates
 from generate.math_candidate_graph import parse_and_solve
@@ -70,7 +71,7 @@ def test_composes_with_aggregate_question() -> None:
         "Jar A has 28 marbles. Jar B has 12 marbles. "
         "How many marbles are there in total?"
     )
-    assert res.answer == 40.0, res.refusal_reason
+    assert_eval_close(res.answer, 40.0), res.refusal_reason
 
 
 def test_composes_three_containers() -> None:
@@ -78,4 +79,4 @@ def test_composes_three_containers() -> None:
         "Jar A has 5 marbles. Jar B has 3 marbles. Jar C has 2 marbles. "
         "How many marbles are there altogether?"
     )
-    assert res.answer == 10.0, res.refusal_reason
+    assert_eval_close(res.answer, 10.0), res.refusal_reason

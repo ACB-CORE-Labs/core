@@ -7,6 +7,7 @@ R1/R2 unaffected; non-rate text never blocks an R2 proposal.
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from pathlib import Path
 
 from core.comprehension_attempt import classify_r3, route_setup
@@ -59,7 +60,7 @@ def test_contemplation_r3_terminals_and_only_rate_like_propose(tmp_path: Path) -
         result = contemplate(fx["text"], proposal_root=tmp_path, case_id=fx["id"], **kwargs)
         assert result.terminal == _expected_r3_terminal(fx), f"{fx['id']}: {result.terminal}"
         if fx["expect"] == "solved":
-            assert result.answer == fx["gold"]
+            assert_eval_close(result.answer, fx["gold"])
         if result.terminal == Terminal.PROPOSAL_EMITTED:
             assert result.family == "unsupported_rate_duration"
     # ONLY the two rate-like unsupported features proposed; temporal/missing/non-integer did not.

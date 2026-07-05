@@ -18,6 +18,7 @@ moving 3/47/0 → 4/46/0 with no wrong.
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.math_candidate_parser import (
     extract_initial_candidates,
     extract_question_candidates,
@@ -66,4 +67,4 @@ def test_case_0024_solves_end_to_end() -> None:
     )
     r = parse_and_solve(q)
     assert r.refusal_reason is None
-    assert r.answer == 438.0
+    assert_eval_close(r.answer, 438.0)

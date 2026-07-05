@@ -15,6 +15,7 @@ Proposals are written to a tmp root so the repo is never touched.
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from pathlib import Path
 
 from core.comprehension_attempt import ComprehensionAttempt, RouteResult
@@ -42,7 +43,7 @@ def test_r2_gold_terminals_and_only_gaps_propose(tmp_path: Path) -> None:
         result = contemplate(fx["text"], proposal_root=tmp_path, case_id=fx["id"], **kwargs)
         assert result.terminal == _expected_r2_terminal(fx), f"{fx['id']}: {result.terminal}"
         if fx["expect"] == "solved":
-            assert result.answer == fx["gold"]
+            assert_eval_close(result.answer, fx["gold"])
     # ONLY the two missing_* gaps emitted a proposal — never a correct boundary.
     proposals = list(tmp_path.glob("*.json"))
     assert len(proposals) == 2, [p.name for p in proposals]
@@ -64,14 +65,16 @@ def test_answer_key_contradiction_is_a_terminal() -> None:
     fx = next(f for f in _load_r2_gold() if f["id"] == "r2-002-chickens")  # gold 11 == option A
     result = contemplate(fx["text"], options=fx["options"], answer_key="D")  # D = 13 (wrong)
     assert result.terminal == Terminal.CONTRADICTION_DETECTED
-    assert result.answer == 11 and result.family == "answer_key_contradiction"
+    assert_eval_close(result.answer, 11)
+    assert result.family == "answer_key_contradiction"
     assert "contradicts" in result.message
 
 
 def test_solved_setup_with_no_options_still_solves() -> None:
     fx = next(f for f in _load_r2_gold() if f["id"] == "r2-001-buses")
     result = contemplate(fx["text"])  # no options -> solve without choice verification
-    assert result.terminal == Terminal.SOLVED_VERIFIED and result.answer == fx["gold"]
+    assert result.terminal == Terminal.SOLVED_VERIFIED
+    assert_eval_close(result.answer, fx["gold"])
 
 
 def test_ambiguous_organ_terminal(monkeypatch) -> None:

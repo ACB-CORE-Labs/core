@@ -15,6 +15,7 @@ deferred extraction-richness work, not a search bug.
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.derivation import search_chain
 from generate.derivation.target import Target
 
@@ -23,7 +24,8 @@ class TestFlipsCleanProduct:
     def test_unambiguous_product_resolves(self) -> None:
         # mult cue "each", no aggregation hint -> only the product shape -> unique
         res = search_chain("Maria packs 6 boxes with 50 apples each. How many apples?")
-        assert res is not None and res.answer == 300.0
+        assert res is not None
+        assert_eval_close(res.answer, 300.0)
 
 
 class TestRefusesAmbiguity:
@@ -63,7 +65,7 @@ class TestTargetThreading:
         # unambiguous product resolves
         text = "Maria packs 6 boxes with 50 apples each."
         target = Target(quantities=(), aggregation=None, units=())
-        assert search_chain(text, target).answer == 300.0
+        assert_eval_close(search_chain(text, target).answer, 300.0)
 
 
 class TestDecimalGroundingResolves:
@@ -77,4 +79,5 @@ class TestDecimalGroundingResolves:
             "They sell the erasers for $0.75 each. How much money will they make?"
         )
         res = search_chain(text)
-        assert res is not None and res.answer == 864.0  # 48 * 24 * 0.75
+        assert res is not None
+        assert_eval_close(res.answer, 864.0)  # 48 * 24 * 0.75

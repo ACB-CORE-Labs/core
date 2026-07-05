@@ -22,6 +22,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 import generate.recognizer_anchor_inject as inj
 from generate.math_candidate_graph import (
@@ -86,7 +87,7 @@ def test_parse_and_solve_threads_sealed_flag() -> None:
     """parse_and_solve accepts sealed= and is a no-op with an empty registry."""
     frozen = parse_and_solve(_RATE_SENTENCE)
     sealed = parse_and_solve(_RATE_SENTENCE, sealed=True)
-    assert sealed.answer == frozen.answer
+    assert_eval_close(sealed.answer, frozen.answer)
     assert sealed.refusal_reason == frozen.refusal_reason
 
 

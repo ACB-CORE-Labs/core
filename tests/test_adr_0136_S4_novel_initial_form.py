@@ -9,6 +9,7 @@ cross-lane regression gates.
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close, is_eval_close
 import json
 from pathlib import Path
 
@@ -261,7 +262,7 @@ class TestGsm8kBarrierShifts:
             "20% of the girls have dogs at home and 10% of the boys have dogs at home.  "
             "How many students own dogs?"
         )
-        assert r.answer == 15.0
+        assert_eval_close(r.answer, 15.0)
         assert r.refusal_reason is None
 
     def test_gsm8k_0038_barrier_shifts_to_sentence_2(self) -> None:
@@ -273,7 +274,7 @@ class TestGsm8kBarrierShifts:
             "floor of the building. "
             "How many ladies are on the two floors in total?"
         )
-        assert r.answer == 400.0
+        assert_eval_close(r.answer, 400.0)
         assert r.refusal_reason is None
 
 
@@ -320,7 +321,7 @@ class TestCrossLaneRegression:
         for c in cases:
             r = parse_and_solve(c["question"])
             if r.answer is not None:
-                if r.answer == c["answer_numeric"]:
+                if is_eval_close(r.answer, c["answer_numeric"]):
                     admitted.add(c["case_id"])
                 else:
                     wrong_count += 1

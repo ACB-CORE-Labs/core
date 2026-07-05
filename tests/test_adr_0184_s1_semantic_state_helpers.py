@@ -8,6 +8,7 @@ state work composes on the same wrong=0-first floor.
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.derivation.accumulate import accumulation_candidates, compose_accumulation
 from generate.derivation.state.bind import (
     continues_anchor_referent,
@@ -77,7 +78,7 @@ class TestAccumulationStillUsesEquivalentSemantics:
             "Sam has 14 apples. He buys 9 more. How many apples does Sam have now?"
         )
         assert result is not None
-        assert result.answer == 23.0
+        assert_eval_close(result.answer, 23.0)
 
     def test_new_actor_still_refuses(self) -> None:
         assert (
@@ -96,5 +97,6 @@ class TestAccumulationStillUsesEquivalentSemantics:
             "A train travels at 60 miles per hour for 2 hours. Tom has 8 tickets and "
             "Sara buys 4 more tickets. How many tickets does Tom have?"
         )
-        assert any(d.answer == 12.0 for d in accumulation_candidates(same_referent))
+        from evals.numeric_harness import is_eval_close
+        assert any(is_eval_close(d.answer, 12.0) for d in accumulation_candidates(same_referent))
         assert all(d.answer != 12.0 for d in accumulation_candidates(new_actor))

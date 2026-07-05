@@ -18,6 +18,7 @@ Critical assertions:
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.math_candidate_graph import (
     MAX_TOTAL_BRANCHES,
     parse_and_solve,
@@ -71,7 +72,7 @@ class TestHappyPath:
             "How many apples does Sam have?"
         )
         assert result.is_admitted
-        assert result.answer == 8
+        assert_eval_close(result.answer, 8)
 
     def test_simple_subtract(self) -> None:
         result = parse_and_solve(
@@ -79,7 +80,7 @@ class TestHappyPath:
             "How many apples does Sam have?"
         )
         assert result.is_admitted
-        assert result.answer == 7
+        assert_eval_close(result.answer, 7)
 
     def test_transfer(self) -> None:
         result = parse_and_solve(
@@ -88,7 +89,7 @@ class TestHappyPath:
             "How many apples does Sam have?"
         )
         assert result.is_admitted
-        assert result.answer == 5
+        assert_eval_close(result.answer, 5)
 
     def test_transfer_other_side(self) -> None:
         result = parse_and_solve(
@@ -97,7 +98,7 @@ class TestHappyPath:
             "How many apples does Tom have?"
         )
         assert result.is_admitted
-        assert result.answer == 5
+        assert_eval_close(result.answer, 5)
 
     def test_total_across_entities(self) -> None:
         result = parse_and_solve(
@@ -105,7 +106,7 @@ class TestHappyPath:
             "How many apples do they have?"
         )
         assert result.is_admitted
-        assert result.answer == 8
+        assert_eval_close(result.answer, 8)
 
 
 # ---------------------------------------------------------------------------
@@ -121,7 +122,7 @@ class TestPermissiveVerbsNowSolve:
             "How many apples does Sam have?"
         )
         assert result.is_admitted
-        assert result.answer == 8
+        assert_eval_close(result.answer, 8)
 
     def test_past_tense_subtract(self) -> None:
         result = parse_and_solve(
@@ -129,7 +130,7 @@ class TestPermissiveVerbsNowSolve:
             "How many apples does Sam have?"
         )
         assert result.is_admitted
-        assert result.answer == 7
+        assert_eval_close(result.answer, 7)
 
     def test_production_verb_bakes(self) -> None:
         result = parse_and_solve(
@@ -137,7 +138,7 @@ class TestPermissiveVerbsNowSolve:
             "How many pies does Sam have?"
         )
         assert result.is_admitted
-        assert result.answer == 6
+        assert_eval_close(result.answer, 6)
 
 
 # ---------------------------------------------------------------------------
@@ -156,7 +157,7 @@ class TestAmbiguityResolution:
             "How many apples does Tom have?"
         )
         assert result.is_admitted
-        assert result.answer == 5  # transfer reading: 2 + 3 = 5
+        assert_eval_close(result.answer, 5)  # transfer reading: 2 + 3 = 5
 
     def test_gives_without_target_resolves_to_subtract(self) -> None:
         # "Sam gives 3 apples" → only subtract candidate is admissible.
@@ -165,7 +166,7 @@ class TestAmbiguityResolution:
             "How many apples does Sam have?"
         )
         assert result.is_admitted
-        assert result.answer == 5
+        assert_eval_close(result.answer, 5)
 
 
 # ---------------------------------------------------------------------------

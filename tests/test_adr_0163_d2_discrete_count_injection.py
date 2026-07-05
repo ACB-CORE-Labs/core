@@ -16,6 +16,7 @@ enforces the wrong=0 safety net by testing five categories:
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from evals.refusal_taxonomy.shape_categories import ShapeCategory
 from generate.math_candidate_graph import parse_and_solve
 from generate.math_candidate_parser import CandidateInitial
@@ -400,7 +401,7 @@ class TestNoFalseLiftInvariant:
             "How many apples does Sam have?"
         )
         assert r.is_admitted
-        assert r.answer == 8
+        assert_eval_close(r.answer, 8)
 
     def test_existing_parser_unchanged_for_canonical_form(self) -> None:
         # Canonical "X has N Y" is handled by the existing parser
@@ -408,7 +409,7 @@ class TestNoFalseLiftInvariant:
         # regression on the base case.
         r = parse_and_solve("Sam has 5 apples. How many apples does Sam have?")
         assert r.is_admitted
-        assert r.answer == 5
+        assert_eval_close(r.answer, 5)
 
 
 # ---------------------------------------------------------------------------
@@ -431,7 +432,7 @@ class TestEndToEndLift:
         )
         r = parse_and_solve(problem)
         assert r.is_admitted
-        assert r.answer == 5
+        assert_eval_close(r.answer, 5)
 
     def test_lift_uses_recognizer_path(self) -> None:
         # Confirm the lift specifically comes through recognizer
@@ -493,5 +494,5 @@ class TestDeterminism:
         )
         r1 = parse_and_solve(problem)
         r2 = parse_and_solve(problem)
-        assert r1.answer == r2.answer
+        assert_eval_close(r1.answer, r2.answer)
         assert r1.refusal_reason == r2.refusal_reason

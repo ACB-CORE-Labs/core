@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.duration_segment_total import (
@@ -100,24 +101,24 @@ def _load_train_cases() -> list[dict]:
 class TestTargetCases:
     def test_train_sample_0015_end_to_end(self):
         res = _run(CASE_0015)
-        assert res.answer == 38.0
+        assert_eval_close(res.answer, 38.0)
         assert res.refusal_reason is None
 
     def test_train_sample_0045_end_to_end(self):
         res = _run(CASE_0045)
-        assert res.answer == 14.0
+        assert_eval_close(res.answer, 14.0)
         assert res.refusal_reason is None
 
 
 class TestSiblingGeneralization:
     def test_duration_segment_sibling(self):
         res = _run(SIBLING_DURATION)
-        assert res.answer == 18.0
+        assert_eval_close(res.answer, 18.0)
         assert res.refusal_reason is None
 
     def test_survey_earnings_sibling(self):
         res = _run(SIBLING_SURVEY)
-        assert res.answer == 28.0
+        assert_eval_close(res.answer, 28.0)
         assert res.refusal_reason is None
 
 
@@ -196,7 +197,7 @@ class TestPriorSolvedRegression:
         cases = {c["case_id"].split("-")[-1]: c for c in _load_train_cases()}
         case = cases[case_suffix]
         res = _run(case["question"])
-        assert res.answer == float(case["answer_numeric"])
+        assert_eval_close(res.answer, float(case["answer_numeric"]))
 
 
 class TestHoldoutDevSafety:

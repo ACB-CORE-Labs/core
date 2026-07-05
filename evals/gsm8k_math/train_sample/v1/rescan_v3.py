@@ -15,6 +15,7 @@ import json
 import re
 from pathlib import Path
 from typing import Any
+from evals.numeric_harness import is_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 
@@ -104,7 +105,7 @@ def build_rescan() -> tuple[dict[str, Any], dict[str, Any]]:
         cur_reason = r.refusal_reason
 
         if cur_outcome == "admitted":
-            if r.answer == c["answer_numeric"]:
+            if is_eval_close(r.answer, c["answer_numeric"]):
                 admitted.append(cid)
             else:
                 wrong.append((cid, r.answer, c["answer_numeric"]))

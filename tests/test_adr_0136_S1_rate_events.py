@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from evals.math_capability_axes.S1_rate_events.v1.runner import build_report
 from generate.math_candidate_graph import parse_and_solve
@@ -100,7 +101,7 @@ class TestGSM8K0014:
             "Bob can shuck 10 oysters in 5 minutes.  "
             "How many oysters can he shuck in 2 hours?"
         )
-        assert r.answer == 240.0
+        assert_eval_close(r.answer, 240.0)
         assert r.refusal_reason is None
 
 
@@ -110,21 +111,21 @@ class TestCapacityEndToEnd:
             "Alice can pick 12 apples in 3 minutes.  "
             "How many apples can Alice pick in 9 minutes?"
         )
-        assert r.answer == 36.0
+        assert_eval_close(r.answer, 36.0)
 
     def test_cross_unit(self) -> None:
         r = parse_and_solve(
             "Sam can pack 15 boxes in 5 minutes.  "
             "How many boxes can Sam pack in 2 hours?"
         )
-        assert r.answer == 360.0
+        assert_eval_close(r.answer, 360.0)
 
     def test_pronoun_question(self) -> None:
         r = parse_and_solve(
             "Bob can shuck 10 oysters in 5 minutes.  "
             "How many oysters can he shuck in 30 minutes?"
         )
-        assert r.answer == 60.0
+        assert_eval_close(r.answer, 60.0)
 
 
 class TestEarningsEndToEnd:
@@ -133,14 +134,14 @@ class TestEarningsEndToEnd:
             "Tina makes $18.00 an hour.  "
             "How much money does Tina make in 5 hours?"
         )
-        assert r.answer == 90.0
+        assert_eval_close(r.answer, 90.0)
 
     def test_earns_per_hour(self) -> None:
         r = parse_and_solve(
             "Bob earns $25.00 per hour.  "
             "How much money does Bob earn in 8 hours?"
         )
-        assert r.answer == 200.0
+        assert_eval_close(r.answer, 200.0)
 
 
 class TestActorMismatchRefusal:
@@ -227,7 +228,7 @@ def test_gsm8k_post_s1_admission_honest() -> None:
         r = parse_and_solve(c["question"])
         if r.answer is not None:
             admitted.append(c["case_id"])
-            assert r.answer == c["answer_numeric"], (
+            assert_eval_close(r.answer, c["answer_numeric"]), (
                 f"{c['case_id']}: answer {r.answer} != expected {c['answer_numeric']}"
             )
     assert len(admitted) >= 1, "gsm8k-0014 should admit"
@@ -268,7 +269,7 @@ class TestContextClassifier:
             "when the match lasted for 2 hours?"
         )
         r = parse_and_solve(q)
-        assert r.answer == 16.0, f"expected 16.0 got {r.answer} ({r.refusal_reason})"
+        assert_eval_close(r.answer, 16.0), f"expected 16.0 got {r.answer} ({r.refusal_reason})"
 
     def test_inverted_capacity_pattern_matches(self) -> None:
         """Shape A2: 'During M <time-unit> <Actor> can <verb> N <unit>'."""

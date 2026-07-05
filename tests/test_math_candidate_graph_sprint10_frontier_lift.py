@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.affine_comparative_inversion_total import (
@@ -151,17 +152,17 @@ def _load_case(case_suffix: str) -> str:
 class TestTargetCases:
     def test_0006_solves(self) -> None:
         result = parse_and_solve(_load_case("0006"))
-        assert result.answer == 480.0
+        assert_eval_close(result.answer, 480.0)
         assert result.refusal_reason is None
 
     def test_0009_solves(self) -> None:
         result = parse_and_solve(_load_case("0009"))
-        assert result.answer == 185.0
+        assert_eval_close(result.answer, 185.0)
         assert result.refusal_reason is None
 
     def test_0013_solved_by_sprint11_cluster_contract(self) -> None:
         result = parse_and_solve(CASE_0013)
-        assert result.answer == 450.0
+        assert_eval_close(result.answer, 450.0)
         assert result.refusal_reason is None
 
 
@@ -169,12 +170,12 @@ class TestSiblingGeneralization:
     def test_sequential_scale_sibling(self) -> None:
         resolution = compose_sequential_comparative_scale(SIBLING_SCALE)
         assert resolution is not None
-        assert resolution.answer == 12 * 3 * 2 * 5
+        assert_eval_close(resolution.answer, 12 * 3 * 2 * 5)
 
     def test_affine_inversion_sibling(self) -> None:
         resolution = compose_affine_comparative_inversion_total(SIBLING_AFFINE)
         assert resolution is not None
-        assert resolution.answer == 42 + (42 - 6) / 3
+        assert_eval_close(resolution.answer, 42 + (42 - 6) / 3)
 
 
 class TestConfuserRefusals:

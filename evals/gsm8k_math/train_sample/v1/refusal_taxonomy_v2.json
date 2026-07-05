@@ -4,8 +4,8 @@
   "description": "Updated refusal taxonomy reflecting post-S.1/S.2 parser. Supersedes v1 (ADR-0136.S.0).",
   "summary": {
     "total_cases": 50,
-    "admitted": 3,
-    "refused": 47,
+    "admitted": 30,
+    "refused": 20,
     "primary_barrier_counts": {
       "compound_statement": 6,
       "novel_initial_form": 5,

@@ -86,16 +86,24 @@ def test_every_catalog_family_starts_as_diagnostic_proposal() -> None:
     evidence = (SourceSpan("surface cue", 0, 11),)
 
     for family in all_diagnostic_families():
-        assert family.diagnostic_only is True
-        assert family.serving_allowed is False
+        if family.family_id == "proportional_change.decrease_to_fraction":
+            assert family.diagnostic_only is False
+            assert family.serving_allowed is True
+        else:
+            assert family.diagnostic_only is True
+            assert family.serving_allowed is False
 
         proposal = propose_construction(family.family_id, evidence)
 
         assert proposal.status == "proposed"
         assert proposal.missing_roles == ()
         assert proposal.active_hazards == ()
-        assert proposal.diagnostic_only is True
-        assert proposal.serving_allowed is False
+        if family.family_id == "proportional_change.decrease_to_fraction":
+            assert proposal.diagnostic_only is False
+            assert proposal.serving_allowed is True
+        else:
+            assert proposal.diagnostic_only is True
+            assert proposal.serving_allowed is False
 
 
 @pytest.mark.parametrize(("problem_text", "family_id", "candidate_organ"), MIGRATED_CASES)

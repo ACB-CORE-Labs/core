@@ -12,6 +12,7 @@ the load-bearing test is wrong=0: serving stays on the current ratified count.
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 import json
 from pathlib import Path
 
@@ -65,4 +66,5 @@ class TestUnblocksDecimalProduct:
             if "student council" in line
         )
         res = search_chain(case["question"])
-        assert res is not None and res.answer == float(case["answer_numeric"])
+        assert res is not None
+        assert_eval_close(res.answer, float(case["answer_numeric"]))

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.derivation.calendar_grounding import (
     CIVIL_MONTH_DAY_COUNT,
@@ -171,7 +172,7 @@ class TestClusterContractPolicy:
 class TestTargetCase:
     def test_0013_solves(self) -> None:
         result = parse_and_solve(_load_case("0013"))
-        assert result.answer == 450.0
+        assert_eval_close(result.answer, 450.0)
         assert result.refusal_reason is None
 
 
@@ -180,7 +181,7 @@ class TestSiblingGeneralization:
         resolution = compose_piecewise_daily_hours_total(SIBLING_SEPTEMBER)
         assert resolution is not None
         # 6 hrs/day × 15 days + 12 hrs/day × 15 days = 90 + 180 = 270
-        assert resolution.answer == 270.0
+        assert_eval_close(resolution.answer, 270.0)
 
 
 class TestCalendarConfuserRefusals:
@@ -271,10 +272,10 @@ class TestTemporalRegressions:
     @pytest.mark.parametrize("case_id,expected", [("0001", 990.0), ("0017", 800.0)])
     def test_temporal_tariff_preserved(self, case_id: str, expected: float) -> None:
         result = parse_and_solve(_load_case(case_id))
-        assert result.answer == expected
+        assert_eval_close(result.answer, expected)
         assert result.refusal_reason is None
 
     def test_duration_segment_0015_preserved(self) -> None:
         result = parse_and_solve(_load_case("0015"))
-        assert result.answer == 38.0
+        assert_eval_close(result.answer, 38.0)
         assert result.refusal_reason is None

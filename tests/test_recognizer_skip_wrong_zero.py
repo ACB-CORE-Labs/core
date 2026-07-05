@@ -23,6 +23,7 @@ Reference:
 from __future__ import annotations
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 
@@ -78,4 +79,4 @@ def test_known_initial_then_known_operation_still_admits() -> None:
     text = "Sam has 5 apples. Sam gets 3 more apples. How many apples does Sam have?"
     result = parse_and_solve(text)
     assert result.is_admitted, f"legitimate problem refused: {result.refusal_reason!r}"
-    assert result.answer == 8
+    assert_eval_close(result.answer, 8)

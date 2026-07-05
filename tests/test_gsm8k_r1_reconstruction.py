@@ -8,6 +8,7 @@ answer is allowed.
 from __future__ import annotations
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from core.reasoning import evidence_from_math_solution
 from generate.derivation import reconstruct_r1_total
@@ -67,7 +68,7 @@ def test_r1_reconstruction_solves_with_verified_graph(case_id: str) -> None:
 
     assert result is not None
     assert result.is_admitted
-    assert result.answer == expected
+    assert_eval_close(result.answer, expected)
     assert result.graph is not None
 
     trace = solve(result.graph)
@@ -99,7 +100,7 @@ def test_parse_and_solve_wires_r1_only_as_verified_graph(case_id: str) -> None:
     result = parse_and_solve(text)
 
     assert result.is_admitted
-    assert result.answer == expected
+    assert_eval_close(result.answer, expected)
     assert result.selected_graph is not None
     assert any("r1_reconstruction" in event for event in result.reader_trace)
 

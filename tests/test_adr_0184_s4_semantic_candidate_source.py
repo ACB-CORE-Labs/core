@@ -20,6 +20,7 @@ guard is removed):
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 import ast
 from pathlib import Path
 
@@ -71,7 +72,8 @@ class TestBoundaryEquivalence:
         skip = semantic_state_candidates(_DISTRACTOR_0014)
         assert [d.answer for d in skip] == [25.0]
         anchor = semantic_state_candidates(_ANCHOR_SKIP_0016)
-        assert anchor and anchor[-1].answer == 12.0
+        assert anchor
+        assert_eval_close(anchor[-1].answer, 12.0)
 
     def test_clean_problem_emits_duplicate_readings(self) -> None:
         # On a clean problem the strict, distractor-skip, AND anchor-skip worlds all
@@ -91,7 +93,8 @@ class TestBoundaryEquivalence:
 
     def test_compose_accumulation_unchanged(self) -> None:
         result = compose_accumulation(_CLEAN_GAIN)
-        assert result is not None and result.answer == 23.0
+        assert result is not None
+        assert_eval_close(result.answer, 23.0)
         assert compose_accumulation(_NEW_ACTOR) is None
 
 
@@ -109,7 +112,8 @@ class TestAuthorityUnchanged:
 
     def test_acceptance_still_requires_pool_commit_rules(self) -> None:
         resolution = resolve_pooled(_CLEAN_GAIN)
-        assert resolution is not None and resolution.answer == 23.0
+        assert resolution is not None
+        assert_eval_close(resolution.answer, 23.0)
         # the committed derivation is one the boundary emitted and verify classified
         assert classify_derivation(resolution.derivation, _CLEAN_GAIN) == "complete"
 

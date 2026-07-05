@@ -31,7 +31,7 @@ _USES_DEFAULT_ENGINE_STATE_MARKER = "uses_default_engine_state"
 
 
 @pytest.fixture(autouse=True)
-def _isolate_engine_state_default(request, tmp_path_factory, monkeypatch):
+def _isolate_engine_state_default(request, tmp_path, monkeypatch):
     """Isolate the default engine-state checkpoint dir per test.
 
     A bare ``ChatRuntime()`` (no ``engine_state_path``) falls back to
@@ -61,7 +61,8 @@ def _isolate_engine_state_default(request, tmp_path_factory, monkeypatch):
     """
     if request.node.get_closest_marker(_USES_DEFAULT_ENGINE_STATE_MARKER):
         return
-    isolated = tmp_path_factory.mktemp("engine_state_default")
+    isolated = tmp_path / "engine_state_default"
+    isolated.mkdir()
     monkeypatch.setattr(engine_state, "_DEFAULT_DIR", isolated)
     monkeypatch.setenv("CORE_ENGINE_STATE_DIR", str(isolated))
 

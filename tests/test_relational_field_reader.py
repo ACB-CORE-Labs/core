@@ -7,6 +7,7 @@ metric grammar. wrong==0 is structural: every commit is an exact-integer read-ba
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.relational_field_reader import READER_LINEAGE, read_relational
 
 
@@ -19,7 +20,7 @@ def test_fact_then_more_than():
         "How many marbles does Jane have?"
     )
     assert not r.refused
-    assert r.answer == 8
+    assert_eval_close(r.answer, 8)
     assert r.answer_unit == "marbles"
     assert r.reader_lineage == READER_LINEAGE
 
@@ -30,7 +31,7 @@ def test_fewer_than():
         "How many apples does Ben have?"
     )
     assert not r.refused
-    assert r.answer == 13
+    assert_eval_close(r.answer, 13)
 
 
 def test_chained_forward_substitution():
@@ -39,7 +40,7 @@ def test_chained_forward_substitution():
         "Sara has 10 more coins than Jane. How many coins does Sara have?"
     )
     assert not r.refused
-    assert r.answer == 20  # 4 -> 10 -> 20
+    assert_eval_close(r.answer, 20)  # 4 -> 10 -> 20
 
 
 def test_part_whole_sum_query():
@@ -48,7 +49,7 @@ def test_part_whole_sum_query():
         "How many marbles do Tom and Jane have?"
     )
     assert not r.refused
-    assert r.answer == 11  # 3 + 8
+    assert_eval_close(r.answer, 11)  # 3 + 8
 
 
 def test_large_value_within_ceiling_is_exact():
@@ -59,7 +60,7 @@ def test_large_value_within_ceiling_is_exact():
         "How many dollars does Jane have?"
     )
     assert not r.refused
-    assert r.answer == 17345
+    assert_eval_close(r.answer, 17345)
 
 
 def test_never_commits_a_drifted_answer():
@@ -70,9 +71,10 @@ def test_never_commits_a_drifted_answer():
         "How many dollars does Jane have?"
     )
     # Either it commits the EXACT answer, or it refuses — never a wrong integer.
-    assert r.refused or r.answer == 777777
     if r.refused:
         assert r.refusal_reason == "precision_drift"
+    else:
+        assert_eval_close(r.answer, 777777)
 
 
 # --- refusals: the field declines outside its sealed grammar ----------------

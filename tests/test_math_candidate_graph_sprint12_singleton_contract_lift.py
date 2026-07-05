@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.nested_fraction_remainder_total import (
@@ -165,12 +166,12 @@ class TestClusterContractPolicy:
 class TestTargetCases:
     def test_0004_solves(self) -> None:
         result = parse_and_solve(CASE_0004)
-        assert result.answer == 2000.0
+        assert_eval_close(result.answer, 2000.0)
         assert result.refusal_reason is None
 
     def test_0007_solves(self) -> None:
         result = parse_and_solve(CASE_0007)
-        assert result.answer == 2.0
+        assert_eval_close(result.answer, 2.0)
         assert result.refusal_reason is None
 
 
@@ -178,13 +179,13 @@ class TestSiblingGeneralization:
     def test_music_camp_sibling(self) -> None:
         resolution = compose_nested_fraction_remainder_total(SIBLING_CAMP)
         assert resolution is not None
-        assert resolution.answer == 1600.0
+        assert_eval_close(resolution.answer, 1600.0)
 
     def test_marker_box_sibling(self) -> None:
         resolution = compose_loose_crayon_box_capacity(SIBLING_BOXES)
         assert resolution is not None
         # (3+21)*4/(19-3) = 96/16 = 6
-        assert resolution.answer == 6.0
+        assert_eval_close(resolution.answer, 6.0)
 
 
 class TestNeighborConfuserRefusals:
@@ -273,5 +274,5 @@ class TestHoldoutInert:
 class TestPriorOrganRegressions:
     def test_piecewise_0013_preserved(self) -> None:
         result = parse_and_solve(_load_case("0013"))
-        assert result.answer == 450.0
+        assert_eval_close(result.answer, 450.0)
         assert result.refusal_reason is None

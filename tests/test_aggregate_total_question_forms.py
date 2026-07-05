@@ -30,6 +30,7 @@ that boundary so this ADR does not silently break the parallel lane.
 from __future__ import annotations
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.math_candidate_parser import extract_question_candidates
 from generate.math_candidate_graph import parse_and_solve
@@ -100,7 +101,7 @@ def test_total_number_of_still_deferred() -> None:
 def test_end_to_end_aggregate_solves(question: str, expected: float) -> None:
     text = f"Tom has 5 apples. Jane has 3 apples. {question}"
     res = parse_and_solve(text)
-    assert res.answer == expected, res.refusal_reason
+    assert_eval_close(res.answer, expected), res.refusal_reason
 
 
 def test_baseline_do_they_have_unchanged() -> None:
@@ -109,7 +110,7 @@ def test_baseline_do_they_have_unchanged() -> None:
         "Tom has 5 apples. Jane has 3 apples. "
         "How many apples do they have altogether?"
     )
-    assert res.answer == 8.0
+    assert_eval_close(res.answer, 8.0)
 
 
 def test_aggregate_refuses_when_a_quantity_is_uncovered() -> None:

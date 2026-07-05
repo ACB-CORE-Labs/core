@@ -16,6 +16,7 @@ admits a spurious derivation.
 from __future__ import annotations
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.derivation import (
     GroundedDerivation,
@@ -52,7 +53,7 @@ def _mult_0021() -> GroundedDerivation:
 
 class TestDerivationArithmetic:
     def test_left_fold_multiply(self) -> None:
-        assert _mult_0021().answer == 450.0
+        assert_eval_close(_mult_0021().answer, 450.0)
 
     def test_answer_unit_is_primary_for_multiply(self) -> None:
         assert _mult_0021().answer_unit == "pounds"
@@ -62,7 +63,7 @@ class TestDerivationArithmetic:
             start=_q(5, "apples", "5"),
             steps=(Step(op="add", operand=_q(3, "apples", "3"), cue="and"),),
         )
-        assert d.answer == 8.0
+        assert_eval_close(d.answer, 8.0)
         assert d.answer_unit == "apples"
 
 
@@ -120,7 +121,7 @@ class TestInvariant2_NoSpuriousSelfVerification:
             start=_q(20, "apples", "20"),
             steps=(Step(op="divide", operand=_q(5, "friends", "5"), cue="per"),),
         )  # cue "per" is also absent from the text
-        assert d.answer == 4.0  # coincides with a plausible gold
+        assert_eval_close(d.answer, 4.0)  # coincides with a plausible gold
         assert self_verifies(d, text).verified is False  # but does NOT self-verify
 
     def test_add_across_units_refused(self) -> None:
@@ -150,7 +151,7 @@ class TestSelectUnique:
     def test_unique_self_verified_resolves(self) -> None:
         res = select_self_verified([_mult_0021()], _T0021)
         assert isinstance(res, Resolution)
-        assert res.answer == 450.0
+        assert_eval_close(res.answer, 450.0)
         assert res.answer_unit == "pounds"
 
     def test_zero_self_verified_refuses(self) -> None:
@@ -194,7 +195,8 @@ class TestSelectUnique:
         d1 = _mult_0021()
         d2 = _mult_0021()
         res = select_self_verified([d1, d2], text)
-        assert res is not None and res.answer == 450.0
+        assert res is not None
+        assert_eval_close(res.answer, 450.0)
 
 
 # ---------------------------------------------------------------------------

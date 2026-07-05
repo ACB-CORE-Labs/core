@@ -7,6 +7,7 @@ gsm8k-0010 barrier shift, and cross-lane regression gates.
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close, is_eval_close
 import json
 from pathlib import Path
 
@@ -121,7 +122,7 @@ class TestGsm8k0010BarrierShift:
             "Marion has 1/4 more than what Yun currently has, plus 7. "
             "How many paperclips does Marion have?"
         )
-        assert r.answer == 9.0
+        assert_eval_close(r.answer, 9.0)
         assert r.refusal_reason is None
 
 
@@ -153,7 +154,7 @@ class TestCrossLaneRegression:
         for c in cases:
             r = parse_and_solve(c["question"])
             if r.answer is not None:
-                if r.answer == c["answer_numeric"]:
+                if is_eval_close(r.answer, c["answer_numeric"]):
                     admitted.add(c["case_id"])
                 else:
                     wrong_count += 1

@@ -15,6 +15,7 @@ Covers the multi-step shapes the gold structures show:
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.derivation import (
     GroundedDerivation,
     Quantity,
@@ -77,7 +78,7 @@ class TestMixedChains:
                 comparative_step(cs),  # x3
             ),
         )
-        assert chain.answer == 438.0
+        assert_eval_close(chain.answer, 438.0)
         sv = self_verifies(chain, text)
         assert sv.verified is True, sv.reasons
 
@@ -94,7 +95,7 @@ class TestMixedChains:
                 Step("add", _q(5, "years", "5"), cue="older"),
             ),
         )
-        assert chain.answer == 47.0
+        assert_eval_close(chain.answer, 47.0)
         sv = self_verifies(chain, body)
         assert sv.verified is True, sv.reasons
 
@@ -148,7 +149,8 @@ class TestTargetMatch:
             steps=(Step("multiply", _q(50, "each", "50"), cue="for"),),
         )
         res = select_self_verified([chain], text, target_units=("boxes",))
-        assert res is not None and res.answer == 300.0
+        assert res is not None
+        assert_eval_close(res.answer, 300.0)
 
     def test_target_unit_mismatch_refuses(self) -> None:
         # chain answers in "boxes" but the question asked for "reps" -> refuse

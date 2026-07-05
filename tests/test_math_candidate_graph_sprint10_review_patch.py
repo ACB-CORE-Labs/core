@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.derivation.affine_comparative_inversion_total import (
     compose_affine_comparative_inversion_total,
 )
@@ -65,13 +66,13 @@ def test_affine_total_unrelated_aggregate_refuses() -> None:
 def test_affine_total_question_pronoun_target_still_admits() -> None:
     resolution = compose_affine_comparative_inversion_total(AFFINE_TOTAL_PRONOUN_TARGET)
     assert resolution is not None
-    assert resolution.answer == 185.0
+    assert_eval_close(resolution.answer, 185.0)
 
 
 def test_affine_total_fruit_sibling_still_admits() -> None:
     resolution = compose_affine_comparative_inversion_total(AFFINE_TOTAL_FRUIT_SIBLING)
     assert resolution is not None
-    assert resolution.answer == 54.0
+    assert_eval_close(resolution.answer, 54.0)
 
 
 def test_sequential_page_question_reader_mismatch_refuses() -> None:
@@ -85,4 +86,4 @@ def test_sequential_unrelated_length_chain_refuses() -> None:
 def test_sequential_page_question_reader_match_still_admits() -> None:
     resolution = compose_sequential_comparative_scale(SEQUENTIAL_PAGE_READER_MATCH)
     assert resolution is not None
-    assert resolution.answer == 480.0
+    assert_eval_close(resolution.answer, 480.0)

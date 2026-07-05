@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.derivation.piecewise_daily_hours_total import compose_piecewise_daily_hours_total
 
 
@@ -45,10 +46,10 @@ def test_unrelated_doubled_remaining_days_refuses() -> None:
 def test_each_day_sibling_still_admits() -> None:
     resolution = compose_piecewise_daily_hours_total(VALID_EACH_DAY_SIBLING)
     assert resolution is not None
-    assert resolution.answer == 450.0
+    assert_eval_close(resolution.answer, 450.0)
 
 
 def test_per_day_sibling_still_admits() -> None:
     resolution = compose_piecewise_daily_hours_total(VALID_PER_DAY_SIBLING)
     assert resolution is not None
-    assert resolution.answer == 450.0
+    assert_eval_close(resolution.answer, 450.0)

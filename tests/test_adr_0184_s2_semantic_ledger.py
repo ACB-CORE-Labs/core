@@ -14,6 +14,7 @@ Each has a test that fails if exactly that guard is removed.
 from __future__ import annotations
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.derivation.accumulate import accumulation_candidates, compose_accumulation
 from generate.derivation.state.ledger import build_accumulation_ledger
@@ -138,7 +139,7 @@ class TestLedgerReplay:
         assert derivation.start.value == 14.0
         assert derivation.steps[0].op == "add"
         assert derivation.steps[0].operand.value == 9.0
-        assert derivation.answer == 23.0
+        assert_eval_close(derivation.answer, 23.0)
 
     def test_replays_loss_to_grounded_derivation(self) -> None:
         ledger = build_accumulation_ledger(
@@ -149,7 +150,7 @@ class TestLedgerReplay:
         derivation = replay_accumulation_ledger(ledger)
         assert derivation is not None
         assert derivation.steps[0].op == "subtract"
-        assert derivation.answer == 22.0
+        assert_eval_close(derivation.answer, 22.0)
 
     def test_change_operand_inherits_anchor_unit(self) -> None:
         # "9 more" extracts unitless ("") but accumulates in the anchor's dimension.
@@ -208,14 +209,14 @@ class TestAccumulationComposerEquivalence:
             "Sam has 14 apples. He buys 9 more. How many apples does Sam have now?"
         )
         assert result is not None
-        assert result.answer == 23.0
+        assert_eval_close(result.answer, 23.0)
 
     def test_compose_accumulation_still_commits_clean_loss(self) -> None:
         result = compose_accumulation(
             "Anna has 25 stickers. She gives 10 away. How many stickers does Anna have?"
         )
         assert result is not None
-        assert result.answer == 15.0
+        assert_eval_close(result.answer, 15.0)
 
     def test_new_actor_problem_still_refuses(self) -> None:
         assert (
@@ -230,4 +231,5 @@ class TestAccumulationComposerEquivalence:
             "A train travels at 60 miles per hour for 2 hours. Tom has 8 tickets and "
             "he buys 4 more tickets. How many tickets does Tom have?"
         )
-        assert any(d.answer == 12.0 for d in accumulation_candidates(text))
+        from evals.numeric_harness import is_eval_close
+        assert any(is_eval_close(d.answer, 12.0) for d in accumulation_candidates(text))

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.temporal_tariff import (
@@ -142,17 +143,17 @@ def _load_train_cases() -> list[dict]:
 class TestTargetCases:
     def test_train_sample_0001_overtime(self):
         res = _run(CASE_0001)
-        assert res.answer == 990.0
+        assert_eval_close(res.answer, 990.0)
         assert res.refusal_reason is None
 
     def test_train_sample_0017_bundle_tariff(self):
         res = _run(CASE_0017)
-        assert res.answer == 800.0
+        assert_eval_close(res.answer, 800.0)
         assert res.refusal_reason is None
 
     def test_train_sample_0010_affine_fraction_delta(self):
         res = _run(CASE_0010)
-        assert res.answer == 9.0
+        assert_eval_close(res.answer, 9.0)
         assert res.refusal_reason is None
 
 
@@ -165,19 +166,19 @@ class TestSiblingGeneralization:
 
     def test_bundle_sibling(self):
         res = _run(SIBLING_BUNDLE)
-        assert res.answer == 500.0
+        assert_eval_close(res.answer, 500.0)
         assert res.refusal_reason is None
 
     def test_affine_sibling(self):
         res = _run(SIBLING_AFFINE)
-        assert res.answer == 7.0
+        assert_eval_close(res.answer, 7.0)
         assert res.refusal_reason is None
 
 
 class TestConfuserRefusals:
     def test_fraction_decrease_not_affine(self):
         assert resolve_promotable_affine_fraction_delta(FRACTION_DECREASE_CONFUSER) is None
-        assert _run(FRACTION_DECREASE_CONFUSER).answer == 21.0
+        assert_eval_close(_run(FRACTION_DECREASE_CONFUSER).answer, 21.0)
 
     def test_currency_amount_vet_not_tariff(self):
         assert resolve_promotable_temporal_tariff(CURRENCY_AMOUNT_0019_SHAPE) is None
@@ -238,7 +239,7 @@ class TestPriorSolvedRegression:
         cases = {c["case_id"].split("-")[-1]: c for c in _load_train_cases()}
         case = cases[case_suffix]
         res = _run(case["question"])
-        assert res.answer == float(case["answer_numeric"])
+        assert_eval_close(res.answer, float(case["answer_numeric"]))
 
 
 class TestHoldoutDevSafety:

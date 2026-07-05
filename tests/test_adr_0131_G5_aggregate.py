@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from evals.math_capability_axes.G5_aggregate.v1.runner import build_report
 from generate.math_candidate_graph import parse_and_solve
@@ -60,7 +61,7 @@ class TestTwoEntityNoOp:
     )
     def test_two_entity_sum(self, problem: str, expected: float) -> None:
         r = parse_and_solve(problem)
-        assert r.answer == expected
+        assert_eval_close(r.answer, expected)
         assert r.refusal_reason is None
 
 
@@ -76,18 +77,18 @@ class TestThreeEntityNoOp:
     )
     def test_three_entity_sum(self, problem: str, expected: float) -> None:
         r = parse_and_solve(problem)
-        assert r.answer == expected
+        assert_eval_close(r.answer, expected)
         assert r.refusal_reason is None
 
 
 class TestSingleEntityDegenerate:
     def test_single_entity_identity(self) -> None:
         r = parse_and_solve("Sam has 5 apples. How many apples do they have in total?")
-        assert r.answer == 5.0
+        assert_eval_close(r.answer, 5.0)
 
     def test_single_entity_with_op(self) -> None:
         r = parse_and_solve("Alice has 7 books. Alice buys 3 books. How many books do they have altogether?")
-        assert r.answer == 10.0
+        assert_eval_close(r.answer, 10.0)
 
 
 class TestMismatchedUnitRefusal:

@@ -16,6 +16,7 @@ Covers:
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 import json
 
 from evals.gsm8k_math.practice.v1.search_runner import build_search_report
@@ -53,7 +54,7 @@ class TestSearchMultiplicative:
     def test_flips_0021(self) -> None:
         res = search_multiplicative(_T0021)
         assert res is not None
-        assert res.answer == 450.0
+        assert_eval_close(res.answer, 450.0)
         assert res.answer_unit == "pounds"
 
     def test_refuses_without_a_cue(self) -> None:
@@ -76,16 +77,19 @@ class TestSearchMultiplicative:
 class TestPerturbationGenerality:
     def test_renumbered_variant_flips(self) -> None:
         res = search_multiplicative("He bench presses 20 pounds for 5 reps and does 4 sets.")
-        assert res is not None and res.answer == 400.0
+        assert res is not None
+        assert_eval_close(res.answer, 400.0)
 
     def test_reworded_same_shape_flips(self) -> None:
         # different domain, same in-clause multiplicative shape
         res = search_multiplicative("She bakes 4 trays for 6 batches and does 2 rounds.")
-        assert res is not None and res.answer == 48.0
+        assert res is not None
+        assert_eval_close(res.answer, 48.0)
 
     def test_two_factor_variant_flips(self) -> None:
         res = search_multiplicative("Each shelf holds 7 books for 9 shelves.")
-        assert res is not None and res.answer == 63.0
+        assert res is not None
+        assert_eval_close(res.answer, 63.0)
 
 
 # ---------------------------------------------------------------------------

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.round_trip_trip_duration import (
@@ -112,24 +113,24 @@ def _load_train_cases() -> list[dict]:
 class TestTargetCases:
     def test_train_sample_0030_end_to_end(self):
         res = _run(CASE_0030)
-        assert res.answer == 14.0
+        assert_eval_close(res.answer, 14.0)
         assert res.refusal_reason is None
 
     def test_train_sample_0035_end_to_end(self):
         res = _run(CASE_0035)
-        assert res.answer == 4.0
+        assert_eval_close(res.answer, 4.0)
         assert res.refusal_reason is None
 
 
 class TestSiblingGeneralization:
     def test_round_trip_sibling(self):
         res = _run(SIBLING_ROUND_TRIP)
-        assert res.answer == 18.0
+        assert_eval_close(res.answer, 18.0)
         assert res.refusal_reason is None
 
     def test_giveaway_sibling(self):
         res = _run(SIBLING_GIVEAWAY)
-        assert res.answer == 5.0
+        assert_eval_close(res.answer, 5.0)
         assert res.refusal_reason is None
 
 
@@ -151,7 +152,7 @@ class TestConfuserRefusals:
 
     def test_giveaway_goal_language_refuses(self):
         assert resolve_promotable_giveaway_target_residual(GOAL_RESIDUAL_CV0005) is None
-        assert _run(GOAL_RESIDUAL_CV0005).answer == 3.0
+        assert_eval_close(_run(GOAL_RESIDUAL_CV0005).answer, 3.0)
 
     def test_giveaway_comparative_question_refuses(self):
         text = (
@@ -163,7 +164,7 @@ class TestConfuserRefusals:
     def test_duration_segment_not_round_trip(self):
         assert resolve_promotable_round_trip_trip_duration(DURATION_SEGMENT_0015) is None
         res = _run(DURATION_SEGMENT_0015)
-        assert res.answer == 38.0
+        assert_eval_close(res.answer, 38.0)
 
 
 class TestSealedWrongPatternRefusal:
@@ -208,7 +209,7 @@ class TestPriorSolvedRegression:
         cases = {c["case_id"].split("-")[-1]: c for c in _load_train_cases()}
         case = cases[case_suffix]
         res = _run(case["question"])
-        assert res.answer == float(case["answer_numeric"])
+        assert_eval_close(res.answer, float(case["answer_numeric"]))
 
 
 class TestHoldoutDevSafety:

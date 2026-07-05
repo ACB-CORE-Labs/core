@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.fraction_decrease import (
@@ -118,12 +119,12 @@ def _load_train_cases() -> list[dict]:
 class TestTargetCases:
     def test_train_sample_0005_end_to_end(self):
         res = _run(CASE_0005)
-        assert res.answer == 21.0
+        assert_eval_close(res.answer, 21.0)
         assert res.refusal_reason is None
 
     def test_train_sample_0046_end_to_end(self):
         res = _run(CASE_0046)
-        assert res.answer == 15.0
+        assert_eval_close(res.answer, 15.0)
         assert res.refusal_reason is None
 
 
@@ -136,7 +137,7 @@ class TestSiblingGeneralization:
 
     def test_percent_partition_sibling(self):
         res = _run(SIBLING_PERCENT_PARTITION)
-        assert res.answer == 16.0
+        assert_eval_close(res.answer, 16.0)
         assert res.refusal_reason is None
 
 
@@ -159,7 +160,7 @@ class TestConfuserRefusals:
             "his goal?"
         )
         assert resolve_promotable_fraction_decrease(goal) is None
-        assert _run(goal).answer == 3.0
+        assert_eval_close(_run(goal).answer, 3.0)
 
 
 class TestSealedWrongPatternRefusal:
@@ -175,11 +176,11 @@ class TestSealedWrongPatternRefusal:
 class TestCompositionValidationPins:
     def test_cv_0007_fraction_decrease(self):
         res = _run(CASE_0005)
-        assert res.answer == 21.0
+        assert_eval_close(res.answer, 21.0)
 
     def test_cv_0008_percent_partition(self):
         res = _run(CASE_0046)
-        assert res.answer == 15.0
+        assert_eval_close(res.answer, 15.0)
 
 
 class TestTrainSampleScore:
@@ -214,7 +215,7 @@ class TestPriorSolvedRegression:
         cases = {c["case_id"].split("-")[-1]: c for c in _load_train_cases()}
         case = cases[case_suffix]
         res = _run(case["question"])
-        assert res.answer == float(case["answer_numeric"])
+        assert_eval_close(res.answer, float(case["answer_numeric"]))
 
 
 class TestHoldoutDevSafety:

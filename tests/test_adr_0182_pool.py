@@ -15,6 +15,7 @@ Sealed lane: ``chat/`` does not import these; serving ``3/47/0`` cannot move.
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.derivation import pool
 from generate.derivation.accumulate import accumulation_candidates
 from generate.derivation.model import GroundedDerivation, Quantity, Step
@@ -85,7 +86,7 @@ class TestResolvePooled:
     def test_clean_accumulation_commits(self) -> None:
         resolution = resolve_pooled(_CLEAN_ACCUMULATION)
         assert resolution is not None
-        assert resolution.answer == 23.0
+        assert_eval_close(resolution.answer, 23.0)
 
     def test_distractor_0014_refuses_via_disagreement(self) -> None:
         # product 300 (complete) vs additive 25 (exempt) disagree -> refuse.
@@ -126,7 +127,8 @@ class TestResolvePooled:
         assert resolve_pooled(_DISTRACTOR_0014) == resolve_pooled(_DISTRACTOR_0014)
         a = resolve_pooled(_CLEAN_ACCUMULATION)
         b = resolve_pooled(_CLEAN_ACCUMULATION)
-        assert a is not None and b is not None and a.answer == b.answer
+        assert a is not None
+        assert_eval_close(b is not None and a.answer, b.answer)
 
 
 _BEFORE_Q = "Lisa had 50 dollars. She spent 20 on lunch. How much money did Lisa have before lunch?"
@@ -166,7 +168,8 @@ class TestPriorStateQuestionGuard:
     def test_left_twin_still_resolves_forward(self) -> None:
         # discrimination: the twin asking 'left' commits the forward net (30).
         resolution = resolve_pooled(_LEFT_TWIN)
-        assert resolution is not None and resolution.answer == 30.0
+        assert resolution is not None
+        assert_eval_close(resolution.answer, 30.0)
 
 
 _ANCHOR_SKIP_0016 = (
@@ -187,7 +190,8 @@ class TestAnchorSkipIntraClause:
     def test_intra_clause_state_and_change_resolves(self) -> None:
         # the clean twin: "has 8 ... and buys 4 more" -> 12, committed.
         resolution = resolve_pooled(_INTRACLAUSE_TWIN)
-        assert resolution is not None and resolution.answer == 12.0
+        assert resolution is not None
+        assert_eval_close(resolution.answer, 12.0)
 
     def test_anchor_skip_candidate_is_exempt(self) -> None:
         # the 0016 reading skips the train block; 8+4=12 leaves 60/2 unused-foreign.
@@ -204,7 +208,8 @@ class TestAnchorSkipIntraClause:
     def test_no_anchor_skip_candidate_without_conjunction(self) -> None:
         # a plain single-quantity sentence yields no spurious extra reading.
         cands = accumulation_candidates("Sam has 14 apples. He buys 9 more apples.")
-        assert all(d.answer == 23.0 for d in cands)
+        from evals.numeric_harness import is_eval_close
+        assert all(is_eval_close(d.answer, 23.0) for d in cands)
 
     # --- ADR-0182 lookback: the anchor-skip refuse branches (failing-under-violation) ---
 
@@ -222,7 +227,8 @@ class TestAnchorSkipIntraClause:
             "A train travels at 60 miles per hour for 2 hours. Tom has 8 tickets and "
             "Sara buys 4 more tickets. How many tickets does Tom have?"
         )
-        assert any(d.answer == 12.0 for d in accumulation_candidates(same_referent)), (
+        from evals.numeric_harness import is_eval_close
+        assert any(is_eval_close(d.answer, 12.0) for d in accumulation_candidates(same_referent)), (
             "same-referent anchor-skip should produce the 8+4=12 reading"
         )
         assert all(d.answer != 12.0 for d in accumulation_candidates(new_actor)), (
@@ -241,7 +247,8 @@ class TestAnchorSkipIntraClause:
             "A train travels at 60 miles per hour for 2 hours. Tom has 8 tickets and "
             "owns 4 tickets. How many tickets does Tom have?"
         )
-        assert any(d.answer == 12.0 for d in accumulation_candidates(with_cue))
+        from evals.numeric_harness import is_eval_close
+        assert any(is_eval_close(d.answer, 12.0) for d in accumulation_candidates(with_cue))
         assert all(d.answer != 12.0 for d in accumulation_candidates(no_cue))
 
     def test_anchor_skip_refuses_without_single_quantity_anchor(self) -> None:

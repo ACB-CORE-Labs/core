@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.math_candidate_graph import parse_and_solve
 from generate.math_candidate_parser import (
     extract_initial_candidates,
@@ -38,7 +39,7 @@ def test_train_sample_0025_end_to_end():
         "how many strawberries do Lilibeth and her friends pick in all?"
     )
     res = _run(text)
-    assert res.answer == 1200.0
+    assert_eval_close(res.answer, 1200.0)
     assert res.refusal_reason is None
 
 
@@ -50,7 +51,7 @@ def test_sibling_tom_apples():
         "how many apples do Tom and his friends pick in all?"
     )
     res = _run(text)
-    assert res.answer == 300.0
+    assert_eval_close(res.answer, 300.0)
     assert res.refusal_reason is None
 
 
@@ -62,7 +63,7 @@ def test_sibling_alice_strawberries():
         "how many strawberries do Alice and her friends pick in all?"
     )
     res = _run(text)
-    assert res.answer == 240.0
+    assert_eval_close(res.answer, 240.0)
     assert res.refusal_reason is None
 
 
@@ -143,7 +144,7 @@ def test_yield_regression_0008():
         "will Marnie be able to make out of the beads she bought?"
     )
     res = _run(text)
-    assert res.answer == 9.0
+    assert_eval_close(res.answer, 9.0)
     assert res.refusal_reason is None
 
 

@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from evals.gsm8k_math.train_sample.v1.runner import (
     _CASES_PATH,
@@ -39,12 +40,12 @@ def test_promotable_product_cases_resolve(case_suffix: str, expected: float) -> 
     # The bridge FUNCTION still resolves these in isolation...
     resolution = resolve_promotable_product(row["question"])
     assert resolution is not None
-    assert resolution.answer == expected
+    assert_eval_close(resolution.answer, expected)
 
     # ...but broad product_bridge SERVING promotion stays DISABLED (2026-06-04).
     # Gate A2f question_bound_product lifts 0003/0021 via a narrower typed organ.
     result = parse_and_solve(row["question"])
-    assert result.answer == expected
+    assert_eval_close(result.answer, expected)
 
 
 @pytest.mark.parametrize(

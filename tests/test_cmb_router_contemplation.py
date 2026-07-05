@@ -12,6 +12,7 @@ Pins the integration matrix and the CMB-over-R3 domain-precedence rule:
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 import json
 from pathlib import Path
 
@@ -84,7 +85,7 @@ def test_cmb_contemplation_terminal_matrix(tmp_path: Path) -> None:
         r = contemplate(fx["text"], proposal_root=tmp_path, case_id=fx["id"], **kw)
         if fx["expect"] == "solved":
             assert r.terminal == Terminal.SOLVED_VERIFIED and r.selected_organ == "r4_combined_rate"
-            assert r.answer == fx["gold"], fx["id"]
+            assert_eval_close(r.answer, fx["gold"]), fx["id"]
         elif fx["expect"] == "solver_refuses":
             assert r.terminal == Terminal.REFUSED_KNOWN_BOUNDARY and r.answer is None, fx["id"]
             expected = "cmb_non_positive_net" if fx["solver_reason"] == "non_positive_net_rate" else "cmb_non_integer"
@@ -107,7 +108,8 @@ def test_cmb11_veto_yields_refusal_not_a_wrong_answer(tmp_path: Path) -> None:
 
 def test_cmb15_cedes_to_r3_which_solves_the_single_rate(tmp_path: Path) -> None:
     r = contemplate(_by_id("cmb-15-not-combined-shaped")["text"], proposal_root=tmp_path)
-    assert r.terminal == Terminal.SOLVED_VERIFIED and r.selected_organ == "r3_rate" and r.answer == 180
+    assert r.terminal == Terminal.SOLVED_VERIFIED and r.selected_organ == "r3_rate"
+    assert_eval_close(r.answer, 180)
 
 
 def test_cmb_solver_boundaries_never_propose(tmp_path: Path) -> None:

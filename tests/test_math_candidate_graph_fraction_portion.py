@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.math_candidate_graph import parse_and_solve
 from generate.math_candidate_parser import extract_operation_candidates
 from generate.math_problem_graph import FractionPortion, Operation, PartitionChunk
@@ -96,7 +97,7 @@ def test_train_sample_0002_end_to_end():
         "How much does she keep on hand?"
     )
     res = _run(text)
-    assert res.answer == 15.0
+    assert_eval_close(res.answer, 15.0)
     assert res.refusal_reason is None
 
 
@@ -123,7 +124,7 @@ def test_sibling_bob_rope_one_third_half_rest():
         "How much does he keep on hand?"
     )
     res = _run(text)
-    assert res.answer == 10.0
+    assert_eval_close(res.answer, 10.0)
     assert res.refusal_reason is None
 
 
@@ -137,7 +138,7 @@ def test_sibling_alice_ribbon_one_fifth_half_rest():
         "How much does she keep on hand?"
     )
     res = _run(text)
-    assert res.answer == 16.0
+    assert_eval_close(res.answer, 16.0)
     assert res.refusal_reason is None
 
 

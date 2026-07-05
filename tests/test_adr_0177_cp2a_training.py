@@ -7,6 +7,7 @@ measurement builds a non-empty, well-formed ledger over the sealed cases.
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.cue_precision.ledger import CuePattern, CuePrecisionLedger
 from generate.cue_precision.trainer import candidates_for, train_from_cases
 from generate.derivation.model import GroundedDerivation, Quantity, Step
@@ -89,7 +90,8 @@ class TestSearchChainParity:
             "They sell the erasers for $0.75 each. How much money will they make?"
         )
         res = search_chain(text)
-        assert res is not None and res.answer == 864.0
+        assert res is not None
+        assert_eval_close(res.answer, 864.0)
 
     def test_candidate_chains_is_enumeration_only(self) -> None:
         from generate.derivation.multistep import candidate_chains, search_chain

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 import json
 from pathlib import Path
 
@@ -46,13 +47,13 @@ def _run(text: str):
 
 def test_train_sample_0003_end_to_end():
     res = _run(CASE_0003)
-    assert res.answer == 864.0
+    assert_eval_close(res.answer, 864.0)
     assert res.refusal_reason is None
 
 
 def test_train_sample_0021_end_to_end():
     res = _run(CASE_0021)
-    assert res.answer == 450.0
+    assert_eval_close(res.answer, 450.0)
     assert res.refusal_reason is None
 
 
@@ -63,7 +64,7 @@ def test_sibling_revenue_chain_varied_surface():
         "If the club sells every marker for $1.25 each, how much money will they raise?"
     )
     res = _run(text)
-    assert res.answer == 450.0
+    assert_eval_close(res.answer, 450.0)
     assert res.refusal_reason is None
 
 
@@ -73,7 +74,7 @@ def test_sibling_weight_chain_varied_surface():
         "How much total weight does she lift?"
     )
     res = _run(text)
-    assert res.answer == 640.0
+    assert_eval_close(res.answer, 640.0)
     assert res.refusal_reason is None
 
 
@@ -153,8 +154,8 @@ def test_goal_residual_and_peer_partition_regressions():
         "If three of Lilibeth's friends pick the same amount as her, "
         "how many strawberries do Lilibeth and her friends pick in all?"
     )
-    assert _run(goal).answer == 3.0
-    assert _run(peer).answer == 1200.0
+    assert_eval_close(_run(goal).answer, 3.0)
+    assert_eval_close(_run(peer).answer, 1200.0)
 
 
 def test_full_train_sample_wrong_zero_and_chunk_lift():

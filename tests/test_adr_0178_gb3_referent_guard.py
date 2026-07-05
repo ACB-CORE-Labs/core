@@ -13,6 +13,7 @@ These tests would FAIL against the pre-GB-3 whole-problem composer (which return
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.derivation import compose_sequential
 
 
@@ -51,12 +52,14 @@ class TestSingleClauseStructuresStillResolve:
 
     def test_single_clause_list_sum(self) -> None:
         res = compose_sequential("She picked 6 apples and 4 apples.")
-        assert res is not None and res.answer == 10.0
+        assert res is not None
+        assert_eval_close(res.answer, 10.0)
 
     def test_single_clause_sum_then_scale(self) -> None:
         # list + comparative in the SAME clause (comma, not a sentence break).
         res = compose_sequential("She picked 6 apples and 4 apples, then doubled her apples.")
-        assert res is not None and res.answer == 20.0
+        assert res is not None
+        assert_eval_close(res.answer, 20.0)
 
 
 class TestDeterminism:

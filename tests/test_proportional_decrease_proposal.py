@@ -77,16 +77,16 @@ def test_proposal_family_is_catalog_backed() -> None:
     assert family.signature.candidate_organ == proposal.candidate_organ
 
 
-def test_proposal_is_diagnostic_only_serving_disallowed() -> None:
+def test_proposal_is_promoted_to_serving() -> None:
     frame = build_problem_frame(FRACTION_DECREASE_CASE)
     proposal = next(p for p in frame.proposals if p.family_id == "proportional_change.decrease_to_fraction")
     
     family = lookup_family(proposal.family_id)
     assert family is not None
-    assert family.diagnostic_only is True
-    assert family.serving_allowed is False
-    assert proposal.diagnostic_only is True
-    assert proposal.serving_allowed is False
+    assert family.diagnostic_only is False
+    assert family.serving_allowed is True
+    assert proposal.diagnostic_only is False
+    assert proposal.serving_allowed is True
 
 
 def test_blocked_final_value_proportional_case_produces_proposal_but_remains_blocked() -> None:

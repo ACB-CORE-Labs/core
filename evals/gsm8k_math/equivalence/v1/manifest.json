@@ -1,7 +1,7 @@
 {
-  "corpus_sha": "b04a9f31080b4fde15373f61ca9e89ab93cf5b18168ec6f9c5c4d28ce779bf3f",
-  "pinned_at_commit": "8b12423dec46a8fa9bbfb2a4766aca3170dd6a01",
-  "problem_count": 937,
+  "corpus_sha": "e9cd496986dffc3dd5f41f410361e0ef04aac21464c16dedd260f8afa4c111e3",
+  "pinned_at_commit": "71d938cc0b2147ca92f9de31aed34e74c6afcdd3",
+  "problem_count": 1087,
   "provenance": "Pins derivation-lane candidate behavior proven byte-equal to the pre-semantic-ledger legacy path by the PR #684 and #685 cross-tree differentials (937 problems, 0 differences each). ADR-0184 S4b.",
   "regenerate": "python scripts/verify_semantic_equivalence.py --update",
   "version": "v1"

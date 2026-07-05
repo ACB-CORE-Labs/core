@@ -18,8 +18,12 @@ def test_catalog_entries_are_diagnostic_only_and_serving_forbidden() -> None:
     families = all_diagnostic_families()
     assert len(families) == 4
     for family in families:
-        assert family.diagnostic_only is True
-        assert family.serving_allowed is False
+        if family.family_id == "proportional_change.decrease_to_fraction":
+            assert family.diagnostic_only is False
+            assert family.serving_allowed is True
+        else:
+            assert family.diagnostic_only is True
+            assert family.serving_allowed is False
 
 
 def test_catalog_ordering_is_deterministic() -> None:
@@ -112,8 +116,12 @@ def test_propose_construction_is_preassessment_and_catalog_backed(
     assert proposal.status == "proposed"
     assert proposal.missing_roles == ()
     assert proposal.active_hazards == ()
-    assert proposal.diagnostic_only is True
-    assert proposal.serving_allowed is False
+    if family_id == "proportional_change.decrease_to_fraction":
+        assert proposal.diagnostic_only is False
+        assert proposal.serving_allowed is True
+    else:
+        assert proposal.diagnostic_only is True
+        assert proposal.serving_allowed is False
     assert {role.role for role in proposal.role_obligations if role.required} == required_roles
 
 

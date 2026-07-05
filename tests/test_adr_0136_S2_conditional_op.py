@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close, is_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 from generate.math_candidate_parser import (
@@ -108,21 +109,21 @@ class TestConditionalOpEndToEnd:
             "six bags with 25 apples in each bag.  "
             "If Ella sells 200 apples, how many apples does Ella has left?"
         )
-        assert r.answer == 30.0, f"got {r.answer} ({r.refusal_reason})"
+        assert_eval_close(r.answer, 30.0), f"got {r.answer} ({r.refusal_reason})"
 
     def test_simple_subtract(self) -> None:
         r = parse_and_solve(
             "Bob has 100 apples.  "
             "If Bob eats 30 apples, how many apples does Bob have left?"
         )
-        assert r.answer == 70.0
+        assert_eval_close(r.answer, 70.0)
 
     def test_simple_add(self) -> None:
         r = parse_and_solve(
             "Alice has 12 apples.  "
             "If Alice buys 8 apples, how many apples does Alice have now?"
         )
-        assert r.answer == 20.0
+        assert_eval_close(r.answer, 20.0)
 
     def test_negative_result_refuses(self) -> None:
         """Selling more than you have must refuse (never produce negative)."""
@@ -183,7 +184,7 @@ def test_gsm8k_post_s2_admission_honest() -> None:
     for c in cases:
         r = parse_and_solve(c["question"])
         if r.answer is not None:
-            if r.answer == c["answer_numeric"]:
+            if is_eval_close(r.answer, c["answer_numeric"]):
                 admitted.append(c["case_id"])
             else:
                 wrong.append((c["case_id"], r.answer, c["answer_numeric"]))

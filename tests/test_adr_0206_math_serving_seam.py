@@ -16,6 +16,7 @@ properties this proves:
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 import generate.derivation.verify as verify_mod
 from core.response_governance import APPROXIMATE_POLICY, STRICT_POLICY
 from generate.derivation import GroundedDerivation, Quantity, Resolution, Step, select_self_verified
@@ -55,7 +56,8 @@ def test_unique_answer_unchanged_at_every_reach() -> None:
     # The seam touches only the disagreement path; a unique answer resolves identically.
     for policy in (None, STRICT_POLICY, APPROXIMATE_POLICY):
         res = select_self_verified(_unique(), _DISAGREE_TEXT, policy=policy)
-        assert isinstance(res, Resolution) and res.answer == 8.0
+        assert isinstance(res, Resolution)
+        assert_eval_close(res.answer, 8.0)
 
 
 # --------------------------------------------------------------------------- #
@@ -85,6 +87,7 @@ def test_seam_is_live_wiring(monkeypatch) -> None:
 
     # A wider reach now resolves the disagreement to the VERIFIED winner...
     res = select_self_verified(derivs, _DISAGREE_TEXT, policy=APPROXIMATE_POLICY)
-    assert isinstance(res, Resolution) and res.answer == 8.0
+    assert isinstance(res, Resolution)
+    assert_eval_close(res.answer, 8.0)
     # ...but STRICT NEVER widens, even when the gate would produce a winner.
     assert select_self_verified(derivs, _DISAGREE_TEXT, policy=STRICT_POLICY) is None

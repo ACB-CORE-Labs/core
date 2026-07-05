@@ -217,10 +217,8 @@ def build_rescan() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         current_outcome = "admitted" if r.answer is not None else "refused"
 
         if r.answer is not None:
-            import math
-            assert math.isclose(r.answer, case["answer_numeric"], rel_tol=1e-5), (
-                f"WRONG: {cid} answer={r.answer} expected={case['answer_numeric']}"
-            )
+            from evals.numeric_harness import assert_eval_close
+            assert_eval_close(r.answer, case["answer_numeric"])
 
         v1_entry = v1_tax.get(cid, {})
         previous_barrier = v1_entry.get("primary_barrier", "unknown")

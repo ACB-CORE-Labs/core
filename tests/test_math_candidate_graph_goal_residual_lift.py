@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.goal_residual import compose_goal_residual
 
@@ -21,14 +22,14 @@ def _run(text: str):
 
 def test_train_sample_0037_end_to_end():
     res = _run(CV0005)
-    assert res.answer == 3.0
+    assert_eval_close(res.answer, 3.0)
     assert res.refusal_reason is None
 
 
 def test_sibling_gain_goal_divergence_firewall():
     """Must read goal-residual (9), not possession accumulation (31)."""
     res = _run(SAVE_GOAL)
-    assert res.answer == 9.0
+    assert_eval_close(res.answer, 9.0)
     assert res.refusal_reason is None
     assert compose_goal_residual(SAVE_GOAL) is not None
 
@@ -87,7 +88,7 @@ def test_product_bridge_broad_path_not_serving_promoted():
     expected = (864.0, 450.0)
     for text, ans in zip(texts, expected, strict=True):
         res = _run(text)
-        assert res.answer == ans
+        assert_eval_close(res.answer, ans)
 
 
 def test_peer_pick_regression_0025():
@@ -98,5 +99,5 @@ def test_peer_pick_regression_0025():
         "how many strawberries do Lilibeth and her friends pick in all?"
     )
     res = _run(text)
-    assert res.answer == 1200.0
+    assert_eval_close(res.answer, 1200.0)
     assert res.refusal_reason is None

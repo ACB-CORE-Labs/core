@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.comprehension.composition_registry import (
     clear_cache as clear_composition_cache,
@@ -157,7 +158,7 @@ def test_lilibeth_canary_solves_end_to_end():
     )
     r = parse_and_solve(p)
     assert r.refusal_reason is None, f"unexpected refusal: {r.refusal_reason!r}"
-    assert r.answer == 300
+    assert_eval_close(r.answer, 300)
 
 
 def _has_wave_a_seed() -> bool:

@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.derivation.bounded_rate_projection import (
     build_bounded_rate_projection,
@@ -53,10 +54,10 @@ class TestBoundedRateProjectionTargets:
         text = CASES[case_id]
         built = build_bounded_rate_projection(text)
         assert built is not None
-        assert built.derivation.answer == pytest.approx(answer)
-        assert compose_bounded_rate_projection(text).answer == pytest.approx(answer)
-        assert resolve_promotable_bounded_rate_projection(text).answer == pytest.approx(answer)
-        assert parse_and_solve(text).answer == pytest.approx(answer)
+        assert_eval_close(built.derivation.answer, pytest.approx(answer))
+        assert_eval_close(compose_bounded_rate_projection(text).answer, pytest.approx(answer))
+        assert_eval_close(resolve_promotable_bounded_rate_projection(text).answer, pytest.approx(answer))
+        assert_eval_close(parse_and_solve(text).answer, pytest.approx(answer))
 
     @pytest.mark.parametrize(
         ("text", "answer"),
@@ -76,7 +77,7 @@ class TestBoundedRateProjectionTargets:
         ],
     )
     def test_sibling_generality(self, text: str, answer: float) -> None:
-        assert resolve_promotable_bounded_rate_projection(text).answer == pytest.approx(answer)
+        assert_eval_close(resolve_promotable_bounded_rate_projection(text).answer, pytest.approx(answer))
 
     @pytest.mark.parametrize("case_id", ["0018", "0019", "0028", "0032", "0047"])
     def test_sealed_wrong_neighbors_refuse(self, case_id: str) -> None:
@@ -150,10 +151,10 @@ class TestClosedReferenceAffineAggregateTargets:
         text = CASES[case_id]
         built = build_closed_reference_affine_aggregate(text)
         assert built is not None
-        assert built.derivation.answer == pytest.approx(answer)
-        assert compose_closed_reference_affine_aggregate(text).answer == pytest.approx(answer)
-        assert resolve_promotable_closed_reference_affine_aggregate(text).answer == pytest.approx(answer)
-        assert parse_and_solve(text).answer == pytest.approx(answer)
+        assert_eval_close(built.derivation.answer, pytest.approx(answer))
+        assert_eval_close(compose_closed_reference_affine_aggregate(text).answer, pytest.approx(answer))
+        assert_eval_close(resolve_promotable_closed_reference_affine_aggregate(text).answer, pytest.approx(answer))
+        assert_eval_close(parse_and_solve(text).answer, pytest.approx(answer))
 
     @pytest.mark.parametrize(
         ("text", "answer"),
@@ -177,7 +178,7 @@ class TestClosedReferenceAffineAggregateTargets:
         ],
     )
     def test_sibling_generality(self, text: str, answer: float) -> None:
-        assert resolve_promotable_closed_reference_affine_aggregate(text).answer == pytest.approx(answer)
+        assert_eval_close(resolve_promotable_closed_reference_affine_aggregate(text).answer, pytest.approx(answer))
 
     @pytest.mark.parametrize("case_id", ["0023", "0025", "0032", "0033", "0040", "0047"])
     def test_blocked_and_sealed_neighbors_refuse(self, case_id: str) -> None:

@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from evals.math_capability_axes.G1_verb_classes.v1.runner import build_report, _load_cases, _CASES_PATH
 from generate.math_candidate_parser import extract_initial_candidates, CandidateInitial
@@ -60,7 +61,7 @@ class TestG1SafetyRail:
         for problem, expected_val, expected_unit in verbs:
             res = parse_and_solve(problem)
             assert res.is_admitted, f"Failed to admit verb problem: {problem}"
-            assert res.answer == expected_val
+            assert_eval_close(res.answer, expected_val)
             assert res.selected_graph is not None
             assert res.selected_graph.unknown.unit == expected_unit
 

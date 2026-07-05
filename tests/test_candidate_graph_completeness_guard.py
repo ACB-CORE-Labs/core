@@ -22,6 +22,7 @@ refusal pin. The remaining confabulations MUST still refuse.
 from __future__ import annotations
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 
@@ -73,7 +74,7 @@ def test_confabulation_now_refuses(idx: int) -> None:
 def test_sidney_brooke_still_solves() -> None:
     """The day-enum + comparative graph case must still solve to 438."""
     res = parse_and_solve(SIDNEY_BROOKE)
-    assert res.answer == 438.0, (
+    assert_eval_close(res.answer, 438.0), (
         f"completeness guard over-refused the correct graph-path case: "
         f"answer={res.answer!r} refusal_reason={res.refusal_reason!r}"
     )
@@ -84,7 +85,7 @@ def test_guard_is_refusal_only_not_answer_changing() -> None:
     guard never rewrites an answer value (refusal-only invariant)."""
     res = parse_and_solve(SIDNEY_BROOKE)
     # Same value, same unit-bearing graph — guard does not mutate solving.
-    assert res.answer == 438.0
+    assert_eval_close(res.answer, 438.0)
     assert res.selected_graph is not None
 
 
@@ -129,7 +130,7 @@ def test_n_times_as_many_with_reference_still_solves() -> None:
         "Tom has 7 apples. Jerry has 3 times as many apples as Tom. "
         "How many apples do they have together?"
     )
-    assert res.answer == 28.0
+    assert_eval_close(res.answer, 28.0)
 
 
 @pytest.mark.parametrize(

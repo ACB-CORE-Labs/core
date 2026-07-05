@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from evals.numeric_harness import assert_eval_close
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.affine_fraction_delta import (
     compose_affine_fraction_delta,
@@ -105,7 +106,7 @@ class TestTemporalRentalVerbVariants:
         )
         res = compose_bundle_overflow_tariff(text)
         assert res is not None
-        assert res.answer == 800.0
+        assert_eval_close(res.answer, 800.0)
 
     def test_renting_still_admits(self):
         text = (
@@ -115,7 +116,7 @@ class TestTemporalRentalVerbVariants:
         )
         res = compose_bundle_overflow_tariff(text)
         assert res is not None
-        assert res.answer == 800.0
+        assert_eval_close(res.answer, 800.0)
 
 
 class TestTemporalQuestionRobustness:
@@ -123,21 +124,21 @@ class TestTemporalQuestionRobustness:
         text = f"{_OVERTIME_BODY} how much does she earn?"
         res = compose_overtime_shift_earnings(text)
         assert res is not None
-        assert res.answer == 990.0
+        assert_eval_close(res.answer, 990.0)
 
     def test_what_is_total_cost_admits(self):
         text = f"{_BUNDLE_BODY} What is the total cost?"
         res = compose_bundle_overflow_tariff(text)
         assert res is not None
-        assert res.answer == 800.0
+        assert_eval_close(res.answer, 800.0)
 
 
 class TestPercentPartitionGroupOf:
     def test_group_of_total_still_admits(self):
         res = compose_percent_partition(_PERCENT_GROUP_OF_100)
         assert res is not None
-        assert res.answer == 15.0
-        assert _run(_PERCENT_GROUP_OF_100).answer == 15.0
+        assert_eval_close(res.answer, 15.0)
+        assert_eval_close(_run(_PERCENT_GROUP_OF_100).answer, 15.0)
 
     def test_subgroup_group_still_refuses(self):
         assert resolve_promotable_percent_partition(_PERCENT_SUBGROUP_CONFUSER) is None

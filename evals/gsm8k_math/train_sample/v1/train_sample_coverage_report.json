@@ -57,7 +57,7 @@
       "trace_hash": null
     },
     {
-      "actual_answer": 21.0,
+      "actual_answer": 21.000000000007148,
       "actual_unit": null,
       "case_id": "gsm8k-train-sample-v1-0005",
       "expected_answer": 21.0,

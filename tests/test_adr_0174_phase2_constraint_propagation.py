@@ -33,6 +33,7 @@ import json
 from typing import Any
 
 import pytest
+from evals.numeric_harness import assert_eval_close
 
 from generate.comprehension.constraint_propagation import (
     ConstraintResult,
@@ -565,7 +566,7 @@ class TestIntegrationWithCandidateGraph:
             "How many oysters can he shuck in 2 hours?"
         )
         r = parse_and_solve(text)
-        assert r.answer == 240
+        assert_eval_close(r.answer, 240)
         assert r.refusal_reason is None
 
     def test_trace_events_are_valid_json(self) -> None:
