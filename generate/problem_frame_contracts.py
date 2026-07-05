@@ -90,8 +90,7 @@ class VersorBinding:
             raise ValueError("geometric_payload must be of shape (32,)")
         
         # Mathematically assert that versor_error < 1e-6
-        # Downcast strictly for the condition check since the core engine FFI expects f32
-        actual_error = float(versor_condition(self.geometric_payload.astype(np.float32)))
+        actual_error = float(versor_condition(self.geometric_payload))
         if self.versor_error >= 1e-6 or actual_error >= 1e-6:
             raise ValueError(f"versor_error {max(self.versor_error, actual_error)} exceeds 1e-6 threshold")
 
@@ -899,6 +898,9 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
                 payload = np.zeros(32, dtype=np.float64)
                 payload[0] = 1.0
             elif candidate_organ == "fraction_decrease":
+                # LEGACY EXCEPTION (Migration to parameterized pack signatures pending):
+                # Temporary local prose parser to extract fraction components directly from text
+                # until chat.pack_resolver.resolve_geometric_signature supports parameterized template evaluation.
                 import re
                 import numpy as np
                 m = re.search(r"decrease to (\d+)/(\d+)\s+of", span.text)
@@ -913,6 +915,7 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
             if payload is not None:
                 # For fraction decrease, we must bind the exact fraction string so that _base_reasons can ground it
                 if candidate_organ == "fraction_decrease":
+                    # LEGACY EXCEPTION: see above rationale
                     frac_match = re.search(r"(\d+\s*/\s*\d+)", span.text)
                     bind_text = frac_match.group(1) if frac_match else span.text
                 else:

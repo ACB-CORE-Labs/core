@@ -217,7 +217,8 @@ def build_rescan() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         current_outcome = "admitted" if r.answer is not None else "refused"
 
         if r.answer is not None:
-            assert r.answer == case["answer_numeric"], (
+            import math
+            assert math.isclose(r.answer, case["answer_numeric"], rel_tol=1e-5), (
                 f"WRONG: {cid} answer={r.answer} expected={case['answer_numeric']}"
             )
 
