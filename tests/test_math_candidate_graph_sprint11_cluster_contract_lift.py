@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
-from evals.numeric_harness import assert_eval_close
+from evals.numeric_harness import assert_eval_close, is_eval_close
 
 from generate.derivation.calendar_grounding import (
     CIVIL_MONTH_DAY_COUNT,

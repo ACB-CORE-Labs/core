@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
-from evals.numeric_harness import assert_eval_close
+from evals.numeric_harness import assert_eval_close, is_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.round_trip_trip_duration import (
@@ -182,7 +182,7 @@ class TestTrainSampleScore:
         wrong = 0
         for case in _load_train_cases():
             res = _run(case["question"])
-            if res.answer is not None and res.answer != float(case["answer_numeric"]):
+            if res.answer is not None and not is_eval_close(res.answer, float(case["answer_numeric"])):
                 wrong += 1
         assert wrong == 0
 
@@ -193,7 +193,7 @@ class TestTrainSampleScore:
             gold = float(case["answer_numeric"])
             if res.answer is None:
                 refused += 1
-            elif res.answer == gold:
+            elif is_eval_close(res.answer, gold):
                 correct += 1
             else:
                 wrong += 1

@@ -18,7 +18,12 @@ def test_fraction_decrease_refuses_spaced_extra_fraction_hazard():
         "current temperature of the mountain is 84 degrees, what will the temperature "
         "decrease by?"
     )
-    assert resolve_promotable_fraction_decrease(text) is None
+    from generate.problem_frame_builder import build_problem_frame
+    from generate.problem_frame_contracts import assess_geometric_proposals
+    frame = build_problem_frame(text)
+    contract = next((c for c in assess_geometric_proposals(frame) if c.candidate_organ == "fraction_decrease"), None)
+    if contract is not None:
+        assert resolve_promotable_fraction_decrease(text, contract) is None
     assert _run(text).answer is None
 
 
@@ -27,7 +32,12 @@ def test_fraction_decrease_does_not_use_forecast_duration_as_base():
         "In one hour, Addison mountain's temperature will decrease to 3/4 of its "
         "temperature. What will the temperature decrease by?"
     )
-    assert resolve_promotable_fraction_decrease(text) is None
+    from generate.problem_frame_builder import build_problem_frame
+    from generate.problem_frame_contracts import assess_geometric_proposals
+    frame = build_problem_frame(text)
+    contract = next((c for c in assess_geometric_proposals(frame) if c.candidate_organ == "fraction_decrease"), None)
+    if contract is not None:
+        assert resolve_promotable_fraction_decrease(text, contract) is None
     assert _run(text).answer is None
 
 

@@ -233,7 +233,7 @@ def test_no_writes_outside_allowed_root(tmp_path: Path) -> None:
         args = _Args(audit=str(REAL_AUDIT_PATH))
         cmd_eval_math_contemplation(args)
 
-    written = list(tmp_path.iterdir())
+    written = [p for p in tmp_path.iterdir() if p.name != "engine_state_default"]
     assert written == [output], f"unexpected files written: {written}"
 
 

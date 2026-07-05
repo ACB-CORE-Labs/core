@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
-from evals.numeric_harness import assert_eval_close
+from evals.numeric_harness import assert_eval_close, is_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.affine_comparative_inversion_total import (

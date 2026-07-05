@@ -424,6 +424,8 @@ def assess_fraction_decrease(frame: ProblemFrame) -> ContractAssessment:
     unresolved: set[str] = set()
     if len(relations) != 1:
         missing.append("decrease_relation_ambiguous")
+
+
     relation = relations[0] if len(relations) == 1 else None
 
     base_id = _role_target(relation, "base_quantity") if relation is not None else None
@@ -874,6 +876,7 @@ def assess_percent_partition(frame: ProblemFrame) -> ContractAssessment:
 
 
 def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
+    from dataclasses import replace
     assessments = []
     
     # Pre-compute reverse mapping from family_id to candidate_organ
@@ -882,11 +885,18 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
         if contract.family and contract.family.family_id:
             family_to_organ[contract.family.family_id] = organ
 
+    structural_contracts = {c.candidate_organ: c for c in assess_contracts(frame)}
+
     for prop in frame.proposals:
         candidate_organ = family_to_organ.get(prop.family_id)
         if not candidate_organ:
             continue
             
+        structural_contract = structural_contracts.get(candidate_organ)
+        if structural_contract and not structural_contract.runnable:
+            assessments.append(structural_contract)
+            continue
+
         bindings = []
         for span in prop.evidence_spans:
             signature = resolve_geometric_signature(span.text)
@@ -903,7 +913,7 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
                 # until chat.pack_resolver.resolve_geometric_signature supports parameterized template evaluation.
                 import re
                 import numpy as np
-                m = re.search(r"decrease to (\d+)/(\d+)\s+of", span.text)
+                m = re.search(r"decrease[d]? to (\d+)\s*/\s*(\d+)\s+of", span.text)
                 if m:
                     n, d = int(m.group(1)), int(m.group(2))
                     k = n / d
@@ -928,19 +938,24 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
                     versor_error=versor_condition(payload),
                 )
                 bindings.append(binding)
-                
-        runnable = False
-        if bindings and all(b.versor_error < 1e-6 for b in bindings):
-            runnable = True
-
-        assessment = ContractAssessment(
-            bindings=bindings,
-            candidate_organ=candidate_organ,
-            runnable=runnable,
-            explanation="Assessed via geometric algebra.",
-            evidence_spans=prop.evidence_spans
-        )
-        assessments.append(assessment)
+        
+        if structural_contract:
+            # We have a structural contract that IS runnable, just add bindings!
+            assessments.append(
+                replace(structural_contract, bindings=tuple(bindings))
+            )
+        else:
+            assessments.append(
+                ContractAssessment(
+                    candidate_organ=candidate_organ,
+                    missing_bindings=(),
+                    unresolved_hazards=(),
+                    runnable=len(bindings) > 0,
+                    explanation="Assessed via geometric algebra.",
+                    evidence_spans=prop.evidence_spans,
+                    bindings=tuple(bindings),
+                )
+            )
         
     return assessments
 

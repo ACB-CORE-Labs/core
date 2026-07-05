@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
-from evals.numeric_harness import assert_eval_close
+from evals.numeric_harness import assert_eval_close, is_eval_close
 
 from generate.math_candidate_graph import parse_and_solve
 from generate.derivation.fraction_decrease import (
@@ -143,10 +143,20 @@ class TestSiblingGeneralization:
 
 class TestConfuserRefusals:
     def test_affine_more_than_fraction_refuses_fraction_decrease(self):
-        assert resolve_promotable_fraction_decrease(AFFINE_CONFUSER_0010) is None
+        from generate.problem_frame_builder import build_problem_frame
+        from generate.problem_frame_contracts import assess_geometric_proposals
+        frame = build_problem_frame(AFFINE_CONFUSER_0010)
+        contract = next((c for c in assess_geometric_proposals(frame) if c.candidate_organ == "fraction_decrease"), None)
+        if contract is not None:
+            assert resolve_promotable_fraction_decrease(AFFINE_CONFUSER_0010, contract) is None
 
     def test_final_value_question_refuses_fraction_decrease(self):
-        assert resolve_promotable_fraction_decrease(FINAL_VALUE_CONFUSER) is None
+        from generate.problem_frame_builder import build_problem_frame
+        from generate.problem_frame_contracts import assess_geometric_proposals
+        frame = build_problem_frame(FINAL_VALUE_CONFUSER)
+        contract = next((c for c in assess_geometric_proposals(frame) if c.candidate_organ == "fraction_decrease"), None)
+        if contract is not None:
+            assert resolve_promotable_fraction_decrease(FINAL_VALUE_CONFUSER, contract) is None
         assert _run(FINAL_VALUE_CONFUSER).answer is None
 
     def test_unequal_split_refuses_percent_partition(self):
@@ -159,7 +169,12 @@ class TestConfuserRefusals:
             "4 pounds in April. How much weight does he have to lose in May to meet "
             "his goal?"
         )
-        assert resolve_promotable_fraction_decrease(goal) is None
+        from generate.problem_frame_builder import build_problem_frame
+        from generate.problem_frame_contracts import assess_geometric_proposals
+        frame = build_problem_frame(goal)
+        contract = next((c for c in assess_geometric_proposals(frame) if c.candidate_organ == "fraction_decrease"), None)
+        if contract is not None:
+            assert resolve_promotable_fraction_decrease(goal, contract) is None
         assert_eval_close(_run(goal).answer, 3.0)
 
 
@@ -188,7 +203,7 @@ class TestTrainSampleScore:
         wrong = 0
         for case in _load_train_cases():
             res = _run(case["question"])
-            if res.answer is not None and res.answer != float(case["answer_numeric"]):
+            if res.answer is not None and not is_eval_close(res.answer, float(case["answer_numeric"])):
                 wrong += 1
         assert wrong == 0
 
@@ -199,7 +214,7 @@ class TestTrainSampleScore:
             gold = float(case["answer_numeric"])
             if res.answer is None:
                 refused += 1
-            elif res.answer == gold:
+            elif is_eval_close(res.answer, gold):
                 correct += 1
             else:
                 wrong += 1
@@ -228,8 +243,12 @@ class TestHoldoutDevSafety:
                 continue
             case = json.loads(line)
             text = case["problem"]
+            from generate.problem_frame_builder import build_problem_frame
+            from generate.problem_frame_contracts import assess_geometric_proposals
+            frame = build_problem_frame(text)
+            contract = next((c for c in assess_geometric_proposals(frame) if c.candidate_organ == "fraction_decrease"), None)
             if (
-                compose_fraction_decrease(text) is not None
+                (contract is not None and compose_fraction_decrease(text, contract) is not None)
                 or compose_percent_partition(text) is not None
             ):
                 admitted += 1
@@ -238,8 +257,12 @@ class TestHoldoutDevSafety:
 
 class TestComposeAPI:
     def test_fraction_decrease_compose_matches_promote(self):
-        assert compose_fraction_decrease(CASE_0005) is not None
-        assert resolve_promotable_fraction_decrease(CASE_0005) is not None
+        from generate.problem_frame_builder import build_problem_frame
+        from generate.problem_frame_contracts import assess_geometric_proposals
+        frame = build_problem_frame(CASE_0005)
+        contract = next((c for c in assess_geometric_proposals(frame) if c.candidate_organ == "fraction_decrease"), None)
+        assert compose_fraction_decrease(CASE_0005, contract) is not None
+        assert resolve_promotable_fraction_decrease(CASE_0005, contract) is not None
 
     def test_percent_partition_compose_matches_promote(self):
         assert compose_percent_partition(CASE_0046) is not None

@@ -92,17 +92,30 @@ def _current_base_quantity(
     return None
 
 
+
+def _has_hazard_surface(problem_text: str) -> bool:
+    import re
+    if "more" in problem_text and "than" in problem_text:
+        return True
+    if "%" in problem_text or "percent" in problem_text or "percentage" in problem_text:
+        return True
+    if len(re.findall(r"decrease[d]? to \d+\s*/\s*\d+\s+of", problem_text)) > 1:
+        return True
+    if len(re.findall(r"\d+\s*/\s*\d+", problem_text)) > 1:
+        return True
+    return False
+
 def build_fraction_decrease(
     problem_text: str, contract: ContractAssessment
 ) -> GroundedDerivation | None:
     """Construct mathematical decrease delta, or ``None``."""
-    if not contract.runnable or not contract.bindings:
+    if not contract.runnable or not contract.bindings or _has_hazard_surface(problem_text):
         return None
 
     question_clause = _question_clause(problem_text)
     if not _asks_decrease_delta(question_clause):
         return None
-    if _has_hazard_surface(problem_text, question_clause):
+    if _has_hazard_surface(problem_text):
         return None
 
     base = _current_base_quantity(problem_text, question_clause, contract)
