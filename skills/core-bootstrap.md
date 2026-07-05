@@ -5,7 +5,9 @@ triggers: ["session_start", "new_subagent", "arena_spawn"]
 auto_invoke: true
 ---
 
-Execute the full **Session Start Checklist** from GROK.md in strict order, including the **Workspace Hygiene + Branch/Worktree Protocol**:
+Execute the full **Session Start Checklist** from GROK.md in strict order, including the **Workspace Hygiene + Branch/Worktree Protocol**.
+
+**Important:** We use plain `git` (with insteadOf forwarding to Forgejo) and never `gh`. See AGENTS.md and `docs/dev/git-forgejo.md` for the required global config and setup.
 
 1. Read GROK.md in full.
 2. Read AGENTS.md in full.
@@ -31,8 +33,8 @@ Execute the full **Session Start Checklist** from GROK.md in strict order, inclu
 10. Run `core test --suite smoke -q` and report pass/fail. If unavailable, report the exact failure and use repo-native pytest lanes.
 11. Check for and read any `HANDOFF-*-YYYY-MM-DD.md` from the last 3 days.
 12. Check recent open PRs if local changes or task continuity are ambiguous:
-    - `gh pr list --state open --limit 20`
-    - `gh pr status`
+    - Use the Forgejo web UI: https://core-gitquarters.acbcontent.org/forgejo_admin/core/pulls
+    - Or `git fetch origin --prune && git branch -r | head -20` for remote branches.
 13. State task scope in one clear sentence before any further action.
 
 This skill must complete successfully before any editing, proposal, or subagent work. It is non-bypassable for Grok 4.3 / Grok Build sessions on CORE.

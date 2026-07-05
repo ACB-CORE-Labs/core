@@ -163,6 +163,13 @@ Before branch movement or edits:
 - Establish a clean current `main`.
 - Prefer a fresh worktree from `origin/main` for non-trivial implementation.
 
+### Git and Forgejo Setup
+**CRITICAL**: This repository is hosted on a private **Forgejo** server, NOT GitHub.
+- **DO NOT** use the `gh` (GitHub) CLI.
+- **DO NOT** attempt to push, pull, or clone from `github.com`.
+- **USE** the `tea` CLI (Gitea/Forgejo CLI) for issues, PRs, and repository management.
+- **USE** the provided Forgejo MCP tools if available.
+
 ### Pre-Edit Sweep & Versor Coherence Guardian Protocol
 Before modifying any module in `algebra/`, `field/`, `vault/`, or `generate/`:
 - Trace every import of the target module and identify all callers.

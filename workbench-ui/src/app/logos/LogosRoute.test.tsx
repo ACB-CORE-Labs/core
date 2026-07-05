@@ -35,7 +35,7 @@ const summaries: LogosPackSummary[] = [
     holonomy_case_count: 0,
     safety_status: "unknown",
     manifest_digest: "sha256:aaaaaaaaaaaaaaaa",
-    manifest_path: "language_packs/data/he_logos_micro_v1/manifest.json",
+    manifest_path: "packs/data/he_logos_micro_v1/manifest.json",
   },
   {
     pack_id: "grc_logos_cognition_v1",
@@ -55,7 +55,7 @@ const summaries: LogosPackSummary[] = [
     holonomy_case_count: 0,
     safety_status: "warning",
     manifest_digest: "sha256:bbbbbbbbbbbbbbbb",
-    manifest_path: "language_packs/data/grc_logos_cognition_v1/manifest.json",
+    manifest_path: "packs/data/grc_logos_cognition_v1/manifest.json",
   },
 ];
 

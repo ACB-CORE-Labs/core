@@ -17,8 +17,6 @@ export interface ConstructionEvidenceSummaryRow {
   value: string;
 }
 
-import { AssessmentBindingView } from "../../types/constructionEvidence";
-
 export interface ConstructionEvidenceDetailItem {
   title: string;
   rows: ConstructionEvidenceSummaryRow[];
@@ -211,12 +209,6 @@ function detailSections(evidence: ConstructionEvidence): ConstructionEvidenceDet
           { key: "unresolved_hazards", value: noneIfEmpty(assessment.unresolved_hazards) },
           { key: "explanation", value: assessment.explanation || "none" },
           { key: "evidence_spans", value: spanList(evidence.problem_text, assessment.evidence_spans) },
-          {
-            key: "bindings",
-            value: assessment.bindings && assessment.bindings.length > 0
-              ? assessment.bindings.map(b => `${b.role}=${b.target_id}${b.versor_error !== undefined && b.versor_error < 1e-6 ? " (invariant met: versor_error < 1e-6)" : (b.versor_error !== undefined ? ` (versor_error: ${b.versor_error})` : "")}`).join("; ")
-              : "none"
-          },
         ],
       })),
     },

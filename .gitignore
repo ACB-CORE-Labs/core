@@ -85,3 +85,6 @@ skills-lock.json
 
 # Per-life backup checkpoint dirs are runtime-generated, not source.
 engine_state/_life_backup_*/
+
+# Local MCP configuration (contains local tokens)
+.mcp.json
