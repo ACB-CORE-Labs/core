@@ -18,7 +18,7 @@ const summaries: PackSummary[] = [
   {
     pack_id: "en_core_cognition_v1",
     source: "language_pack",
-    manifest_path: "language_packs/data/en_core_cognition_v1/manifest.json",
+    manifest_path: "packs/data/en_core_cognition_v1/manifest.json",
     version: "1",
     language: "en",
     modality: "text",

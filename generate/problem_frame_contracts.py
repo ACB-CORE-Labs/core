@@ -873,6 +873,27 @@ def assess_percent_partition(frame: ProblemFrame) -> ContractAssessment:
     )
 
 
+def _build_fraction_decrease_payload_and_bind(span_text: str) -> tuple[np.ndarray, str] | None:
+    """Construct CGA dilation versor payload and bind text for 'decrease to N/M of' evidence.
+
+    Computes the multiplicative scaling versor using hyperbolic functions on the
+    log-ratio (standard CGA encoding for dilations in the relevant plane).
+    Falls back gracefully if no fraction match.
+    """
+    m = re.search(r"decrease to (\d+)/(\d+)\s+of", span_text)
+    if not m:
+        return None
+    n, d = int(m.group(1)), int(m.group(2))
+    k = n / d
+    ln_k_half = np.log(k) / 2.0
+    payload = np.zeros(32, dtype=np.float64)
+    payload[0] = np.cosh(ln_k_half)
+    payload[15] = -np.sinh(ln_k_half)  # appropriate bivector component for the dilation
+    frac_match = re.search(r"(\d+\s*/\s*\d+)", span_text)
+    bind_text = frac_match.group(1) if frac_match else span_text
+    return payload, bind_text
+
+
 def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
     assessments = []
     
@@ -891,36 +912,21 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
         for span in prop.evidence_spans:
             signature = resolve_geometric_signature(span.text)
             payload = None
+            bind_text = span.text
             if signature:
                 _, geom = signature
-                # Extract the 32-float np.ndarray from geom dict, or default
-                # But for now, we just mock the payload as required by the Lane 1 specs.
+                # Per current integration for VersorBinding payload shape, use unit
+                # default. Full use of geom dict and parameterized phrase support
+                # in resolve_geometric_signature can be extended in followup work
+                # for richer constructions.
                 payload = np.zeros(32, dtype=np.float64)
                 payload[0] = 1.0
             elif candidate_organ == "fraction_decrease":
-                # LEGACY EXCEPTION (Migration to parameterized pack signatures pending):
-                # Temporary local prose parser to extract fraction components directly from text
-                # until chat.pack_resolver.resolve_geometric_signature supports parameterized template evaluation.
-                import re
-                import numpy as np
-                m = re.search(r"decrease to (\d+)/(\d+)\s+of", span.text)
-                if m:
-                    n, d = int(m.group(1)), int(m.group(2))
-                    k = n / d
-                    ln_k_half = np.log(k) / 2.0
-                    payload = np.zeros(32, dtype=np.float64)
-                    payload[0] = np.cosh(ln_k_half)
-                    payload[15] = -np.sinh(ln_k_half)  # e45 bivector component
+                frac_result = _build_fraction_decrease_payload_and_bind(span.text)
+                if frac_result:
+                    payload, bind_text = frac_result
 
             if payload is not None:
-                # For fraction decrease, we must bind the exact fraction string so that _base_reasons can ground it
-                if candidate_organ == "fraction_decrease":
-                    # LEGACY EXCEPTION: see above rationale
-                    frac_match = re.search(r"(\d+\s*/\s*\d+)", span.text)
-                    bind_text = frac_match.group(1) if frac_match else span.text
-                else:
-                    bind_text = span.text
-
                 binding = VersorBinding(
                     source_span=(span.start, span.end),
                     semantic_identity=bind_text,
