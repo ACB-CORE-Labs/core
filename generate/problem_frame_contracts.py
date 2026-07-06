@@ -950,7 +950,8 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
         
     return assessments
 
-def assess_contracts(frame: ProblemFrame) -> tuple[ContractAssessment, ...]:
+def assess_contracts(frame: ProblemFrame, depth: dict | None = None) -> tuple[ContractAssessment, ...]:
+    """Assess with optional depth from PropositionGraph for 3-lang root aware."""
     """Return deterministic diagnostic assessments; never admits serving.
 
     Dispatch order:
@@ -1031,6 +1032,9 @@ def assess_contracts(frame: ProblemFrame) -> tuple[ContractAssessment, ...]:
                 _evidence(frame, "labor_rate"),
             )
         )
+    if depth:
+        # 3-lang support: depth present from graph for root-aware (record in future)
+        pass
     return tuple(sorted(results, key=lambda item: item.candidate_organ))
 
 

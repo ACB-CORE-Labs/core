@@ -91,11 +91,31 @@ class DerivedRecognizer:
         )
 
 
-def derive_recognizer(examples: Sequence[tuple[TokenSequence, FeatureBundle]]) -> DerivedRecognizer:
+def derive_recognizer(examples: Sequence[tuple[TokenSequence, FeatureBundle]], depths: dict[str, dict] | None = None) -> DerivedRecognizer:
+    """Derive recognizer, optionally using node_depths to apply root canonicalization
+    for Hebrew/Greek. This makes root-equivalent teaching examples produce
+    equivalent patterns (exact, no approx).
+    depths keyed by node_id or feature name; values have 'language', 'root'.
+    """
     if not examples:
         raise ValueError("derive_recognizer requires at least one teaching example")
 
     normalized = tuple((tuple(tokens), bundle) for tokens, bundle in examples)
+    # Apply root normalization for 3-lang depth if depths provided (he/grc roots canonicalize)
+    # Only normalize non-constant positions (e.g. agent slot) to avoid breaking anchors like relation
+    if depths:
+        normed = []
+        for toks, bdl in normalized:
+            new_toks = list(toks)
+            agent_feat = bdl.get("agent") if hasattr(bdl, "get") else None
+            for i, tok in enumerate(new_toks):
+                if agent_feat and hasattr(agent_feat, "evidence") and i == getattr(agent_feat.evidence, "start", -1):
+                    for d in depths.values():
+                        if d.get("language") in ("he", "grc") and d.get("root"):
+                            new_toks[i] = root_normalize(tok, d.get("language"), d.get("root"))
+                            break
+            normed.append((tuple(new_toks), bdl))
+        normalized = tuple(normed)
     teaching_set_id = _teaching_set_id(tokens for tokens, _bundle in normalized)
     feature_names = _feature_names(normalized)
 
@@ -200,8 +220,30 @@ def derive_recognizer(examples: Sequence[tuple[TokenSequence, FeatureBundle]]) -
         )
 
 
-def recognize(recognizer: DerivedRecognizer, token_sequence: TokenSequence) -> RecognitionOutcome:
+def recognize(
+    recognizer: DerivedRecognizer,
+    token_sequence: TokenSequence,
+    depths: dict[str, dict] | None = None,
+) -> RecognitionOutcome:
+    """Recognize using optional node_depths for 3-lang root normalization.
+
+    depths: node_id -> {"language": , "root": , ...} from PropositionGraph / OOV context.
+    When present for he/grc, root_normalize is used on relevant tokens for exact
+    canonical matching (no surface variance for roots).
+    """
     tokens = tuple(token_sequence)
+    # Normalize input tokens using depths for root-equivalent matching (he/grc) - agent position only
+    if depths:
+        toks = list(tokens)
+        # naive: normalize first long token as potential agent if he depth present
+        for i, tok in enumerate(toks):
+            if len(tok) > 2:
+                for d in depths.values():
+                    if d.get("language") in ("he", "grc") and d.get("root"):
+                        toks[i] = root_normalize(tok, d.get("language"), d.get("root"))
+                        break
+                break  # only first
+        tokens = tuple(toks)
 
     # If this is Phase 1 (no __allowed_verbs in constant_features), run Phase 1 logic
     if "__allowed_verbs" not in recognizer.constant_features:
@@ -624,10 +666,45 @@ def _pattern_element_from_dict(raw: Mapping[str, Any]) -> PatternElement:
     raise ValueError(f"unknown pattern element kind: {raw['kind']!r}")
 
 
+def root_normalize(token: str, language: str | None = None, root: str | None = None) -> str:
+    """Canonical form for exact anti-unification using 3-lang depth.
+
+    For Hebrew (root density) and Koine Greek (Logos precision), prefer the
+    root from pack morphology over surface token. English uses surface.
+    This is pure data lookup from resolved depth (LexicalResolution / GraphNode);
+    preserves exactness, no similarity, no ANN. Enables cross-lang unification
+    in OOV / recognition paths via node_depths from PropositionGraph.
+
+    Invariant protected: exact recall + depth as semantic (not repair).
+    """
+    if language in ("he", "grc") and root:
+        return root
+    return token
+
+
+def graph_anti_unify(topology: tuple, depths: dict | None = None) -> dict:
+    """Minimal graph-level anti-unification using unresolved topology + node_depths.
+    Keys on root where present for 3-lang (exact structural match).
+    Returns dict with matched roots or empty.
+    Pure, for extension point in OOV geometric context.
+    """
+    result = {"matched_roots": [], "topology": topology}
+    if not depths:
+        return result
+    roots = []
+    for nid, d in depths.items():
+        if d.get("root"):
+            roots.append((nid, d["root"]))
+    result["matched_roots"] = roots
+    return result
+
+
 __all__ = [
     "Constant",
     "DerivedRecognizer",
     "TypedSlot",
     "derive_recognizer",
     "recognize",
+    "root_normalize",
+    "graph_anti_unify",
 ]

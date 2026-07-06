@@ -257,6 +257,7 @@ def _solve_and_verify(
     proposal_root: Path | None,
     question_root: Path | None,
     exercise_ask: bool,
+    depth: dict | None = None,  # propagate 3-lang depth for root-aware framing
 ) -> ContemplationResult:
     """Unified read → solve → maybe_ask → maybe_verify → terminal pipeline.
 
@@ -297,6 +298,12 @@ def _solve_and_verify(
             value, options, answer_key,
             **({"noun": noun} if noun is not None else {}),
         )
+    # Use depth for root-aware (3-lang) if provided from upstream PropositionGraph
+    if depth:
+        for nid, d in depth.items():
+            if d.get("root"):
+                findings.append(Finding("depth", f"root={d['root']} lang={d.get('language')} for node {nid}"))
+                break
         if isinstance(verdict, Refusal):
             findings.append(Finding("verify", f"answer-choice refused: {verdict.reason}"))
             return _result(
@@ -333,6 +340,7 @@ def contemplate(
     question_root: Path | None = None,
     case_id: str | None = None,
     exercise_ask: bool = False,
+    depth: dict | None = None,  # 3-lang node depth from PropositionGraph for root-aware
 ) -> ContemplationResult:
     """Run one bounded contemplation pass over *text*."""
     findings: list[Finding] = []
@@ -363,6 +371,7 @@ def contemplate(
                 _PIPELINES[route.selected.organ],
                 text, options, answer_key, findings, attempts,
                 proposal_root, question_root, exercise_ask,
+                depth=depth,
             )
         # R1: numeric answer is the eval lane's domain in v0.
         findings.append(Finding("solve", "r1 admissible setup (numeric answer is the eval lane in v0)"))

@@ -283,107 +283,98 @@ class CognitiveTurnPipeline:
         # folded into trace_hash reflects the actual reasoning used.
         effective_graph = graph
         recalled_words = response.recalled_words or ()
-        if self.runtime.config.realizer_grounded_authority:
-            # Robust pack-derived grounding: for any pack-resident lemma,
-            # use the reviewed pack's *structured* gloss (via resolve_gloss)
-            # directly as the obj filler. This bypasses surface rendering +
-            # parsing entirely, feeding the geometric graph the authoritative
-            # definition text from the sealed pack data. Overrides empty
-            # recalled_words from pack short-circuits or polluted walk tokens.
-            # This is the clean, substrate-native path.
-            if effective_graph and not effective_graph.is_fully_grounded():
-                # Generalize to per-subject resolution for multi-node/compound graphs.
-                # Collect unique subjects, resolve with depth packs for language/root/gloss.
-                # This feeds both recalled_words (for ground_graph) and per-node enrichment.
-                subjects = []
-                seen = set()
+        # Depth enrichment is now DEFAULT (AC2) for 3-lang mastery on spine.
+        # Always attempt per-subject resolution + GraphNode depth + node_depths
+        # for OOV context. The grounded authority flag now only controls the
+        # recalled_words filling + re-realize step (kept for backward surface compat).
+        if effective_graph and not effective_graph.is_fully_grounded():
+            # Generalize to per-subject resolution for multi-node/compound graphs.
+            # Collect unique subjects, resolve with depth packs for language/root/gloss.
+            # This feeds both recalled_words (for ground_graph) and per-node enrichment.
+            subjects = []
+            seen = set()
+            for n in effective_graph.nodes:
+                s = n.subject.strip().lower()
+                if s and s not in seen:
+                    seen.add(s)
+                    subjects.append(s)
+
+            from chat.pack_resolver import (
+                DEFAULT_RESOLVABLE_PACK_IDS,
+                resolve_entry,
+                resolve_gloss,
+                resolve_lemma,
+            )
+            # Master bidirectional entry point: LexicalResolution carries
+            # 3-language depth (Hebrew roots, Greek precision) usable for
+            # graph grounding (comprehension), later realization (articulation),
+            # and contemplation/reasoning on the shared PropositionGraph.
+            from chat.pack_resolver import DEPTH_PACK_IDS
+            depth_pack_ids = DEFAULT_RESOLVABLE_PACK_IDS + DEPTH_PACK_IDS
+
+            subject_to_res = {}
+            for s in subjects:
+                res = resolve_entry(s, pack_ids=depth_pack_ids)
+                subject_to_res[s] = res
+
+            # Collect glosses for pending nodes in order (feeds ground_graph sequentially)
+            recalled_glosses = []
+            for n in effective_graph.nodes:
+                obj = n.obj
+                if obj in (None, "", "<pending>", "<prior>") or (isinstance(obj, str) and "..." in obj):
+                    s = n.subject.strip().lower()
+                    res = subject_to_res.get(s)
+                    if res and getattr(res, 'gloss', None):
+                        recalled_glosses.append(res.gloss)
+                    elif resolve_lemma(n.subject):
+                        # legacy fallback per-subject
+                        g = resolve_gloss(n.subject)
+                        if g:
+                            _, _, gloss_text = g
+                            if gloss_text:
+                                recalled_glosses.append(gloss_text)
+            if recalled_glosses:
+                recalled_words = tuple(recalled_glosses)
+
+            # Enrich every node with its subject's resolution (subject→node map)
+            # Immutable; only rebuild if any depth present.
+            if subject_to_res:
+                new_nodes = []
+                changed = False
                 for n in effective_graph.nodes:
                     s = n.subject.strip().lower()
-                    if s and s not in seen:
-                        seen.add(s)
-                        subjects.append(s)
-
-                from chat.pack_resolver import (
-                    DEFAULT_RESOLVABLE_PACK_IDS,
-                    resolve_entry,
-                    resolve_gloss,
-                    resolve_lemma,
-                )
-                # Master bidirectional entry point: LexicalResolution carries
-                # 3-language depth (Hebrew roots, Greek precision) usable for
-                # graph grounding (comprehension), later realization (articulation),
-                # and contemplation/reasoning on the shared PropositionGraph.
-                # Include depth packs so pure he/grc lemmas (e.g. אמת, λόγος)
-                # get language + root populated under realizer_grounded_authority.
-                depth_pack_ids = DEFAULT_RESOLVABLE_PACK_IDS + (
-                    "he_logos_micro_v1",
-                    "grc_logos_micro_v1",
-                    "he_core_cognition_v1",
-                    "grc_logos_cognition_v1",
-                )
-
-                subject_to_res = {}
-                for s in subjects:
-                    res = resolve_entry(s, pack_ids=depth_pack_ids)
-                    subject_to_res[s] = res
-
-                # Collect glosses for pending nodes in order (feeds ground_graph sequentially)
-                recalled_glosses = []
-                for n in effective_graph.nodes:
-                    obj = n.obj
-                    if obj in (None, "", "<pending>", "<prior>") or (isinstance(obj, str) and "..." in obj):
-                        s = n.subject.strip().lower()
-                        res = subject_to_res.get(s)
-                        if res and getattr(res, 'gloss', None):
-                            recalled_glosses.append(res.gloss)
-                        elif resolve_lemma(n.subject):
-                            # legacy fallback per-subject
-                            g = resolve_gloss(n.subject)
-                            if g:
-                                _, _, gloss_text = g
-                                if gloss_text:
-                                    recalled_glosses.append(gloss_text)
-                if recalled_glosses:
-                    recalled_words = tuple(recalled_glosses)
-
-                # Enrich every node with its subject's resolution (subject→node map)
-                # Immutable; only rebuild if any depth present.
-                if subject_to_res:
-                    new_nodes = []
-                    changed = False
-                    for n in effective_graph.nodes:
-                        s = n.subject.strip().lower()
-                        res = subject_to_res.get(s)
-                        if res and (getattr(res, 'language', None) or getattr(res, 'root', None) or getattr(res, 'morphology_id', None)):
-                            enriched = GraphNode(
-                                node_id=n.node_id,
-                                subject=n.subject,
-                                predicate=n.predicate,
-                                obj=n.obj,
-                                source_intent=n.source_intent,
-                                language=getattr(res, 'language', None),
-                                root=getattr(res, 'root', None),
-                                morphology_id=getattr(res, 'morphology_id', None),
-                            )
-                            new_nodes.append(enriched)
-                            changed = True
-                        else:
-                            new_nodes.append(n)
-                    if changed:
-                        effective_graph = PropositionGraph(
-                            nodes=tuple(new_nodes),
-                            edges=effective_graph.edges,
+                    res = subject_to_res.get(s)
+                    if res and (getattr(res, 'language', None) or getattr(res, 'root', None) or getattr(res, 'morphology_id', None)):
+                        enriched = GraphNode(
+                            node_id=n.node_id,
+                            subject=n.subject,
+                            predicate=n.predicate,
+                            obj=n.obj,
+                            source_intent=n.source_intent,
+                            language=getattr(res, 'language', None),
+                            root=getattr(res, 'root', None),
+                            morphology_id=getattr(res, 'morphology_id', None),
                         )
-            if recalled_words:
-                # Ground using recalled_words + depth map (alongside) so
-                # 3-lang info propagates even if not pre-enriched on nodes.
-                depth_map = {}
-                for n in effective_graph.nodes:
-                    if n.language or n.root or n.morphology_id:
-                        depth_map[n.node_id] = (n.language, n.root, n.morphology_id)
-                grounded_graph = ground_graph(effective_graph, recalled_words, depth=depth_map)
-                realized_plan = realize_semantic(target, grounded_graph)
-                effective_graph = grounded_graph
+                        new_nodes.append(enriched)
+                        changed = True
+                    else:
+                        new_nodes.append(n)
+                if changed:
+                    effective_graph = PropositionGraph(
+                        nodes=tuple(new_nodes),
+                        edges=effective_graph.edges,
+                    )
+        if self.runtime.config.realizer_grounded_authority and recalled_words:
+            # Ground using recalled_words + depth map (alongside) so
+            # 3-lang info propagates even if not pre-enriched on nodes.
+            # Flag only gates this recall-fill step for compat.
+            depth_map = {}
+            for n in effective_graph.nodes:
+                if n.language or n.root or n.morphology_id:
+                    depth_map[n.node_id] = (n.language, n.root, n.morphology_id)
+            grounded_graph = ground_graph(effective_graph, recalled_words, depth=depth_map)
+            realized_plan = realize_semantic(target, grounded_graph)
+            effective_graph = grounded_graph
 
         gate_fired = (
             response.vault_hits == 0
