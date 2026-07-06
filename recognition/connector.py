@@ -22,6 +22,9 @@ def epistemic_node_to_graph_node(
     *,
     source_intent: IntentTag,
     node_id: str | None = None,
+    language: str | None = None,
+    root: str | None = None,
+    morphology_id: str | None = None,
 ) -> GraphNode:
     """Derive a generation-side GraphNode from an admitted EpistemicNode.
 
@@ -31,6 +34,10 @@ def epistemic_node_to_graph_node(
       subject   ← bundle["agent"].value
       predicate ← bundle["relation"].value
       obj       ← "{count.value} {unit.value}"
+
+    Optional depth params allow 3-lang (Hebrew/Greek) morphology/root info
+    from recognition to flow into the shared PropositionGraph for
+    comprehension/articulation/reasoning.
     """
     outcome = node.recognition_outcome
     if outcome.state != EVIDENCED:
@@ -60,6 +67,9 @@ def epistemic_node_to_graph_node(
         predicate=predicate,
         obj=obj,
         source_intent=source_intent,
+        language=language,
+        root=root,
+        morphology_id=morphology_id,
     )
 
 

@@ -8,6 +8,24 @@ The hash captures every meaningful output of a pipeline run so that:
 Only stable, semantically meaningful fields are included.  Floating-point
 values are rounded to 9 decimal places before hashing so that numeric
 noise from different hardware does not break determinism within a run.
+
+Phase B (Trace Equivalence Hazard fix per refined plan / engineer's assessment §2):
+The PropositionGraph (the "think" structure) is now folded into the hash
+via its canonical discrete topological serialization (to_json / as_dict).
+This is a pure structural Merkle-DAG of nodes + directed edges with discrete
+labels (subjects, predicates, objects, intents, relations). No raw f64
+geometry, no versor arrays, no platform-dependent float associativity or FMA.
+
+Continuous versor_condition remains a runtime guard (rounded only for the
+hash payload) and is still asserted < 1e-6 exclusively at construction
+boundaries (algebra/versor.py, VersorBinding, etc.). The graph inclusion
+makes replay equivalence sensitive to the actual substrate reasoning path
+while remaining 100% cross-platform (Python, Rust FFI, MLX on Apple Silicon,
+x86) and byte-stable for equivalent turns.
+
+New field is included *only* when non-empty, preserving byte-identical
+payloads (and thus trace_hashes) for any pre-inclusion turns or turns
+without a graph.
 """
 
 from __future__ import annotations
@@ -42,6 +60,7 @@ def compute_trace_hash(
     ratification_outcome: str = "",
     region_was_unconstrained: bool = True,
     refusal_reason: str = "",
+    proposition_graph: str = "",
 ) -> str:
     """Return a deterministic SHA-256 hex digest over the turn's key outputs.
 
@@ -59,6 +78,19 @@ def compute_trace_hash(
     no proposal was emitted.  Folded per ADR-0021 §Consequences so replay
     detects when a downstream surface was produced under a different
     epistemic frame than at the time of recall.
+
+    ``proposition_graph`` (Phase B) is the *discrete topological*
+    canonical serialization of the PropositionGraph (typically
+    graph.to_json() or equivalent as_dict JSON). This captures the
+    network structure (nodes + directed edges) and discrete labels
+    that drove the substrate articulation. It is the Merkle-DAG
+    representation of the "think" step.
+
+    It contains only strings, enums, and structural tuples — zero raw
+    floating-point CGA state. This guarantees identical hashes on
+    Apple Silicon (MLX), x86, Rust FFI paths, etc. The continuous
+    versor_condition (rounded) remains only as an ephemeral runtime
+    guard in the payload.
     """
     payload = {
         "input_text": input_text,
@@ -93,6 +125,15 @@ def compute_trace_hash(
     # load-bearing in replay equality.
     if refusal_reason:
         payload["refusal_reason"] = refusal_reason
+    # Phase B — discrete PropositionGraph topology (Shadow Coherence Gate
+    # unification). Included only when present so pre-Phase-B turns and
+    # turns without a graph keep byte-identical payloads/hashes.
+    # The value is the full canonical JSON of nodes+edges (structural DAG).
+    # This makes the cognitive spine's reasoning load-bearing for replay
+    # while obeying Mechanical Sympathy (no FP) and Semantic Rigor (exact
+    # discrete structure, no approximation).
+    if proposition_graph:
+        payload["proposition_graph"] = proposition_graph
     serialized = json.dumps(payload, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
@@ -115,7 +156,13 @@ def hash_admissibility_trace(trace: tuple) -> str:
 
 
 def trace_hash_from_result(result: "CognitiveTurnResult") -> str:
-    """Convenience wrapper — compute the hash directly from a result object."""
+    """Convenience wrapper — compute the hash directly from a result object.
+
+    Phase B: extracts the discrete topological form of proposition_graph
+    (if present) using its to_json() canonical serialization. This ensures
+    that any caller using the helper gets the same payload as the direct
+    compute_trace_hash path in the pipeline.
+    """
     intent_tag = result.intent.tag.value if result.intent is not None else "unknown"
     review_hash = (
         result.reviewed_teaching_example.review_hash
@@ -132,6 +179,20 @@ def trace_hash_from_result(result: "CognitiveTurnResult") -> str:
         if result.pack_mutation_proposal is not None
         else ""
     )
+    # Discrete graph topo for Phase B (quantized topological hashing).
+    # Uses the stable to_json() of the stored PropositionGraph (nodes +
+    # edges in their deterministic order, string labels only). Safe across
+    # all backends; no raw geometry.
+    graph_topo = ""
+    pg = getattr(result, "proposition_graph", None)
+    if pg is not None:
+        if hasattr(pg, "to_json"):
+            graph_topo = pg.to_json()
+        elif hasattr(pg, "as_dict"):
+            import json as _json
+            graph_topo = _json.dumps(
+                pg.as_dict(), sort_keys=True, ensure_ascii=False
+            )
     return compute_trace_hash(
         input_text=result.input_text,
         filtered_tokens=result.filtered_tokens,
@@ -150,4 +211,5 @@ def trace_hash_from_result(result: "CognitiveTurnResult") -> str:
         ratification_outcome=getattr(result, "ratification_outcome", ""),
         region_was_unconstrained=getattr(result, "region_was_unconstrained", True),
         refusal_reason=getattr(result, "refusal_reason", ""),
+        proposition_graph=graph_topo,
     )
