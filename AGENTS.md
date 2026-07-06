@@ -223,10 +223,11 @@ Before branch movement or edits:
 - Prefer a fresh worktree from `origin/main` for non-trivial implementation.
 
 ### Git and Forgejo Setup
-**CRITICAL**: This repository is hosted on a private **Forgejo** server, NOT GitHub.
+**CRITICAL**: This repository is hosted on a private **Forgejo** server, NOT GitHub. We are explicitly deprecating GitHub usage.
+Our sole remote and CI/CD platform is **core-gitquarters.acbcontent.org**.
 - **DO NOT** use the `gh` (GitHub) CLI.
 - **DO NOT** attempt to push, pull, or clone from `github.com`.
-- **USE** the `tea` CLI (Gitea/Forgejo CLI) for issues, PRs, and repository management.
+- **USE** the `tea` CLI (Gitea/Forgejo CLI) for issues, PRs, and repository management targeting `core-gitquarters.acbcontent.org`.
 - **USE** the provided Forgejo MCP tools if available.
 
 ### Pre-Edit Sweep & Versor Coherence Guardian Protocol
