@@ -227,8 +227,8 @@ Before branch movement or edits:
 Our sole remote and CI/CD platform is **core-gitquarters.acbcontent.org**.
 - **DO NOT** use the `gh` (GitHub) CLI.
 - **DO NOT** attempt to push, pull, or clone from `github.com`.
-- **USE** the `tea` CLI (Gitea/Forgejo CLI) for issues, PRs, and repository management targeting `core-gitquarters.acbcontent.org`.
 - **USE** the provided Forgejo MCP tools if available.
+- If the Forgejo MCP tools are not available or not working, **attempt utilizing the `gitea` / `tea` CLI or `forgejo` CLI** for issues, PRs, and repository management targeting `core-gitquarters.acbcontent.org`.
 
 ### Pre-Edit Sweep & Versor Coherence Guardian Protocol
 Before modifying any module in `algebra/`, `field/`, `vault/`, or `generate/`:
