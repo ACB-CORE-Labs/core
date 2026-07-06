@@ -118,13 +118,13 @@ class ConstructionFamily:
     serving_allowed: bool
 
     def __post_init__(self) -> None:
-        if self.serving_allowed and self.family_id != "proportional_change.decrease_to_fraction":
+        if self.serving_allowed and self.family_id not in _SERVING_AUTHORIZED_FAMILIES:
             raise ValueError(
                 f"ConstructionFamily {self.family_id!r}: "
-                "serving_allowed must be False in this PR — "
+                "serving_allowed must be False — "
                 "no construction may be promoted to serving without a separate reviewed PR."
             )
-        if not self.diagnostic_only and self.family_id != "proportional_change.decrease_to_fraction":
+        if not self.diagnostic_only and self.family_id not in _SERVING_AUTHORIZED_FAMILIES:
             raise ValueError(
                 f"ConstructionFamily {self.family_id!r}: "
                 "diagnostic_only must be True — "
@@ -187,15 +187,13 @@ class ConstructionProposal:
     diagnostic_only: bool = True
     serving_allowed: bool = False
 
-    _VALID_STATUS: ClassVar[Literal["proposed"]] = "proposed"
-
     def __post_init__(self) -> None:
-        if self.status != self._VALID_STATUS:
+        if self.status != "proposed":
             raise ValueError(
                 "ConstructionProposal.status must remain 'proposed'; "
                 "ContractAssessment is the sole runnable/refused authority"
             )
-        if (not self.diagnostic_only or self.serving_allowed) and self.family_id != "proportional_change.decrease_to_fraction":
+        if (not self.diagnostic_only or self.serving_allowed) and self.family_id not in _SERVING_AUTHORIZED_FAMILIES:
             raise ValueError(
                 f"ConstructionProposal {self.family_id!r}: "
                 "must be diagnostic_only and serving_allowed=False"
@@ -217,6 +215,13 @@ class ConstructionProposal:
 # ---------------------------------------------------------------------------
 # Catalog entries
 # ---------------------------------------------------------------------------
+
+# Families authorized for serving_allowed=True / diagnostic_only=False.
+# A new family requires a separate reviewed PR to appear here.
+_SERVING_AUTHORIZED_FAMILIES: frozenset[str] = frozenset({
+    "proportional_change.decrease_to_fraction",
+})
+
 
 _DECREASE_TO_FRACTION_FAMILY = ConstructionFamily(
     family_id="proportional_change.decrease_to_fraction",
@@ -553,12 +558,14 @@ _BY_RELATION_TYPE: dict[str, ConstructionFamily] = {
     for family in _CATALOG.values()
 }
 
-_PROPOSAL_FIRST_FAMILIES: frozenset[str] = frozenset({
-    "binding.quantity_entity",
-    "proportional_change.decrease_to_fraction",
-    "partition.percent_partition",
-    "state_change.unary_delta",
-})
+# Every catalog family is proposal-first; derived directly from _CATALOG so
+# additions need no secondary maintenance.
+_PROPOSAL_FIRST_FAMILIES: frozenset[str] = frozenset(_CATALOG)
+
+# Pre-computed sorted tuple; all_diagnostic_families() returns this constant.
+_SORTED_FAMILIES: tuple[ConstructionFamily, ...] = tuple(
+    _CATALOG[key] for key in sorted(_CATALOG)
+)
 
 
 # ---------------------------------------------------------------------------
@@ -588,7 +595,7 @@ def lookup_by_relation_type(relation_type: str) -> ConstructionFamily | None:
 
 def all_diagnostic_families() -> tuple[ConstructionFamily, ...]:
     """Return all registered diagnostic families in deterministic (family_id) order."""
-    return tuple(_CATALOG[key] for key in sorted(_CATALOG))
+    return _SORTED_FAMILIES
 
 
 def propose_construction(
@@ -617,38 +624,4 @@ def propose_construction(
         ),
         diagnostic_only=family.diagnostic_only,
         serving_allowed=family.serving_allowed,
-    )
-
-
-def make_proposal(
-    family_id: str,
-    evidence_spans: tuple[SourceSpan, ...],
-    assessment_runnable: bool,
-    missing_roles: tuple[str, ...],
-    active_hazards: tuple[str, ...],
-) -> ConstructionProposal:
-    """Reject assessment-backed proposal synthesis.
-
-    Every catalog family is proposal-first.  The assessment-shaped signature
-    remains temporarily for callers that need a loud migration failure, but no
-    ``ConstructionProposal`` may encode assessment output.
-
-    Args:
-        family_id:           Catalog family identifier.
-        evidence_spans:      Source spans from the contract assessment.
-        assessment_runnable: Whether the corresponding ContractAssessment.runnable
-                             was True.
-        missing_roles:       ContractAssessment.missing_bindings contents.
-        active_hazards:      ContractAssessment.unresolved_hazards contents.
-
-    Raises:
-        KeyError: If *family_id* is not registered in the catalog.
-        ValueError: For every catalog family; use ``propose_construction``
-            before assessment instead.
-    """
-    _ = (evidence_spans, assessment_runnable, missing_roles, active_hazards)
-    if family_id not in _CATALOG:
-        raise KeyError(family_id)
-    raise ValueError(
-        f"{family_id} is proposal-first; use propose_construction before assessment"
     )
