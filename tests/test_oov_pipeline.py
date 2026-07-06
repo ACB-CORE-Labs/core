@@ -22,6 +22,7 @@ from pathlib import Path
 import pytest
 
 from chat.runtime import ChatRuntime
+from core.cognition.pipeline import CognitiveTurnPipeline
 from teaching.oov_gaps import OOVGap, aggregate_oov_gaps
 from teaching.oov_promotion import OOVPromotion, promote_oov_gaps
 from teaching.oov_sink import (
@@ -186,6 +187,35 @@ def test_since_filter(tmp_path: Path) -> None:
     rows = aggregate_oov_gaps(tmp_path, since="2026-05")
     assert len(rows) == 1
     assert rows[0].sample_candidate_ids == ("may",)
+
+
+# --- Phase C characterization: geometric anti-unification hook ---
+
+def test_pipeline_oov_geometric_context_hook() -> None:
+    """Phase C atomic instrumentation provides read-only graph context for OOV.
+
+    This is the hook for future exact CGA sub-graph anti-unification.
+    The field is purely observational; it must not affect surfaces, trace_hash,
+    or any user-visible behaviour. Populated when OOV or unresolved slots
+    are present in the PropositionGraph.
+    """
+    pipeline = CognitiveTurnPipeline(runtime=ChatRuntime())
+    result = pipeline.run("What is photosynthesis?", max_tokens=2)
+
+    # For a clear OOV like "photosynthesis", the context should be present
+    # with unresolved topology from the substrate graph.
+    assert result.oov_geometric_context is not None
+    ctx = result.oov_geometric_context
+    assert "unresolved_topology" in ctx
+    assert isinstance(ctx["unresolved_topology"], tuple)
+    assert len(ctx["unresolved_topology"]) >= 1
+    assert ctx.get("geometric_probe_performed") is False
+    assert "Hook for geometric anti-unification" in ctx.get("note", "")
+    # Intent should be captured for context.
+    assert ctx.get("intent_tag") in ("definition", "unknown", "recall")  # tolerant for classifier
+    # 3-lang OOV bridge: node_depths always present (empty if no depth langs on nodes)
+    assert "node_depths" in ctx
+    assert isinstance(ctx["node_depths"], dict)
 
 
 def test_malformed_lines_skipped(tmp_path: Path) -> None:

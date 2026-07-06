@@ -8,6 +8,7 @@ walk those edges with true BFS distance, not traversal ordinal.
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Any, Sequence
 
@@ -146,10 +147,10 @@ class SessionGraph:
         if from_turn < 0 or from_turn >= len(self._nodes):
             raise IndexError(f"from_turn out of range: {from_turn}")
         visited: set[int] = {from_turn}
-        queue: list[tuple[int, int]] = [(1, idx) for idx in self._nodes[from_turn].backward_edges]
+        queue: deque[tuple[int, int]] = deque((1, idx) for idx in self._nodes[from_turn].backward_edges)
         result: list[tuple[int, TurnNode]] = []
         while queue:
-            distance, idx = queue.pop(0)
+            distance, idx = queue.popleft()
             if distance > max_depth:
                 continue
             if idx in visited or idx >= len(self._nodes) or idx < 0:
