@@ -23,12 +23,11 @@ imports no `evals`, no `generate.derivation`, no `core.reliability_gate`. In v0 
 answer is the eval lane's domain — a routed R1 setup is `SOLVED_VERIFIED` (admissible,
 forward-substitutable by construction); R2 is solved + verified end to end here.
 """
-
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING
 
 from core.comprehension_attempt import (
     ComprehensionAttempt,
@@ -67,6 +66,63 @@ _UNSUPPORTED_FAMILIES = frozenset(
 _NOT_MY_DOMAIN = "input_shape"
 
 
+class InternalContemplationError(RuntimeError):
+    """Raised when a routing invariant is violated (reader refused after organ was routed).
+
+    This is not a user-visible error and must never be caught as a Refusal.
+    It indicates a programming error in the route/read contract.
+    """
+
+
+# ---------------------------------------------------------------------------
+# Organ pipeline descriptor
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class OrganPipeline:
+    """All organ-specific callables needed by the unified solve/verify path.
+
+    Args:
+        organ:          Stable organ identifier string (e.g. ``"r2_constraints"``).
+        reader:         Callable that parses *text* into a problem struct or Refusal.
+        solver:         Callable that solves the problem struct, returning a numeric
+                        value or Refusal.
+        reason_adapter: Maps a raw solver refusal reason string to the canonical
+                        family-lookup key.  Identity for R2/R3; ``cmb_reason`` for R4.
+    """
+
+    organ: str
+    reader: Callable[[str], Any]
+    solver: Callable[[Any], Any]
+    reason_adapter: Callable[[str], str] = field(default=lambda r: r)
+
+
+_PIPELINES: dict[str, OrganPipeline] = {
+    "r2_constraints": OrganPipeline(
+        organ="r2_constraints",
+        reader=read_constraint_problem,
+        solver=answer_constraint_problem,
+    ),
+    "r3_rate": OrganPipeline(
+        organ="r3_rate",
+        reader=read_rate_problem,
+        solver=solve_rate,
+    ),
+    "r4_combined_rate": OrganPipeline(
+        organ="r4_combined_rate",
+        reader=read_combined_rate_problem,
+        solver=solve_combined_rate,
+        reason_adapter=cmb_reason,
+    ),
+}
+
+
+# ---------------------------------------------------------------------------
+# Result / Finding helpers
+# ---------------------------------------------------------------------------
+
+
 @dataclass(frozen=True, slots=True)
 class ContemplationResult:
     """The outcome of one bounded contemplation pass."""
@@ -82,10 +138,61 @@ class ContemplationResult:
     message: str | None = None
 
 
+def _result(
+    terminal: Terminal,
+    findings: list[Finding],
+    attempts: tuple[ComprehensionAttempt, ...],
+    /,
+    **kwargs: Any,
+) -> ContemplationResult:
+    """Append the terminal Finding and return a ContemplationResult in one call.
+
+    Guarantees that the terminal Finding is always the last entry in the
+    findings sequence — enforced by construction, not by convention.
+    """
+    findings.append(Finding("terminal", terminal.value))
+    return ContemplationResult(terminal, tuple(findings), attempts, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Ask-delivery helpers
+# ---------------------------------------------------------------------------
+
+
 def _delivery_outcome_for_limitation(assessment: LimitationAssessment) -> DeliveryOutcome:
     """Helper to delegate to deliver_ask, pure and testable."""
     from core.epistemic_questions.delivery import deliver_ask
     return deliver_ask(assessment)
+
+
+def _maybe_ask(
+    reason: str,
+    organ: str,
+    findings: list[Finding],
+    attempts: tuple[ComprehensionAttempt, ...],
+    text: str,
+    proposal_root: Path | None,
+    question_root: Path | None,
+    exercise_ask: bool,
+) -> ContemplationResult | None:
+    """Return an ask ContemplationResult if *reason* maps to an askable family, else None.
+
+    Centralises the family_by_name / assess_from_family / exercise_ask check that
+    previously appeared inline in every _solve_and_verify_r* function.
+    """
+    from core.comprehension_attempt.failure_family import family_by_name
+    from core.epistemic_disclosure.limitation import assess_from_family
+    family_obj = family_by_name(reason)
+    if family_obj is None:
+        return None
+    assessment = assess_from_family(family_obj)
+    if assessment.resolution_action == "ask_question" and exercise_ask:
+        return _handle_ask_delivery(
+            assessment, family_obj.name, findings, attempts,
+            text, proposal_root, question_root, exercise_ask,
+            selected_organ=organ,
+        )
+    return None
 
 
 def _handle_ask_delivery(
@@ -111,32 +218,110 @@ def _handle_ask_delivery(
             json.dumps(outcome.question.to_json_dict(), indent=2, sort_keys=True),
             encoding="utf-8",
         )
-
         findings.append(Finding("ask", f"emitted question-only {assessment.blocking_reason}"))
-        findings.append(Finding("terminal", Terminal.QUESTION_NEEDED.value))
-        return ContemplationResult(
-            Terminal.QUESTION_NEEDED, tuple(findings), attempts,
+        return _result(
+            Terminal.QUESTION_NEEDED, findings, attempts,
             selected_organ=selected_organ, family=family_name,
-            proposal_path=None,
-            question_path=str(path),
+            proposal_path=None, question_path=str(path),
         )
     else:
         findings.append(Finding("ask", f"unrenderable ask: {outcome.fallback_reason}"))
-        findings.append(Finding("terminal", outcome.terminal.value))
         if outcome.terminal == Terminal.PROPOSAL_EMITTED:
             from core.comprehension_attempt.failure_family import family_by_name
             family_obj = family_by_name(family_name)
             if family_obj is not None:
                 path = emit_proposal(text, family_obj, attempts, root=proposal_root)
-                return ContemplationResult(
-                    Terminal.PROPOSAL_EMITTED, tuple(findings), attempts,
+                return _result(
+                    Terminal.PROPOSAL_EMITTED, findings, attempts,
                     selected_organ=selected_organ, family=family_name,
                     proposal_path=str(path) if path else None,
                 )
-        return ContemplationResult(
-            outcome.terminal, tuple(findings), attempts,
+        return _result(
+            outcome.terminal, findings, attempts,
             selected_organ=selected_organ, family=family_name,
         )
+
+
+# ---------------------------------------------------------------------------
+# Unified solve / verify
+# ---------------------------------------------------------------------------
+
+
+def _solve_and_verify(
+    pipeline: OrganPipeline,
+    text: str,
+    options: dict[str, Any] | None,
+    answer_key: str | None,
+    findings: list[Finding],
+    attempts: tuple[ComprehensionAttempt, ...],
+    proposal_root: Path | None,
+    question_root: Path | None,
+    exercise_ask: bool,
+) -> ContemplationResult:
+    """Unified read → solve → maybe_ask → maybe_verify → terminal pipeline.
+
+    Shared by every routed organ (R2, R3, R4, and future organs).  The only
+    organ-specific variation is captured in *pipeline*.
+    """
+    organ = pipeline.organ
+
+    problem = pipeline.reader(text)
+    if isinstance(problem, Refusal):
+        # Routing guarantees the reader admits a setup — if it refuses here the
+        # route/read contract has been violated, which is an internal programming error.
+        raise InternalContemplationError(
+            f"{organ}: reader refused after routing admitted — "
+            f"routing invariant violated: {problem.reason}"
+        )
+
+    value = pipeline.solver(problem)
+    if isinstance(value, Refusal):
+        findings.append(Finding("solve", f"solver refused: {value.reason}"))
+        reason = pipeline.reason_adapter(value.reason)
+        if ask_result := _maybe_ask(
+            reason, organ, findings, attempts, text, proposal_root, question_root, exercise_ask
+        ):
+            return ask_result
+        return _result(
+            Terminal.REFUSED_KNOWN_BOUNDARY, findings, attempts,
+            selected_organ=organ, family=_family_name(reason),
+        )
+
+    if options is not None:
+        noun = (
+            getattr(getattr(problem, "query", None), "unit", None)
+            if organ == "r2_constraints"
+            else None
+        )
+        verdict = verify_answer_choice(
+            value, options, answer_key,
+            **({"noun": noun} if noun is not None else {}),
+        )
+        if isinstance(verdict, Refusal):
+            findings.append(Finding("verify", f"answer-choice refused: {verdict.reason}"))
+            return _result(
+                Terminal.REFUSED_KNOWN_BOUNDARY, findings, attempts,
+                selected_organ=organ, answer=value,
+            )
+        if verdict.status == "contradiction":
+            findings.append(Finding("verify", verdict.message))
+            return _result(
+                Terminal.CONTRADICTION_DETECTED, findings, attempts,
+                selected_organ=organ, answer=value,
+                family="answer_key_contradiction", message=verdict.message,
+            )
+        findings.append(Finding("verify", verdict.message))
+
+    findings.append(Finding("solve", f"value={value}"))
+    return _result(
+        Terminal.SOLVED_VERIFIED, findings, attempts,
+        selected_organ=organ, answer=value,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Public entry point
+# ---------------------------------------------------------------------------
 
 
 def contemplate(
@@ -169,200 +354,31 @@ def contemplate(
 
     # Pass 3/4 — terminal (+ maybe emit).
     if route.status == "ambiguous":
-        findings.append(Finding("terminal", Terminal.AMBIGUOUS_ORGAN.value))
-        return ContemplationResult(Terminal.AMBIGUOUS_ORGAN, tuple(findings), attempts)
+        return _result(Terminal.AMBIGUOUS_ORGAN, findings, attempts)
 
     if route.status == "routed":
         assert route.selected is not None
-        if route.selected.organ == "r2_constraints":
-            return _solve_and_verify_r2(text, options, answer_key, findings, attempts, proposal_root, question_root, exercise_ask)
-        if route.selected.organ == "r3_rate":
-            return _solve_and_verify_r3(text, options, answer_key, findings, attempts, proposal_root, question_root, exercise_ask)
-        if route.selected.organ == "r4_combined_rate":
-            return _solve_and_verify_cmb(text, options, answer_key, findings, attempts, proposal_root, question_root, exercise_ask)
+        if route.selected.organ in _PIPELINES:
+            return _solve_and_verify(
+                _PIPELINES[route.selected.organ],
+                text, options, answer_key, findings, attempts,
+                proposal_root, question_root, exercise_ask,
+            )
+        # R1: numeric answer is the eval lane's domain in v0.
         findings.append(Finding("solve", "r1 admissible setup (numeric answer is the eval lane in v0)"))
-        findings.append(Finding("terminal", Terminal.SOLVED_VERIFIED.value))
-        return ContemplationResult(
-            Terminal.SOLVED_VERIFIED, tuple(findings), attempts, selected_organ="r1_quantitative"
+        return _result(
+            Terminal.SOLVED_VERIFIED, findings, attempts, selected_organ="r1_quantitative"
         )
 
     # route.status == "all_refused"
-    return _classify_all_refused(text, attempts, findings, proposal_root, question_root, exercise_ask)
-
-
-def _solve_and_verify_r2(
-    text: str,
-    options: dict[str, Any] | None,
-    answer_key: str | None,
-    findings: list[Finding],
-    attempts: tuple[ComprehensionAttempt, ...],
-    proposal_root: Path | None,
-    question_root: Path | None,
-    exercise_ask: bool,
-) -> ContemplationResult:
-    problem = read_constraint_problem(text)
-    assert not isinstance(problem, Refusal)  # routed => the reader admitted a setup
-    value = answer_constraint_problem(problem)
-    if isinstance(value, Refusal):
-        findings.append(Finding("solve", f"solver refused: {value.reason}"))
-        from core.comprehension_attempt.failure_family import family_by_name
-        from core.epistemic_disclosure.limitation import assess_from_family
-        family_obj = family_by_name(value.reason)
-        if family_obj is not None:
-            assessment = assess_from_family(family_obj)
-            if assessment.resolution_action == "ask_question":
-                if exercise_ask:
-                    return _handle_ask_delivery(
-                        assessment, family_obj.name, findings, attempts, text, proposal_root, question_root, exercise_ask,
-                        selected_organ="r2_constraints"
-                    )
-        findings.append(Finding("terminal", Terminal.REFUSED_KNOWN_BOUNDARY.value))
-        return ContemplationResult(
-            Terminal.REFUSED_KNOWN_BOUNDARY, tuple(findings), attempts,
-            selected_organ="r2_constraints", family=_family_name(value.reason),
-        )
-    if options is not None:
-        verdict = verify_answer_choice(value, options, answer_key, noun=problem.query.unit)
-        if isinstance(verdict, Refusal):
-            findings.append(Finding("verify", f"answer-choice refused: {verdict.reason}"))
-            findings.append(Finding("terminal", Terminal.REFUSED_KNOWN_BOUNDARY.value))
-            return ContemplationResult(
-                Terminal.REFUSED_KNOWN_BOUNDARY, tuple(findings), attempts,
-                selected_organ="r2_constraints", answer=value,
-            )
-        if verdict.status == "contradiction":
-            findings.append(Finding("verify", verdict.message))
-            findings.append(Finding("terminal", Terminal.CONTRADICTION_DETECTED.value))
-            return ContemplationResult(
-                Terminal.CONTRADICTION_DETECTED, tuple(findings), attempts,
-                selected_organ="r2_constraints", answer=value,
-                family="answer_key_contradiction", message=verdict.message,
-            )
-        findings.append(Finding("verify", verdict.message))
-    findings.append(Finding("solve", f"value={value}"))
-    findings.append(Finding("terminal", Terminal.SOLVED_VERIFIED.value))
-    return ContemplationResult(
-        Terminal.SOLVED_VERIFIED, tuple(findings), attempts,
-        selected_organ="r2_constraints", answer=value,
+    return _classify_all_refused(
+        text, attempts, findings, proposal_root, question_root, exercise_ask
     )
 
 
-def _solve_and_verify_r3(
-    text: str,
-    options: dict[str, Any] | None,
-    answer_key: str | None,
-    findings: list[Finding],
-    attempts: tuple[ComprehensionAttempt, ...],
-    proposal_root: Path | None,
-    question_root: Path | None,
-    exercise_ask: bool,
-) -> ContemplationResult:
-    problem = read_rate_problem(text)
-    assert not isinstance(problem, Refusal)  # routed => the reader admitted a setup
-    value = solve_rate(problem)
-    if isinstance(value, Refusal):
-        findings.append(Finding("solve", f"solver refused: {value.reason}"))
-        from core.comprehension_attempt.failure_family import family_by_name
-        from core.epistemic_disclosure.limitation import assess_from_family
-        family_obj = family_by_name(value.reason)
-        if family_obj is not None:
-            assessment = assess_from_family(family_obj)
-            if assessment.resolution_action == "ask_question":
-                if exercise_ask:
-                    return _handle_ask_delivery(
-                        assessment, family_obj.name, findings, attempts, text, proposal_root, question_root, exercise_ask,
-                        selected_organ="r3_rate"
-                    )
-        findings.append(Finding("terminal", Terminal.REFUSED_KNOWN_BOUNDARY.value))
-        return ContemplationResult(
-            Terminal.REFUSED_KNOWN_BOUNDARY, tuple(findings), attempts,
-            selected_organ="r3_rate", family=_family_name(value.reason),
-        )
-    if options is not None:
-        verdict = verify_answer_choice(value, options, answer_key)
-        if isinstance(verdict, Refusal):
-            findings.append(Finding("verify", f"answer-choice refused: {verdict.reason}"))
-            findings.append(Finding("terminal", Terminal.REFUSED_KNOWN_BOUNDARY.value))
-            return ContemplationResult(
-                Terminal.REFUSED_KNOWN_BOUNDARY, tuple(findings), attempts,
-                selected_organ="r3_rate", answer=value,
-            )
-        if verdict.status == "contradiction":
-            findings.append(Finding("verify", verdict.message))
-            findings.append(Finding("terminal", Terminal.CONTRADICTION_DETECTED.value))
-            return ContemplationResult(
-                Terminal.CONTRADICTION_DETECTED, tuple(findings), attempts,
-                selected_organ="r3_rate", answer=value,
-                family="answer_key_contradiction", message=verdict.message,
-            )
-        findings.append(Finding("verify", verdict.message))
-    findings.append(Finding("solve", f"value={value}"))
-    findings.append(Finding("terminal", Terminal.SOLVED_VERIFIED.value))
-    return ContemplationResult(
-        Terminal.SOLVED_VERIFIED, tuple(findings), attempts,
-        selected_organ="r3_rate", answer=value,
-    )
-
-
-def _solve_and_verify_cmb(
-    text: str,
-    options: dict[str, Any] | None,
-    answer_key: str | None,
-    findings: list[Finding],
-    attempts: tuple[ComprehensionAttempt, ...],
-    proposal_root: Path | None,
-    question_root: Path | None,
-    exercise_ask: bool,
-) -> ContemplationResult:
-    problem = read_combined_rate_problem(text)
-    assert not isinstance(problem, Refusal)  # routed => the reader admitted a setup
-    value = solve_combined_rate(problem)
-    if isinstance(value, Refusal):
-        # The prose WAS understood (reader setup_correct); the resulting math is outside v1's
-        # answerable boundary. A solver refusal is a terminal boundary, never a proposal — and the
-        # reason is namespaced cmb_* so it resolves to the CMB solver family, not R2/R3's.
-        findings.append(Finding("solve", f"solver refused: {value.reason}"))
-        from core.comprehension_attempt.failure_family import family_by_name
-        from core.epistemic_disclosure.limitation import assess_from_family
-        reason = cmb_reason(value.reason)
-        family_obj = family_by_name(reason)
-        if family_obj is not None:
-            assessment = assess_from_family(family_obj)
-            if assessment.resolution_action == "ask_question":
-                if exercise_ask:
-                    return _handle_ask_delivery(
-                        assessment, family_obj.name, findings, attempts, text, proposal_root, question_root, exercise_ask,
-                        selected_organ="r4_combined_rate"
-                    )
-        findings.append(Finding("terminal", Terminal.REFUSED_KNOWN_BOUNDARY.value))
-        return ContemplationResult(
-            Terminal.REFUSED_KNOWN_BOUNDARY, tuple(findings), attempts,
-            selected_organ="r4_combined_rate", family=_family_name(cmb_reason(value.reason)),
-        )
-    if options is not None:
-        verdict = verify_answer_choice(value, options, answer_key)
-        if isinstance(verdict, Refusal):
-            findings.append(Finding("verify", f"answer-choice refused: {verdict.reason}"))
-            findings.append(Finding("terminal", Terminal.REFUSED_KNOWN_BOUNDARY.value))
-            return ContemplationResult(
-                Terminal.REFUSED_KNOWN_BOUNDARY, tuple(findings), attempts,
-                selected_organ="r4_combined_rate", answer=value,
-            )
-        if verdict.status == "contradiction":
-            findings.append(Finding("verify", verdict.message))
-            findings.append(Finding("terminal", Terminal.CONTRADICTION_DETECTED.value))
-            return ContemplationResult(
-                Terminal.CONTRADICTION_DETECTED, tuple(findings), attempts,
-                selected_organ="r4_combined_rate", answer=value,
-                family="answer_key_contradiction", message=verdict.message,
-            )
-        findings.append(Finding("verify", verdict.message))
-    findings.append(Finding("solve", f"value={value}"))
-    findings.append(Finding("terminal", Terminal.SOLVED_VERIFIED.value))
-    return ContemplationResult(
-        Terminal.SOLVED_VERIFIED, tuple(findings), attempts,
-        selected_organ="r4_combined_rate", answer=value,
-    )
+# ---------------------------------------------------------------------------
+# All-refused classification
+# ---------------------------------------------------------------------------
 
 
 def _classify_all_refused(
@@ -374,8 +390,7 @@ def _classify_all_refused(
     exercise_ask: bool,
 ) -> ContemplationResult:
     # CMB-over-R3 precedence (family side): when CMB substantively recognized the text, R3's broader
-    # partial classification is suppressed, so CMB's sharper diagnosis owns the terminal/proposal
-    # (e.g. a reciprocal combined-rate text proposes a CMB fixture, not R3's rate_underdetermined).
+    # partial classification is suppressed, so CMB's sharper diagnosis owns the terminal/proposal.
     considered = attempts
     if cmb_is_authoritative(attempts):
         considered = tuple(a for a in attempts if a.organ != "r3_rate")
@@ -390,8 +405,7 @@ def _classify_all_refused(
                 if family.name in _UNSUPPORTED_FAMILIES
                 else Terminal.REFUSED_KNOWN_BOUNDARY
             )
-            findings.append(Finding("terminal", f"{terminal.value} via {family.name}"))
-            return ContemplationResult(terminal, tuple(findings), attempts, family=family.name)
+            return _result(terminal, findings, attempts, family=family.name)
 
     # Check for ASK delivery only after substantive boundaries are ruled out.
     for attempt in considered:
@@ -400,7 +414,8 @@ def _classify_all_refused(
         if assessment is not None and assessment.resolution_action == "ask_question":
             if exercise_ask:
                 return _handle_ask_delivery(
-                    assessment, assessment.blocking_reason, findings, attempts, text, proposal_root, question_root, exercise_ask
+                    assessment, assessment.blocking_reason, findings, attempts,
+                    text, proposal_root, question_root, exercise_ask,
                 )
 
     # No substantive boundary: a genuine growth surface may emit a proposal-only artifact.
@@ -408,14 +423,17 @@ def _classify_all_refused(
         if family is not None and family.proposal_allowed:
             path = emit_proposal(text, family, attempts, root=proposal_root)
             findings.append(Finding("propose", f"emitted proposal-only {family.name}"))
-            findings.append(Finding("terminal", Terminal.PROPOSAL_EMITTED.value))
-            return ContemplationResult(
-                Terminal.PROPOSAL_EMITTED, tuple(findings), attempts,
+            return _result(
+                Terminal.PROPOSAL_EMITTED, findings, attempts,
                 family=family.name, proposal_path=str(path) if path else None,
             )
 
-    findings.append(Finding("terminal", Terminal.NO_PROGRESS.value))
-    return ContemplationResult(Terminal.NO_PROGRESS, tuple(findings), attempts)
+    return _result(Terminal.NO_PROGRESS, findings, attempts)
+
+
+# ---------------------------------------------------------------------------
+# Internal utilities
+# ---------------------------------------------------------------------------
 
 
 def _family_name(reason: str | None) -> str | None:
@@ -423,4 +441,4 @@ def _family_name(reason: str | None) -> str | None:
     return family.name if family is not None else None
 
 
-__all__ = ["ContemplationResult", "contemplate"]
+__all__ = ["ContemplationResult", "contemplate", "InternalContemplationError"]
