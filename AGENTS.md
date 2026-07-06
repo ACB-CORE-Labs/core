@@ -129,7 +129,66 @@ For non-trivial edits:
 - keep changes small and load-bearing
 - If working in Arena/parallel subagent mode, each subagent must independently satisfy `versor_condition` and results must be reconciled before merge. No subagent output becomes another subagent's unchecked input.
 
-### Repository topology discipline
+## Reasoning and Problem-Solving Discipline
+
+LLMs are not reliably intelligent by default. CORE exists partly to fix that.
+Agents working in this repository must hold themselves to the following protocol
+on every non-trivial task. Skipping steps produces confident-sounding work that
+is wrong in load-bearing ways.
+
+### The Protocol
+
+**1. Read the code — never reason from names or structure alone.**
+Before forming any opinion about a module, read its implementation. Trace its
+imports and call sites. Identify what invariant it is protecting. A file named
+`pass_manager.py` tells you nothing until you have read it.
+
+**2. Find the shape — what underlying structure does this problem have?**
+Before proposing a solution, identify the repeating structure the problem
+expresses. The solution should make that structure visible, not paper over it.
+Duplication is a symptom; the cause is an unnamed shape.
+
+**3. Rank by leverage — genius-to-effort, not ease.**
+When multiple improvements are possible, rank them explicitly by how much
+cognitive/structural load they remove vs. how much effort they require. Implement
+in that order. An agent that implements low-leverage changes first and skips
+high-leverage ones has optimized for the wrong thing.
+
+**4. Enumerate changes precisely — no ambiguity about what goes where.**
+Before committing, state every change, which file it lives in, and why. The
+commit message must reflect this. Vague commits ("refactor", "cleanup") are
+not acceptable on load-bearing modules.
+
+**5. Prove against real claims — not abstract correctness.**
+"Tests pass" is not proof. Identify which specific pinned assertion in
+`CLAIMS.md` the change must preserve or enable. State the SHA-256 lane or
+`core test --suite` invocation that verifies it. If no existing lane covers
+the change, say so explicitly — that is itself a finding.
+
+**6. Connect to the cognitive model — what does this do for the system's reasoning?**
+Every non-trivial change must be articulable in terms of what it does for
+CORE's actual cognition path:
+`listen → comprehend → recall → think → articulate → learn → replay`
+If you cannot state what cognitive property the change strengthens, the change
+is not yet understood well enough to ship.
+
+**7. Commit with discipline — right branch, right invariant, right lane.**
+Confirm repo state and branch before every commit. Never commit directly to
+`main` unless the change is documentation or governance (like this one).
+State which invariant the change protects. Run the smallest validation lane
+that proves the change before declaring it done.
+
+### The Failure Modes This Prevents
+
+- Reasoning from file names instead of reading the code → wrong analysis
+- Proposing solutions before finding the underlying shape → solutions that
+  recreate the same problem in a different form
+- Implementing easy changes first → high-leverage work never gets done
+- Vague success criteria → regressions that pass "tests" but break real claims
+- Shipping changes that can't be connected to the cognitive model → architectural
+  drift away from CORE's mission
+
+## Repository topology discipline
 Before calling a directory, module, or file stale/redundant, classify its
 intrinsic role:
 - runtime boundary
