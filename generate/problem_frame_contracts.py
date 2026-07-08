@@ -26,6 +26,7 @@ from generate.construction_affordances import (
 from generate.kernel_facts import BoundRelation, GroundedMention, SourceSpan
 from generate.problem_frame import ProblemFrame
 from chat.pack_resolver import resolve_geometric_signature
+from recognition.depth_canonical import enrich_assessments_with_depth
 
 
 # ---------------------------------------------------------------------------
@@ -1032,10 +1033,9 @@ def assess_contracts(frame: ProblemFrame, depth: dict | None = None) -> tuple[Co
                 _evidence(frame, "labor_rate"),
             )
         )
-    if depth:
-        # 3-lang support: depth present from graph for root-aware (record in future)
-        pass
-    return tuple(sorted(results, key=lambda item: item.candidate_organ))
+    results = tuple(sorted(results, key=lambda item: item.candidate_organ))
+    # Use immutable enrich for root-aware (AC3)
+    return enrich_assessments_with_depth(results, depth)
 
 
 def recommended_migration_target(assessments: tuple[ContractAssessment, ...]) -> str:

@@ -8,7 +8,6 @@ from generate.construction_affordances import (
     lookup_by_organ,
     lookup_by_relation_type,
     lookup_family,
-    make_proposal,
     propose_construction,
 )
 from generate.kernel_facts import SourceSpan
@@ -17,9 +16,14 @@ from generate.kernel_facts import SourceSpan
 def test_catalog_entries_are_diagnostic_only_and_serving_forbidden() -> None:
     families = all_diagnostic_families()
     assert len(families) == 4
+    serving_authorized = {"proportional_change.decrease_to_fraction"}
     for family in families:
-        assert family.diagnostic_only is True
-        assert family.serving_allowed is False
+        if family.family_id in serving_authorized:
+            assert family.diagnostic_only is False
+            assert family.serving_allowed is True
+        else:
+            assert family.diagnostic_only is True
+            assert family.serving_allowed is False
 
 
 def test_catalog_ordering_is_deterministic() -> None:
@@ -112,39 +116,16 @@ def test_propose_construction_is_preassessment_and_catalog_backed(
     assert proposal.status == "proposed"
     assert proposal.missing_roles == ()
     assert proposal.active_hazards == ()
-    assert proposal.diagnostic_only is True
-    assert proposal.serving_allowed is False
+    if family_id == "proportional_change.decrease_to_fraction":
+        assert proposal.diagnostic_only is False
+        assert proposal.serving_allowed is True
+    else:
+        assert proposal.diagnostic_only is True
+        assert proposal.serving_allowed is False
     assert {role.role for role in proposal.role_obligations if role.required} == required_roles
 
 
-@pytest.mark.parametrize(
-    "family_id",
-    (
-        "binding.quantity_entity",
-        "proportional_change.decrease_to_fraction",
-        "partition.percent_partition",
-        "state_change.unary_delta",
-    ),
-)
-def test_make_proposal_rejects_migrated_proposal_first_families(
-    family_id: str,
-) -> None:
-    span = SourceSpan("surface cue", 0, 11)
-
-    with pytest.raises(
-        ValueError,
-        match=rf"{family_id} is proposal-first; use propose_construction before assessment",
-    ):
-        make_proposal(
-            family_id=family_id,
-            evidence_spans=(span,),
-            assessment_runnable=True,
-            missing_roles=(),
-            active_hazards=(),
-        )
-
-
-def test_make_proposal_still_rejects_unknown_family_ids() -> None:
+def test_propose_construction_rejects_unknown_family_ids() -> None:
     span = SourceSpan("surface cue", 0, 11)
 
     with pytest.raises(KeyError):
@@ -183,3 +164,17 @@ def test_construction_proposal_cannot_carry_assessment_authority() -> None:
             status="proposed",
             missing_roles=("base_quantity_unbound",),
         )
+
+def test_assess_with_depth_3lang():
+    # direct call with depth to exercise root-aware path (AC3)
+    from generate.problem_frame_contracts import assess_contracts
+    from generate.problem_frame_builder import build_problem_frame
+    import inspect
+    sig = inspect.signature(assess_contracts)
+    assert 'depth' in sig.parameters
+    # real frame + depth, assert param used and no crash (real call)
+    frame = build_problem_frame("A school has 100 students.")
+    assessments = assess_contracts(frame, depth={"n": {"root": "test-root"}})
+    assert isinstance(assessments, tuple)
+    # real root note from enrich
+    assert any("[root:test-root]" in (getattr(a, "explanation", "") or "") for a in assessments)

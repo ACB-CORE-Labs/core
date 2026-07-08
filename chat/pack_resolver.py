@@ -70,6 +70,18 @@ DEFAULT_RESOLVABLE_PACK_IDS: tuple[str, ...] = (
     "en_collapse_anchors_v1",
 )
 
+# 3-core-language (English + Hebrew root density + Koine Greek Logos precision)
+# depth packs for LexicalResolution. These are used alongside DEFAULT when
+# building PropositionGraph nodes with language/root/morphology_id for
+# bidirectional comprehension/articulation/contemplation.
+# Sourced to align with anchor-lens substrate packs.
+DEPTH_PACK_IDS: tuple[str, ...] = (
+    "he_core_cognition_v1",
+    "he_logos_micro_v1",
+    "grc_logos_cognition_v1",
+    "grc_logos_micro_v1",
+)
+
 
 @dataclass(frozen=True, slots=True)
 class LexicalResolution:

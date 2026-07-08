@@ -22,6 +22,7 @@ from recognition.outcome import (
     RecognitionProvenance,
     ShapeRefusal,
 )
+from recognition.depth_canonical import canonicalize_agent_slot, canonicalize_token
 
 TokenSequence = Sequence[str]
 Scalar = str | int | float
@@ -91,7 +92,7 @@ class DerivedRecognizer:
         )
 
 
-def derive_recognizer(examples: Sequence[tuple[TokenSequence, FeatureBundle]], depths: dict[str, dict] | None = None) -> DerivedRecognizer:
+def derive_recognizer(examples: Sequence[tuple[TokenSequence, FeatureBundle]], depths: dict[str, dict] | None = None, *, agent_node_id: str | None = None) -> DerivedRecognizer:
     """Derive recognizer, optionally using node_depths to apply root canonicalization
     for Hebrew/Greek. This makes root-equivalent teaching examples produce
     equivalent patterns (exact, no approx).
@@ -101,21 +102,14 @@ def derive_recognizer(examples: Sequence[tuple[TokenSequence, FeatureBundle]], d
         raise ValueError("derive_recognizer requires at least one teaching example")
 
     normalized = tuple((tuple(tokens), bundle) for tokens, bundle in examples)
-    # Apply root normalization for 3-lang depth if depths provided (he/grc roots canonicalize)
-    # Only normalize non-constant positions (e.g. agent slot) to avoid breaking anchors like relation
+    # Use canonicalize_agent_slot for precise, node keyed root norm (from depth_canonical)
     if depths:
         normed = []
         for toks, bdl in normalized:
-            new_toks = list(toks)
-            agent_feat = bdl.get("agent") if hasattr(bdl, "get") else None
-            for i, tok in enumerate(new_toks):
-                if agent_feat and hasattr(agent_feat, "evidence") and i == getattr(agent_feat.evidence, "start", -1):
-                    for d in depths.values():
-                        if d.get("language") in ("he", "grc") and d.get("root"):
-                            new_toks[i] = root_normalize(tok, d.get("language"), d.get("root"))
-                            break
-            normed.append((tuple(new_toks), bdl))
+            new_toks = canonicalize_agent_slot(toks, bdl, depths, agent_node_id=agent_node_id)
+            normed.append((new_toks, bdl))
         normalized = tuple(normed)
+    # Compute id after canonical to make root-equiv produce same teaching_set_id
     teaching_set_id = _teaching_set_id(tokens for tokens, _bundle in normalized)
     feature_names = _feature_names(normalized)
 
@@ -224,26 +218,20 @@ def recognize(
     recognizer: DerivedRecognizer,
     token_sequence: TokenSequence,
     depths: dict[str, dict] | None = None,
+    *, agent_node_id: str | None = None,
 ) -> RecognitionOutcome:
     """Recognize using optional node_depths for 3-lang root normalization.
 
     depths: node_id -> {"language": , "root": , ...} from PropositionGraph / OOV context.
     When present for he/grc, root_normalize is used on relevant tokens for exact
     canonical matching (no surface variance for roots).
+    Normalization for matching only; lifting uses original tokens to keep reported values (surface).
     """
-    tokens = tuple(token_sequence)
-    # Normalize input tokens using depths for root-equivalent matching (he/grc) - agent position only
-    if depths:
-        toks = list(tokens)
-        # naive: normalize first long token as potential agent if he depth present
-        for i, tok in enumerate(toks):
-            if len(tok) > 2:
-                for d in depths.values():
-                    if d.get("language") in ("he", "grc") and d.get("root"):
-                        toks[i] = root_normalize(tok, d.get("language"), d.get("root"))
-                        break
-                break  # only first
-        tokens = tuple(toks)
+    original_tokens = tuple(token_sequence)
+    tokens = original_tokens
+    # Use canonicalize with start_idx=0 for agent in token-seq recognize path + agent_node_id for nid keying. No synth bundle.
+    match_tokens = canonicalize_agent_slot(tokens, None, depths, agent_node_id=agent_node_id, start_idx=0) if depths else tokens
+    match_tokens_t = tuple(match_tokens)
 
     # If this is Phase 1 (no __allowed_verbs in constant_features), run Phase 1 logic
     if "__allowed_verbs" not in recognizer.constant_features:
@@ -253,7 +241,7 @@ def recognize(
             resolution_level="chunk",
             replay_seed="",
         )
-        matches = _match_pattern(recognizer.pattern, tokens)
+        matches = _match_pattern(recognizer.pattern, match_tokens_t)
         if matches is None:
             return RecognitionOutcome(
                 state=UNDETERMINED,
@@ -270,19 +258,33 @@ def recognize(
 
         feature_evidence: dict[str, tuple[Scalar, FeatureEvidence]] = {}
         for feature_name, value in recognizer.constant_features.items():
-            feature_evidence[feature_name] = (value, _constant_evidence(str(value), tokens))
+            feature_evidence[feature_name] = (value, _constant_evidence(str(value), original_tokens))
         for feature_name, value in recognizer.absent_features.items():
             feature_evidence[feature_name] = (
                 value,
                 NegativeEvidence(
                     scope_start=0,
-                    scope_end=len(tokens),
+                    scope_end=len(original_tokens),
                     description=f"{feature_name}={value!r} evidenced by absence of taught counter-marker",
                 ),
             )
         for slot, span in matches.items():
-            value, evidence = _lift_slot(slot, tokens, span)
+            value, evidence = _lift_slot(slot, original_tokens, span)
             feature_evidence[slot.feature_name] = (value, evidence)
+
+        # 3-lang root form for agent in proposition when depth (nid-keyed via agent_node_id if given; proof of canonical match).
+        # Uses canonicalize_token for consistency with derive path; no mutation.
+        if depths and 'agent' in feature_evidence:
+            val, ev = feature_evidence['agent']
+            nid = agent_node_id
+            if nid and nid in depths:
+                val = canonicalize_token(str(val), nid, depths)
+            else:
+                for d in depths.values():
+                    if d.get('language') in ('he', 'grc') and d.get('root'):
+                        val = d['root']
+                        break
+            feature_evidence['agent'] = (val, ev)
 
         proposition = FeatureBundle.from_mapping(feature_evidence)
         return RecognitionOutcome(
@@ -308,9 +310,9 @@ def recognize(
     for vp_str in allowed_vps_sorted:
         vp_tokens = tuple(vp_str.split())
         n_vp = len(vp_tokens)
-        # Search starting from index 1 to ensure at least 1 agent token exists
-        for i in range(1, len(tokens) - n_vp + 1):
-            if tokens[i : i + n_vp] == vp_tokens:
+        # Search using match_tokens for root-normed matching
+        for i in range(1, len(match_tokens_t) - n_vp + 1):
+            if match_tokens_t[i : i + n_vp] == vp_tokens:
                 verb_match = (i, i + n_vp, vp_str)
                 break
         if verb_match is not None:
@@ -332,12 +334,12 @@ def recognize(
 
     verb_start, verb_end, vp_str = verb_match
 
-    # Agent validation
+    # Agent validation using ORIGINAL for reported values
     agent_start = 0
-    if verb_start > 1 and tokens[0].lower() in {"a", "the"}:
+    if verb_start > 1 and original_tokens[0].lower() in {"a", "the"}:
         agent_start = 1
 
-    agent_tokens = tokens[agent_start:verb_start]
+    agent_tokens = original_tokens[agent_start:verb_start]
     if not agent_tokens:
         return RecognitionOutcome(
             state=UNDETERMINED,
@@ -355,13 +357,13 @@ def recognize(
     agent_value = " ".join(agent_tokens)
     agent_span = EvidenceSpan(agent_start, verb_start, agent_value)
 
-    # Scan for digit/number tokens in the suffix
+    # Scan for digit/number tokens in the suffix -- ORIGINAL
     digits: list[int] = []
     digit_spans: list[EvidenceSpan] = []
-    for i in range(verb_end, len(tokens)):
-        if tokens[i].isdigit():
-            digits.append(int(tokens[i]))
-            digit_spans.append(EvidenceSpan(i, i + 1, tokens[i]))
+    for i in range(verb_end, len(original_tokens)):
+        if original_tokens[i].isdigit():
+            digits.append(int(original_tokens[i]))
+            digit_spans.append(EvidenceSpan(i, i + 1, original_tokens[i]))
 
     # Layer 2 refusal: missing count
     if not digits:
@@ -394,10 +396,10 @@ def recognize(
     # Validate remaining tokens structure (must be [Count, Unit] or [Count, Unit, "and", Count, Unit])
     count_index = digit_spans[0].start
     is_valid_structure = False
-    if len(tokens) == count_index + 2:
+    if len(original_tokens) == count_index + 2:
         is_valid_structure = True
-    elif len(tokens) == count_index + 5 and tokens[count_index + 2] == "and":
-        if tokens[count_index + 3].isdigit():
+    elif len(original_tokens) == count_index + 5 and original_tokens[count_index + 2] == "and":
+        if original_tokens[count_index + 3].isdigit():
             is_valid_structure = True
 
     if not is_valid_structure:
@@ -414,19 +416,19 @@ def recognize(
             ),
         )
 
-    # Lift features
+    # Lift features -- use ORIGINAL for reported surface values
     count_val = digits[0]
     count_span = digit_spans[0]
 
-    unit_token = tokens[count_index + 1]
+    unit_token = original_tokens[count_index + 1]
     unit_val = _singularize(unit_token)
     unit_span = EvidenceSpan(count_index + 1, count_index + 2, unit_token)
 
-    relation_val = tokens[verb_end - 1]
+    relation_val = original_tokens[verb_end - 1]
     relation_span = EvidenceSpan(verb_end - 1, verb_end, relation_val)
 
     # Tense
-    first_verb_token = tokens[verb_start]
+    first_verb_token = original_tokens[verb_start]
     if first_verb_token == "had":
         tense_val = "past"
     elif first_verb_token == "will":
@@ -436,26 +438,26 @@ def recognize(
     tense_span = EvidenceSpan(verb_start, verb_start + 1, first_verb_token)
 
     # Polarity
-    if "not" in tokens[verb_start:verb_end]:
+    if "not" in original_tokens[verb_start:verb_end]:
         polarity_val = "-"
-        not_idx = tokens[verb_start:verb_end].index("not") + verb_start
+        not_idx = original_tokens[verb_start:verb_end].index("not") + verb_start
         polarity_span = EvidenceSpan(not_idx, not_idx + 1, "not")
     else:
         polarity_val = "+"
-        polarity_span = NegativeEvidence(0, len(tokens), "no negator present")
+        polarity_span = NegativeEvidence(0, len(original_tokens), "no negator present")
 
     # Modality
-    if "may" in tokens[verb_start:verb_end]:
+    if "may" in original_tokens[verb_start:verb_end]:
         modality_val = "possibility"
-        may_idx = tokens[verb_start:verb_end].index("may") + verb_start
+        may_idx = original_tokens[verb_start:verb_end].index("may") + verb_start
         modality_span = EvidenceSpan(may_idx, may_idx + 1, "may")
     else:
         modality_val = "actual"
-        modality_span = NegativeEvidence(0, len(tokens), "no modal counter-marker present")
+        modality_span = NegativeEvidence(0, len(original_tokens), "no modal counter-marker present")
 
     # Intentionality
     intentionality_val = "possession"
-    intentionality_text = " ".join(tokens[agent_start:verb_end])
+    intentionality_text = " ".join(original_tokens[agent_start:verb_end])
     intentionality_span = EvidenceSpan(agent_start, verb_end, intentionality_text)
 
     feature_evidence: dict[str, tuple[Scalar, FeatureEvidence]] = {
@@ -476,7 +478,7 @@ def recognize(
                 value,
                 NegativeEvidence(
                     scope_start=0,
-                    scope_end=len(tokens),
+                    scope_end=len(original_tokens),
                     description=f"{feature_name}={value!r} evidenced by absence of taught counter-marker",
                 ),
             )

@@ -889,8 +889,9 @@ class ChatRuntime:
         if self.config.auto_contemplate and candidates_to_save:
             from teaching.contemplation import contemplate
             vault_probe = _vault_probe_for_context(self._context) if self._context else None
+            depth = getattr(self, '_last_node_depths', None)  # from PropGraph for 3-lang
             candidates_to_save = [
-                contemplate(c, vault_probe=vault_probe)
+                contemplate(c, vault_probe=vault_probe, depth=depth)
                 for c in candidates_to_save
             ]
         # ADR-0219 — generation-dir atomic checkpoint.  All files are written
@@ -970,8 +971,9 @@ class ChatRuntime:
             vault_probe = (
                 _vault_probe_for_context(self._context) if self._context else None
             )
+            depth = getattr(self, '_last_node_depths', None)
             contemplated = [
-                contemplate(candidate, vault_probe=vault_probe)
+                contemplate(candidate, vault_probe=vault_probe, depth=depth)
                 for candidate in self._pending_candidates
             ]
             contemplated_count = len(contemplated)
@@ -1539,8 +1541,9 @@ class ChatRuntime:
                 if self.config.vault_probe_discoveries
                 else None
             )
+            depth = getattr(self, '_last_node_depths', None)
             candidates = tuple(
-                contemplate(c, vault_probe=vault_probe) for c in candidates
+                contemplate(c, vault_probe=vault_probe, depth=depth) for c in candidates
             )
         self._pending_candidates.extend(candidates)
         sink = self._discovery_sink

@@ -288,6 +288,7 @@ def _solve_and_verify(
             selected_organ=organ, family=_family_name(reason),
         )
 
+    verdict = None
     if options is not None:
         noun = (
             getattr(getattr(problem, "query", None), "unit", None)
@@ -299,11 +300,13 @@ def _solve_and_verify(
             **({"noun": noun} if noun is not None else {}),
         )
     # Use depth for root-aware (3-lang) if provided from upstream PropositionGraph
+    # framing findings added at contemplate entry; no synthetic enrich here
     if depth:
         for nid, d in depth.items():
             if d.get("root"):
                 findings.append(Finding("depth", f"root={d['root']} lang={d.get('language')} for node {nid}"))
                 break
+    if verdict is not None:
         if isinstance(verdict, Refusal):
             findings.append(Finding("verify", f"answer-choice refused: {verdict.reason}"))
             return _result(
@@ -331,6 +334,22 @@ def _solve_and_verify(
 # ---------------------------------------------------------------------------
 
 
+def depth_framing_findings(depth: dict | None) -> tuple[Finding, ...]:
+    """Pure framing findings for depth (3-lang roots) at contemplate entry.
+
+    Called when depth provided; returns Findings for root-aware.
+    """
+    if not depth:
+        return ()
+    roots = []
+    for nid, d in depth.items():
+        if d.get("root"):
+            roots.append(f"{nid}:{d.get('language','?')}:{d['root']}")
+    if roots:
+        return (Finding("depth", "roots=" + ",".join(roots)),)
+    return ()
+
+
 def contemplate(
     text: str,
     *,
@@ -344,6 +363,8 @@ def contemplate(
 ) -> ContemplationResult:
     """Run one bounded contemplation pass over *text*."""
     findings: list[Finding] = []
+    if depth:
+        findings.extend(depth_framing_findings(depth))
 
     # Pass 1 — route.
     route = route_setup(text, case_id=case_id)

@@ -1,8 +1,16 @@
-# HANDOFF — [AGENT] — [YYYY-MM-DD]
+# DEPRECATED — Former HANDOFF template
 
-<!-- Copy this file, rename to HANDOFF-[agent]-YYYY-MM-DD.md, fill in all
-     sections completely. This is the ONLY continuity mechanism for stateless
-     agents (Grok 4.3 / Grok Build) across sessions. Do not leave placeholders. -->
+**This formal HANDOFF mechanism is retired.**
+
+See the top of `AGENTS.md` for the current lightweight convention:
+
+> When approaching a stopping point... create `session-break-summary-<DATETIME>.md`
+> At session start: check for recent ones.
+> Delete the file once the work is picked up.
+
+Old HANDOFF files (if any) are preserved only as historical artifacts in `docs/handoffs/` and git history.
+
+Do not use or extend this template for new work.
 
 ## Agent and Session
 
