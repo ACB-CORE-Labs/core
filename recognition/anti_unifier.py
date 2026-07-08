@@ -272,18 +272,12 @@ def recognize(
             value, evidence = _lift_slot(slot, original_tokens, span)
             feature_evidence[slot.feature_name] = (value, evidence)
 
-        # 3-lang root form for agent in proposition when depth (nid-keyed via agent_node_id if given; proof of canonical match).
-        # Uses canonicalize_token for consistency with derive path; no mutation.
-        if depths and 'agent' in feature_evidence:
+        # 3-lang root form for agent in proposition when depth (nid-keyed via agent_node_id).
+        # Only applied when explicit nid is provided (primary pipeline path always does).
+        # Without nid we do not guess a root (avoids unrelated root in proposition).
+        if depths and 'agent' in feature_evidence and agent_node_id and agent_node_id in depths:
             val, ev = feature_evidence['agent']
-            nid = agent_node_id
-            if nid and nid in depths:
-                val = canonicalize_token(str(val), nid, depths)
-            else:
-                for d in depths.values():
-                    if d.get('language') in ('he', 'grc') and d.get('root'):
-                        val = d['root']
-                        break
+            val = canonicalize_token(str(val), agent_node_id, depths)
             feature_evidence['agent'] = (val, ev)
 
         proposition = FeatureBundle.from_mapping(feature_evidence)
