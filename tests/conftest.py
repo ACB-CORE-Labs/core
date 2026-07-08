@@ -20,32 +20,32 @@ def pytest_configure(config: pytest.Config) -> None:
 
 @pytest.fixture(autouse=True)
 def _enforce_depth_packs_if_marked(request: pytest.FixtureRequest) -> None:
-    """If test is marked requires_depth_packs, verify at least one DEPTH_PACK can resolve a Hebrew term.
-    Produces explicit skip (with pack names) rather than silent no-depth execution path.
+    """If test is marked requires_depth_packs, verify the combined DEFAULT+DEPTH packs can resolve a Hebrew term.
+    Produces explicit skip (with documented pack list) rather than silent no-depth execution path.
+    Matches how tests invoke: DEFAULT_RESOLVABLE_PACK_IDS + DEPTH_PACK_IDS.
     """
     if request.node.get_closest_marker("requires_depth_packs"):
         try:
-            from chat.pack_resolver import DEPTH_PACK_IDS, resolve_entry
+            from chat.pack_resolver import DEFAULT_RESOLVABLE_PACK_IDS, DEPTH_PACK_IDS, resolve_entry
         except Exception as e:  # pragma: no cover - import guard
-            pytest.skip(f"requires_depth_packs: pack_resolver unavailable ({e}); packs={DEPTH_PACK_IDS if 'DEPTH_PACK_IDS' in dir() else 'unknown'}")
+            pytest.skip(f"requires_depth_packs: pack_resolver unavailable ({e}); depth_packs={DEPTH_PACK_IDS if 'DEPTH_PACK_IDS' in dir() else 'unknown'}")
 
+        combined = tuple(DEFAULT_RESOLVABLE_PACK_IDS) + tuple(DEPTH_PACK_IDS or ())
         if not DEPTH_PACK_IDS:
-            pytest.skip("requires_depth_packs: DEPTH_PACK_IDS is empty")
+            pytest.skip(f"requires_depth_packs: DEPTH_PACK_IDS empty (combined={combined})")
 
-        # Use a known Hebrew term that the he depth packs should ground for root
+        # Use a known Hebrew term that the he depth packs should ground for root (same as test code)
         term = "אמת"
         available = False
-        for pid in DEPTH_PACK_IDS:
-            try:
-                if resolve_entry(term, pack_ids=(pid,)) is not None:
-                    available = True
-                    break
-            except Exception:
-                continue
+        try:
+            if resolve_entry(term, pack_ids=combined) is not None:
+                available = True
+        except Exception:
+            pass
 
         if not available:
             pytest.skip(
-                f"requires_depth_packs: none of DEPTH_PACK_IDS={DEPTH_PACK_IDS} "
-                f"resolvable for term='{term}' (he/grc depth packs not mounted or not providing root data)"
+                f"requires_depth_packs: combined packs {combined} not resolvable for term='{term}' "
+                "(he/grc depth packs not mounted or not providing root data in DEFAULT+DEPTH)"
             )
-        # else: proceed to run the test fully with real depth data
+        # else: proceed to run the test fully with real depth data from combined packs

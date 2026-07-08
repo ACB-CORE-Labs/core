@@ -43,14 +43,14 @@ Full feature touched ~15-20 files; see `git diff --name-only c1e723f1..HEAD`.
 - This is expected/allowed per plan and compact: "only expected demo drifts".
 
 ## 3-lang evidence (Hebrew roots, depths, gau)
-- "define אמת" produces node_depths e.g. {'p0': {'language': 'he', 'root': 'א-מ-נ', ...}}
-- graph_anti_unify: {'matched_roots': [('p0', 'א-מ-נ')], 'topology': ('p0',)}
+- "define אמת" produces on CognitiveTurnResult: node_depths={'p0': {'language': 'he', 'root': 'א-מ-נ', ...}}, graph_anti_unify={'matched_roots': [('p0', 'א-מ-נ')], ...} (also in oov_geometric_context)
 - anti-unifier canonicalizes to root for he/grc agent slots (nid-keyed)
 - contemplate depth= framing findings contain root
 - teaching contemplation attaches depth_roots immutably
-- Direct tests: test_anti_unifier_root_aware..., test_pipeline_..., test_graph_anti..., test_depth_canonical..., test_contemplate..., test_teaching...
-- Captured in scratch + prior logs: root in proposition, ctx, gau, result top-level fields.
+- Direct tests (all under @pytest.mark.requires_depth_packs): the five 3-lang + result fields test
+- Captured fresh in scratch: spine_evidence_contemplate.log and _teaching.log contain non-empty node_depths, matched_roots, roots from real pl.run + teach_contemplate; result_fields.log shows the fields on shipped CognitiveTurnResult.
 - All via real shipped entry points (ChatRuntime + CognitiveTurnPipeline + contemplate fns), not synth.
+- Marker fixture produces explicit documented skips naming the combined DEFAULT+DEPTH list when absent.
 
 ## Test plan
 - New/updated: marker @pytest.mark.requires_depth_packs + autouse fixture that does explicit skip (documenting DEPTH_PACK_IDS) if not resolvable. No silent no-depth branches for marked tests.

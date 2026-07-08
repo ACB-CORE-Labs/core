@@ -292,13 +292,13 @@ class CognitiveTurnPipeline:
         effective_graph = graph
         recalled_words = response.recalled_words or ()
         # Depth enrichment is now DEFAULT (AC2) for 3-lang mastery on spine.
-        # Always attempt per-subject resolution + GraphNode depth + node_depths
-        # for OOV context. The grounded authority flag now only controls the
-        # recalled_words filling + re-realize step (kept for backward surface compat).
-        if effective_graph and not effective_graph.is_fully_grounded():
-            # Generalize to per-subject resolution for multi-node/compound graphs.
-            # Collect unique subjects, resolve with depth packs for language/root/gloss.
-            # This feeds both recalled_words (for ground_graph) and per-node enrichment.
+        # ALWAYS attempt per-subject resolution + GraphNode lang/root enrichment
+        # (independent of is_fully_grounded) so node_depths / graph_anti_unify
+        # and result fields are populated for both OOV/pending and grounded 3-lang cases.
+        # The grounded authority flag only controls the recalled_words fill + re-realize.
+        # Collect unique subjects, resolve with depth packs for language/root/gloss.
+        # This feeds both recalled_words (for ground_graph) and per-node enrichment.
+        if effective_graph:
             subjects = []
             seen = set()
             for n in effective_graph.nodes:
@@ -326,26 +326,28 @@ class CognitiveTurnPipeline:
                 subject_to_res[s] = res
 
             # Collect glosses for pending nodes in order (feeds ground_graph sequentially)
-            recalled_glosses = []
-            for n in effective_graph.nodes:
-                obj = n.obj
-                if obj in (None, "", "<pending>", "<prior>") or (isinstance(obj, str) and "..." in obj):
-                    s = n.subject.strip().lower()
-                    res = subject_to_res.get(s)
-                    if res and getattr(res, 'gloss', None):
-                        recalled_glosses.append(res.gloss)
-                    elif resolve_lemma(n.subject):
-                        # legacy fallback per-subject
-                        g = resolve_gloss(n.subject)
-                        if g:
-                            _, _, gloss_text = g
-                            if gloss_text:
-                                recalled_glosses.append(gloss_text)
-            if recalled_glosses:
-                recalled_words = tuple(recalled_glosses)
+            # (only when not fully grounded, to preserve prior behavior for gloss fill)
+            if not effective_graph.is_fully_grounded():
+                recalled_glosses = []
+                for n in effective_graph.nodes:
+                    obj = n.obj
+                    if obj in (None, "", "<pending>", "<prior>") or (isinstance(obj, str) and "..." in obj):
+                        s = n.subject.strip().lower()
+                        res = subject_to_res.get(s)
+                        if res and getattr(res, 'gloss', None):
+                            recalled_glosses.append(res.gloss)
+                        elif resolve_lemma(n.subject):
+                            # legacy fallback per-subject
+                            g = resolve_gloss(n.subject)
+                            if g:
+                                _, _, gloss_text = g
+                                if gloss_text:
+                                    recalled_glosses.append(gloss_text)
+                if recalled_glosses:
+                    recalled_words = tuple(recalled_glosses)
 
             # Enrich every node with its subject's resolution (subject→node map)
-            # Immutable; only rebuild if any depth present.
+            # Immutable; only rebuild if any depth present. ALWAYS for 3-lang depth support.
             if subject_to_res:
                 new_nodes = []
                 changed = False
