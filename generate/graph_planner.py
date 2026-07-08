@@ -107,20 +107,13 @@ class PropositionGraph:
     def get_node_depths(self) -> dict[str, dict]:
         """Return nid -> {language, root, morphology_id} for nodes carrying 3-lang depth.
 
-        Pure extraction. Enables graph-level consumers (anti-unif, framing, realizer)
+        Delegates to the canonical pure extractor in recognition.depth_canonical
+        (single source of truth; avoids duplication with build_node_depths).
+        Enables graph-level consumers (anti-unif, framing, realizer)
         to operate on root forms for he/grc without string hacks.
         """
-        return {
-            n.node_id: {
-                k: v for k, v in {
-                    "language": n.language,
-                    "root": n.root,
-                    "morphology_id": n.morphology_id,
-                }.items() if v is not None
-            }
-            for n in self.nodes
-            if n.language or n.root or n.morphology_id
-        }
+        from recognition.depth_canonical import build_node_depths
+        return build_node_depths(self.nodes)
 
     def topo_order(self) -> tuple[str, ...]:
         """Kahn's topological sort over the graph's edges.
