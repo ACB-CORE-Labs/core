@@ -86,7 +86,7 @@ def build_node_depths(nodes: Sequence[Any]) -> dict[str, dict]:
             }.items() if v is not None
         }
         for n in nodes
-        if getattr(n, "language", None) or getattr(n, "root", None)
+        if getattr(n, "language", None) in ("he", "grc") or getattr(n, "root", None)
     }
 
 
