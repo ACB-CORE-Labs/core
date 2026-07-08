@@ -459,6 +459,7 @@ def contemplate(
     *,
     max_depth: int = _DEFAULT_MAX_DEPTH,
     vault_probe: _VaultProbe | None = None,
+    depth: dict | None = None,  # 3-lang depth for root-aware
 ) -> DiscoveryCandidate:
     """Run the contemplation loop on a single candidate.
 
@@ -466,6 +467,16 @@ def contemplate(
     Never mutates the corpus, the pack, or the input candidate
     (``DiscoveryCandidate`` is frozen).
     """
+    if depth:
+        # Real immutable attach of depth roots for 3-lang root-aware framing on teaching spine.
+        # Preserves exact candidate id/structure; roots travel with proposed_chain for downstream.
+        pc = dict(candidate.proposed_chain)
+        roots = [d.get("root") for d in (depth or {}).values() if d and d.get("root")]
+        if roots:
+            pc["depth_roots"] = tuple(roots)
+            pc["depth_langs"] = tuple(d.get("language") for d in (depth or {}).values() if d and d.get("language"))
+        candidate = replace(candidate, proposed_chain=pc)
+    # Also forward depth to recursive sub-contemplations for full propagation.
     # Failsafe (Call 1 of ADR-0056): bounded depth ceiling whose hit
     # is itself an audit event, not a silent truncation.
     if candidate.contemplation_depth >= max_depth:
@@ -513,7 +524,7 @@ def contemplate(
     for index, payload in enumerate(sub_payloads):
         sub_candidate = _materialise_sub_candidate(candidate, payload, index)
         recursed = contemplate(
-            sub_candidate, max_depth=max_depth, vault_probe=vault_probe
+            sub_candidate, max_depth=max_depth, vault_probe=vault_probe, depth=depth
         )
         outcome: Literal["grounded", "gap_recorded", "depth_failsafe"]
         if recursed.recursion_overflow:

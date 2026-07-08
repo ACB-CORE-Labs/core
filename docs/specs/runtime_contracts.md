@@ -72,6 +72,12 @@ Persisted stages are:
 ```text
 input -> intent -> PropositionGraph -> ArticulationTarget -> realizer
       -> walk_telemetry -> trace_hash
+
+(Phase B) The discrete topological serialization of PropositionGraph
+(nodes/edges/labels only) is folded into compute_trace_hash (as
+"proposition_graph") when present. This is structural Merkle-DAG data
+only — no raw geometry — to guarantee cross-platform replay while
+making the substrate "think" step load-bearing for hash equality.
 ```
 
 Contract:

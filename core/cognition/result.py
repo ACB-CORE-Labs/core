@@ -27,7 +27,19 @@ from chat.dispatch_trace import DispatchTrace
 
 @dataclass(frozen=True, slots=True)
 class CognitiveTurnResult:
-    """Full observability record for a single pipeline turn."""
+    """Full observability record for a single pipeline turn.
+
+    Includes the Shadow Coherence Gate evidence (authority_source +
+    substrate_hazard) so that the migration from hybrid legacy spine to
+    the unified PropositionGraph substrate is completely inspectable and
+    replay-diagnosable without ever breaking determinism or the 74 invariants.
+
+    3-lang depth fields (node_depths, graph_anti_unify) are populated for
+    he/grc PropGraph turns from the same data used for oov_geometric_context.
+    They are read-only / observational and never affect trace_hash or behavior.
+    The depth propagation contract (pipeline -> runtime _last_node_depths ->
+    contemplate(..., depth=) -> teaching) is documented alongside the code.
+    """
 
     # --- input layer ---
     input_text: str
@@ -142,3 +154,52 @@ class CognitiveTurnResult:
 
     # --- response-governance leeway evidence (B4; observational, not in trace_hash) ---
     leeway: LeewayRecord | None = None
+
+    # --- Shadow Coherence Gate / substrate authority (Phase A) ---
+    # ``authority_source`` is the value from SurfaceResolution.authority:
+    # "runtime_canonical" | "runtime_pre_decoration" | "runtime" | "realizer" | "substrate_realizer".
+    # It is the single source of truth for which spine actually spoke.
+    #
+    # ``substrate_hazard`` is the machine-readable list of reasons the
+    # geometric substrate was *not* granted authority on this turn even
+    # though a PropositionGraph was produced. Populated only on bypass
+    # paths. Observational (not folded into trace_hash in Phase A) so that
+    # every existing turn keeps byte-identical hashes while the hazard
+    # ledger illuminates the exact work remaining for Layers 1-3.
+    #
+    # These two fields turn the "Authority Flip Cliff" into a controlled,
+    # data-driven strangler migration.
+    authority_source: str = ""
+    substrate_hazard: tuple[str, ...] = ()
+
+    # --- Phase C instrumentation: Geometric Anti-Unification hook for OOV (read-only telemetry) ---
+    # When an OOV subject is encountered in the context of a PropositionGraph
+    # (i.e. a "hole" in S-P-[OOV] or similar), this carries the discrete
+    # structural context (unresolved topology + intent) plus a placeholder
+    # for exact CGA neighbor probe results (via vault.recall + cga_inner on
+    # surrounding realized facts).
+    #
+    # Today: purely structural (from effective_graph.get_unresolved_topology()
+    # when grounding_source indicates oov or pending slots on OOV-shaped
+    # intents). No vault call yet (keeps change atomic + zero side effects).
+    #
+    # Future: perform *exact* geometric anti-unification here (sub-graph
+    # match on conformal space) to propose SPECULATIVE algebraic variable
+    # or relation type for the hole, without ever affecting user surface,
+    # trace_hash (observational), or durable state. Must emit SPECULATIVE,
+    # respect teaching boundary for any promotion.
+    #
+    # Pillars: Mechanical Sympathy (cheap structural + optional exact recall),
+    # Semantic Rigor (exact CGA only, no approx), Third Door (graph structure
+    # as first-class for inference instead of lexical substring).
+    #
+    # Never folded into trace_hash in this phase. Never mutates field/vault.
+    oov_geometric_context: dict | None = None
+
+    # --- 3-lang depth PropGraph unification observability (read-only, not in trace_hash) ---
+    # Extracted from the same source as oov_geometric_context["node_depths"] / ["graph_anti_unify"]
+    # (or the pre-context data) during pipeline construction for he/grc root-aware paths.
+    # First-class optional fields so callers do not need to reach into the context dict.
+    # Never folded into trace_hash (observational only, like oov_geometric_context).
+    node_depths: dict | None = None
+    graph_anti_unify: dict | None = None

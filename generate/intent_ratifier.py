@@ -91,13 +91,16 @@ def _intent_anchor_versor(vocab, intent: DialogueIntent) -> np.ndarray | None:
     """
     if not intent.subject:
         return None
-    candidates: tuple[str, ...] = (intent.subject.lower(),)
-    if intent.tag is IntentTag.DEFINITION:
-        candidates = candidates + ("is",)
-    elif intent.tag is IntentTag.CAUSE:
-        candidates = candidates + ("causes", "because")
-    elif intent.tag is IntentTag.TRANSITIVE_QUERY and intent.relation:
-        candidates = candidates + (intent.relation,)
+    subject = intent.subject.lower()
+    match intent.tag:
+        case IntentTag.DEFINITION:
+            candidates: tuple[str, ...] = (subject, "is")
+        case IntentTag.CAUSE:
+            candidates = (subject, "causes", "because")
+        case IntentTag.TRANSITIVE_QUERY if intent.relation:
+            candidates = (subject, intent.relation)
+        case _:
+            candidates = (subject,)
     for token in candidates:
         try:
             return np.asarray(vocab.get_versor(token), dtype=np.float32)
@@ -224,10 +227,13 @@ def region_for_intent(
         candidates.append(intent.subject.lower())
     if intent.relation:
         candidates.append(intent.relation.lower())
-    if intent.tag is IntentTag.DEFINITION:
-        candidates.append("is")
-    elif intent.tag is IntentTag.CAUSE:
-        candidates.append("causes")
+    match intent.tag:
+        case IntentTag.DEFINITION:
+            candidates.append("is")
+        case IntentTag.CAUSE:
+            candidates.append("causes")
+        case _:
+            pass
     for token in candidates:
         try:
             anchors.append(np.asarray(vocab.get_versor(token), dtype=np.float32))

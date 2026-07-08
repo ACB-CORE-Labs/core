@@ -608,6 +608,7 @@ class ChatRuntime:
             pack_ids = tuple(config.input_packs)
 
         self.config = resolved_config
+        self._last_node_depths: dict | None = None  # 3-lang PropGraph depth propagation (he/grc roots) to contemplate paths; set by pipeline
         manifests = []
         manifolds = []
         entries = []
@@ -887,10 +888,18 @@ class ChatRuntime:
             self._pending_recognizer_examples.clear()
         candidates_to_save = self._pending_candidates
         if self.config.auto_contemplate and candidates_to_save:
+            # 3-lang depth propagation contract (AC5 / review):
+            # _last_node_depths is written by CognitiveTurnPipeline after PropGraph construction
+            # (from resolver + build_node_depths on enriched GraphNodes). It is forwarded here
+            # as depth= into teaching.contemplation.contemplate so that framing findings and
+            # proposed_chain carry depth_roots for he/grc. Same contract used for runtime
+            # contemplate and candidate paths. See also core/cognition/result.py (node_depths /
+            # graph_anti_unify on result) + pipeline.py.
             from teaching.contemplation import contemplate
             vault_probe = _vault_probe_for_context(self._context) if self._context else None
+            depth = getattr(self, '_last_node_depths', None)
             candidates_to_save = [
-                contemplate(c, vault_probe=vault_probe)
+                contemplate(c, vault_probe=vault_probe, depth=depth)
                 for c in candidates_to_save
             ]
         # ADR-0219 — generation-dir atomic checkpoint.  All files are written
@@ -970,8 +979,10 @@ class ChatRuntime:
             vault_probe = (
                 _vault_probe_for_context(self._context) if self._context else None
             )
+            # 3-lang depth propagation contract (see checkpoint_engine_state)
+            depth = getattr(self, '_last_node_depths', None)
             contemplated = [
-                contemplate(candidate, vault_probe=vault_probe)
+                contemplate(candidate, vault_probe=vault_probe, depth=depth)
                 for candidate in self._pending_candidates
             ]
             contemplated_count = len(contemplated)
@@ -1539,8 +1550,10 @@ class ChatRuntime:
                 if self.config.vault_probe_discoveries
                 else None
             )
+            # 3-lang depth propagation contract (see checkpoint_engine_state)
+            depth = getattr(self, '_last_node_depths', None)
             candidates = tuple(
-                contemplate(c, vault_probe=vault_probe) for c in candidates
+                contemplate(c, vault_probe=vault_probe, depth=depth) for c in candidates
             )
         self._pending_candidates.extend(candidates)
         sink = self._discovery_sink

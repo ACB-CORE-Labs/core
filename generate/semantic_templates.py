@@ -67,11 +67,36 @@ def render_semantic(
     predicate: str,
     obj: str,
     secondary: str | None = None,
+    language: str | None = None,
+    root: str | None = None,
 ) -> str:
-    """Render a semantic surface from intent, subject, predicate, and object."""
+    """Render a semantic surface from intent, subject, predicate, and object.
+
+    When language + root are supplied (from enriched PropositionGraph nodes
+    carrying 3-core-language depth), the surface incorporates etymological
+    precision for Hebrew (root density) and Koine Greek (Logos precision).
+    English base remains unchanged.
+    """
     template = _INTENT_TEMPLATES.get(intent, _INTENT_TEMPLATES[IntentTag.UNKNOWN])
     predicate_h = humanize_predicate(predicate)
     obj_display = obj if obj not in ("<pending>", "<prior>") else "..."
+
+    # Masterful 3-language depth framing on the articulation side.
+    # Depth travels with the shared GraphNode from resolve_entry grounding.
+    if language and root and language != "en":
+        if language == "he":
+            depth_note = f" (Hebrew root: {root})"
+        elif language in ("grc", "el"):
+            depth_note = f" (Koine Greek: {root})"
+        else:
+            depth_note = f" ({language} root: {root})"
+
+        # For definition-style intents, highlight the term itself.
+        # For others, qualify the object referent.
+        if intent in (IntentTag.DEFINITION, IntentTag.RECALL, IntentTag.VERIFICATION):
+            subject = f"{subject}{depth_note}"
+        else:
+            obj_display = f"{obj_display}{depth_note}"
 
     return template.format(
         subject=subject,

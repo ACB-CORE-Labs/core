@@ -35,7 +35,7 @@ This is the central index for all documentation in the CORE project.
 
 ### Historical & Experimental
 - **[sessions/](sessions/)** - Chronological session logs documenting the "decision trail" and intellectual history of major choices.
-- **[handoffs/](handoffs/)** - Handoff documents transferred between agent sessions.
+- **[handoffs/](handoffs/)** - Legacy brief, audit, and investigation notes (historical; the formal HANDOFF mechanism is retired — see AGENTS.md for the current lightweight `session-break-summary-<DATETIME>.md` convention).
 - **[research/](research/)** - Raw research notes and preliminary findings.
 - **[lab/](lab/)** - Experimental content (Warning: Not ratified; must not be referenced as authoritative in production PRs).
 

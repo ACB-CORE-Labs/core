@@ -32,6 +32,7 @@ from generate.intent_ratifier import (
     ratify_intent,
 )
 from generate.graph_planner import (
+    GraphNode,
     PropositionGraph,
     graph_from_intent,
     ground_graph,
@@ -40,6 +41,7 @@ from generate.graph_planner import (
 from recognition.anti_unifier import DerivedRecognizer, recognize
 from recognition.carrier import EpistemicGraph, EpistemicNode
 from recognition.connector import epistemic_node_to_graph_node
+from recognition.depth_canonical import build_node_depths
 from generate.realizer import realize_semantic
 from generate.intent import IntentTag
 from generate.operators import (
@@ -125,6 +127,9 @@ class CognitiveTurnPipeline:
     ) -> None:  # runtime: ChatRuntime (no import cycle)
         self.runtime = runtime
         self._last_node_id: str | None = None
+        self._current_node_depths: dict = {}
+        self._current_agent_node_id: str | None = None
+        self._last_node_depths: dict | None = None
         self.teaching_store = teaching_store if teaching_store is not None else TeachingStore()
         if recognizer is not None:
             self._recognizer = recognizer
@@ -168,7 +173,11 @@ class CognitiveTurnPipeline:
         # CognitiveTurnResult.refusal_reason when non-empty.
         _recognition_refusal_reason: str = ""
         if self._recognizer is not None:
-            _rec_outcome = recognize(self._recognizer, raw_tokens)
+            # Pass depths and agent_node_id from node_depths/GraphNode when available for 3-lang canonicalization on spine (AC1).
+            # Chain from prior turn's _last if no current (real propagation across turns on spine).
+            _depths = getattr(self, '_current_node_depths', None) or getattr(self, '_last_node_depths', None) or {}
+            _agent_nid = getattr(self, '_current_agent_node_id', None)
+            _rec_outcome = recognize(self._recognizer, raw_tokens, depths=_depths, agent_node_id=_agent_nid)
             if _rec_outcome.admitted:
                 _ep_node = EpistemicNode(
                     node_id=f"{self._recognizer.teaching_set_id}:{self._turn_number}",
@@ -274,15 +283,112 @@ class CognitiveTurnPipeline:
         # ``register_canonical_surface``, ADR-0071 for
         # ``pre_decoration_surface``).  The historical ``getattr`` calls
         # were ADR-introduction defensiveness now safe to drop.
-        if self.runtime.config.realizer_grounded_authority:
-            recalled_words = response.recalled_words
-            if recalled_words:
-                grounded_graph = ground_graph(graph, recalled_words)
-                realized_plan = realize_semantic(target, grounded_graph)
+        # Grounding (when opted in) produces the effective graph for the
+        # supremacy decision + stored result + topological hash. The
+        # original intent-derived `graph` is the starting plan; effective
+        # is the substrate view after recall grounding (when active).
+        # This ensures the graph carried in CognitiveTurnResult and
+        # folded into trace_hash reflects the actual reasoning used.
+        effective_graph = graph
+        recalled_words = response.recalled_words or ()
+        # Depth enrichment is now DEFAULT (AC2) for 3-lang mastery on spine.
+        # ALWAYS attempt per-subject resolution + GraphNode lang/root enrichment
+        # (independent of is_fully_grounded) so node_depths / graph_anti_unify
+        # and result fields are populated for both OOV/pending and grounded 3-lang cases.
+        # The grounded authority flag only controls the recalled_words fill + re-realize.
+        # Collect unique subjects, resolve with depth packs for language/root/gloss.
+        # This feeds both recalled_words (for ground_graph) and per-node enrichment.
+        if effective_graph:
+            subjects = []
+            seen = set()
+            for n in effective_graph.nodes:
+                s = n.subject.strip().lower()
+                if s and s not in seen:
+                    seen.add(s)
+                    subjects.append(s)
+
+            from chat.pack_resolver import (
+                DEFAULT_RESOLVABLE_PACK_IDS,
+                resolve_entry,
+                resolve_gloss,
+                resolve_lemma,
+            )
+            # Master bidirectional entry point: LexicalResolution carries
+            # 3-language depth (Hebrew roots, Greek precision) usable for
+            # graph grounding (comprehension), later realization (articulation),
+            # and contemplation/reasoning on the shared PropositionGraph.
+            from chat.pack_resolver import DEPTH_PACK_IDS
+            depth_pack_ids = DEFAULT_RESOLVABLE_PACK_IDS + DEPTH_PACK_IDS
+
+            subject_to_res = {}
+            for s in subjects:
+                res = resolve_entry(s, pack_ids=depth_pack_ids)
+                subject_to_res[s] = res
+
+            # Collect glosses for pending nodes in order (feeds ground_graph sequentially)
+            # (only when not fully grounded, to preserve prior behavior for gloss fill)
+            if not effective_graph.is_fully_grounded():
+                recalled_glosses = []
+                for n in effective_graph.nodes:
+                    obj = n.obj
+                    if obj in (None, "", "<pending>", "<prior>") or (isinstance(obj, str) and "..." in obj):
+                        s = n.subject.strip().lower()
+                        res = subject_to_res.get(s)
+                        if res and getattr(res, 'gloss', None):
+                            recalled_glosses.append(res.gloss)
+                        elif resolve_lemma(n.subject):
+                            # legacy fallback per-subject
+                            g = resolve_gloss(n.subject)
+                            if g:
+                                _, _, gloss_text = g
+                                if gloss_text:
+                                    recalled_glosses.append(gloss_text)
+                if recalled_glosses:
+                    recalled_words = tuple(recalled_glosses)
+
+            # Enrich every node with its subject's resolution (subject→node map)
+            # Immutable; only rebuild if any depth present. ALWAYS for 3-lang depth support.
+            if subject_to_res:
+                new_nodes = []
+                changed = False
+                for n in effective_graph.nodes:
+                    s = n.subject.strip().lower()
+                    res = subject_to_res.get(s)
+                    if res and (getattr(res, 'language', None) or getattr(res, 'root', None) or getattr(res, 'morphology_id', None)):
+                        enriched = GraphNode(
+                            node_id=n.node_id,
+                            subject=n.subject,
+                            predicate=n.predicate,
+                            obj=n.obj,
+                            source_intent=n.source_intent,
+                            language=getattr(res, 'language', None),
+                            root=getattr(res, 'root', None),
+                            morphology_id=getattr(res, 'morphology_id', None),
+                        )
+                        new_nodes.append(enriched)
+                        changed = True
+                    else:
+                        new_nodes.append(n)
+                if changed:
+                    effective_graph = PropositionGraph(
+                        nodes=tuple(new_nodes),
+                        edges=effective_graph.edges,
+                    )
+        if self.runtime.config.realizer_grounded_authority and recalled_words:
+            # Ground using recalled_words + depth map (alongside) so
+            # 3-lang info propagates even if not pre-enriched on nodes.
+            # Flag only gates this recall-fill step for compat.
+            depth_map = {}
+            for n in effective_graph.nodes:
+                if n.language or n.root or n.morphology_id:
+                    depth_map[n.node_id] = (n.language, n.root, n.morphology_id)
+            grounded_graph = ground_graph(effective_graph, recalled_words, depth=depth_map)
+            realized_plan = realize_semantic(target, grounded_graph)
+            effective_graph = grounded_graph
 
         gate_fired = (
             response.vault_hits == 0
-            and response.grounding_source != "vault"
+            and response.grounding_source not in ("vault", "pack", "teaching")
         )
         canonical = response.register_canonical_surface
         pre_decoration = response.pre_decoration_surface
@@ -309,6 +415,13 @@ class CognitiveTurnPipeline:
 
         entailment_trace = self._maybe_entailment_trace(intent, triples)
 
+        # === SHADOW COHERENCE GATE WIRING ===
+        # Graph + realizer already executed unconditionally above.
+        # Pass the effective (possibly grounded) graph so the gate can
+        # apply the strict supremacy test. Assessment=None for Phase A
+        # (assessments still live primarily in derivation organs). When
+        # the main spine carries ProblemFrame through the turn, this
+        # becomes the active contract backpressure site.
         resolved = resolve_surface(
             canonical_surface=canonical,
             pre_decoration_surface=pre_decoration,
@@ -319,9 +432,88 @@ class CognitiveTurnPipeline:
             gate_fired=gate_fired,
             walk_surface=walk_surface,
             compose_surface=compose_surface,
+            proposition_graph=effective_graph,
+            contract_assessment=None,
         )
         surface = resolved.surface
         articulation_surface = resolved.articulation_surface
+
+        # SUBSTRATE_BYPASS_HAZARD telemetry (data-driven roadmap).
+        # Only populated when a graph existed yet substrate did not win.
+        # This is *observability only* — never used to change control flow
+        # after the fact, never folded into trace_hash in Phase A.
+        substrate_hazard: tuple[str, ...] = ()
+        if effective_graph is not None and resolved.authority not in ("substrate_realizer", "realizer"):
+            reasons: list[str] = []
+            if not effective_graph.is_fully_grounded():
+                reasons.append("unfilled_pending_slots")
+                # include the exact nodes for precision (Strangler diagnostic)
+                unresolved = effective_graph.get_unresolved_topology()
+                if unresolved:
+                    reasons.append(f"unresolved_nodes={unresolved}")
+            if gate_fired:
+                reasons.append("unknown_domain_gate_fired")
+            if not _is_useful_surface(realized_plan.surface):
+                reasons.append("realizer_surface_not_useful")
+            substrate_hazard = tuple(reasons)
+
+        # Phase C (Geometric Anti-Unification) — read-only telemetry instrumentation.
+        # Captures the graph-structural context around any OOV/pending "hole"
+        # so that a future exact-CGA sub-graph anti-unifier can operate on
+        # conformal neighbors rather than lexical token match.
+        # Populated observationally; never affects surface, hash (yet), or
+        # any durable mutation. Uses only what the substrate already produced.
+        oov_geometric_context = None
+        grounding_src = getattr(response, "grounding_source", "") or ""
+        has_pending = bool(effective_graph and any(
+            (n.obj or "") in ("", "<pending>") or "..." in (n.obj or "")
+            for n in effective_graph.nodes
+        ))
+        # AC2: node_depths in oov_geometric_context by default for all PropGraph paths
+        # Use pure build_node_depths for canonical extraction (nid-keyed).
+        node_depths = build_node_depths(effective_graph.nodes) if effective_graph else {}
+        if grounding_src == "oov" or has_pending:
+            oov_geometric_context = {
+                "unresolved_topology": effective_graph.get_unresolved_topology() if effective_graph else (),
+                "intent_tag": getattr(intent, "tag", None).value if intent and getattr(intent, "tag", None) else "unknown",
+                "geometric_probe_performed": False,
+                "note": "Hook for geometric anti-unification: surrounding realized facts (via exact vault cga_inner) can infer relation type / SPECULATIVE var for the hole instead of lexical fallback.",
+                "node_depths": node_depths,
+            }
+        else:
+            # default for PropGraph: at least node_depths
+            if effective_graph:
+                oov_geometric_context = {
+                    "node_depths": node_depths,
+                    "note": "default depth context for PropGraph (AC2)",
+                }
+
+        # Phase 4: include graph-level anti-unify result (unresolved topo + roots) for observability on spine.
+        if node_depths and effective_graph:
+            try:
+                from recognition.anti_unifier import graph_anti_unify
+                topo = tuple(n.node_id for n in effective_graph.nodes)
+                if oov_geometric_context is None:
+                    oov_geometric_context = {}
+                oov_geometric_context["graph_anti_unify"] = graph_anti_unify(topo, node_depths)
+            except Exception:
+                # Best-effort telemetry only; anti-unify failure must not affect main path.
+                pass
+
+        # Capture depths (post-enrich) to attrs for recognize chaining (AC1) + runtime contemplate depth= (real).
+        # Propagation contract (3-lang depth on PropGraph spine): pipeline (after OOV/PropGraph construction)
+        # writes _last_node_depths (and now also top-level on CognitiveTurnResult) so that
+        # runtime.contemplate(...) and teaching/contemplation paths forward depth= without
+        # re-resolving packs. Depths originate from pack_resolver + build_node_depths on GraphNode.
+        # This is the current minimal cross-component channel (observational). See docs/ and review.
+
+        if node_depths:
+            self._current_node_depths = node_depths
+            if effective_graph and effective_graph.nodes:
+                self._current_agent_node_id = effective_graph.nodes[0].node_id
+            self._last_node_depths = node_depths
+            # Direct assignment now that runtime explicitly declares the attr (cleanup of hasattr/setattr dance)
+            self.runtime._last_node_depths = node_depths
 
         # Track last node id for correction-intent chaining
         if graph.nodes:
@@ -430,6 +622,22 @@ class CognitiveTurnPipeline:
         # recognition wins (earlier-fail boundary) over generation.
         _generation_refusal_reason = getattr(response, "refusal_reason", "") or ""
         refusal_reason = _recognition_refusal_reason or _generation_refusal_reason
+
+        # Phase B — Quantized Topological Hashing for the cognitive spine.
+        # Include the discrete (string-only) topological form of the
+        # PropositionGraph that was produced for this turn. This is the
+        # Merkle-DAG of the "think" step (nodes + directed relations).
+        # - Uses graph.to_json() which is canonical, sort_keys JSON of
+        #   the DAG (no floats, no geometry).
+        # - Conditional on presence (already is) but the key is only added
+        #   in compute_trace_hash when non-empty, preserving byte identity
+        #   for any legacy pre-inclusion behavior in other contexts.
+        # - Addresses the Trace Equivalence Hazard: same topology on any
+        #   hardware/backend produces identical contribution to the SHA.
+        # The continuous versor_condition (rounded) is kept only as the
+        # runtime guard; actual geometric state lives in field/vault and
+        # is never raw-hashed here.
+        graph_topo = effective_graph.to_json() if effective_graph is not None else ""
         trace_hash = compute_trace_hash(
             input_text=text,
             filtered_tokens=filtered_tokens,
@@ -448,6 +656,7 @@ class CognitiveTurnPipeline:
             ratification_outcome=_trace_ratification_outcome,
             region_was_unconstrained=region_was_unconstrained,
             refusal_reason=refusal_reason,
+            proposition_graph=graph_topo,
         )
 
         # ADR-0153 (W-020a) — back-stamp the canonical trace_hash onto
@@ -487,7 +696,14 @@ class CognitiveTurnPipeline:
             vault_hits=response.vault_hits,
             recall_energy_class=response.recall_energy_class,
             intent=intent,
-            proposition_graph=graph,
+            # Use effective_graph (the post-grounding view when substrate
+            # grounding was active) so that the stored PropositionGraph
+            # reflects what the Shadow Coherence Gate / realizer actually
+            # used for articulation. This makes result.proposition_graph
+            # + trace hash (via topo) consistent with the executed spine.
+            # For the common case (no grounding) this is identical to the
+            # intent-derived graph.
+            proposition_graph=effective_graph,
             articulation_target=target,
             teaching_candidate=teaching_candidate,
             reviewed_teaching_example=reviewed_example,
@@ -504,6 +720,17 @@ class CognitiveTurnPipeline:
             versor_condition=response.versor_condition,
             trace_hash=trace_hash,
             leeway=leeway,
+            # Phase A — Shadow Coherence Gate observability.
+            # authority_source makes the winner of the substrate vs legacy
+            # decision first-class evidence (visible in trace, workbench,
+            # evals). substrate_hazard is the precise bypass signal.
+            authority_source=resolved.authority,
+            substrate_hazard=substrate_hazard,
+            oov_geometric_context=oov_geometric_context,
+            # 3-lang depth unification: surface the same data at top level on result
+            # (extracted from pre-computed node_depths var or oov_geometric_context to keep single source)
+            node_depths=node_depths if node_depths else None,
+            graph_anti_unify=(oov_geometric_context or {}).get("graph_anti_unify") if oov_geometric_context else None,
         )
 
     # ------------------------------------------------------------------
