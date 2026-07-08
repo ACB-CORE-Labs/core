@@ -33,6 +33,12 @@ class CognitiveTurnResult:
     substrate_hazard) so that the migration from hybrid legacy spine to
     the unified PropositionGraph substrate is completely inspectable and
     replay-diagnosable without ever breaking determinism or the 74 invariants.
+
+    3-lang depth fields (node_depths, graph_anti_unify) are populated for
+    he/grc PropGraph turns from the same data used for oov_geometric_context.
+    They are read-only / observational and never affect trace_hash or behavior.
+    The depth propagation contract (pipeline -> runtime _last_node_depths ->
+    contemplate(..., depth=) -> teaching) is documented alongside the code.
     """
 
     # --- input layer ---
@@ -189,3 +195,11 @@ class CognitiveTurnResult:
     #
     # Never folded into trace_hash in this phase. Never mutates field/vault.
     oov_geometric_context: dict | None = None
+
+    # --- 3-lang depth PropGraph unification observability (read-only, not in trace_hash) ---
+    # Extracted from the same source as oov_geometric_context["node_depths"] / ["graph_anti_unify"]
+    # (or the pre-context data) during pipeline construction for he/grc root-aware paths.
+    # First-class optional fields so callers do not need to reach into the context dict.
+    # Never folded into trace_hash (observational only, like oov_geometric_context).
+    node_depths: dict | None = None
+    graph_anti_unify: dict | None = None

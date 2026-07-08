@@ -254,6 +254,7 @@ def test_aggregator_missing_root_returns_empty(tmp_path: Path) -> None:
 
 
 # Direct unit test for shipped anti_unifier root-aware logic (AC1)
+@pytest.mark.requires_depth_packs
 def test_anti_unifier_root_aware_with_depths():
     """Direct test of derive_recognizer + recognize with depths for 3-lang root canonicalization.
     Root-equivalent (surface vs root form) must produce equivalent recognizers/outcomes.
@@ -300,6 +301,7 @@ def test_anti_unifier_root_aware_with_depths():
     assert "n1" in str(depths_he)  # depths passed with node_id
 
 
+@pytest.mark.requires_depth_packs
 def test_pipeline_node_depths_emission_with_resolver_3lang():
     """Direct exercise of shipped pipeline OOV context emission using 3-lang depth from pack_resolver (changed code path)."""
     from chat.pack_resolver import resolve_entry, DEFAULT_RESOLVABLE_PACK_IDS, DEPTH_PACK_IDS
@@ -340,6 +342,7 @@ def test_pipeline_node_depths_emission_with_resolver_3lang():
 
 
 # Direct test for AC4 graph topology + depths anti-unif helper
+@pytest.mark.requires_depth_packs
 def test_graph_anti_unify_with_depths():
     from recognition.anti_unifier import graph_anti_unify
     topo = ("n1", "n2")
@@ -352,6 +355,7 @@ def test_graph_anti_unify_with_depths():
 
 
 # Direct committed tests for recognition/depth_canonical shipped functions
+@pytest.mark.requires_depth_packs
 def test_depth_canonical_direct():
     from recognition.depth_canonical import canonicalize_token, canonicalize_agent_slot, build_node_depths, enrich_assessments_with_depth
     from recognition.outcome import FeatureBundle, EvidenceSpan
@@ -380,6 +384,7 @@ def test_depth_canonical_direct():
     print("depth_canonical direct tests passed")
 
 
+@pytest.mark.requires_depth_packs
 def test_contemplate_depth_framing():
     """AC5: direct test for pass_manager depth framing (real call to contemplate with depth)."""
     from generate.contemplation.pass_manager import contemplate
@@ -389,6 +394,7 @@ def test_contemplate_depth_framing():
     print("contemplate depth framing test passed")
 
 
+@pytest.mark.requires_depth_packs
 def test_teaching_contemplate_depth_real_propagation():
     """Real teaching.contemplation depth receive (no placeholder): attaches roots immutably."""
     from teaching.discovery import DiscoveryCandidate, DiscoveryTrigger
@@ -406,6 +412,29 @@ def test_teaching_contemplate_depth_real_propagation():
     pc = out.proposed_chain
     assert "depth_roots" in pc and "א-מ-ן" in str(pc["depth_roots"])
     print("teaching depth real attach:", pc.get("depth_roots"))
+
+
+@pytest.mark.requires_depth_packs
+def test_cognitive_turn_result_has_depth_fields():
+    """Prove the shipped CognitiveTurnResult now exposes node_depths and graph_anti_unify
+    as first-class optionals (populated from 3-lang PropGraph path).
+    """
+    from chat.runtime import ChatRuntime
+    from core.cognition.pipeline import CognitiveTurnPipeline
+    rt = ChatRuntime()
+    pl = CognitiveTurnPipeline(runtime=rt)
+    res = pl.run("define אמת", max_tokens=2)
+    assert hasattr(res, "node_depths"), "node_depths must be attr on CognitiveTurnResult"
+    assert hasattr(res, "graph_anti_unify"), "graph_anti_unify must be attr on CognitiveTurnResult"
+    assert res.node_depths, "node_depths populated for he 3-lang case"
+    assert "p0" in (res.node_depths or {})
+    assert (res.node_depths or {}).get("p0", {}).get("root") in ("א-מ-ן", "א-מ-נ")
+    assert res.graph_anti_unify
+    assert "matched_roots" in (res.graph_anti_unify or {})
+    # also still in ctx for compat
+    ctx = res.oov_geometric_context or {}
+    assert (ctx.get("node_depths") or {}).get("p0", {}).get("root") in ("א-מ-ן", "א-מ-נ")
+    print("CognitiveTurnResult depth fields present and populated:", bool(res.node_depths), bool(res.graph_anti_unify))
 
 
 # ---------------------------------------------------------------------------

@@ -500,9 +500,11 @@ class CognitiveTurnPipeline:
 
         # Capture depths (post-enrich) to attrs for recognize chaining (AC1) + runtime contemplate depth= (real).
         # Propagation contract (3-lang depth on PropGraph spine): pipeline (after OOV/PropGraph construction)
-        # writes to runtime so that runtime.contemplate() and teaching paths can forward it without
-        # re-resolving packs. This is the current minimal cross-component channel; see review notes for
-        # future narrowing via explicit DepthCarrier or context object.
+        # writes _last_node_depths (and now also top-level on CognitiveTurnResult) so that
+        # runtime.contemplate(...) and teaching/contemplation paths forward depth= without
+        # re-resolving packs. Depths originate from pack_resolver + build_node_depths on GraphNode.
+        # This is the current minimal cross-component channel (observational). See docs/ and review.
+
         if node_depths:
             self._current_node_depths = node_depths
             if effective_graph and effective_graph.nodes:
@@ -723,6 +725,10 @@ class CognitiveTurnPipeline:
             authority_source=resolved.authority,
             substrate_hazard=substrate_hazard,
             oov_geometric_context=oov_geometric_context,
+            # 3-lang depth unification: surface the same data at top level on result
+            # (extracted from pre-computed node_depths var or oov_geometric_context to keep single source)
+            node_depths=node_depths if node_depths else None,
+            graph_anti_unify=(oov_geometric_context or {}).get("graph_anti_unify") if oov_geometric_context else None,
         )
 
     # ------------------------------------------------------------------

@@ -890,7 +890,7 @@ class ChatRuntime:
         if self.config.auto_contemplate and candidates_to_save:
             from teaching.contemplation import contemplate
             vault_probe = _vault_probe_for_context(self._context) if self._context else None
-            depth = getattr(self, '_last_node_depths', None)  # from pipeline PropGraph depth (3-lang root propagation contract)
+            depth = getattr(self, '_last_node_depths', None)  # from pipeline PropGraph depth (3-lang root propagation contract: see pipeline.py + CognitiveTurnResult docstring)
             candidates_to_save = [
                 contemplate(c, vault_probe=vault_probe, depth=depth)
                 for c in candidates_to_save
