@@ -495,19 +495,21 @@ class CognitiveTurnPipeline:
                     oov_geometric_context = {}
                 oov_geometric_context["graph_anti_unify"] = graph_anti_unify(topo, node_depths)
             except Exception:
+                # Best-effort telemetry only; anti-unify failure must not affect main path.
                 pass
 
         # Capture depths (post-enrich) to attrs for recognize chaining (AC1) + runtime contemplate depth= (real).
+        # Propagation contract (3-lang depth on PropGraph spine): pipeline (after OOV/PropGraph construction)
+        # writes to runtime so that runtime.contemplate() and teaching paths can forward it without
+        # re-resolving packs. This is the current minimal cross-component channel; see review notes for
+        # future narrowing via explicit DepthCarrier or context object.
         if node_depths:
             self._current_node_depths = node_depths
             if effective_graph and effective_graph.nodes:
                 self._current_agent_node_id = effective_graph.nodes[0].node_id
             self._last_node_depths = node_depths
-            if hasattr(self.runtime, "_last_node_depths"):
-                try:
-                    setattr(self.runtime, "_last_node_depths", node_depths)
-                except Exception:
-                    pass
+            # Direct assignment now that runtime explicitly declares the attr (cleanup of hasattr/setattr dance)
+            self.runtime._last_node_depths = node_depths
 
         # Track last node id for correction-intent chaining
         if graph.nodes:

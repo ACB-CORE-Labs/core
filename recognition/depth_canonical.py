@@ -91,9 +91,12 @@ def build_node_depths(nodes: Sequence[Any]) -> dict[str, dict]:
 
 
 def enrich_assessments_with_depth(assessments: Tuple[Any, ...], depth: dict | None) -> Tuple[Any, ...]:
-    """Immutable enrichment of assessments with root note using dataclasses.replace if possible.
+    """Immutable enrichment of assessments with root note using dataclasses.replace.
 
-    Returns new tuple, no mutation of input.
+    Returns a new tuple. Enrichment is best-effort: if an assessment does not
+    support replace (e.g. non-dataclass or frozen in an incompatible way), the
+    original item is kept without the depth note. No __dict__ reconstruction
+    is performed (avoids producing invalid objects for slots/frozen types).
     """
     if not depth:
         return assessments
@@ -107,16 +110,9 @@ def enrich_assessments_with_depth(assessments: Tuple[Any, ...], depth: dict | No
             try:
                 new_a = replace(a, explanation=(getattr(a, "explanation", "") or "") + note)
             except Exception:
-                # create copy for annotation (avoid mutate original/frozen)
-                try:
-                    if hasattr(a, '__dict__'):
-                        new_a = type(a)(**a.__dict__)
-                        if hasattr(new_a, 'explanation'):
-                            new_a.explanation = (getattr(new_a, 'explanation', '') or '') + note
-                    else:
-                        new_a = a
-                except Exception:
-                    new_a = a
+                # Best-effort only; do not synthesize copies that could violate
+                # frozen/slots invariants after CGA substrate types.
+                new_a = a
             new_ass.append(new_a)
         else:
             new_ass.append(a)

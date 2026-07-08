@@ -102,3 +102,15 @@ All skeptic gaps addressed (pipeline recog/ctx/attrs, runtime depth pass, teachi
 - Next if more R&D: extend root-aware to additional construction/derivation call sites for 3lang frames; add he/grc construction exemplars; wire depth into more geometric proposal paths; prep PR (push to forgejo remote, use tea pulls).
 - Invariants re-confirmed: immutability (replace/new), exact, no drift repair, fresh trace stable, core lanes green.
 - Pickup seeds (NEW_SESSION_PROMPT.txt, docs/session-compacts/2026-07-06-compact.md, COMPACT_STRATEGY.md) can now be archived per strategy.
+
+## 2026-07-08 Cleanup, Consolidation & Hygiene (post-pickup)
+- Tree fully cleaned: retired HANDOFF-antigravity stray removed from legacy/.
+- Addressed remaining code-review MEDIUM items (minimal targeted changes):
+  - `recognition/depth_canonical.py`: removed risky `__dict__` reconstruction fallback in `enrich_assessments_with_depth`. Now pure best-effort via `replace`; on failure keeps original (safer for frozen/slots ContractAssessment post-CGA).
+  - `chat/runtime.py`: explicit `self._last_node_depths = None` declaration in `__init__`.
+  - `core/cognition/pipeline.py`: direct assignment for depth propagation (removed hasattr/setattr/try dance); added clear contract comment; improved graph_anti_unify best-effort comment.
+- Duplication already consolidated (get_node_depths delegates to build_node_depths).
+- Verifs post-cleanup: spine/anti/depth/construction key tests 35+ passed; SHA pins match canonical reports; claims test green (9/9 overall).
+- All changes small, preserve immutability + invariants, no behavior change for 3-lang paths.
+- Branch ready: clean working tree, on top of latest forgejo/main, conventional history, documented.
+- No other stray artifacts, .gitkeeps, or report cruft introduced by this slice.
