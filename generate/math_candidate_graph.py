@@ -622,7 +622,33 @@ def parse_and_solve(text: str, *, sealed: bool = False) -> CandidateGraphResult:
     fall-through.  ``lifecycle.py`` itself survives because the ADR-0172
     contemplation corridor (``comprehension/audit.py`` →
     ``teaching/math_*``) still uses its reader surface.
+
+    Answer presentation: float answers are rounded to 9 decimals at this
+    boundary only (same quantum as ``generate/derivation/verify.py``
+    uniqueness and gold-compare lanes). This is *not* algebra drift repair —
+    CGA sandwich payloads stay full-precision; only the exported scalar
+    answer is quantized for stable exact compare.
     """
+    return _finalize_parse_and_solve_answer(
+        _parse_and_solve_core(text, sealed=sealed)
+    )
+
+
+def _finalize_parse_and_solve_answer(res: CandidateGraphResult) -> CandidateGraphResult:
+    """Quantize float answer to 9 decimals for stable exact compare."""
+    if res.answer is not None and isinstance(res.answer, float):
+        return CandidateGraphResult(
+            answer=round(res.answer, 9),
+            selected_graph=res.selected_graph,
+            refusal_reason=res.refusal_reason,
+            branches_enumerated=res.branches_enumerated,
+            branches_admissible=res.branches_admissible,
+            reader_trace=res.reader_trace,
+        )
+    return res
+
+
+def _parse_and_solve_core(text: str, *, sealed: bool = False) -> CandidateGraphResult:
     if not isinstance(text, str) or not text.strip():
         return CandidateGraphResult(
             answer=None, selected_graph=None,

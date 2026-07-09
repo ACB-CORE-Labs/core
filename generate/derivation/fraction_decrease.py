@@ -20,6 +20,7 @@ Deterministic; sealed module (no ``chat/`` import).
 
 from __future__ import annotations
 
+import re
 from typing import Final
 
 import numpy as np
@@ -33,6 +34,9 @@ from generate.derivation.target import _question_clause
 from generate.derivation.verify import Resolution, SelfVerification, select_self_verified
 from generate.problem_frame_contracts import ContractAssessment
 from generate.math_roundtrip import _tokens
+
+# Slash-fraction surface (allows "1 / 2" spacing). Used for multi-fraction hazard.
+_SLASH_FRACTION_RE: Final[re.Pattern[str]] = re.compile(r"\d+\s*/\s*\d+")
 
 _GOAL_INTENT: Final[frozenset[str]] = frozenset(
     {"want", "wants", "wanted", "need", "needs", "hoping", "hopes", "plans", "aims", "goal"}
@@ -64,6 +68,10 @@ def _has_hazard_surface(problem_text: str, question_clause: str) -> bool:
     if text_tokens & _GOAL_INTENT:
         return True
     if _asks_final_value(question_clause):
+        return True
+    # Multiple slash-fractions (e.g. "3/4" and "1 / 2") are multi-forecast
+    # hazards for this narrow organ — refuse rather than pick one.
+    if len(_SLASH_FRACTION_RE.findall(problem_text)) > 1:
         return True
     return False
 
@@ -153,10 +161,38 @@ def _self_verifies_fraction_decrease(
     return SelfVerification(verified=not reasons, reasons=tuple(reasons))
 
 
+def _resolve_fraction_decrease_contract(
+    problem_text: str,
+) -> ContractAssessment | None:
+    """Build a geometric ContractAssessment for fraction_decrease when callers
+    omit an explicit contract (sprint/dev API compatibility).
+
+    Uses ``assess_geometric_proposals`` so VersorBinding payloads come from the
+    owned CGA construction path (pack signature or legacy N/M helper).
+    """
+    from generate.problem_frame_builder import build_problem_frame
+    from generate.problem_frame_contracts import assess_geometric_proposals
+
+    frame = build_problem_frame(problem_text)
+    assessments = assess_geometric_proposals(frame)
+    return next(
+        (a for a in assessments if a.candidate_organ == "fraction_decrease"),
+        None,
+    )
+
+
 def compose_fraction_decrease(
-    problem_text: str, contract: ContractAssessment
+    problem_text: str, contract: ContractAssessment | None = None
 ) -> Resolution | None:
-    """Gate the typed fraction-decrease chain through self-verification."""
+    """Gate the typed fraction-decrease chain through self-verification.
+
+    ``contract`` may be omitted for backward-compatible call sites; when
+    omitted it is resolved via geometric proposal assessment on a built frame.
+    """
+    if contract is None:
+        contract = _resolve_fraction_decrease_contract(problem_text)
+        if contract is None:
+            return None
     derivation = build_fraction_decrease(problem_text, contract)
     if derivation is None:
         return None
@@ -170,7 +206,7 @@ def compose_fraction_decrease(
 
 
 def resolve_promotable_fraction_decrease(
-    problem_text: str, contract: ContractAssessment
+    problem_text: str, contract: ContractAssessment | None = None
 ) -> Resolution | None:
     """Serving promotion bridge (Gate A2k)."""
     return compose_fraction_decrease(problem_text, contract)
