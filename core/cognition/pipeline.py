@@ -41,6 +41,7 @@ from generate.graph_planner import (
 from recognition.anti_unifier import DerivedRecognizer, recognize
 from recognition.carrier import EpistemicGraph, EpistemicNode
 from recognition.connector import epistemic_node_to_graph_node
+from recognition.depth_canonical import build_node_depths
 from generate.realizer import realize_semantic
 from generate.intent import IntentTag
 from generate.operators import (
@@ -126,6 +127,9 @@ class CognitiveTurnPipeline:
     ) -> None:  # runtime: ChatRuntime (no import cycle)
         self.runtime = runtime
         self._last_node_id: str | None = None
+        self._current_node_depths: dict = {}
+        self._current_agent_node_id: str | None = None
+        self._last_node_depths: dict | None = None
         self.teaching_store = teaching_store if teaching_store is not None else TeachingStore()
         if recognizer is not None:
             self._recognizer = recognizer
@@ -169,7 +173,11 @@ class CognitiveTurnPipeline:
         # CognitiveTurnResult.refusal_reason when non-empty.
         _recognition_refusal_reason: str = ""
         if self._recognizer is not None:
-            _rec_outcome = recognize(self._recognizer, raw_tokens)
+            # Pass depths and agent_node_id from node_depths/GraphNode when available for 3-lang canonicalization on spine (AC1).
+            # Chain from prior turn's _last if no current (real propagation across turns on spine).
+            _depths = getattr(self, '_current_node_depths', None) or getattr(self, '_last_node_depths', None) or {}
+            _agent_nid = getattr(self, '_current_agent_node_id', None)
+            _rec_outcome = recognize(self._recognizer, raw_tokens, depths=_depths, agent_node_id=_agent_nid)
             if _rec_outcome.admitted:
                 _ep_node = EpistemicNode(
                     node_id=f"{self._recognizer.teaching_set_id}:{self._turn_number}",
@@ -468,28 +476,47 @@ class CognitiveTurnPipeline:
             (n.obj or "") in ("", "<pending>") or "..." in (n.obj or "")
             for n in effective_graph.nodes
         ))
+        # AC2: node_depths in oov_geometric_context by default for all PropGraph paths
+        # Use pure build_node_depths for canonical extraction (nid-keyed).
+        node_depths = build_node_depths(effective_graph.nodes) if effective_graph else {}
         if grounding_src == "oov" or has_pending:
             oov_geometric_context = {
                 "unresolved_topology": effective_graph.get_unresolved_topology() if effective_graph else (),
                 "intent_tag": getattr(intent, "tag", None).value if intent and getattr(intent, "tag", None) else "unknown",
                 "geometric_probe_performed": False,
                 "note": "Hook for geometric anti-unification: surrounding realized facts (via exact vault cga_inner) can infer relation type / SPECULATIVE var for the hole instead of lexical fallback.",
-                # 3-lang depth bridge for OOV / geometric anti-unification:
-                # When nodes carry language/root/morphology_id (from resolve_entry + enriched GraphNode),
-                # include for future exact-CGA sub-graph anti-unif using roots (esp. Hebrew/Greek depth langs)
-                # rather than surface tokens. Read-only telemetry only.
-                "node_depths": {
-                    n.node_id: {
-                        k: v for k, v in {
-                            "language": getattr(n, "language", None),
-                            "root": getattr(n, "root", None),
-                            "morphology_id": getattr(n, "morphology_id", None),
-                        }.items() if v is not None
-                    }
-                    for n in effective_graph.nodes
-                    if getattr(n, "language", None) or getattr(n, "root", None)
-                } if effective_graph else {},
+                "node_depths": node_depths,
             }
+        else:
+            # default for PropGraph: at least node_depths
+            if effective_graph:
+                oov_geometric_context = {
+                    "node_depths": node_depths,
+                    "note": "default depth context for PropGraph (AC2)",
+                }
+
+        # Phase 4: include graph-level anti-unify result (unresolved topo + roots) for observability on spine.
+        if node_depths and effective_graph:
+            try:
+                from recognition.anti_unifier import graph_anti_unify
+                topo = tuple(n.node_id for n in effective_graph.nodes)
+                if oov_geometric_context is None:
+                    oov_geometric_context = {}
+                oov_geometric_context["graph_anti_unify"] = graph_anti_unify(topo, node_depths)
+            except Exception:
+                pass
+
+        # Capture depths (post-enrich) to attrs for recognize chaining (AC1) + runtime contemplate depth= (real).
+        if node_depths:
+            self._current_node_depths = node_depths
+            if effective_graph and effective_graph.nodes:
+                self._current_agent_node_id = effective_graph.nodes[0].node_id
+            self._last_node_depths = node_depths
+            if hasattr(self.runtime, "_last_node_depths"):
+                try:
+                    setattr(self.runtime, "_last_node_depths", node_depths)
+                except Exception:
+                    pass
 
         # Track last node id for correction-intent chaining
         if graph.nodes:

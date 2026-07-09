@@ -623,6 +623,20 @@ def parse_and_solve(text: str, *, sealed: bool = False) -> CandidateGraphResult:
     contemplation corridor (``comprehension/audit.py`` →
     ``teaching/math_*``) still uses its reader surface.
     """
+    res = _parse_and_solve_unrounded(text, sealed=sealed)
+    if res.answer is not None and isinstance(res.answer, float):
+        return CandidateGraphResult(
+            answer=round(res.answer, 9),
+            selected_graph=res.selected_graph,
+            refusal_reason=res.refusal_reason,
+            branches_enumerated=res.branches_enumerated,
+            branches_admissible=res.branches_admissible,
+            reader_trace=res.reader_trace,
+        )
+    return res
+
+
+def _parse_and_solve_unrounded(text: str, *, sealed: bool = False) -> CandidateGraphResult:
     if not isinstance(text, str) or not text.strip():
         return CandidateGraphResult(
             answer=None, selected_graph=None,
@@ -1593,8 +1607,12 @@ def parse_and_solve(text: str, *, sealed: bool = False) -> CandidateGraphResult:
             reader_trace=tuple(reader_trace),
         )
 
+    ans = chosen.answer
+    if isinstance(ans, float):
+        ans = round(ans, 9)
+
     return CandidateGraphResult(
-        answer=chosen.answer,
+        answer=ans,
         selected_graph=chosen.graph,
         refusal_reason=None,
         branches_enumerated=branches_enumerated,

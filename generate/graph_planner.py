@@ -70,6 +70,7 @@ class GraphNode:
     language: str | None = None
     root: str | None = None
     morphology_id: str | None = None
+    # 3-lang depth support for PropGraph spine (comprehend/articulate/think via roots)
 
     def as_dict(self) -> dict[str, object]:
         d = {
@@ -102,6 +103,24 @@ class PropositionGraph:
     def roots(self) -> tuple[str, ...]:
         targets = frozenset(e.target for e in self.edges)
         return tuple(n.node_id for n in self.nodes if n.node_id not in targets)
+
+    def get_node_depths(self) -> dict[str, dict]:
+        """Return nid -> {language, root, morphology_id} for nodes carrying 3-lang depth.
+
+        Pure extraction. Enables graph-level consumers (anti-unif, framing, realizer)
+        to operate on root forms for he/grc without string hacks.
+        """
+        return {
+            n.node_id: {
+                k: v for k, v in {
+                    "language": n.language,
+                    "root": n.root,
+                    "morphology_id": n.morphology_id,
+                }.items() if v is not None
+            }
+            for n in self.nodes
+            if n.language or n.root or n.morphology_id
+        }
 
     def topo_order(self) -> tuple[str, ...]:
         """Kahn's topological sort over the graph's edges.

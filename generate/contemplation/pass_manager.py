@@ -139,6 +139,22 @@ def _handle_ask_delivery(
         )
 
 
+def depth_framing_findings(depth: dict | None) -> tuple[Finding, ...]:
+    """Pure framing findings for depth (3-lang roots) at contemplate entry.
+
+    Called when depth provided; returns Findings for root-aware.
+    """
+    if not depth:
+        return ()
+    roots = []
+    for nid, d in depth.items():
+        if d.get("root"):
+            roots.append(f"{nid}:{d.get('language','?')}:{d['root']}")
+    if roots:
+        return (Finding("depth", "roots=" + ",".join(roots)),)
+    return ()
+
+
 def contemplate(
     text: str,
     *,
@@ -148,9 +164,12 @@ def contemplate(
     question_root: Path | None = None,
     case_id: str | None = None,
     exercise_ask: bool = False,
+    depth: dict | None = None,  # 3-lang node depth from PropositionGraph for root-aware
 ) -> ContemplationResult:
     """Run one bounded contemplation pass over *text*."""
     findings: list[Finding] = []
+    if depth:
+        findings.extend(depth_framing_findings(depth))
 
     # Pass 1 — route.
     route = route_setup(text, case_id=case_id)

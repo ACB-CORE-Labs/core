@@ -4,6 +4,16 @@ This is the canonical governance file for this repository.
 
 If any provider-specific file (`CLAUDE.md`, `GEMINI.md`, or future agent files) overlaps with this document, `AGENTS.md` wins. Provider files should only contain minimal startup and workflow notes, not alternate architecture or alternate invariants.
 
+## Session Continuity (lightweight, session-break only)
+
+When you are approaching a stopping point, known pause, or session break:
+- Create a file named `session-break-summary-<YYYY-MM-DD-HHMM>.md` (precise datetime recommended) at the repo root or in `docs/sessions/`.
+- Keep it short and actionable: current branch/state, what was just completed, exact next concrete steps, any open invariants/tests/hazards, and key files to re-read.
+- At the **start of any new session** (or subagent): Quickly scan for any recent `session-break-summary-*.md` files. Read the most relevant one if present.
+- Once you have resumed the work and continued past the break point, **delete the file**. Its only purpose is temporary continuity for the immediate next pickup.
+
+The previous heavy `HANDOFF-*.md` / formal handoff machinery is retired (see history in git and docs/handoffs/ for old artifacts).
+
 ## Mission
 
 CORE is a deterministic cognitive engine under construction.
@@ -118,7 +128,7 @@ Do not introduce new local prose parsers inside derivation organs unless explici
 Before editing:
 1. Read this file.
 2. Read `docs/specs/runtime_contracts.md`.
-3. Read the latest recent `HANDOFF-*.md` if relevant.
+3. Check for any recent `session-break-summary-*.md` files (see top-level section above) and read the relevant one if present.
 4. Confirm repo root and inspect working tree state.
 5. Run the smallest relevant validation lane.
 
@@ -178,7 +188,7 @@ Before modifying any module in `algebra/`, `field/`, `vault/`, or `generate/`:
 
 ## Documentation Discipline
 
-ADRs, session docs, audit artifacts, and handoff briefs stay as Markdown (GitHub-flavored). Plain-text artifacts are diffable, greppable, and readable by every agent in the dispatch pipeline.
+ADRs, session docs, audit artifacts, and temporary session-break summaries stay as Markdown (GitHub-flavored). Plain-text artifacts are diffable, greppable, and readable by every agent in the dispatch pipeline.
 
 Within Markdown, two GitHub-rendered features are sanctioned and otherwise sparingly used:
 - Mermaid fenced blocks (` ```mermaid `) when a state machine, sequence, or dependency graph genuinely communicates more than prose. Inline, not in a sidecar file.
