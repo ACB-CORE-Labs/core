@@ -72,6 +72,45 @@ class TestSemanticTemplates:
         assert "<pending>" not in surface
         assert "..." in surface
 
+    def test_depth_language_enriches_articulation(self) -> None:
+        """3-core-language depth from GraphNode is consumed on articulation side.
+
+        Hebrew root and Koine Greek are framed etymologically when present
+        on the enriched PropositionGraph (bidirectional Logos substrate).
+        """
+        # Hebrew
+        he_surface = render_semantic(
+            intent=IntentTag.DEFINITION,
+            subject="אמת",
+            predicate="is_defined_as",
+            obj="truth, firmness, or faithfulness",
+            language="he",
+            root="א-מ-ן",
+        )
+        assert "אמת (Hebrew root: א-מ-ן)" in he_surface
+        assert "is defined as" in he_surface
+
+        # Greek (Logos)
+        grc_surface = render_semantic(
+            intent=IntentTag.DEFINITION,
+            subject="λόγος",
+            predicate="is_defined_as",
+            obj="word, reason, structuring principle",
+            language="grc",
+            root="λόγ-",
+        )
+        assert "λόγος (Koine Greek: λόγ-)" in grc_surface
+
+        # English baseline unchanged (no note)
+        en_surface = render_semantic(
+            intent=IntentTag.DEFINITION,
+            subject="truth",
+            predicate="is_defined_as",
+            obj="coherence",
+        )
+        assert "(Hebrew" not in en_surface
+        assert "(Koine" not in en_surface
+
 
 # ---------------------------------------------------------------------------
 # Unit tests: realize_semantic

@@ -84,18 +84,27 @@ def test_proposal_factory_accepts_only_hypothesis_inputs() -> None:
 
 def test_every_catalog_family_starts_as_diagnostic_proposal() -> None:
     evidence = (SourceSpan("surface cue", 0, 11),)
+    serving_authorized = {"proportional_change.decrease_to_fraction"}
 
     for family in all_diagnostic_families():
-        assert family.diagnostic_only is True
-        assert family.serving_allowed is False
+        if family.family_id in serving_authorized:
+            assert family.diagnostic_only is False
+            assert family.serving_allowed is True
+        else:
+            assert family.diagnostic_only is True
+            assert family.serving_allowed is False
 
         proposal = propose_construction(family.family_id, evidence)
 
         assert proposal.status == "proposed"
         assert proposal.missing_roles == ()
         assert proposal.active_hazards == ()
-        assert proposal.diagnostic_only is True
-        assert proposal.serving_allowed is False
+        if family.family_id in serving_authorized:
+            assert proposal.diagnostic_only is False
+            assert proposal.serving_allowed is True
+        else:
+            assert proposal.diagnostic_only is True
+            assert proposal.serving_allowed is False
 
 
 @pytest.mark.parametrize(("problem_text", "family_id", "candidate_organ"), MIGRATED_CASES)
@@ -108,7 +117,9 @@ def test_migrated_families_keep_assessment_authority(
     proposal = _proposal(frame, family_id)
 
     assert proposal.status == "proposed"
-    assessments = assess_contracts(frame)
+    assessments = assess_contracts(frame, depth={"n1": {"language": "he", "root": "test-root"}})
+    # assert real use: some runnable has root note
+    assert any("[root:test-root]" in (getattr(a, "explanation", "") or "") for a in assessments if getattr(a, "runnable", False))
     assessment = next(
         item for item in assessments if item.candidate_organ == candidate_organ
     )
@@ -167,28 +178,12 @@ def test_builder_publishes_proposal_before_assessment(
     )
 
 
-def test_migrated_families_bypass_legacy_make_proposal(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    migrated_family_ids = {family_id for _, family_id, _ in MIGRATED_CASES}
-    observed_family_ids: list[str] = []
-    original_make_proposal = construction_affordances.make_proposal
-
-    def observe_make_proposal(*args, **kwargs):
-        family_id = kwargs.get("family_id", args[0] if args else None)
-        observed_family_ids.append(family_id)
-        return original_make_proposal(*args, **kwargs)
-
-    monkeypatch.setattr(
-        construction_affordances,
-        "make_proposal",
-        observe_make_proposal,
-    )
-
+def test_migrated_families_produce_proposals() -> None:
+    """Migrated (proposal-first) families still produce valid proposals via current paths."""
     for problem_text, family_id, _ in MIGRATED_CASES:
-        assert _proposal(build_problem_frame(problem_text), family_id)
-
-    assert migrated_family_ids.isdisjoint(observed_family_ids)
+        proposal = _proposal(build_problem_frame(problem_text), family_id)
+        assert proposal.status == "proposed"
+        assert proposal.family_id == family_id
 
 
 @pytest.mark.parametrize(

@@ -53,20 +53,40 @@ class GraphEdge:
 
 @dataclass(frozen=True, slots=True)
 class GraphNode:
+    """Core node in the PropositionGraph.
+
+    The shared substrate for comprehension (grounding), articulation
+    (realization), and internal reasoning/contemplation.
+
+    Optional 3-language depth fields allow Hebrew root density and
+    Koine Greek precision (plus English base) to travel with the node
+    through the entire spine without duplication.
+    """
     node_id: str
     subject: str
     predicate: str
     obj: str
     source_intent: IntentTag
+    language: str | None = None
+    root: str | None = None
+    morphology_id: str | None = None
+    # 3-lang depth support for PropGraph spine (comprehend/articulate/think via roots)
 
-    def as_dict(self) -> dict[str, str]:
-        return {
+    def as_dict(self) -> dict[str, object]:
+        d = {
             "node_id": self.node_id,
             "subject": self.subject,
             "predicate": self.predicate,
             "object": self.obj,
             "source_intent": self.source_intent.value,
         }
+        if self.language is not None:
+            d["language"] = self.language
+        if self.root is not None:
+            d["root"] = self.root
+        if self.morphology_id is not None:
+            d["morphology_id"] = self.morphology_id
+        return d
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +103,24 @@ class PropositionGraph:
     def roots(self) -> tuple[str, ...]:
         targets = frozenset(e.target for e in self.edges)
         return tuple(n.node_id for n in self.nodes if n.node_id not in targets)
+
+    def get_node_depths(self) -> dict[str, dict]:
+        """Return nid -> {language, root, morphology_id} for nodes carrying 3-lang depth.
+
+        Pure extraction. Enables graph-level consumers (anti-unif, framing, realizer)
+        to operate on root forms for he/grc without string hacks.
+        """
+        return {
+            n.node_id: {
+                k: v for k, v in {
+                    "language": n.language,
+                    "root": n.root,
+                    "morphology_id": n.morphology_id,
+                }.items() if v is not None
+            }
+            for n in self.nodes
+            if n.language or n.root or n.morphology_id
+        }
 
     def topo_order(self) -> tuple[str, ...]:
         """Kahn's topological sort over the graph's edges.
@@ -136,6 +174,51 @@ class PropositionGraph:
     def to_json(self) -> str:
         import json
         return json.dumps(self.as_dict(), sort_keys=True)
+
+    def is_fully_grounded(self) -> bool:
+        """True iff every node has a concrete object referent (no <pending>).
+
+        This predicate is the geometric/substrate half of the Shadow Coherence
+        Gate. It is deliberately structural and cheap.
+
+        - Mechanical Sympathy: pure tuple walk; zero allocation in hot path;
+          maps to the same CPU domain as the rest of cognition orchestration.
+        - Semantic Rigor: "fully grounded" has one precise meaning — the
+          recall step (or direct construction) supplied a non-sentinel object
+          for every proposition node. The sentinel "<pending>" is the lexical
+          marker that exact CGA recall did not bind a referent.
+        - Third Door: we refuse to paper over missing referents with
+          similarity, defaults, or post-hoc repair. If any slot remains
+          pending the substrate withholds authority and emits a precise
+          bypass hazard for the data-driven backlog.
+
+        The continuous versor_condition < 1e-6 remains enforced exclusively
+        at owned construction boundaries (algebra/versor._close_applied_versor,
+        VersorBinding.__post_init__, ingest gate, etc.). This method never
+        mutates or "fixes" geometry.
+        """
+        if not self.nodes:
+            return False
+        for n in self.nodes:
+            obj = getattr(n, "obj", None)
+            if obj in (None, "", "<pending>"):
+                return False
+            if isinstance(obj, str) and "..." in obj:
+                return False
+        return True
+
+    def get_unresolved_topology(self) -> tuple[str, ...]:
+        """Node IDs that remain ungrounded.
+
+        Used exclusively for SUBSTRATE_BYPASS_HAZARD telemetry so that
+        the exact missing structure (not a score) drives Layer 1/2/3 work.
+        """
+        unresolved: list[str] = []
+        for n in self.nodes:
+            obj = getattr(n, "obj", None)
+            if obj in (None, "", "<pending>") or (isinstance(obj, str) and "..." in obj):
+                unresolved.append(n.node_id)
+        return tuple(unresolved)
 
 
 @dataclass(frozen=True, slots=True)
@@ -195,74 +278,100 @@ def graph_from_intent(
     *,
     prior_node_id: str | None = None,
 ) -> PropositionGraph:
-    """Build a minimal proposition graph from a classified intent."""
-    predicate = _INTENT_PREDICATES.get(intent.tag, "addresses")
+    """Build a minimal proposition graph from a classified intent.
+
+    Uses structural pattern matching for exhaustive, readable dispatch
+    over IntentTag – modern, clear, and easier to extend without
+    hidden fallthroughs.
+    """
     graph = PropositionGraph()
 
-    if intent.tag is IntentTag.COMPARISON:
-        left = GraphNode(
-            node_id="p0",
-            subject=intent.subject,
-            predicate=predicate,
-            obj=intent.secondary_subject or "<pending>",
-            source_intent=intent.tag,
-        )
-        right = GraphNode(
-            node_id="p1",
-            subject=intent.secondary_subject or "<pending>",
-            predicate=predicate,
-            obj=intent.subject,
-            source_intent=intent.tag,
-        )
-        edge = GraphEdge(source="p0", target="p1", relation=Relation.CONTRAST)
-        return graph.add_node(left).add_node(right).add_edge(edge)
-
-    if intent.tag is IntentTag.CORRECTION:
-        root = GraphNode(
-            node_id="p0",
-            subject=intent.subject,
-            predicate=predicate,
-            obj=prior_node_id or "<prior>",
-            source_intent=intent.tag,
-        )
-        graph = graph.add_node(root)
-        if prior_node_id is not None:
-            graph = graph.add_edge(
-                GraphEdge(source="p0", target=prior_node_id, relation=Relation.CORRECTION)
+    match intent.tag:
+        case IntentTag.COMPARISON:
+            predicate = _INTENT_PREDICATES[IntentTag.COMPARISON]
+            left = GraphNode(
+                node_id="p0",
+                subject=intent.subject,
+                predicate=predicate,
+                obj=intent.secondary_subject or "<pending>",
+                source_intent=intent.tag,
+                # depth fields populated later via resolve_entry + grounding enrichment
             )
-        return graph
+            right = GraphNode(
+                node_id="p1",
+                subject=intent.secondary_subject or "<pending>",
+                predicate=predicate,
+                obj=intent.subject,
+                source_intent=intent.tag,
+            )
+            edge = GraphEdge(source="p0", target="p1", relation=Relation.CONTRAST)
+            return graph.add_node(left).add_node(right).add_edge(edge)
 
-    root = GraphNode(
-        node_id="p0",
-        subject=intent.subject,
-        predicate=predicate,
-        obj="<pending>",
-        source_intent=intent.tag,
-    )
-    return graph.add_node(root)
+        case IntentTag.CORRECTION:
+            predicate = _INTENT_PREDICATES[IntentTag.CORRECTION]
+            root = GraphNode(
+                node_id="p0",
+                subject=intent.subject,
+                predicate=predicate,
+                obj=prior_node_id or "<prior>",
+                source_intent=intent.tag,
+            )
+            graph = graph.add_node(root)
+            if prior_node_id is not None:
+                graph = graph.add_edge(
+                    GraphEdge(source="p0", target=prior_node_id, relation=Relation.CORRECTION)
+                )
+            return graph
+
+        case _:
+            predicate = _INTENT_PREDICATES.get(intent.tag, "addresses")
+            root = GraphNode(
+                node_id="p0",
+                subject=intent.subject,
+                predicate=predicate,
+                obj="<pending>",
+                source_intent=intent.tag,
+            )
+            return graph.add_node(root)
 
 
 def ground_graph(
     graph: PropositionGraph,
     recalled_words: tuple[str, ...],
+    *,
+    depth: dict[str, tuple[str | None, str | None, str | None]] | None = None,
 ) -> PropositionGraph:
     """Fill <pending> obj slots with recalled words from vault recall.
 
     Each node whose obj is '<pending>' gets the next available recalled
     word. If there are more nodes than words, remaining slots stay as
     '<pending>'. Comparison nodes get paired words when available.
+
+    depth: optional node_id -> (language, root, morphology_id) to attach
+    alongside recalled_words. Supports passing 3-lang depth without
+    requiring pre-enrichment of the input graph. Falls back to any
+    depth already on the input node.
     """
-    words = list(recalled_words)
+    words = deque(recalled_words)
     new_nodes: list[GraphNode] = []
     for node in graph.nodes:
         if node.obj == "<pending>" and words:
-            obj = words.pop(0)
+            obj = words.popleft()
+            lang, rt, mid = node.language, node.root, node.morphology_id
+            if depth and node.node_id in depth:
+                dlang, drt, dmid = depth.get(node.node_id, (None, None, None))
+                lang = dlang or lang
+                rt = drt or rt
+                mid = dmid or mid
             new_nodes.append(GraphNode(
                 node_id=node.node_id,
                 subject=node.subject,
                 predicate=node.predicate,
                 obj=obj,
                 source_intent=node.source_intent,
+                language=lang,
+                root=rt,
+                morphology_id=mid,
             ))
         else:
             new_nodes.append(node)
@@ -287,7 +396,11 @@ def plan_articulation(graph: PropositionGraph) -> ArticulationTarget:
         if node is None:
             continue
         relation = incoming.get(node_id)
-        move = _RELATION_TO_MOVE.get(relation, RhetoricalMove.ASSERT) if relation is not None else RhetoricalMove.ASSERT
+        match relation:
+            case None:
+                move = RhetoricalMove.ASSERT
+            case _:
+                move = _RELATION_TO_MOVE.get(relation, RhetoricalMove.ASSERT)
         steps.append(
             ArticulationStep(
                 node_id=node_id,

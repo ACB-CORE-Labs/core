@@ -83,10 +83,10 @@ def test_proposal_is_diagnostic_only_serving_disallowed() -> None:
     
     family = lookup_family(proposal.family_id)
     assert family is not None
-    assert family.diagnostic_only is True
-    assert family.serving_allowed is False
-    assert proposal.diagnostic_only is True
-    assert proposal.serving_allowed is False
+    assert family.diagnostic_only is False
+    assert family.serving_allowed is True
+    assert proposal.diagnostic_only is False
+    assert proposal.serving_allowed is True
 
 
 def test_blocked_final_value_proportional_case_produces_proposal_but_remains_blocked() -> None:

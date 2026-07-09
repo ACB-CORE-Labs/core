@@ -32,6 +32,7 @@ Design constraints (CLAUDE.md / Reconstruction-over-storage):
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
@@ -68,6 +69,46 @@ DEFAULT_RESOLVABLE_PACK_IDS: tuple[str, ...] = (
     # the substantive content lives in the lens annotation.
     "en_collapse_anchors_v1",
 )
+
+# 3-core-language (English + Hebrew root density + Koine Greek Logos precision)
+# depth packs for LexicalResolution. These are used alongside DEFAULT when
+# building PropositionGraph nodes with language/root/morphology_id for
+# bidirectional comprehension/articulation/contemplation.
+# Sourced to align with anchor-lens substrate packs.
+DEPTH_PACK_IDS: tuple[str, ...] = (
+    "he_core_cognition_v1",
+    "he_logos_micro_v1",
+    "grc_logos_cognition_v1",
+    "grc_logos_micro_v1",
+)
+
+
+@dataclass(frozen=True, slots=True)
+class LexicalResolution:
+    """Immutable, shared lexical resolution for masterful bidirectional use.
+
+    Serves comprehension (ingest → grounded PropositionGraph via resolve_gloss
+    path), articulation (graph → realize_semantic can consult depth for
+    precision), and internal reasoning/contemplation (operations "between"
+    read/write on the same substrate).
+
+    Three core languages:
+    - English: operational base
+    - Hebrew: root density (e.g. ד-ב-ר for utterance/word)
+    - Koine Greek: Logos precision (structuring principle, John 1:1)
+
+    The geometric field and PropositionGraph are designed to hold this depth.
+    All fields are plain values; no mutation.
+    """
+    pack_id: str
+    lemma: str
+    language: str
+    pos: str = ""
+    gloss: str | None = None
+    semantic_domains: tuple[str, ...] = ()
+    morphology_id: str | None = None
+    root: str | None = None
+
 
 _PACK_ROOT = Path(__file__).resolve().parent.parent / "packs" / "data"
 
@@ -233,6 +274,116 @@ def resolve_gloss(
         if entry is not None:
             pos, gloss = entry
             return (pack_id, pos, gloss)
+    return None
+
+
+@lru_cache(maxsize=16)
+def _pack_full_lexicon_for(pack_id: str) -> dict[str, dict]:
+    """Return richer {lemma_lower: entry} including language, morphology_id,
+    semantic_domains for 3-language depth resolution.
+
+    Mirrors _pack_lexicon_for structure but retains the full fields needed
+    for LexicalResolution (Hebrew/Greek root-linked entries etc.).
+    Immutable packs → safe to cache.
+    """
+    lexicon_path = _PACK_ROOT / pack_id / "lexicon.jsonl"
+    if not lexicon_path.exists():
+        return {}
+    out: dict[str, dict] = {}
+    for line in lexicon_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(entry, dict):
+            continue
+        lemma = entry.get("lemma") or entry.get("surface")
+        if not lemma or not isinstance(lemma, str):
+            continue
+        key = lemma.strip().lower()
+        # retain relevant depth fields
+        out[key] = {
+            "language": entry.get("language") or "en",
+            "morphology_id": entry.get("morphology_id"),
+            "semantic_domains": tuple(str(d) for d in entry.get("semantic_domains", ())),
+            "pos": entry.get("pos") or "",
+        }
+    return out
+
+
+@lru_cache(maxsize=16)
+def _pack_morph_roots_for(pack_id: str) -> dict[str, str]:
+    """Return {morphology_id: root} for the pack's morphology.jsonl.
+
+    Enables root-level depth (Hebrew triconsonantal, Greek stems) without
+    pulling the full MorphologyRegistry into the hot resolver path.
+    """
+    morph_path = _PACK_ROOT / pack_id / "morphology.jsonl"
+    if not morph_path.exists():
+        return {}
+    out: dict[str, str] = {}
+    for line in morph_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(entry, dict):
+            continue
+        mid = entry.get("morphology_id")
+        root = entry.get("root")
+        if isinstance(mid, str) and isinstance(root, str) and mid and root:
+            out[mid] = root
+    return out
+
+
+def resolve_entry(
+    lemma: str,
+    pack_ids: tuple[str, ...] = DEFAULT_RESOLVABLE_PACK_IDS,
+) -> LexicalResolution | None:
+    """Return rich LexicalResolution for the first matching pack.
+
+    This is the canonical entry point for depth-aware resolution usable
+    both for comprehension grounding and (symmetrically) articulation /
+    contemplation. Falls back gracefully for English-centric packs.
+    First-match-wins, same order as resolve_lemma/resolve_gloss.
+    """
+    if not lemma or not isinstance(lemma, str):
+        return None
+    key = lemma.strip().lower()
+    if not key:
+        return None
+    for pack_id in pack_ids:
+        full = _pack_full_lexicon_for(pack_id)
+        if key not in full:
+            continue
+        info = full[key]
+        # gloss is optional but preferred when present
+        glosses = _pack_glosses_for(pack_id)
+        pos, gloss = glosses.get(key, ("", None))
+        if not gloss:
+            # fall back to pos from full if no dedicated gloss
+            pos = info.get("pos", "") or pos
+        morph_id = info.get("morphology_id")
+        root = None
+        if morph_id:
+            roots = _pack_morph_roots_for(pack_id)
+            root = roots.get(morph_id)
+        return LexicalResolution(
+            pack_id=pack_id,
+            lemma=lemma,
+            language=info.get("language", "en"),
+            pos=pos or "",
+            gloss=gloss,
+            semantic_domains=info.get("semantic_domains", ()),
+            morphology_id=morph_id,
+            root=root,
+        )
     return None
 
 

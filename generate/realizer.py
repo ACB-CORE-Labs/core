@@ -129,17 +129,27 @@ def realize_semantic(
     # Comb pass 2026-05-21 — O(1) object-slot lookup per step.
     node_objs = _build_node_map(graph)
 
+    # Depth map for 3-language articulation enrichment (Hebrew roots, Greek precision).
+    # Consulted when realizing surfaces for higher-fidelity etymological/Logos framing.
+    depth_by_id: dict[str, tuple[str | None, str | None]] = {}
+    if graph:
+        for n in graph.nodes:
+            depth_by_id[n.node_id] = (getattr(n, "language", None), getattr(n, "root", None))
+
     if intent is IntentTag.COMPARISON and len(target.steps) >= 2:
         step_a = target.steps[0]
         step_b = target.steps[1]
         obj_a = node_objs.get(step_a.node_id, "...")
         secondary = step_b.subject if step_b.subject != step_a.subject else obj_a
+        lang_a, root_a = depth_by_id.get(step_a.node_id, (None, None))
         surface = render_semantic(
             intent=intent,
             subject=step_a.subject,
             predicate=step_a.predicate,
             obj=obj_a,
             secondary=secondary,
+            language=lang_a,
+            root=root_a,
         )
         fragments.append(RealizedFragment(
             node_id=step_a.node_id,
@@ -149,11 +159,14 @@ def realize_semantic(
     else:
         for step in target.steps:
             obj = node_objs.get(step.node_id, "...")
+            lang, rt = depth_by_id.get(step.node_id, (None, None))
             surface = render_semantic(
                 intent=intent,
                 subject=step.subject,
                 predicate=step.predicate,
                 obj=obj,
+                language=lang,
+                root=rt,
             )
             move = step.move
             if move is RhetoricalMove.ASSERT and intent is IntentTag.CORRECTION:

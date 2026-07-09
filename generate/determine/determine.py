@@ -34,6 +34,8 @@ each search-then-verified, never closed-world, never ``answer=False``.
 
 from __future__ import annotations
 
+from collections import deque
+
 from dataclasses import dataclass
 
 from generate.composition import LogicChainPlan, lower_logic_chain
@@ -320,11 +322,11 @@ def _subset_path(
     (neighbours are visited in sorted order)."""
     if start == target:
         return ()
-    frontier: list[str] = [start]
+    frontier: deque[str] = deque([start])
     came_from: dict[str, tuple[str, RealizedRecord]] = {}
     seen = {start}
     while frontier:
-        node = frontier.pop(0)
+        node = frontier.popleft()
         for nxt, fact in sorted(supers.get(node, ()), key=lambda e: e[0]):
             if nxt in seen:
                 continue

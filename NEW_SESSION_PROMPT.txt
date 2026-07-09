@@ -1,0 +1,47 @@
+You are starting a fresh session on the CORE repository (deterministic cognitive engine) on branch `feat/3lang-depth-proposition-graph-unification`.
+
+**First actions (do these immediately):**
+1. Confirm location and state:
+   ```
+   pwd
+   git branch --show-current
+   git status --porcelain -b
+   git log --oneline -1
+   ```
+2. Sync verification state:
+   ```
+   python3 scripts/verify_lane_shas.py
+   python -m pytest -q --tb=no -k "cognition or oov or anti_unifier or depth_canonical or graph_anti"
+   ```
+3. Read these files in order (critical for context):
+   - AGENTS.md (especially the "Session Continuity (lightweight...)" section at the top and the "Working doctrine" / before-editing checklist)
+   - plan.md (full — it is the living plan with Phases 1-5 status, evidence, and explicit notes on what to watch)
+   - docs/session-compacts/2026-07-06-compact.md (this is the distilled compact for this thread)
+   - docs/COMPACT_STRATEGY.md (how to create future compacts when sessions get long)
+
+**Current state snapshot (from 2026-07-06 compact):**
+- Branch: feat/3lang-depth-proposition-graph-unification
+- Top commit: 29284fae (implement phases 1-5 3-lang depth unification on PropGraph spine: root-aware anti-unif, default node_depths, depth propagation to contemplation/contracts, graph helpers).
+- Work status: Phases 1-5 complete for the core unification.
+- Verification: Cognition suite green (122 passed). Spine tests green. Fresh trace hashes stable on 3-lang cases (including "define אמת"). 
+- Only `demo_composition` and `public_demo` SHAs are drifted (expected/intentional — we touched runtime/pipeline/realizer/graph code). All other pinned lanes match. 
+- Action on drifts: Do **not** re-pin yet. Continue active R&D. Re-pin with `python scripts/verify_lane_shas.py --update && python scripts/generate_claims.py` only when the current implementation slice is finished or at PR-prep time.
+- Heavily modified files include: chat/pack_resolver.py, chat/runtime.py, core/cognition/pipeline.py, generate/graph_planner.py, generate/contemplation/pass_manager.py, generate/problem_frame_contracts.py, recognition/anti_unifier.py, recognition/depth_canonical.py, teaching/contemplation.py, plus tests and the governance cleanup (AGENTS.md, retired handoffs, etc.).
+- Key invariants to re-confirm after changes: fresh trace_hash stability on 3-lang OOV, core + spine tests stay green, only the two expected demo lanes drift.
+
+**How to shape R&D and what to watch:**
+- After any change that can affect outputs (especially spine, graph, runtime, realizer, or 3-lang paths): immediately run `python3 scripts/verify_lane_shas.py` and the relevant test subset.
+- Keep an eye on: the two demo SHA drifts (intentional), fresh trace stability on Hebrew/Greek OOV cases, no regression in cognition/math lanes.
+- Continue the R&D on the 3-lang depth PropositionGraph unification. Use plan.md as the source of truth for what has been done and what remains.
+- On any pause or long session: create a `session-break-summary-YYYY-MM-DD-HHMM.md` at root (per AGENTS.md lightweight rule) and/or trigger another /compact using docs/COMPACT_STRATEGY.md.
+- When the current slice feels complete: re-pin the drifted SHAs, regenerate claims, then prepare PR.
+
+**New-session rules:**
+- Always start with the commands and file reads above.
+- Use the compact + plan.md to avoid re-reading the entire prior history.
+- When this new session gets long, run the /compact process defined in docs/COMPACT_STRATEGY.md and create a fresh compact in docs/session-compacts/.
+- Archive or delete old compacts once the thread has internalized them and made progress.
+
+Start by confirming the state with the git + verify commands above, reading the three key files, and then tell me the current status in one paragraph + what you recommend as the very next concrete R&D step on the unification.
+
+(End of bootstrap prompt — everything above is the minimal context needed.)

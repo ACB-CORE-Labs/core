@@ -65,6 +65,12 @@ def _has_hazard_surface(problem_text: str, question_clause: str) -> bool:
         return True
     if _asks_final_value(question_clause):
         return True
+
+    # Check for multiple fractions hazard (e.g. "3/4" and "1 / 2")
+    import re
+    if len(re.findall(r"\d+\s*/\s*\d+", problem_text)) > 1:
+        return True
+
     return False
 
 
@@ -154,9 +160,20 @@ def _self_verifies_fraction_decrease(
 
 
 def compose_fraction_decrease(
-    problem_text: str, contract: ContractAssessment
+    problem_text: str, contract: ContractAssessment | None = None
 ) -> Resolution | None:
     """Gate the typed fraction-decrease chain through self-verification."""
+    if contract is None:
+        from generate.problem_frame_builder import build_problem_frame
+        from generate.problem_frame_contracts import assess_geometric_proposals
+        frame = build_problem_frame(problem_text)
+        assessments = assess_geometric_proposals(frame)
+        contract = next(
+            (a for a in assessments if a.candidate_organ == "fraction_decrease"), None
+        )
+        if contract is None:
+            return None
+
     derivation = build_fraction_decrease(problem_text, contract)
     if derivation is None:
         return None
@@ -170,7 +187,7 @@ def compose_fraction_decrease(
 
 
 def resolve_promotable_fraction_decrease(
-    problem_text: str, contract: ContractAssessment
+    problem_text: str, contract: ContractAssessment | None = None
 ) -> Resolution | None:
     """Serving promotion bridge (Gate A2k)."""
     return compose_fraction_decrease(problem_text, contract)

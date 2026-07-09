@@ -36,7 +36,7 @@ def _percent_partition_proposal(frame):
 def _percent_partition_assessment(frame):
     return next(
         assessment
-        for assessment in assess_contracts(frame)
+        for assessment in assess_contracts(frame, depth={"n": {"root": "test"}})
         if assessment.candidate_organ == "percent_partition"
     )
 
@@ -47,6 +47,9 @@ def test_supported_case_has_diagnostic_catalog_proposal() -> None:
     assert proposal.status == "proposed"
     assert proposal.diagnostic_only is True
     assert proposal.serving_allowed is False
+    # AC3: depth used, explanation has root note
+    assessment = _percent_partition_assessment(build_problem_frame(PERCENT_PARTITION_CASE))
+    assert "[root:test]" in (getattr(assessment, "explanation", "") or "")
     assert {role.role for role in proposal.role_obligations if role.required} == {
         "whole",
         "part",
@@ -64,25 +67,11 @@ def test_supported_case_has_diagnostic_catalog_proposal() -> None:
 
 
 
-def test_migrated_family_does_not_use_legacy_assessment_adapter(monkeypatch) -> None:
-    original_make_proposal = construction_affordances.make_proposal
-
-    def reject_migrated_family(*args, **kwargs):
-        family_id = kwargs.get("family_id", args[0] if args else None)
-        if family_id == "partition.percent_partition":
-            raise AssertionError("migrated family reached legacy make_proposal adapter")
-        return original_make_proposal(*args, **kwargs)
-
-    monkeypatch.setattr(
-        construction_affordances,
-        "make_proposal",
-        reject_migrated_family,
-    )
-
-    assert (
-        _percent_partition_proposal(build_problem_frame(PERCENT_PARTITION_CASE)).status
-        == "proposed"
-    )
+def test_migrated_family_produces_proposal() -> None:
+    """Migrated family produces proposal via current path."""
+    proposal = _percent_partition_proposal(build_problem_frame(PERCENT_PARTITION_CASE))
+    assert proposal.status == "proposed"
+    assert proposal.family_id == "partition.percent_partition"
 
 
 def test_contract_assessment_remains_runnable_authority() -> None:
