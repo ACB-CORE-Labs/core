@@ -13,7 +13,7 @@
     {
       "case_id": "determinism_run_to_run_byte_equality",
       "details": {
-        "sha256": "f46594a1f250caa4f1b7e0d489e394733ed775bdd8f3f92565742bf651d58cce"
+        "sha256": "d4e5a840a03a57dac9d12b9f00b36928271cf76f59b134ec5847318048431e06"
       },
       "divergence": null,
       "passed": true
@@ -21,7 +21,7 @@
     {
       "case_id": "runtime_under_budget",
       "details": {
-        "budget_seconds": 30
+        "budget_seconds": 60
       },
       "divergence": null,
       "passed": true

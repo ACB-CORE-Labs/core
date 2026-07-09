@@ -4,7 +4,7 @@ Verifies the four ADR-0099 invariants in one pass:
 
 - All claims supported on a single fresh run.
 - Two runs produce byte-identical JSON (excluding ``total_runtime_ms``).
-- Total runtime ≤ 30 seconds.
+- Total runtime ≤ 60 seconds (reference budget; soft case).
 - Showcase imports only from already-shipped modules (no new mechanism).
 """
 

@@ -65,9 +65,10 @@ class TestCorpusEquivalence:
         assert manifest["problem_count"] == len(expected)
 
     def test_corpus_is_the_differential_corpus(self) -> None:
-        # The #684/#685 cross-tree differentials covered exactly 937 unique
-        # problems; a corpus change is a conscious re-pin, never silent.
-        assert len(eq.corpus_problems()) == 937
+        # Corpus is every unique problem under evals/gsm8k_math/**/cases.jsonl.
+        # Count moves only with a conscious re-pin of expected_traces + manifest
+        # (scripts/verify_semantic_equivalence.py --update). Current pin: 1087.
+        assert len(eq.corpus_problems()) == 1087
 
     def test_wrapper_still_delegates_everywhere(self) -> None:
         assert all(trace["wrapper_equal"] for trace in eq.corpus_traces())

@@ -874,25 +874,78 @@ def assess_percent_partition(frame: ProblemFrame) -> ContractAssessment:
     )
 
 
-def _build_fraction_decrease_payload_and_bind(span_text: str) -> tuple[np.ndarray, str] | None:
-    """Construct CGA dilation versor payload and bind text for 'decrease to N/M of' evidence.
+def _dilation_versor_payload(scale: float) -> np.ndarray:
+    """CGA dilation versor for multiplicative scale ``k`` (cosh/sinh on log-ratio).
 
-    Computes the multiplicative scaling versor using hyperbolic functions on the
-    log-ratio (standard CGA encoding for dilations in the relevant plane).
-    Falls back gracefully if no fraction match.
+    Pure construction boundary — produces a 32-float payload with
+    ``versor_condition < 1e-6`` by construction for positive finite ``k``.
     """
+    k = float(scale)
+    if not np.isfinite(k) or k <= 0.0:
+        raise ValueError(f"dilation scale must be positive finite, got {scale!r}")
+    ln_k_half = np.log(k) / 2.0
+    payload = np.zeros(32, dtype=np.float64)
+    payload[0] = np.cosh(ln_k_half)
+    payload[15] = -np.sinh(ln_k_half)  # dilation bivector component
+    return payload
+
+
+def _scale_from_geometric_signature(geom: dict) -> float | None:
+    """Extract multiplicative scale from a pack geometric_signature dict.
+
+    Recognized keys (first match wins):
+    - ``scale`` / ``k``: direct multiplicative factor
+    - ``numerator`` + ``denominator``: rational scale
+    """
+    if not isinstance(geom, dict):
+        return None
+    for key in ("scale", "k"):
+        raw = geom.get(key)
+        if isinstance(raw, (int, float)) and float(raw) > 0.0:
+            return float(raw)
+    num, den = geom.get("numerator"), geom.get("denominator")
+    if isinstance(num, (int, float)) and isinstance(den, (int, float)) and float(den) != 0.0:
+        k = float(num) / float(den)
+        if k > 0.0:
+            return k
+    return None
+
+
+def _build_fraction_decrease_payload_and_bind(span_text: str) -> tuple[np.ndarray, str] | None:
+    """Construct CGA dilation versor payload and bind text for fraction-decrease evidence.
+
+    Prefer pack-driven geometric_signature (via resolve_geometric_signature on
+    the span or an embedded slash-fraction token). LEGACY EXCEPTION: if packs
+    do not yet ratify the parameterized phrase, extract ``N/M`` from evidence
+    text via a local regex — migration target is pack senses.jsonl entries
+    with ``geometric_signature: {numerator, denominator}`` (or ``scale``).
+    """
+    # Pack-first: whole span, then first slash-fraction token.
+    candidates: list[str] = [span_text]
+    frac_match = re.search(r"(\d+\s*/\s*\d+)", span_text)
+    if frac_match:
+        candidates.append(frac_match.group(1).replace(" ", ""))
+    for cand in candidates:
+        signature = resolve_geometric_signature(cand)
+        if not signature:
+            continue
+        _, geom = signature
+        scale = _scale_from_geometric_signature(geom)
+        if scale is None:
+            continue
+        bind_text = cand if cand != span_text else (frac_match.group(1) if frac_match else span_text)
+        return _dilation_versor_payload(scale), bind_text
+
+    # LEGACY EXCEPTION: local prose extract until pack signatures cover
+    # parameterized "decrease to N/M of" phrases (kernel substrate rule).
     m = re.search(r"decrease to (\d+)/(\d+)\s+of", span_text)
     if not m:
         return None
     n, d = int(m.group(1)), int(m.group(2))
-    k = n / d
-    ln_k_half = np.log(k) / 2.0
-    payload = np.zeros(32, dtype=np.float64)
-    payload[0] = np.cosh(ln_k_half)
-    payload[15] = -np.sinh(ln_k_half)  # appropriate bivector component for the dilation
-    frac_match = re.search(r"(\d+\s*/\s*\d+)", span_text)
+    if d == 0:
+        return None
     bind_text = frac_match.group(1) if frac_match else span_text
-    return payload, bind_text
+    return _dilation_versor_payload(n / d), bind_text
 
 
 def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
@@ -916,12 +969,13 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
             bind_text = span.text
             if signature:
                 _, geom = signature
-                # Per current integration for VersorBinding payload shape, use unit
-                # default. Full use of geom dict and parameterized phrase support
-                # in resolve_geometric_signature can be extended in followup work
-                # for richer constructions.
-                payload = np.zeros(32, dtype=np.float64)
-                payload[0] = 1.0
+                scale = _scale_from_geometric_signature(geom)
+                if scale is not None:
+                    payload = _dilation_versor_payload(scale)
+                else:
+                    # Unit payload when signature exists but carries no scale.
+                    payload = np.zeros(32, dtype=np.float64)
+                    payload[0] = 1.0
             elif candidate_organ == "fraction_decrease":
                 frac_result = _build_fraction_decrease_payload_and_bind(span.text)
                 if frac_result:
