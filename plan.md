@@ -73,7 +73,7 @@ Alignment: AGENTS.md (pre-edit traces, immutability via replace/new, exact recal
 - **Same-turn root recog (done):** `resolve_token_depths` + pipeline early wire before graph.
 - **Capability obligations (done):** `tests/test_3lang_depth_capability.py` (he/grc exemplars, result fields, construction, dilation).
 - **public_demo budget (done):** 60s reference budget; soft case (hard raise opt-in); re-pin lane SHAs.
-- **Geometric signature (partial):** pack-scale preferred; legacy N/M regex retained with explicit migration note.
+- **Geometric signature (done 2026-07-08):** fraction_decrease dilation binds from ProblemFrame scale role (KernelFacts GroundedScalar Fraction) — legacy "decrease to N/M of" prose regex **removed** from problem_frame_contracts.
 - Rebase/merge per git workflow after review (Forgejo / `tea`).
 - (retired) No longer create formal HANDOFF files. Use session-break-summary-<DATETIME>.md on pauses per AGENTS.md.
 

@@ -177,7 +177,7 @@ def test_construction_assess_with_he_root_depth() -> None:
 
 
 def test_dilation_payload_from_scale_and_signature() -> None:
-    """P4: pack-shaped geometric_signature scale drives dilation versor."""
+    """Pack-shaped geometric_signature + frame scale drive dilation versor."""
     payload = _dilation_versor_payload(0.5)
     assert payload.shape == (32,)
     assert float(versor_condition(payload)) < 1e-6
@@ -188,11 +188,26 @@ def test_dilation_payload_from_scale_and_signature() -> None:
     )
     assert _scale_from_geometric_signature({"note": "no scale"}) is None
 
-    # Legacy extract still works for parameterized decrease phrase.
-    from generate.problem_frame_contracts import _build_fraction_decrease_payload_and_bind
+    # Post-pivot: frame-grounded scale (KernelFacts Fraction), not prose regex.
+    from generate.problem_frame_contracts import (
+        assess_fraction_decrease,
+        assess_geometric_proposals,
+    )
 
-    frac = _build_fraction_decrease_payload_and_bind("decrease to 3/4 of the original")
-    assert frac is not None
-    payload2, bind = frac
-    assert float(versor_condition(payload2)) < 1e-6
-    assert "3" in bind and "4" in bind
+    text = (
+        "In one hour, Addison mountain's temperature will decrease to 3/4 of its temperature. "
+        "If the current temperature of the mountain is 84 degrees, what will the temperature "
+        "decrease by?"
+    )
+    frame = build_problem_frame(text)
+    geom = assess_geometric_proposals(frame)
+    assert len(geom) == 1
+    assert geom[0].runnable
+    assert geom[0].bindings
+    assert geom[0].bindings[0].semantic_identity == "3/4"
+    assert float(versor_condition(geom[0].bindings[0].geometric_payload)) < 1e-6
+
+    obligation = assess_fraction_decrease(frame)
+    assert obligation.runnable
+    assert obligation.bindings
+    assert obligation.bindings[0].semantic_identity == "3/4"
