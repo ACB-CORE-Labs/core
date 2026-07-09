@@ -164,19 +164,32 @@ def _self_verifies_fraction_decrease(
 def _resolve_fraction_decrease_contract(
     problem_text: str,
 ) -> ContractAssessment | None:
-    """Build a geometric ContractAssessment for fraction_decrease when callers
-    omit an explicit contract (sprint/dev API compatibility).
+    """Build a ContractAssessment for fraction_decrease when callers omit one.
 
-    Uses ``assess_geometric_proposals`` so VersorBinding payloads come from the
-    owned CGA construction path (pack signature or legacy N/M helper).
+    Prefers ``assess_contracts`` (obligation-complete + frame-grounded scale
+    VersorBinding). Falls back to ``assess_geometric_proposals`` (same frame
+    scale binding path). Never re-parses "decrease to N/M of" prose.
     """
     from generate.problem_frame_builder import build_problem_frame
-    from generate.problem_frame_contracts import assess_geometric_proposals
+    from generate.problem_frame_contracts import (
+        assess_contracts,
+        assess_geometric_proposals,
+    )
 
     frame = build_problem_frame(problem_text)
-    assessments = assess_geometric_proposals(frame)
+    for assessment in assess_contracts(frame):
+        if (
+            assessment.candidate_organ == "fraction_decrease"
+            and assessment.runnable
+            and assessment.bindings
+        ):
+            return assessment
     return next(
-        (a for a in assessments if a.candidate_organ == "fraction_decrease"),
+        (
+            a
+            for a in assess_geometric_proposals(frame)
+            if a.candidate_organ == "fraction_decrease" and a.bindings
+        ),
         None,
     )
 

@@ -496,6 +496,12 @@ def assess_fraction_decrease(frame: ProblemFrame) -> ContractAssessment:
         )
     )
     runnable = not missing and not unresolved
+    # Geometric dilation binding from frame scale (KernelFacts), not prose.
+    geometric_bindings: list[VersorBinding] = []
+    if runnable:
+        scale_binding = _fraction_decrease_scale_binding(frame)
+        if scale_binding is not None:
+            geometric_bindings.append(scale_binding)
     return ContractAssessment(
         candidate_organ="fraction_decrease",
         missing_bindings=tuple(dict.fromkeys(missing)),
@@ -508,6 +514,7 @@ def assess_fraction_decrease(frame: ProblemFrame) -> ContractAssessment:
             + ", ".join((*dict.fromkeys(missing), *sorted(unresolved)))
         ),
         evidence_spans=evidence_spans,
+        bindings=geometric_bindings,
     )
 
 
@@ -911,46 +918,103 @@ def _scale_from_geometric_signature(geom: dict) -> float | None:
     return None
 
 
-def _build_fraction_decrease_payload_and_bind(span_text: str) -> tuple[np.ndarray, str] | None:
-    """Construct CGA dilation versor payload and bind text for fraction-decrease evidence.
+def _versor_binding_from_scale_value(
+    scale_value: object,
+    *,
+    semantic_identity: str,
+    source_span: tuple[int, int],
+) -> VersorBinding | None:
+    """Build a dilation VersorBinding from an exact kernel scale (Fraction/float).
 
-    Prefer pack-driven geometric_signature (via resolve_geometric_signature on
-    the span or an embedded slash-fraction token). LEGACY EXCEPTION: if packs
-    do not yet ratify the parameterized phrase, extract ``N/M`` from evidence
-    text via a local regex — migration target is pack senses.jsonl entries
-    with ``geometric_signature: {numerator, denominator}`` (or ``scale``).
+    This is the post-pivot construction path: scale arrives as a grounded
+    scalar fact on ProblemFrame — never re-parsed from "decrease to N/M of"
+    prose. CGA dilation is a pure construction-boundary op on that number.
     """
-    # Pack-first: whole span, then first slash-fraction token.
-    candidates: list[str] = [span_text]
-    frac_match = re.search(r"(\d+\s*/\s*\d+)", span_text)
-    if frac_match:
-        candidates.append(frac_match.group(1).replace(" ", ""))
-    for cand in candidates:
-        signature = resolve_geometric_signature(cand)
-        if not signature:
-            continue
-        _, geom = signature
-        scale = _scale_from_geometric_signature(geom)
-        if scale is None:
-            continue
-        bind_text = cand if cand != span_text else (frac_match.group(1) if frac_match else span_text)
-        return _dilation_versor_payload(scale), bind_text
+    try:
+        k = float(scale_value)  # Fraction implements __float__
+    except (TypeError, ValueError):
+        return None
+    if not np.isfinite(k) or k <= 0.0:
+        return None
+    payload = _dilation_versor_payload(k)
+    return VersorBinding(
+        source_span=source_span,
+        semantic_identity=semantic_identity,
+        geometric_payload=payload,
+        versor_error=versor_condition(payload),
+    )
 
-    # LEGACY EXCEPTION: local prose extract until pack signatures cover
-    # parameterized "decrease to N/M of" phrases (kernel substrate rule).
-    m = re.search(r"decrease to (\d+)/(\d+)\s+of", span_text)
-    if not m:
+
+def _fraction_decrease_scale_binding(frame: ProblemFrame) -> VersorBinding | None:
+    """Resolve fraction-decrease dilation binding from ProblemFrame scale role.
+
+    Order of truth (no local prose parse):
+    1. Bound ``decrease_to_fraction`` relation role ``scale`` → GroundedScalar.value
+    2. Optional pack geometric_signature on the scale *surface* (named fractions
+       / pack-ratified lemmas) when present — still identity = surface token,
+       not a phrase regex.
+    """
+    relations = [
+        relation
+        for relation in frame.bound_relations
+        if relation.relation_type == "decrease_to_fraction"
+    ]
+    if len(relations) != 1:
         return None
-    n, d = int(m.group(1)), int(m.group(2))
-    if d == 0:
+    relation = relations[0]
+    scale_id = _role_target(relation, "scale")
+    if scale_id is None:
         return None
-    bind_text = frac_match.group(1) if frac_match else span_text
-    return _dilation_versor_payload(n / d), bind_text
+    quantities = _quantity_value_by_mention_id(frame)
+    scale_q = quantities.get(scale_id)
+    if scale_q is None:
+        return None
+    mentions = _mention_map(frame)
+    mention = mentions.get(scale_id)
+    surface = getattr(mention, "surface", None) or str(getattr(scale_q, "value", ""))
+    span = getattr(mention, "span", None)
+    if span is None:
+        role_spans = _role_spans(relation, "scale")
+        if not role_spans:
+            return None
+        span = role_spans[0]
+    source_span = (span.start, span.end)
+
+    # Prefer exact kernel scalar (slash_fraction / named fraction already
+    # canonicalized to Fraction on the frame).
+    binding = _versor_binding_from_scale_value(
+        getattr(scale_q, "value", scale_q),
+        semantic_identity=str(surface),
+        source_span=source_span,
+    )
+    if binding is not None:
+        return binding
+
+    # Pack geometric_signature on scale surface (e.g. named fraction lemmas
+    # with senses geometric_signature) — substrate lookup only.
+    signature = resolve_geometric_signature(str(surface))
+    if signature is None:
+        return None
+    _, geom = signature
+    scale = _scale_from_geometric_signature(geom)
+    if scale is None:
+        return None
+    return _versor_binding_from_scale_value(
+        scale,
+        semantic_identity=str(surface),
+        source_span=source_span,
+    )
 
 
 def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
+    """Geometric contract assessments from proposals + frame-grounded scale.
+
+    For ``fraction_decrease``, dilation VersorBindings are built from the
+    ProblemFrame scale role (KernelFacts GroundedScalar), not from re-parsing
+    proposal evidence spans with a local "decrease to N/M of" regex.
+    """
     assessments = []
-    
+
     # Pre-compute reverse mapping from family_id to candidate_organ
     family_to_organ = {}
     for organ, contract in _CONTRACT_REGISTRY.items():
@@ -961,13 +1025,19 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
         candidate_organ = family_to_organ.get(prop.family_id)
         if not candidate_organ:
             continue
-            
-        bindings = []
-        for span in prop.evidence_spans:
-            signature = resolve_geometric_signature(span.text)
-            payload = None
-            bind_text = span.text
-            if signature:
+
+        bindings: list[VersorBinding] = []
+
+        if candidate_organ == "fraction_decrease":
+            # Frame-first: one binding from bound scale role.
+            scale_binding = _fraction_decrease_scale_binding(frame)
+            if scale_binding is not None:
+                bindings.append(scale_binding)
+        else:
+            for span in prop.evidence_spans:
+                signature = resolve_geometric_signature(span.text)
+                if not signature:
+                    continue
                 _, geom = signature
                 scale = _scale_from_geometric_signature(geom)
                 if scale is not None:
@@ -976,33 +1046,30 @@ def assess_geometric_proposals(frame: ProblemFrame) -> list[ContractAssessment]:
                     # Unit payload when signature exists but carries no scale.
                     payload = np.zeros(32, dtype=np.float64)
                     payload[0] = 1.0
-            elif candidate_organ == "fraction_decrease":
-                frac_result = _build_fraction_decrease_payload_and_bind(span.text)
-                if frac_result:
-                    payload, bind_text = frac_result
-
-            if payload is not None:
-                binding = VersorBinding(
-                    source_span=(span.start, span.end),
-                    semantic_identity=bind_text,
-                    geometric_payload=payload,
-                    versor_error=versor_condition(payload),
+                bindings.append(
+                    VersorBinding(
+                        source_span=(span.start, span.end),
+                        semantic_identity=span.text,
+                        geometric_payload=payload,
+                        versor_error=versor_condition(payload),
+                    )
                 )
-                bindings.append(binding)
-                
-        runnable = False
-        if bindings and all(b.versor_error < 1e-6 for b in bindings):
-            runnable = True
+
+        runnable = bool(bindings) and all(b.versor_error < 1e-6 for b in bindings)
 
         assessment = ContractAssessment(
             bindings=bindings,
             candidate_organ=candidate_organ,
             runnable=runnable,
-            explanation="Assessed via geometric algebra.",
-            evidence_spans=prop.evidence_spans
+            explanation=(
+                "Assessed via geometric algebra from frame-grounded scale"
+                if candidate_organ == "fraction_decrease"
+                else "Assessed via geometric algebra."
+            ),
+            evidence_spans=prop.evidence_spans,
         )
         assessments.append(assessment)
-        
+
     return assessments
 
 def assess_contracts(frame: ProblemFrame, depth: dict | None = None) -> tuple[ContractAssessment, ...]:

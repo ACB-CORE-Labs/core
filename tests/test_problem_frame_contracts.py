@@ -1,5 +1,13 @@
+from pathlib import Path
+
 from generate.problem_frame_builder import build_problem_frame
-from generate.problem_frame_contracts import assess_contracts, assess_fraction_decrease, assess_percent_partition
+from generate.problem_frame_contracts import (
+    assess_contracts,
+    assess_fraction_decrease,
+    assess_geometric_proposals,
+    assess_percent_partition,
+)
+from algebra.versor import versor_condition
 
 
 FRACTION_DECREASE_CASE = (
@@ -59,6 +67,33 @@ def test_fraction_decrease_contract_is_runnable_from_problemframe() -> None:
     assert assessment.runnable
     assert assessment.missing_bindings == ()
     assert assessment.evidence_spans
+    # Pivot revelation: geometric dilation binds from frame scale Fraction(3/4),
+    # not from re-parsing "decrease to N/M of" prose.
+    assert assessment.bindings
+    assert assessment.bindings[0].semantic_identity in {"3/4", "3 / 4"}
+    assert float(versor_condition(assessment.bindings[0].geometric_payload)) < 1e-6
+
+
+def test_fraction_decrease_geometric_uses_frame_scale_not_prose_regex() -> None:
+    frame = build_problem_frame(FRACTION_DECREASE_CASE)
+    geom = assess_geometric_proposals(frame)
+    assert len(geom) == 1
+    assert geom[0].candidate_organ == "fraction_decrease"
+    assert geom[0].runnable
+    assert geom[0].bindings[0].semantic_identity.replace(" ", "") == "3/4"
+    # Payload is dilation for k=0.75 (same as Fraction(3,4)).
+    from generate.problem_frame_contracts import _dilation_versor_payload
+    import numpy as np
+
+    expected = _dilation_versor_payload(0.75)
+    assert np.allclose(geom[0].bindings[0].geometric_payload, expected)
+
+
+def test_no_legacy_decrease_to_fraction_prose_regex_in_contracts() -> None:
+    """Guard: the overfitting local prose parser must not return."""
+    source = Path("generate/problem_frame_contracts.py").read_text(encoding="utf-8")
+    assert r"decrease to (\d+" not in source
+    assert "_build_fraction_decrease_payload_and_bind" not in source
 
 
 def test_fraction_decrease_sibling_is_runnable() -> None:
