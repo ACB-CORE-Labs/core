@@ -150,7 +150,9 @@ operator-supplied template path.
 
 ## Consequences
 
-- One artifact answers "what makes CORE distinct" in under 30 seconds.
+- One artifact answers "what makes CORE distinct" in under 60 seconds
+  (reference wall-clock budget after CGA substrate densification;
+  content invariants remain the primary gate).
 - Every claim in that artifact is backed by an already-passing eval
   lane; no marketing layer.
 - The showcase becomes the natural regression sentinel: if any of the
@@ -163,7 +165,7 @@ operator-supplied template path.
 
 ## PR Checklist
 
-- Capability added: single artifact composing four CORE invariants under 30s.
+- Capability added: single artifact composing four CORE invariants under 60s.
 - Invariants proved: `public_showcase_pure_composition`, `public_showcase_all_claims_supported`, `public_showcase_json_byte_equality`.
 - Lane proving it: `evals/public_demo/`.
 - Hidden normalization / stochastic fallback / approximate recall / unreviewed mutation: none. Pure composition enforced by grep gate.

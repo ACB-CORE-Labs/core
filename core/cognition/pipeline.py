@@ -173,11 +173,23 @@ class CognitiveTurnPipeline:
         # CognitiveTurnResult.refusal_reason when non-empty.
         _recognition_refusal_reason: str = ""
         if self._recognizer is not None:
-            # Pass depths and agent_node_id from node_depths/GraphNode when available for 3-lang canonicalization on spine (AC1).
-            # Chain from prior turn's _last if no current (real propagation across turns on spine).
-            _depths = getattr(self, '_current_node_depths', None) or getattr(self, '_last_node_depths', None) or {}
-            _agent_nid = getattr(self, '_current_agent_node_id', None)
-            _rec_outcome = recognize(self._recognizer, raw_tokens, depths=_depths, agent_node_id=_agent_nid)
+            # Same-turn depth for recognition: resolve he/grc roots from tokens
+            # before PropositionGraph exists (plan residual). Prefer early
+            # provisional t{i} depths; fall back to current/prior-turn graph
+            # depths for multi-turn chaining (AC1).
+            from chat.pack_resolver import resolve_token_depths
+
+            _early_depths, _early_agent = resolve_token_depths(raw_tokens)
+            _prior_depths = (
+                getattr(self, "_current_node_depths", None)
+                or getattr(self, "_last_node_depths", None)
+                or {}
+            )
+            _depths = _early_depths if _early_depths else _prior_depths
+            _agent_nid = _early_agent or getattr(self, "_current_agent_node_id", None)
+            _rec_outcome = recognize(
+                self._recognizer, raw_tokens, depths=_depths, agent_node_id=_agent_nid
+            )
             if _rec_outcome.admitted:
                 _ep_node = EpistemicNode(
                     node_id=f"{self._recognizer.teaching_set_id}:{self._turn_number}",

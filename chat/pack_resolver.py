@@ -35,6 +35,7 @@ import json
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import Sequence
 
 # Default mounted lexicon-pack ids that ADR-0063 surface composers
 # consult.  Order matters: earlier packs win on lemma collision.  This
@@ -385,6 +386,47 @@ def resolve_entry(
             root=root,
         )
     return None
+
+
+def resolve_token_depths(
+    tokens: Sequence[str],
+    pack_ids: tuple[str, ...] | None = None,
+) -> tuple[dict[str, dict], str | None]:
+    """Resolve he/grc depth for raw tokens before PropositionGraph exists.
+
+    Same-turn recognition needs root data before graph build fills
+    ``node_depths`` with ``p*`` ids. This returns provisional depths keyed
+    by ``t{i}`` (token index) for tokens that resolve with he/grc language
+    and a root, plus the first such provisional node id as the agent
+    candidate.
+
+    Pure relative to pack lexicon lookups (deterministic exact match).
+    Empty when no depth-bearing tokens are present.
+    """
+    if pack_ids is None:
+        pack_ids = DEFAULT_RESOLVABLE_PACK_IDS + DEPTH_PACK_IDS
+    depths: dict[str, dict] = {}
+    agent_node_id: str | None = None
+    if not tokens:
+        return depths, agent_node_id
+    for i, tok in enumerate(tokens):
+        if not isinstance(tok, str) or not tok.strip():
+            continue
+        res = resolve_entry(tok, pack_ids=pack_ids)
+        if res is None:
+            continue
+        lang = res.language
+        root = res.root
+        if lang not in ("he", "grc") or not root:
+            continue
+        nid = f"t{i}"
+        entry: dict = {"language": lang, "root": root}
+        if res.morphology_id:
+            entry["morphology_id"] = res.morphology_id
+        depths[nid] = entry
+        if agent_node_id is None:
+            agent_node_id = nid
+    return depths, agent_node_id
 
 
 def clear_resolver_cache() -> None:

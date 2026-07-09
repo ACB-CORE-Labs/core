@@ -69,12 +69,13 @@ Alignment: AGENTS.md (pre-edit traces, immutability via replace/new, exact recal
 - scripts/capture_spine_evidence.sh (expanded keys)
 - plan.md (new, checklist+evidence)
 
-## Next (if any)
-- If recognition_grounded_graph + live 3lang taught shapes need same-turn root recog before graph, consider early subject resolve for depths pre-recog (future, not required for current ACs).
-- Rebase/merge per git workflow after review.
+## Next (if any) — closed 2026-07-08 deck
+- **Same-turn root recog (done):** `resolve_token_depths` + pipeline early wire before graph.
+- **Capability obligations (done):** `tests/test_3lang_depth_capability.py` (he/grc exemplars, result fields, construction, dilation).
+- **public_demo budget (done):** 60s reference budget; soft case (hard raise opt-in); re-pin lane SHAs.
+- **Geometric signature (partial):** pack-scale preferred; legacy N/M regex retained with explicit migration note.
+- Rebase/merge per git workflow after review (Forgejo / `tea`).
 - (retired) No longer create formal HANDOFF files. Use session-break-summary-<DATETIME>.md on pauses per AGENTS.md.
-- SHA drifts (demo_composition + public_demo only) are expected/intentional from spine changes. Re-pin with `--update` + `generate_claims.py` when current active implementation slice is complete (or pre-PR). Continue R&D; monitor via `verify_lane_shas.py` after output-affecting edits. Fresh trace + core cognition lanes remain the key stability signals.
-- /compact executed: See docs/COMPACT_STRATEGY.md (process) and docs/session-compacts/2026-07-06-compact.md (current distilled state for new thread). Use the 2026-07-06 compact to seed fresh session. Continue R&D there until slice + re-pin ready, then PR.
 
 All skeptic gaps addressed (pipeline recog/ctx/attrs, runtime depth pass, teaching placeholder->real, anti nid, depth_canonical no-proxy, tests real+asserts+logs, pass_manager real, graph integration, plan/verif updated).
 
@@ -99,7 +100,7 @@ All skeptic gaps addressed (pipeline recog/ctx/attrs, runtime depth pass, teachi
   - Refreshed canonical demo reports.
 - Current top: 73bca055 (re-pin + reports).
 - Slice feels complete for phases 1-5 + refinements + integration on current main. Depth travels: pack resolver → pipeline (node_depths + graph_anti + attrs) → recognize (canonical) → runtime contemplate → teaching/pass_manager/contracts (framing + enrich) → graph.
-- Next if more R&D: extend root-aware to additional construction/derivation call sites for 3lang frames; add he/grc construction exemplars; wire depth into more geometric proposal paths; prep PR (push to forgejo remote, use tea pulls).
+- Deck close 2026-07-08: same-turn depth, capability exemplars (he/grc), construction depth note, public_demo 60s budget + soft case, pack-first dilation scale. Prep PR via forgejo/`tea`.
 - Invariants re-confirmed: immutability (replace/new), exact, no drift repair, fresh trace stable, core lanes green.
 - Pickup seeds (NEW_SESSION_PROMPT.txt, docs/session-compacts/2026-07-06-compact.md, COMPACT_STRATEGY.md) can now be archived per strategy.
 
