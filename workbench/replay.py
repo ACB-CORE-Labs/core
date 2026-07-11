@@ -62,7 +62,7 @@ CRITICAL_FIELDS = frozenset(
 # Wall-clock by nature, or derived over wall-clock bytes (journal_digest
 # hashes the timestamp): expected to differ on every replay and never
 # evidence against equivalence.
-INFORMATIONAL_FIELDS = frozenset({"timestamp", "turn_cost_ms", "journal_digest"})
+INFORMATIONAL_FIELDS = frozenset({"timestamp", "turn_cost_ms", "journal_digest", "meta_rh_evidence"})
 
 
 def replay_turn(

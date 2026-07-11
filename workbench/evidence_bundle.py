@@ -63,6 +63,7 @@ def build_evidence_bundle(entry: Any) -> EvidenceBundle:
         pipeline_record=to_data(entry.pipeline_record),
         field_evidence=to_data(entry.field_evidence),
         leeway_evidence=to_data(entry.leeway_evidence),
+        meta_rh_evidence=to_data(getattr(entry, "meta_rh_evidence", None)),
         replay_reproducer=reproducer,
         bundle_digest="",  # filled below; excluded from its own computation
     )
