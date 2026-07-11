@@ -1,3 +1,11 @@
+> [!IMPORTANT]
+> **Repository Migration Notice:**
+> The GitHub repository `AssetOverflow/core` is now essentially **Read Only**.
+> The active open-source repository is available for cloning/forking at our new git headquarters:
+> 🌐 **[core-gitquarters.acbcontent.org](https://core-gitquarters.acbcontent.org)** (along with new open-source projects coming down the pipeline).
+> 
+> Please update your remotes and direct any issues, pull requests, or contributions to the new git headquarters.
+
 # CORE-AI: Versor Engine
 
 A cognitive field system built on Cl(4,1) Conformal Geometric Algebra.
@@ -54,6 +62,18 @@ CORE is not moving toward a wholesale Zig rewrite. The architecture is moving to
 The rule is component law, not language preference. Zig may enter where explicit allocation, deterministic buffer ownership, C ABI clarity, and edge-native deployment materially strengthen CORE. Zig must not replace review-gated semantics, introduce approximate recall, hide repair in native code, or turn teacher/shadow models into substrate.
 
 Decision package: [`docs/zig/README.md`](docs/zig/README.md). Adoption gates: [`docs/zig/adoption-gates.md`](docs/zig/adoption-gates.md).
+
+---
+
+## The GeometricDelta ABI
+
+To maintain strict physical boundaries, all external signals, modality compiler outputs (e.g. Sopher's Callosum, audio/vision compilers), and cognitive updates entering CORE's Right Hemisphere (RH) must conform to the **`GeometricDelta` ABI**. 
+
+- **Physical Closure Invariant**: Every `GeometricDelta` must pass the guarded projector (scalar rescale + monotone Newton iterations) with a residual below configured tolerance ($\epsilon \le 10^{-6}$), or be rejected at the boundary (**reject-and-retain**).
+- **Epistemic Invariant**: Every delta carries an epistemic state mapped directly to CORE's truth-seeking schema, defaulting to `SPECULATIVE` until promoted by Vault coherence evidence.
+- **Causal Graph (CRDT)**: Deltas are content-addressed and carry causal parents, allowing distributed event-frontier merges instead of simple state mutations.
+
+Core definition: [`core/abi/geometric_delta.py`](core/abi/geometric_delta.py). Validator: [`core/abi/geometric_delta_validator.py`](core/abi/geometric_delta_validator.py).
 
 ---
 
