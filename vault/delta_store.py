@@ -47,10 +47,13 @@ class DeltaStore:
             print(f"[REJECT-AND-RETAIN] Delta {delta.id} rejected: {reason}")
             return False
 
-        # Create the CRDT event envelope
+        # Create the CRDT event envelope. Copy parents: the caller may have
+        # built the delta from a live frontier set, and the frontier update
+        # below must never write through into the delta's causal links
+        # (ADR-0026.1 §2.1).
         event = DeltaCRDTEvent(
             id=delta.id,
-            parents=delta.parents,
+            parents=set(delta.parents),
             delta=delta,
             author=author
         )
@@ -74,5 +77,10 @@ class DeltaStore:
 
     @property
     def frontier(self) -> Set[str]:
-        """Get the current causal frontier."""
-        return self._frontier
+        """Get a snapshot of the current causal frontier.
+
+        Returns a copy: handing out the live set would let ``insert``'s own
+        frontier maintenance mutate any delta built from it, emptying the
+        frontier and severing every stored delta's parents (ADR-0026.1 §2.1).
+        """
+        return set(self._frontier)
