@@ -29,7 +29,7 @@ If you are an institutional backer, AI safety researcher, or technical sponsor e
 
 👉 **[Sponsor AssetOverflow on GitHub](https://github.com/sponsors/AssetOverflow)**
 
-👉 **[Support via Open Collective](https://opencollective.com/assetoverflow-core)**
+👉 **[Support via Open Collective](https://opencollective.com/core.ai)**
 
 ---
 
