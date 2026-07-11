@@ -177,6 +177,41 @@ class FieldEvidence:
 
 
 @dataclass(frozen=True, slots=True)
+class MetaRHEvidence:
+    """Bi-hemisphere Meta-RH observability evidence.
+
+    Surfaces the exact rule-based controller metrics from Sopher's RH governor
+    into the CORE evidence chain, ensuring we don't build a parallel telemetry stack.
+    """
+
+    schema_version: Literal["meta_rh_evidence_v1"]
+    status: PipelineEvidenceStatus
+    missing_reason: str | None
+    rh_energy: float
+    rh_mean_norm: float
+    rh_max_norm: float
+    rh_drift: float
+    violation_count: int
+    correction_count: int
+    mean_correction_magnitude: float
+    vault_n_records: int
+    vault_n_queries: int
+    vault_conflicts: int
+    vault_precision_proxy: float
+    lh_latency_ms: float
+    lh_emissary: str
+    lh_capabilities: tuple
+    harmful_compliance: float
+    over_refusal: float
+    utility: float
+    mean_logit_gap: float
+    closure_mode: str
+    closure_max_residual: float
+    closure_collapse_count: int
+    closure_field_max_residual: float
+
+
+@dataclass(frozen=True, slots=True)
 class LivedLifeHeartbeat:
     """One beat of the continuous life (read-only telemetry).
 
@@ -266,6 +301,7 @@ class EvidenceBundle:
     pipeline_record: CognitivePipelineRecord | None
     field_evidence: FieldEvidence | None
     leeway_evidence: LeewayEvidence | None
+    meta_rh_evidence: MetaRHEvidence | None
     replay_reproducer: str
     bundle_digest: str
 
@@ -336,6 +372,7 @@ class ChatTurnResult:
     pipeline_record: CognitivePipelineRecord | None = None
     field_evidence: FieldEvidence | None = None
     construction_evidence: ConstructionEvidence | None = None
+    meta_rh_evidence: MetaRHEvidence | None = None
     turn_id: int | None = None
 
 
@@ -374,6 +411,7 @@ class TurnJournalEntrySchema:
     pipeline_record: CognitivePipelineRecord | None = None
     field_evidence: FieldEvidence | None = None
     construction_evidence: ConstructionEvidence | None = None
+    meta_rh_evidence: MetaRHEvidence | None = None
 
 
 @dataclass(frozen=True, slots=True)
