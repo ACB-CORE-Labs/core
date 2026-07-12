@@ -7,7 +7,7 @@ auto_invoke: true
 
 Execute the full **Session Start Checklist** from GROK.md in strict order, including the **Workspace Hygiene + Branch/Worktree Protocol**.
 
-**Important:** We use plain `git` (with insteadOf forwarding to Forgejo) and never `gh`. See AGENTS.md and `docs/dev/git-forgejo.md` for the required global config and setup.
+**Important:** We use plain `git` (with insteadOf forwarding to Forgejo) and never `gh`. See AGENTS.md for the required global config and setup.
 
 1. Read GROK.md in full.
 2. Read AGENTS.md in full.
