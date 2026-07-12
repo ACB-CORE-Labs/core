@@ -11,8 +11,12 @@ from algebra.cl41 import N_COMPONENTS
 from algebra.rotor import make_rotor_from_angle
 from algebra.versor import unitize_versor, versor_apply, versor_condition
 from core.physics.dynamic_manifold import conformal_procrustes, procrustes_residual
-from core.physics.goldtether import GoldTetherMonitor, coherence_residual
-from core.physics.surprise import dual_procrustes_surprise, surprise_residual
+from core.physics.goldtether import GoldTetherMonitor
+from core.physics.surprise import (
+    SurpriseResidualError,
+    dual_procrustes_surprise,
+    surprise_residual,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,7 +112,22 @@ def run_analogical_transfer(
             continue
 
         basis = np.column_stack([_identity(), case.source])
-        _sur_v, sur_n = surprise_residual(case.novel_query, basis)
+        try:
+            _sur_v, sur_n = surprise_residual(case.novel_query, basis)
+        except SurpriseResidualError as exc:
+            results.append(
+                TransferResult(
+                    case_id=case.case_id,
+                    residual=residual,
+                    goldtether_before=gt_before,
+                    goldtether_after=gt_after,
+                    correct=False,
+                    refused=True,
+                    reason=f"surprise_refused:{exc.reason}",
+                )
+            )
+            counts["refused"] += 1
+            continue
         dual = dual_procrustes_surprise(case.source, case.target, basis)
 
         if not closed:
