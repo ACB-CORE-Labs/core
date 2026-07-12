@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -97,13 +96,12 @@ def test_serve_never_autonomous_band():
 def test_lifelong_curve_telemetry_replay():
     m1 = GoldTetherMonitor()
     m2 = GoldTetherMonitor()
-    for i in range(5):
-        F = make_rotor_from_angle(0.01 * i) if i else _id()
-        # identity always closed; elevation path
+    for _ in range(5):
+        # identity always closed; deterministic elevation path
         m1.update(_id(), epistemic_elevation=True)
         m2.update(_id(), epistemic_elevation=True)
     assert m1.telemetry()["history_tail"] == m2.telemetry()["history_tail"]
-    assert m1.telemetry()["schema_version"] == "goldtether_coherence_v1"
+    assert m1.telemetry()["schema_version"] == "goldtether_coherence_v2"
 
 
 def test_supervised_blend_closure_and_endpoints():

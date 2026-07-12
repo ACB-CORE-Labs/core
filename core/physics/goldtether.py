@@ -1,8 +1,17 @@
 """
 core/physics/goldtether.py
 
-GoldTether — Coherence Residual Monitor + Dynamic Pseudoscalar Floor
+GoldTether — Coherence Residual Monitor + Dynamic Autonomy Floor
 ADR-0238
+
+Note (fidelity #19, RETIRED): an earlier draft borrowed grade-5 "pseudoscalar"
+vocabulary from Super-Blueprint §3.3 for the autonomy floor and read ``F[31]``
+into telemetry. That anchor is vacuous in odd-dim Cl(4,1) — field-state versors
+are even (``F[31] ≡ 0``) and ``I₅`` is central (``V·I₅·Ṽ = I₅`` for every
+versor), so no non-vacuous grade-5 transition invariant exists. The namesake is
+removed; the integrity-anchor role is carried by versor closure + the harmonized
+GoldTether residual + biography/identity holonomy. See
+``docs/research/third-door-blueprint-fidelity.md`` §5.
 
 Absolute mastery implementation on the live Cl(4,1) algebra kernel.
 All operators are pure where possible, dual-corrected, and enforce algebraic
@@ -25,8 +34,7 @@ from algebra.versor import versor_condition, versor_unit_residual
 
 _CLOSURE_TOL = 1e-6
 _NEAR_ZERO = 1e-12
-_PSEUDOSCALAR_IDX = 31
-_TELEMETRY_SCHEMA = "goldtether_coherence_v1"
+_TELEMETRY_SCHEMA = "goldtether_coherence_v2"  # v2: dropped vacuous grade-5 channel (#19)
 _E4_IDX = 4
 _E5_IDX = 5
 
@@ -67,7 +75,6 @@ class CoherenceResidual:
     dual: float
     combined: float
     kappa: float
-    pseudoscalar: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,7 +113,7 @@ class GoldTetherMonitor:
     Primary residual:
         R(t) = || F(t) * reverse(F(t)) - 1 ||_F
 
-    Dynamic pseudoscalar floor rises only on proven epistemic elevation.
+    Dynamic autonomy floor rises only on proven epistemic elevation.
     supervised_autonomy_level ∈ [0, 1] is the single gate for HITL relaxation
     (exposed as ``autonomy``).
     """
@@ -158,8 +165,7 @@ class GoldTetherMonitor:
             # Autonomy may never exceed the floor
             self.autonomy = min(self.autonomy + self.autonomy_step, self.floor)
 
-        ps = float(_as_mv(F)[_PSEUDOSCALAR_IDX])
-        self.history.append((float(r), float(self.floor), float(self.autonomy), ps))
+        self.history.append((float(r), float(self.floor), float(self.autonomy)))
         if len(self.history) > self.max_history:
             self.history.pop(0)
 
@@ -169,7 +175,7 @@ class GoldTetherMonitor:
         """Hard gate: only true when residual is safe AND floor is high enough."""
         if not self.history:
             return False
-        last_r, last_floor, last_auto, _ps = self.history[-1]
+        last_r, last_floor, last_auto = self.history[-1]
         return (
             last_r < self.epsilon_drift
             and last_floor >= self.hitl_floor_threshold
@@ -296,7 +302,6 @@ class GoldTetherMonitor:
             dual=dual,
             combined=float(combined),
             kappa=kappa,
-            pseudoscalar=float(F_arr[_PSEUDOSCALAR_IDX]),
         )
 
     def decide(
@@ -371,18 +376,18 @@ class GoldTetherMonitor:
         return out
 
     def telemetry(self) -> dict[str, Any]:
-        """Workbench-safe projection (pseudoscalar floor channel)."""
-        last = self.history[-1] if self.history else (0.0, self.floor, self.autonomy, 0.0)
+        """Workbench-safe projection (autonomy floor channel)."""
+        last = self.history[-1] if self.history else (0.0, self.floor, self.autonomy)
         return {
             "schema_version": _TELEMETRY_SCHEMA,
             "residual": float(last[0]),
-            "pseudoscalar_floor": float(self.floor),
+            "autonomy_floor": float(self.floor),
             "supervised_autonomy_level": float(self.autonomy),
             "may_relax_hitl": bool(self.may_relax_hitl()),
             "epsilon_drift": float(self.epsilon_drift),
             "n_history": len(self.history),
             "history_tail": [
-                {"r": h[0], "floor": h[1], "autonomy": h[2], "ps": h[3]}
+                {"r": h[0], "floor": h[1], "autonomy": h[2]}
                 for h in self.history[-16:]
             ],
         }

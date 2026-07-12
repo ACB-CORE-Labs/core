@@ -30,7 +30,7 @@
 | 2 | Cartan–Iwasawa decomposition | Super §2.2 | 🔴 replaced — raises ~45% | #16 |
 | 3 | Conformal Procrustes | Super §3.1 | 🔴 replaced — degenerate | #17 |
 | 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🔴 half-missing | #18 |
-| 5 | Grade-5 pseudoscalar invariant | Super §3.3 | 🔴 missing (namesake) | #19 |
+| 5 | Grade-5 pseudoscalar invariant | Super §3.3 | ⚪ RETIRED — vacuous in odd-dim Cl(4,1) | #19 (closed) |
 | 6 | Surprise residual operator | Super §3.2 | 🟡 partial / rewired | #20 |
 | 7 | Trajectory invariants + zero-fabrication | R&D §2.2 | ⚫ absent | #21 |
 | 8 | ADR-DAG conformal embedding | R&D §2.4 | ⚫ absent | #21 |
@@ -106,16 +106,42 @@ Add `𝓘_gold` (seeded `n_o, n∞, 1`), the two-term harmonized residual, and `
 
 ---
 
-## 5. Grade-5 pseudoscalar invariant — 🔴 missing / namesake (#19)
+## 5. Grade-5 pseudoscalar invariant — ⚪ RETIRED as vacuous (#19)
+
+> **Resolution (2026-07-12):** three-agent R&D convergence (Opus 4.8 / Grok-4.5-HEAVY / GPT-5.6-Terra), ratified. The §3.3 gate is not "missing" — it is **mathematically vacuous in odd-dimensional Cl(4,1)** and cannot be built as specified. Issue #19 is closed. The namesake was removed from `goldtether.py` in the same change (see "What changed" below).
 
 ### Blueprint spec (Super §3.3)
-The pseudoscalar `I = e1∧e2∧e3∧e4∧e5` is the orientation of CORE's integrity. Every transition `F' = V·F·Ṽ` must preserve pseudoscalar sign **and** magnitude: `⟨F'·F̃'⟩₅ = ⟨F·F̃⟩₅`. Any optimization / contemplation promotion / autonomous self-authorship that would flip `sgn(I)` is **blocked at the boundary**. Called "the ultimate mathematical anchor for alignment."
+The pseudoscalar `I₅ = e1∧e2∧e3∧e4∧e5` is the orientation of CORE's integrity. Every transition `F' = V·F·Ṽ` must preserve pseudoscalar sign **and** magnitude: `⟨F'·F̃'⟩₅ = ⟨F·F̃⟩₅`. Any optimization / contemplation promotion / autonomous self-authorship that would flip `sgn(I₅)` is **blocked at the boundary**. Called "the ultimate mathematical anchor for alignment."
 
-### What landed
-`goldtether.py` uses `_PSEUDOSCALAR_IDX = 31` to read `F[31]` into telemetry/history, and calls the autonomy threshold a "pseudoscalar_floor." There is **no gate** enforcing `⟨F'·F̃'⟩₅` preservation. The namesake actively masks the absence.
+### Why it is vacuous (the proof that retired it)
+The spec presumes a spacetime-like even-dimensional intuition. CORE's algebra is Cl(4,1) — **odd** total dimension (5) — where the grade-5 pseudoscalar behaves degenerately for exactly the quantities the gate inspects:
 
-### Done right
-A pure predicate `pseudoscalar_preserved(F, F') -> bool` (sign + magnitude of the grade-5 part within tolerance), wired as a fail-closed gate on transition / promotion / self-authorship, with a typed disclosure. Rename `pseudoscalar_floor → autonomy_floor`. Acceptance: sign-flipping transition refused; valid transition admitted.
+1. **`I₅` is central.** In odd dimension the pseudoscalar commutes with every element, so for *any* versor `V` (including odd reflections, where `V·Ṽ = ±1`), the sandwich collapses: `V·I₅·Ṽ = I₅·(V·Ṽ) = ±I₅`. Orientation is invariant by construction — there is no map in the versor group that flips it, so there is nothing to "block."
+2. **Field-state versors are even ⇒ `F[31] ≡ 0`.** Every state the monitor sees is built by the sanctioned constructors (`make_rotor_from_angle`, `word_transition_rotor`, geometric products thereof) which live in the **even subalgebra**. The grade-5 (odd) coefficient of an even multivector is identically zero. Reading `F[31]` returns a structural `0.0`, always.
+3. **The gated quantity is identically zero.** For an even unit versor, `F·F̃ = 1` (a scalar), so `⟨F·F̃⟩₅ = 0` for the source **and** the target of every transition. The gate `⟨F'·F̃'⟩₅ = ⟨F·F̃⟩₅` compares `0 == 0`. It can never fire.
+4. **The "even-versor parity gate" fix is also vacuous.** The natural repair — "reject any transition that injects odd-grade mass" — was *invalidated in the same review*: the even subalgebra is closed under the sandwich, so odd-grade mass `≡ 0` on every value the sanctioned path can produce. Parity guards nothing a versor could reach. (Empirically confirmed: on a composed 5-plane field versor, `‖⟨F·F̃⟩₅‖ = 0`, and total odd-grade mass `= 0`.)
+
+The single **real** residual gap in this neighborhood is unrelated to grade-5: `algebra/versor.py::versor_condition` *accepts* an odd reflection such as `e1` (returns `0.0`), i.e. it gates "is a unit versor," not "is an even/orientation-preserving versor." That is a boundary-hardening concern about **admitting odd generators at all**, not about a grade-5 transition invariant, and it is out of scope for #19.
+
+### What changed (this PR)
+The namesake was removed, not left masking an absence:
+- Deleted `_PSEUDOSCALAR_IDX` and every `F[31]` read (the dead `ps` history element and `CoherenceResidual.pseudoscalar`, both structural zeros).
+- Renamed the telemetry channel `pseudoscalar_floor → autonomy_floor` (it was always `self.floor`, the earned-autonomy ceiling — never a pseudoscalar).
+- Bumped the telemetry schema `goldtether_coherence_v1 → v2` (the shape changed: key renamed, dead `ps` dropped).
+- Updated the module/class docstrings to state the retirement inline.
+
+### Where the integrity-anchor role actually lives (subsumption)
+The alignment intent behind §3.3 is real and is **already carried, non-vacuously**, by three built mechanisms:
+1. **Versor closure** — `versor_condition(F') < 1e-6` is enforced on every transition (`supervised_blend` raises on breach). This is the genuine "the state stayed on the group" gate, checked at ~1e-13 over a 100k-step walk (see `project-l10-closure-by-construction`).
+2. **GoldTether harmonized residual + α control (#24)** — drift term + distance-to-`𝓘_gold` + `α = Φ(R)`, the actual alignment-pressure signal, replacing the vacuous orientation check with a metric one that *can* move.
+3. **Biography / identity holonomy (ADR-0240 + `engine_identity`)** — order-sensitive trajectory encoding + content-derived identity lineage: the "same continuous life, no confabulated self" anchor. This is where a *real* topological integrity invariant lives.
+
+Grade-5 objects remain non-vacuous **only in the incidence layer** (5-blades as conformal geometric objects under meet/join in `algebra/cga.py`), never as a transition/promotion gate.
+
+### Reusable meta-criterion (the session's key output)
+> **"Would this gate ever fire on a value produced by the sanctioned construction path? If no → it is a namesake gate, not an anchor."**
+
+This diagnostic is what killed §3.3, and it should be applied to every remaining `§-N` claim before any implementation effort is spent. Acceptance for #19 is therefore **negative**: no gate is built; the namesake is gone; the intent is shown to be subsumed.
 
 ---
 
@@ -207,7 +233,7 @@ PY
 | Real Cartan–Iwasawa via `n_o`/`n∞` | #16 |
 | Kabsch-conformal Procrustes on point sets | #17 |
 | GoldTether gold-set + harmonized residual + α=Φ(R) | #18 |
-| Grade-5 pseudoscalar preservation gate | #19 |
+| Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
 | Surprise: blade contraction + wiring + fix conjunct | #20 |
 | Absent proposals: sensorimotor + ADR-DAG | #21 |
 
