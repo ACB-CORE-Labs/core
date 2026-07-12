@@ -5,8 +5,8 @@ Three physics sublayers:
   compositional — binding, digest, reasoning, articulation (ADR-0009)
   identity     — identity manifold, drives, exertion, character (ADR-0010)
 
-All operators are stateless and frozen where possible.
-State lives in the FieldState; operators are pure transformations.
+Third-Door Horizon (ADR-0238–0240):
+  GoldTether, dynamic manifold, surprise dual, biography holonomy.
 """
 
 from core.physics.salience import SalienceOperator, SalienceMap, FieldRegion
@@ -22,6 +22,42 @@ from core.physics.drive import DriveGradientMap, GradientField, ValueAxis
 from core.physics.exertion import ExertionMeter, FatigueIndex, CycleCost
 from core.physics.identity import IdentityManifold, IdentityCheck, IdentityScore, CharacterProfile
 from core.physics.learning import PromotionDecision, VaultPromotionPolicy
+from core.physics.goldtether import (
+    AutonomyBand,
+    AutonomyDecision,
+    CoherenceResidual,
+    GoldTetherMonitor,
+    OperatingMode,
+    coherence_residual,
+)
+from core.physics.dynamic_manifold import (
+    AxisClassification,
+    CartanIwasawaFactors,
+    ConformalProcrustesResult,
+    PrincipalAxis,
+    SignatureAwarePCAResult,
+    cartan_iwasawa_extract,
+    cartan_iwasawa_factorize,
+    conformal_procrustes,
+    dual_correction_slerp,
+    procrustes_residual,
+    signature_aware_pca,
+    signature_aware_pca_report,
+)
+from core.physics.surprise import dual_operator, dual_procrustes_surprise, surprise_residual
+from core.physics.biography import (
+    BiographyHolonomyBlade,
+    biography_telemetry,
+    integrate_biography,
+    reconstruct_biography,
+)
+from core.physics.temporal_gate import (
+    TemporalAdmissibilityGate,
+    TemporalContext,
+    TemporalDecision,
+    TemporalVerdict,
+)
+from core.physics.self_authorship import AuthorshipProposal, SelfAuthorshipMiner
 
 __all__ = [
     "SalienceOperator", "SalienceMap", "FieldRegion",
@@ -36,4 +72,17 @@ __all__ = [
     "ExertionMeter", "FatigueIndex", "CycleCost",
     "IdentityManifold", "IdentityCheck", "IdentityScore", "CharacterProfile",
     "PromotionDecision", "VaultPromotionPolicy",
+    "AutonomyBand", "AutonomyDecision", "CoherenceResidual",
+    "GoldTetherMonitor", "OperatingMode", "coherence_residual",
+    "AxisClassification", "CartanIwasawaFactors", "ConformalProcrustesResult",
+    "PrincipalAxis", "SignatureAwarePCAResult",
+    "cartan_iwasawa_extract", "cartan_iwasawa_factorize",
+    "conformal_procrustes", "dual_correction_slerp", "procrustes_residual",
+    "signature_aware_pca", "signature_aware_pca_report",
+    "dual_operator", "dual_procrustes_surprise", "surprise_residual",
+    "BiographyHolonomyBlade", "biography_telemetry",
+    "integrate_biography", "reconstruct_biography",
+    "TemporalAdmissibilityGate", "TemporalContext",
+    "TemporalDecision", "TemporalVerdict",
+    "AuthorshipProposal", "SelfAuthorshipMiner",
 ]
