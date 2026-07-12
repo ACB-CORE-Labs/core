@@ -15,9 +15,9 @@ citing the blueprint section + audit finding. When an operator is implemented to
 spec, its xfail flips to xpass (strict) and CI forces the marker's removal.
 
 Empirical findings (2026-07-11 audit, reproduced deterministically below):
-  #1  supervised_blend is a no-op for interior alpha on composed versors
-      (rotor_power returns identity for the non-simple transition rotor);
-      versor_condition stays ~1e-16 and masks it.
+  #1  [RESOLVED by #23] supervised_blend was a no-op for interior alpha on
+      composed versors (rotor_power returned identity for the non-simple
+      transition rotor). Exact fractional powers now implemented.
   #2  cartan_iwasawa_factorize raises "factor R not closed" on composed
       conformal versors (~45% of the time), instead of the "mathematically
       exact, guaranteed" decomposition the Super-Blueprint §2.2 specifies.
@@ -58,34 +58,6 @@ def _composed_versor(planes: tuple[int, ...], seed: float) -> np.ndarray:
 
 
 # --- Finding #1: supervised_blend geodesic ----------------------------------
-
-def test_supervised_blend_currently_degenerates_on_composed_versors():
-    """CHARACTERIZATION of finding #1 — locks the current (defective) behaviour.
-
-    On a composed pair, the "geodesic" collapses onto the source for every
-    interior alpha while closure stays green. This test PASSES today. When
-    supervised_blend is fixed to spec it SHOULD start failing — at which point
-    delete this test and drop the xfail on the spec test below.
-    """
-    a = _composed_versor((6, 7, 8, 10, 11), seed=1.0)
-    b = _composed_versor((6, 7, 8, 10, 11), seed=2.0)
-    m = GoldTetherMonitor()
-    for alpha in (0.25, 0.5, 0.75):
-        mid = m.supervised_blend(a, b, alpha)
-        assert np.allclose(mid, a, atol=1e-12), "no-op degeneration expected (finding #1)"
-
-
-@pytest.mark.xfail(
-    reason=(
-        "Finding #1 / R&D-Revised §2.3: supervised_blend applies rotor_power to the "
-        "whole (non-simple) transition rotor B*rev(A); rotor_power returns identity "
-        "for non-simple bivectors, so the blend is a no-op for interior alpha and only "
-        "reaches the target via the explicit alpha>=1 shortcut. versor_condition passes "
-        "and cannot detect it. Spec requires a genuine BCH-free geodesic (Cartan-Iwasawa "
-        "factor-wise slerp) that interpolates strictly between the endpoints."
-    ),
-    strict=True,
-)
 def test_supervised_blend_should_interpolate_composed_versors():
     a = _composed_versor((6, 7, 8, 10, 11), seed=1.0)
     b = _composed_versor((6, 7, 8, 10, 11), seed=2.0)
