@@ -27,6 +27,25 @@ _CLOSURE_TOL = 1e-6
 _NEAR_ZERO = 1e-12
 _PSEUDOSCALAR_IDX = 31
 _TELEMETRY_SCHEMA = "goldtether_coherence_v1"
+_E4_IDX = 4
+_E5_IDX = 5
+
+
+def _primal_gold_invariants() -> list:
+    """R&D-Revised §5 bootstrapping seeds: the identity versor and the two
+    conformal null directions ``n_o = 0.5(e5-e4)`` and ``n_inf = e4+e5``.
+    Coordinate-free algebraic anchors so the geometric distance term never
+    degenerates to drift-only at cold start.
+    """
+    ident = np.zeros(N_COMPONENTS, dtype=np.float64)
+    ident[0] = 1.0
+    n_o = np.zeros(N_COMPONENTS, dtype=np.float64)
+    n_o[_E5_IDX] = 0.5
+    n_o[_E4_IDX] = -0.5
+    n_inf = np.zeros(N_COMPONENTS, dtype=np.float64)
+    n_inf[_E4_IDX] = 1.0
+    n_inf[_E5_IDX] = 1.0
+    return [ident, n_o, n_inf]
 
 
 class OperatingMode(str, Enum):
@@ -102,6 +121,11 @@ class GoldTetherMonitor:
     autonomy_step: float = 0.01
     hitl_floor_threshold: float = 0.7
     hitl_autonomy_threshold: float = 0.5
+    # Harmonized residual + alpha control law (ADR-0238 §2.3 / R&D-Revised §2.3).
+    w_drift: float = 0.5
+    r_floor: float = 0.1
+    r_critical: float = 1.0
+    gold_invariants: list = field(default_factory=_primal_gold_invariants, compare=False)
 
     @property
     def supervised_autonomy_level(self) -> float:
@@ -157,6 +181,101 @@ class GoldTetherMonitor:
         self.autonomy = 0.0
         self.floor = 0.0
         self.history.clear()
+
+    # --- Harmonized residual + alpha control law (ADR-0238 §2.3) ---------------
+
+    def goldtether_residual(self, F: np.ndarray) -> float:
+        """Scale-harmonized coherence residual (ADR-0238 §2.3):
+
+            R = w·(drift / ε_drift) + (1−w)·(min_{I∈𝓘_gold} ‖F−I‖_F / ‖F‖_F)
+
+        The algebraic drift term (normalized by the numerical floor ε_drift) and
+        the geometric distance-to-gold term (normalized by ‖F‖) are each scaled to
+        ``[0, O(1)]`` so neither masks the other — the exact defect §2.3 exists to
+        fix. This is the ALIGNMENT signal that drives the constraint weight α; the
+        raw :func:`coherence_residual` stays the fail-closed *closure* gate.
+        """
+        F_arr = _as_mv(F)
+        drift = coherence_residual(F_arr)
+        drift_term = drift / self.epsilon_drift if self.epsilon_drift > 0.0 else drift
+        scale = float(np.linalg.norm(F_arr))
+        if self.gold_invariants and scale > _NEAR_ZERO:
+            min_dist = min(
+                float(np.linalg.norm(F_arr - np.asarray(inv, dtype=np.float64)))
+                for inv in self.gold_invariants
+            )
+            geo_term = min_dist / scale
+        else:
+            geo_term = 0.0
+        w = float(self.w_drift)
+        return float(w * drift_term + (1.0 - w) * geo_term)
+
+    def alpha_constraint(
+        self,
+        F: np.ndarray,
+        *,
+        mode: OperatingMode | str = OperatingMode.PRACTICE,
+    ) -> float:
+        """Human-constraint weight ``α ∈ [0,1]`` for the supervised transition
+        surface (R&D-Revised §2.3): ``α = Φ(R_gt; r_floor, r_critical)`` — a smooth
+        step of the *instantaneous* harmonized residual — composed with the
+        earned-autonomy ceiling and the serve-never-autonomous rule.
+
+        ``α = 0`` fully autonomous (trust self); ``α = 1`` full human override.
+        Earned autonomy sets the FLOOR on α: the engine may never act more
+        autonomously than it has earned over its trajectory, and SERVE is pinned
+        to full override.
+        """
+        op = OperatingMode(mode)
+        if op is OperatingMode.SERVE:
+            return 1.0
+        r = self.goldtether_residual(F)
+        lo, hi = float(self.r_floor), float(self.r_critical)
+        if r <= lo:
+            phi = 0.0
+        elif r >= hi or hi <= lo:
+            phi = 1.0
+        else:
+            phi = (r - lo) / (hi - lo)
+        alpha_floor = 1.0 - float(self.autonomy)
+        return float(min(1.0, max(phi, alpha_floor)))
+
+    def supervised_transition(
+        self,
+        v_self: np.ndarray,
+        v_constraint: np.ndarray,
+        F: np.ndarray,
+        *,
+        mode: OperatingMode | str = OperatingMode.PRACTICE,
+    ) -> np.ndarray:
+        """Blend the engine's own transition ``v_self`` toward the human/gold
+        ``v_constraint`` by the residual-driven constraint weight α.
+        ``α=0 → v_self`` (autonomous), ``α=1 → v_constraint`` (override).
+        Rides the exact geodesic (`supervised_blend`), so closure is preserved.
+        """
+        alpha = self.alpha_constraint(F, mode=mode)
+        return self.supervised_blend(v_self, v_constraint, alpha)
+
+    def promote_gold_invariant(self, F: np.ndarray, *, authorized: bool = False) -> None:
+        """Add a state versor to 𝓘_gold. CALLER-GATED: the ADR-0092 signed /
+        replay-verified promotion happens in the caller; this refuses to
+        self-authorize (one-mutation-path discipline). The full replay-verified
+        promotion pipeline + principal-axis decay are deferred (issue #18 follow-up).
+        """
+        if not authorized:
+            raise ValueError(
+                "promote_gold_invariant requires explicit authorization (ADR-0092 gate)"
+            )
+        self.gold_invariants.append(_as_mv(F).copy())
+
+    def prune_gold_invariants(self, max_size: int = 64) -> None:
+        """Bound 𝓘_gold (decay hook), always retaining the three primal seeds.
+        Full principal-axis pruning (R&D-Revised §5) is deferred."""
+        max_size = max(3, int(max_size))
+        if len(self.gold_invariants) > max_size:
+            primal = self.gold_invariants[:3]
+            recent = self.gold_invariants[3:][-(max_size - 3):]
+            self.gold_invariants = primal + recent
 
     def measure(self, F: np.ndarray, reference: Optional[np.ndarray] = None) -> CoherenceResidual:
         """Structured residual (primary + optional geometric distance to reference)."""
