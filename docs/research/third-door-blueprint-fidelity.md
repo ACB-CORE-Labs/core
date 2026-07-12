@@ -31,7 +31,7 @@
 | 3 | Conformal Procrustes | Super §3.1 | 🔴 replaced — degenerate | #17 |
 | 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🔴 half-missing | #18 |
 | 5 | Grade-5 pseudoscalar invariant | Super §3.3 | ⚪ RETIRED — vacuous in odd-dim Cl(4,1) | #19 (closed) |
-| 6 | Surprise residual operator | Super §3.2 | 🟡 partial / rewired | #20 |
+| 6 | Surprise residual operator | Super §3.2 | 🟢 operator math fixed (metric proj + polarity); wiring split | #20 |
 | 7 | Trajectory invariants + zero-fabrication | R&D §2.2 | ⚫ absent | #21 |
 | 8 | ADR-DAG conformal embedding | R&D §2.4 | ⚫ absent | #21 |
 | — | Biography holonomy | (ADR-0240; not in blueprints) | 🟢 sound | — |
@@ -145,18 +145,26 @@ This diagnostic is what killed §3.3, and it should be applied to every remainin
 
 ---
 
-## 6. Surprise residual operator — 🟡 partial / rewired (#20)
+## 6. Surprise residual operator — 🟢 operator math fixed (#20); DiscoveryCandidate wiring split to follow-up
+
+> **Resolution (2026-07-12):** the two operator-math defects are fixed in this PR — an exact metric-orthogonal projection and a reconciled productivity polarity. The third item (raise a `DiscoveryCandidate` into the contemplation loop) is a distinct cross-cutting surface — it touches `teaching/discovery` and the proposal-only / no-self-install discipline — and is split to its own follow-up so each PR is one coherent surface.
 
 ### Blueprint spec (Super §3.2)
-`S(x) = x − proj_{B_union}(x)`, where `proj_B(x) = (x·B)·B⁻¹` is the **geometric blade contraction**. `|S(x)|²` measures the epistemic frontier; high surprise (`> γ`) bypasses rejection and raises a `DiscoveryCandidate` in the contemplation loop (self-directed learning).
+`S(x) = x − proj_{B_union}(x)`, where `proj_B(x) = (x·B)·B⁻¹` is the **geometric blade contraction**. `|S(x)|²` measures the epistemic frontier; high surprise (`> γ`) raises a `DiscoveryCandidate` in the contemplation loop (self-directed learning).
 
-### What landed (`surprise.py`)
-1. Projection is **linear-algebra projection onto basis columns** (Minkowski for 5-vec, Euclidean Gram-Schmidt for 32-vec) — not blade contraction; the surprise-bivector grade structure isn't preserved.
-2. `dual_operator`: `productive = proc_r <= thr and sur_norm >= 0.0` — the second conjunct is **always true**, so surprise plays no role. `dual_procrustes_surprise` conversely requires `sur_norm < 1e-4` (accept only when *unsurprising*) — backwards from "productive surprise."
-3. Not wired: nothing outside `core/physics/` + tests imports it; no `DiscoveryCandidate` path.
+### The defects (as landed)
+1. Projection was **Euclidean Gram-Schmidt on flat 32-coefficient vectors** — metric-blind: it ignored the (+,+,+,+,−) signature and the blade grade structure, so "inside the admissible span" was judged by the wrong geometry. (The 5-vec path already used η.)
+2. `dual_operator`: `productive = proc_r <= thr and sur_norm >= 0.0` — the second conjunct is **always true**, so surprise never gated.
+3. Not wired: nothing raises a `DiscoveryCandidate`.
 
-### Done right
-Blade-contraction projection with grade assertions; a productivity gate that genuinely depends on surprise magnitude (high surprise ∧ low procrustes residual); reconcile the two functions' polarity; raise a `DiscoveryCandidate` into the contemplation loop behind the existing proposal-only / no-self-install discipline.
+### What changed (this PR)
+- **Exact metric-orthogonal projection.** `surprise_residual` now solves the metric normal equations `G c = r` (`G_ij = ⟨b_i,b_j⟩`, `r_i = ⟨b_i,x⟩`) via `lstsq`, under `cga_inner` (32-vec) / η (5-vec). The residual magnitude is the reversion (metric) norm, and grade-support containment is asserted (fail-closed on leakage).
+- **Fail-closed on a metric-degenerate span.** Typed `SurpriseResidualError` when `rank(G) < rank(B)` — a null direction with no reciprocal (e.g. a lone `n_o`). *Refinement over the original "rank(G) < k" spec:* mere linear dependence among **non-null** columns is ADMITTED (`lstsq` projects onto the actual span), so a merely-redundant live basis (`[1, source]`, which the analogical-transfer harness can produce) is not spuriously refused, the non-degenerate null-pair `{n_o, n_∞}` is admitted, and only a lone `n_o` is refused. This is what the geometry — not column-vector algebra — actually requires.
+- **Reconciled productivity polarity.** `productive` (and `transfer_accepted`) now both mean **productive TRANSFER = low Procrustes ∧ low surprise** (a structural match found AND the query inside the admissible span). This **corrects** §6's earlier "high surprise ∧ low procrustes = productive" phrasing, which conflated *transfer* with *discovery*: HIGH surprise is a **discovery** signal, not a productive transfer, and routes to the (split-out) `DiscoveryCandidate` path.
+- Tests: `tests/test_adr_0239_surprise_metric_projection.py` — metric-vs-Euclidean divergence (the load-bearing proof), null refusal, null-pair admission, redundant-basis admission, in/out-of-span, grade purity, polarity, determinism.
+
+### Remaining (follow-up — its own PR)
+Raise a `DiscoveryCandidate` (`teaching/discovery.py`) on high surprise into the contemplation loop, behind the existing proposal-only / no-self-install discipline, with no-self-install boundary tests.
 
 ---
 
@@ -234,7 +242,7 @@ PY
 | Kabsch-conformal Procrustes on point sets | #17 |
 | GoldTether gold-set + harmonized residual + α=Φ(R) | #18 |
 | Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
-| Surprise: blade contraction + wiring + fix conjunct | #20 |
+| Surprise: metric projection + productivity polarity — 🟢 done (#20); DiscoveryCandidate wiring split to follow-up | #20 |
 | Absent proposals: sensorimotor + ADR-DAG | #21 |
 
 Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.
