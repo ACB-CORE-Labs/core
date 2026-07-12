@@ -135,8 +135,11 @@ def surprise_residual(
     Both branches solve the metric normal equations ``G c = r`` (``G_ij =
     <b_i,b_j>``, ``r_i = <b_i,x>``) via ``lstsq``, fail-closed on a
     metric-degenerate span. Returns ``(residual_vector, residual_norm)`` where the
-    norm is the DEFINITE (Euclidean) magnitude of the residual — 0 iff nothing is
-    unexplained (see the module docstring on why this is not the metric norm).
+    norm is the DEFINITE Euclidean magnitude of the projection residual — NOT the
+    CGA metric — used as the stable threshold for productivity and discovery
+    routing; the projection itself is metric-orthogonal under ``cga_inner``. It is
+    0 iff nothing is unexplained, whereas the indefinite reversion norm can vanish
+    on a nonzero null residual (see the module docstring).
     """
     x_arr = np.asarray(x, dtype=np.float64)
     B = np.asarray(basis, dtype=np.float64)
