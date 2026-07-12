@@ -1,0 +1,214 @@
+# Third-Door Blueprint Fidelity Ledger
+
+**Status:** authoritative gap analysis for the ADR-0238/0239/0240 skeleton (PR #15).
+**Audience:** whoever implements the Third Door *for real*.
+**Verdict in one line:** what landed is a **safe, off-serving namesake scaffold** — it adopts the blueprints' vocabulary and file layout and makes its own tests green, but it does **not** implement the mathematics the two source blueprints specify. This document details every gap precisely enough to close it.
+
+> This replaces the "absolute mastery / single right solution" framing of the original landing (Mastery Report / PR #14 body). The blueprints are the rigorous artifact; the code is the loose one. That is the honest inversion of the landing claim.
+
+---
+
+## 0. Source-of-truth artifacts
+
+| Artifact | Role |
+|---|---|
+| `CORE ASI Super-Blueprint_ Third-Door Horizon.docx` (mirror: `docs/research/CORE-ASI-Super-Blueprint-Third-Door-Horizon.md`) | Specifies signature-aware PCA (§2.1), Cartan–Iwasawa (§2.2), GoldTether scale harmonization (§2.3), Conformal Procrustes (§3.1), Surprise (§3.2), grade-5 pseudoscalar invariant (§3.3). **"Super §x"** below. |
+| `CORE Advanced AGI_ASI R&D Blueprint (Revised).docx` | Specifies blade induction (§2.1), trajectory invariants + zero-fabrication (§2.2), GoldTether-modulated transition surface + α control law (§2.3), ADR-DAG embedding (§2.4), bootstrapping (§5). **"R&D §x"** below. |
+| `core/physics/{goldtether,dynamic_manifold,surprise,biography,temporal_gate,self_authorship}.py` | The landed code. |
+| `tests/test_adr_023{8,9}_*.py`, `test_adr_0240_*.py` | The landed tests (34, all green — see §7 for why green ≠ faithful). |
+| `tests/test_third_door_blueprint_fidelity.py` | The living gap ledger (this document, executable). |
+
+**Containment fact (why this is safe to land):** nothing in serving / runtime / cognition imports `core.physics.*` — only the package `__init__`, the eval harness, and tests. `chat/runtime.py` is untouched on this branch. The autonomy `decide()` is fail-closed and never `AUTONOMOUS` in `SERVE`. The self-authorship miner is proposal-only and never writes the vault. None of the defects below can reach the `wrong=0` serving path.
+
+---
+
+## 1. Scorecard
+
+| # | Operator | Blueprint | Fidelity | Issue |
+|---|---|---|---|---|
+| 1 | Signature-aware PCA | Super §2.1 / R&D §2.1 | 🟢 faithful (one untested add-on) | — |
+| 2 | Cartan–Iwasawa decomposition | Super §2.2 | 🔴 replaced — raises ~45% | #16 |
+| 3 | Conformal Procrustes | Super §3.1 | 🔴 replaced — degenerate | #17 |
+| 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🔴 half-missing | #18 |
+| 5 | Grade-5 pseudoscalar invariant | Super §3.3 | 🔴 missing (namesake) | #19 |
+| 6 | Surprise residual operator | Super §3.2 | 🟡 partial / rewired | #20 |
+| 7 | Trajectory invariants + zero-fabrication | R&D §2.2 | ⚫ absent | #21 |
+| 8 | ADR-DAG conformal embedding | R&D §2.4 | ⚫ absent | #21 |
+| — | Biography holonomy | (ADR-0240; not in blueprints) | 🟢 sound | — |
+| — | Temporal admissibility gate | (ADR-0240; not in blueprints) | 🟢 sound | — |
+| — | Self-authorship miner | (ADR-0240; not in blueprints) | 🟢 sound (proposal-only) | — |
+
+---
+
+## 2. Cartan–Iwasawa decomposition — 🔴 replaced (#16)
+
+### Blueprint spec (Super §2.2)
+Factor a conformal versor `V = R·T·D` by acting on the conformal null points `n_o` (origin) and `n∞` (infinity). Explicitly "mathematically exact, non-iterative, guarantees perfect decomposition":
+1. **Dilation** — `V n∞ Ṽ = λ² n∞`; `λ = √|V n∞ Ṽ|`; `D = exp(log(λ)·e_o∧e∞)`; peel: `V' = V·D⁻¹`.
+2. **Translation** — `V' n_o Ṽ' = n_o + a + ½a²n∞`; recover `a ∈ ℝ³` by projecting the Euclidean vector part; `T = exp(½ a∧e∞)`; peel: `R = V'·T⁻¹`.
+3. **Rotor** — the remainder `R` satisfies `R Ṙ = 1`, `R n_o Ṙ = n_o`, `R n∞ Ṙ = n∞`.
+
+### What landed (`dynamic_manifold.py::cartan_iwasawa_factorize`)
+No action on `n_o`/`n∞`. It grade-projects `B = ⟨V⟩₂`, branches on whether `B²` is scalar (simple bivector) and its sign, and in the **general (non-simple) case fabricates**:
+```
+R[0] = D[0] = |V[0]|**0.5 ;  R = R + ½B ;  D = D + ½B ;  T = normalize(reverse(R·D)·V)
+```
+R and D are seeded identically — this is not a K/A/N decomposition. The function then guards each factor with `versor_condition < 1e-6` and **raises `ValueError` when the fabricated R fails to close**.
+
+### The gap (empirical)
+- On composed conformal versors (products of ≥3 plane-rotations) it raises `factor R not closed` **84/200 (3 planes), 91/200 (4 planes)** ≈ 45%.
+- When it does *not* raise, reconstruction is faithful (`‖R·T·D − V‖ ~ 1e-16`) — so the closure guard makes it fail-*loud*, not silently-wrong. But it cannot factor ~half of realistic states.
+- The only test (`test_cartan_iwasawa_extract_closed`) uses a single simple rotor (angle 0.7, plane e6), where the simple branch sets `R = ⟨V⟩₀+⟨V⟩₂`, `T=D=1` and trivially reconstructs; it also asserts only `reconstruction_residual >= 0.0` (a tautology).
+
+### Done right
+Implement the §2.2 null-point algorithm. Prereq: `n_o`, `n∞`, and the `e_o∧e∞` blade accessors in `algebra/` (add if absent). Acceptance: no raise on any conformal motion; `‖R·T·D − V‖ < 1e-6`; flips `test_cartan_iwasawa_should_reconstruct_composed_motion` xfail→pass.
+
+---
+
+## 3. Conformal Procrustes — 🔴 replaced (#17)
+
+### Blueprint spec (Super §3.1)
+Two fields `F_A`, `F_B` are structurally analogous iff a single versor `V` maps one to the other under the sandwich `V·F_A·Ṽ = F_B`. Solve as a metric-aware **Kabsch on null-vector point sets** `P={p_i}`, `Q={q_i}`:
+`K = Σ p_i q_iᵀ η` → signature-aware SVD `K = UΣVᵀ` → `R = V Uᵀ`; translation + dilation from null-cone centroids. Verified by margin `|V·F_A·Ṽ − F_B| < ε_analogy`. Enables zero-shot transport of `F_A`'s solution path to `F_B`.
+
+### What landed (`dynamic_manifold.py::conformal_procrustes`)
+- **32-vector / multivector-pair path** (used by `evals/analogical_transfer/harness.py` and `self_authorship.py`): `_procrustes_multivector_pairs` computes `word_transition_rotor(s,t) = normalize(t·rev(s))` per pair and averages via repeated `rotor_power` — a transition rotor, **not** a Kabsch/SVD point-set fit.
+- **5×K path**: partial Kabsch on the first **3** Euclidean coords only (`Pc = P[:3]`), leaving conformal coords untransformed.
+
+### The gap (empirical)
+- Composed with the supervised-blend transport, the 32-vec path **degenerates** (see §4).
+- `test_conformal_procrustes_multivector_low_residual` is **vacuous**: `tgt = versor_apply(R, identity) = R·rev(R) = identity`, so `‖tgt − identity‖ = 0.0` exactly → src==tgt==identity. It "verifies" identity→identity.
+- `test_conformal_procrustes_5d_cloud` asserts only `residual >= 0.0` (a norm — always true).
+
+### Done right
+Implement §3.1 on full null-vector point sets (all 5 conformal coords), signature-aware SVD, centroid-derived T/D, margin verification. Acceptance: for `F_B = versor_apply(W, F_A)` with a **non-trivial** `W` on a composed state, recover `V` with `‖versor_apply(V, F_A) − F_B‖ < ε`.
+
+---
+
+## 4. GoldTether residual + α control law — 🔴 half-missing (#18)
+
+### Blueprint spec (Super §2.3, R&D §2.3/§5)
+- **Residual (scale-harmonized — Super §2.3, the blueprint's stated mission #1):**
+  `R = w·(‖F·F̃−1‖/ε_drift) + (1−w)·(min_{I∈𝓘_gold} ‖F−I‖ / ‖F‖_F)`, `w=0.5`, `ε_drift=1e-6`. Both terms scaled to `[0, O(1)]` so drift isn't masked by the raw O(1) L2 distance.
+- **α control law (R&D §2.3):** `α(t) = Φ(R; R_floor, R_critical)` — a smooth-step of the **instantaneous** residual. `α=0` (autonomous) when `R < R_floor`; linear ramp in between; `α=1` (full human override / fail-closed) when `R > R_critical`. α is the *constraint weight*; the supervised transition is the Cartan–Iwasawa factor-wise slerp of §2.3.
+- **Bootstrapping (R&D §5):** `𝓘_gold` primed with `n_o, n∞, 1`; audit-passed replay-deterministic state versors promoted into it by signed review vote (ADR-0092); decay/pruning to principal axes.
+
+### What landed (`goldtether.py`)
+- `coherence_residual(F) = max(versor_unit_residual(F), versor_unit_residual(reverse(F)))` — **drift term only**. No `gold_invariants` field exists; the geometric distance term and scale harmonization are absent. (`measure()` has an optional reference-distance term but the `residual()`/`update()` path the monitor uses does not.)
+- Autonomy is a **monotonic per-step accumulator** (`autonomy += 0.01`, capped by a `floor` that rises `+0.02` only on `epistemic_elevation`) — **not** `Φ(R)`. `supervised_blend(source, target, alpha)` takes an **external** α, not one derived from the residual.
+- No bootstrapping / `𝓘_gold` / promotion / decay.
+
+### The gap
+The entire §2.3 harmonization fix and the §2.3/§5 gold-set machinery — the parts that give GoldTether its meaning — are not in the code path the monitor runs. The landed "earned autonomy" model is arguably a *safer* HITL story (autonomy must be earned slowly; serve never autonomous) but it is a different mechanism wearing the blueprint's names.
+
+### Done right
+Add `𝓘_gold` (seeded `n_o, n∞, 1`), the two-term harmonized residual, and `α = Φ(R; R_floor, R_critical)` driving the Cartan–Iwasawa slerp. Preserve fail-closed + serve-never-autonomous. Document how the earned-autonomy ramp relates to (or is replaced by) `Φ(R)`. Depends on #16.
+
+---
+
+## 5. Grade-5 pseudoscalar invariant — 🔴 missing / namesake (#19)
+
+### Blueprint spec (Super §3.3)
+The pseudoscalar `I = e1∧e2∧e3∧e4∧e5` is the orientation of CORE's integrity. Every transition `F' = V·F·Ṽ` must preserve pseudoscalar sign **and** magnitude: `⟨F'·F̃'⟩₅ = ⟨F·F̃⟩₅`. Any optimization / contemplation promotion / autonomous self-authorship that would flip `sgn(I)` is **blocked at the boundary**. Called "the ultimate mathematical anchor for alignment."
+
+### What landed
+`goldtether.py` uses `_PSEUDOSCALAR_IDX = 31` to read `F[31]` into telemetry/history, and calls the autonomy threshold a "pseudoscalar_floor." There is **no gate** enforcing `⟨F'·F̃'⟩₅` preservation. The namesake actively masks the absence.
+
+### Done right
+A pure predicate `pseudoscalar_preserved(F, F') -> bool` (sign + magnitude of the grade-5 part within tolerance), wired as a fail-closed gate on transition / promotion / self-authorship, with a typed disclosure. Rename `pseudoscalar_floor → autonomy_floor`. Acceptance: sign-flipping transition refused; valid transition admitted.
+
+---
+
+## 6. Surprise residual operator — 🟡 partial / rewired (#20)
+
+### Blueprint spec (Super §3.2)
+`S(x) = x − proj_{B_union}(x)`, where `proj_B(x) = (x·B)·B⁻¹` is the **geometric blade contraction**. `|S(x)|²` measures the epistemic frontier; high surprise (`> γ`) bypasses rejection and raises a `DiscoveryCandidate` in the contemplation loop (self-directed learning).
+
+### What landed (`surprise.py`)
+1. Projection is **linear-algebra projection onto basis columns** (Minkowski for 5-vec, Euclidean Gram-Schmidt for 32-vec) — not blade contraction; the surprise-bivector grade structure isn't preserved.
+2. `dual_operator`: `productive = proc_r <= thr and sur_norm >= 0.0` — the second conjunct is **always true**, so surprise plays no role. `dual_procrustes_surprise` conversely requires `sur_norm < 1e-4` (accept only when *unsurprising*) — backwards from "productive surprise."
+3. Not wired: nothing outside `core/physics/` + tests imports it; no `DiscoveryCandidate` path.
+
+### Done right
+Blade-contraction projection with grade assertions; a productivity gate that genuinely depends on surprise magnitude (high surprise ∧ low procrustes residual); reconcile the two functions' polarity; raise a `DiscoveryCandidate` into the contemplation loop behind the existing proposal-only / no-self-install discipline.
+
+---
+
+## 7. Signature-aware PCA — 🟢 faithful (one untested add-on)
+
+### Blueprint spec (Super §2.1 / R&D §2.1)
+`A = XXᵀ/k`; `M = ηA`; `eig(M)`; sort by `Re(λ)` desc; real eigenvectors; Minkowski Gram-Schmidt to a pseudo-orthonormal basis on the (4,1) null cone. (R&D §2.1 phrases it as the generalized problem `Av = λ η v`.)
+
+### What landed (`dynamic_manifold.py::signature_aware_pca`)
+Exactly this, minus `scipy` (uses `np.linalg.eig` on `M = ηA` — the Super §2.1 alternative formulation; correct and dependency-free). **Plus** a null-retention branch that keeps genuine null axes instead of skipping them ("Terra + Grok mastery fix").
+
+### The one wrinkle
+The null add-on is **untested**: `test_signature_aware_pca_keeps_nulls` classifies `n_null = 0` in its own scenario and only asserts `total == 4` + enum-ness. The branch that gives the fix its name never demonstrably fires. Low severity; add a scenario that actually produces a retained null axis.
+
+---
+
+## 8. Sound modules not in the blueprints — 🟢
+
+`biography.py` (delegates to `algebra.holonomy.holonomy_encode`; refuses empty trajectories — "no confabulated self"; order-sensitive; reconstruct == integrate), `temporal_gate.py` (a clean typed `ADMIT/NOT_YET/REFUSE` predicate — no geometry despite the "wisdom as geometry" docstring), and `self_authorship.py` (proposal-only, `SPECULATIVE`-stamped, no vault import — test-enforced; catches the Procrustes `ValueError` and records it) are the healthiest modules **because they delegate to real primitives or stay pure instead of reinventing geometry.** They are ADR-0240 additions, not specified in either blueprint.
+
+---
+
+## 9. Absent whole proposals — ⚫ (#21)
+
+- **Trajectory invariants + zero-fabrication (R&D §2.2 → `core-rs/src/sensorimotor.rs`):** relative holonomy `H(t)=V₁Ṽ₂`, divergence integral `D < ε_trajectory`, Hamiltonian energy boundary `E_exertion ≤ κ·E_sensory`. Not landed. Gated by the Zig/Rust substrate doctrine (Ring-1 only).
+- **ADR-DAG conformal embedding (R&D §2.4 → `core/adr/validator.py`):** `Ψ(M)` = SHA-256 → 10 bivector coeffs → simple-bivector projection → master-blade wedge → drift check. Not landed. Cross-check `core/abi/geometric_delta_validator.py` before adding a parallel validator.
+
+---
+
+## 10. Why "34/34 green" did not catch any of this
+
+The landed suite measures properties that hold **by construction**, not spec-fidelity:
+- **Tautologies:** `residual >= 0`, `reconstruction_residual >= 0` (norms are non-negative).
+- **Closure-only:** `versor_condition(out) < 1e-6` proves the output is *a* unit versor, not the *correct* one. §4's blend passes closure at ~1e-16 while being a no-op.
+- **Trivial regime:** every geometry test feeds `identity` + a single-plane `make_rotor_from_angle` — the one input class where `rotor_power` doesn't hit its non-simple-bivector identity fallback.
+- **One vacuous test:** §3's identity→identity Procrustes.
+
+The lesson: closure is necessary, not sufficient. Fidelity tests must feed **composed** versors and assert **behavioral** properties (interpolation moves; reconstruction matches; transport lands on target).
+
+---
+
+## 11. Reproduction
+
+From a checkout of this branch (worktree on `PYTHONPATH`):
+```bash
+# Fidelity ledger (2 characterizations pass, 2 spec tests xfail):
+python -m pytest tests/test_third_door_blueprint_fidelity.py -v -rx
+
+# Blend degeneration on a composed pair (interior alpha == source):
+python - <<'PY'
+import numpy as np
+from algebra.cl41 import geometric_product
+from algebra.rotor import make_rotor_from_angle
+from core.physics.goldtether import GoldTetherMonitor
+def _id():
+    v=np.zeros(32); v[0]=1.0; return v
+def comp(planes,s):
+    v=_id()
+    for k,i in enumerate(planes): v=geometric_product(v, make_rotor_from_angle(0.3+0.13*k+0.05*s, bivector_idx=i))
+    return v
+A,B=comp((6,7,8,10,11),1.0),comp((6,7,8,10,11),2.0)
+for a in (0.25,0.5,0.75):
+    o=GoldTetherMonitor().supervised_blend(A,B,a)
+    print(a, "||o-A|| =", float(np.linalg.norm(o-A)))   # -> 0.0 (no-op)
+PY
+```
+
+---
+
+## 12. Tracked follow-ups
+
+| Gap | Issue |
+|---|---|
+| Real Cartan–Iwasawa via `n_o`/`n∞` | #16 |
+| Kabsch-conformal Procrustes on point sets | #17 |
+| GoldTether gold-set + harmonized residual + α=Φ(R) | #18 |
+| Grade-5 pseudoscalar preservation gate | #19 |
+| Surprise: blade contraction + wiring + fix conjunct | #20 |
+| Absent proposals: sensorimotor + ADR-DAG | #21 |
+
+Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.
