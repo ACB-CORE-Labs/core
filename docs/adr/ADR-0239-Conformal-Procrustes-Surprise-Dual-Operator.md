@@ -1,109 +1,64 @@
-# ADR-0239: Conformal Procrustes + Surprise Residual Dual Operator
+# ADR-0239: Conformal Procrustes / Analogical Versor Search + Surprise Residual Dual
 
-**Status:** Proposed  
-**Date:** 2026-07-11  
-**Branch:** `r&d/generalized-agent`  
-**Parent:** [#10](https://core-gitquarters.acbcontent.org/core-labs/core/issues/10) · Issue [#12](https://core-gitquarters.acbcontent.org/core-labs/core/issues/12)  
-**Canonical path:** `docs/adr/`
+**Status**: Proposed (acceptance path: tests green + Josh review)  
+**Date**: 2026-07-11  
+**Deciders**: Joshua Shay + multi-model R&D  
+**Traceability**: Issue #12, parent #10  
+**Related**: ADR-0238, dynamic_manifold, surprise residual, Cartan-Iwasawa, ADR-0013, ADR-0209  
+**Canonical path**: `docs/adr/`
 
-**Related:** ADR-0013 Sensorium · ADR-0198/0209 Sensorimotor · ADR-0238 Coherence GoldTether · ADR-0240 Transfer Harness · ADR-0237 GeometricDelta ABI
+## Context
 
-**Acceptance path:** green `tests/test_adr_0239_*.py` + algebra lane + Josh review.
+Generalized intelligence requires the ability to transfer solutions across domains by structural analogy, not surface similarity. Statistical embedding nearest-neighbors are forbidden (they violate reconstruction-over-storage and introduce non-determinism).  
 
----
+We need a pure geometric operator that:
 
-## 1. Context
+1. Finds the best versor \( V \) that maps a solved problem multivector set \( P \) onto a novel problem set \( Q \) (Conformal Procrustes).
+2. Simultaneously surfaces the residual that cannot be explained by any admissible versor (Surprise Residual) so the system can detect its own knowledge boundary and propose new blades.
 
-Generalized agentic intelligence requires **structural analogy** (transport a solved map into a novel domain) and **boundary sensing** (what is not yet spanned by known structure) without statistical crutches, sampling, or confabulation.
+These two operators are dual: Procrustes seeks the best explanation; Surprise quantifies the unexplained and seeds new discovery.
 
-Issue #12 specifies:
+## Decision
 
-- Signature-aware Conformal PCA with null-vector classification  
-- Conformal Procrustes (versor search for structural analogy)  
-- Surprise Residual `S(x) = x − proj_B(x)`  
-- Dual: high surprise seeds Procrustes against vault analogs → productive novelty  
+1. **Signature-Aware Conformal PCA**  
+   Metric-preserving principal axes on Cl(4,1) with signature `(+,+,+,+,-)`.  
+   **Genuine null vectors are CLASSIFIED and retained** — never silently skipped (Terra + Grok mastery fix).
 
-### Mastery refinements closed here
+2. **Conformal Procrustes**  
+   Solve \( \min_V \sum_i \| V \cdot p_i \cdot \widetilde{V} - q_i \|_F \) subject to \( V \) being a versor (or motor) in Cl(4,1).  
+   Implementation uses signature-aware structure + Cartan-Iwasawa factorization so that the search stays on the versor manifold.
 
-1. **Null vectors never silently skipped** — every axis classified (`SPACELIKE|TIMELIKE|NULL|DEGENERATE`) and counted.  
-2. **Dedicated `procrustes_residual` norm** — not null-margin, not energy residual, not GoldTether combined residual.  
-3. **κ from ADR-0238** scales productive threshold only — never invents content.  
-4. **Cartan–Iwasawa constructive factorization** supplies the dual-correction surface for factor-wise slerp.
+3. **Cartan-Iwasawa extraction**  
+   Factor a conformal versor into Rotor · Translator · Dilator (BCH-free constructive path). Public API: `cartan_iwasawa_extract`.
 
----
+4. **Surprise Residual Operator**  
+   \( S(x) = x - \mathrm{proj}_{B_{\text{union}}}(x) \) where \( B_{\text{union}} \) is the current admissible blade span (Minkowski-aware when operating on conformal 5-vectors).  
+   Residual grade and magnitude become the geometric curiosity signal and the seed for new DiscoveryCandidates in the contemplation loop.
 
-## 2. Decision
+5. **Dual Operator**  
+   `dual_procrustes_surprise(P, Q, current_basis)` always runs both. A successful Procrustes transfer that leaves residual below ε is eligible for teaching-chain / biography holonomy update (ADR-0240). Residual above threshold becomes a first-class contemplation object.
 
-### 2.1 Signature-aware PCA
+### Residual namespace discipline
 
-Module: `core/physics/dynamic_manifold.py` → `signature_aware_pca`.
+`procrustes_residual` and surprise residual are **not** ADR-0006 energy residual and **not** ADR-0238 GoldTether residual. Distinct names; distinct tests.
 
-- Metric on grade-1: Cl(4,1) signature `(+,+,+,+,-)`.  
-- Higher grades: positive definite on coefficients (classification sense).  
-- Metric-rescaled covariance + symmetric `eigh` (deterministic order).  
-- Eigenvector sign convention: first nonzero component positive.  
-- **All axes returned** including NULL.
+## Consequences
 
-### 2.2 Conformal Procrustes
+- CORE gains true analogical transfer without any statistical memory.
+- The system can now "see its own boundaries" as geometric residual.
+- Direct feed into ADR-0240 (validation harness + biography holonomy).
+- All operators remain pure, deterministic, dual-corrected.
 
-`conformal_procrustes(sources, targets) → ConformalProcrustesResult`
+## Implementation
 
-- Single pair: `word_transition_rotor(s, t)`.  
-- Multi pair: sequential manifold average (equal-weight geodesic midpoints in input order).  
-- Output versor must satisfy `versor_condition < 1e-6`.  
-- Residual: `procrustes_residual(s, t, V) = ||V s reverse(V) − t||_F`.
+- `core/physics/dynamic_manifold.py` — signature_aware_pca + conformal_procrustes + cartan_iwasawa_extract
+- `core/physics/surprise.py` — surprise_residual + dual_procrustes_surprise
 
-### 2.3 Cartan–Iwasawa factors
+Wired to live `algebra/*` (no scipy, no placeholder identity motors as the only path).
 
-`cartan_iwasawa_factorize(V) → K, A, N` with reconstruction residual.
+## Validation
 
-- Simple rotation (`B² < 0`) → K  
-- Simple boost (`B² > 0`) → A  
-- Null / residual → N  
-- `dual_correction_slerp` powers factors independently then recomposes.
-
-### 2.4 Surprise Residual + dual
-
-Module: `core/physics/surprise.py`
-
-```text
-S(x) = x − proj_B(x)     # orthonormal span of ordered basis
-affinity(analog) = |cos|(S, target−source)
-dual: best analog → Procrustes; productive iff residual ≤ threshold/κ
-```
-
-No sampling. Ordered analog list; stable sort by affinity desc, id asc.
-
----
-
-## 3. Consequences
-
-### Positive
-
-- Structural transfer without embeddings-as-truth.  
-- Explicit null classification closes a long-standing silent-drop hazard.  
-- Dual operator converts surprise into *proposal-grade* novelty only when residual-proven.
-
-### Risks
-
-| Risk | Mitigation |
-|---|---|
-| PCA treated as memory truth | PCA is analysis/telemetry only; vault recall remains exact CGA |
-| Non-simple versor average drift | unitize only at construction boundary; fail residual loudly |
-| Confabulated analogy | productive=False → refuse / NOT_YET path (ADR-0240) |
-
-### Non-goals
-
-- ANN / cosine vault recall  
-- Stochastic exploration  
-- Motor actuation  
-
----
-
-## 4. Proof obligations
-
-- **P-1** Null axes present in result counts when constructed.  
-- **P-2** Procrustes output closed.  
-- **P-3** Surprise residual orthogonal to basis span (within tol).  
-- **P-4** Dual replay byte-identical for identical inputs.  
-- **P-5** Cartan–Iwasawa factors each closed.
+- Exact residual measurement on known solvable pairs (structural transfer).
+- Null residual only when the target is in the versor orbit of the source.
+- Null axes appear in PCA classification counts when present.
+- Replay identity of the entire dual operator.

@@ -1,12 +1,4 @@
-"""core.physics.self_authorship — Self-Authorship Miner scaffold (ADR-0240).
-
-Geometry-guided ADR / teaching proposals under invariants. Emits
-**proposal-only** artifacts (SPECULATIVE). Never writes vault COHERENT,
-never mutates packs, never touches serving.
-
-Complements the existing auto-proposal corridor (ADR-0151). This miner
-produces structured proposal dicts; promotion remains human-reviewed.
-"""
+"""core.physics.self_authorship — Self-Authorship Miner scaffold (ADR-0240)."""
 
 from __future__ import annotations
 
@@ -19,18 +11,16 @@ import numpy as np
 
 from algebra.cl41 import N_COMPONENTS
 from algebra.versor import versor_condition
-from core.physics.dynamic_manifold import conformal_procrustes, signature_aware_pca
-from core.physics.goldtether import CoherenceResidual, GoldTetherMonitor, OperatingMode
-from core.physics.surprise import dual_operator, surprise_residual
+from core.physics.dynamic_manifold import conformal_procrustes
+from core.physics.goldtether import GoldTetherMonitor, coherence_residual
+from core.physics.surprise import dual_procrustes_surprise, surprise_residual
 
 
 @dataclass(frozen=True, slots=True)
 class AuthorshipProposal:
-    """Proposal-only artifact — never auto-accepted."""
-
     proposal_id: str
     kind: str
-    epistemic_status: str  # always SPECULATIVE at emission
+    epistemic_status: str
     drift_residual: float
     closure_proof: Mapping[str, Any]
     body: Mapping[str, Any]
@@ -54,13 +44,11 @@ def _content_id(payload: Mapping[str, Any]) -> str:
 
 
 class SelfAuthorshipMiner:
-    """Mine minimal extension proposals from geometric residual structure."""
-
     def __init__(
         self,
         *,
         goldtether: GoldTetherMonitor | None = None,
-        residual_threshold: float = 0.25,
+        residual_threshold: float = 1e-5,
     ) -> None:
         self.goldtether = goldtether or GoldTetherMonitor()
         self.residual_threshold = float(residual_threshold)
@@ -70,49 +58,41 @@ class SelfAuthorshipMiner:
         current: np.ndarray,
         reference: np.ndarray,
         *,
-        basis: Sequence[np.ndarray] = (),
-        analogs: Sequence[tuple[str, np.ndarray, np.ndarray]] = (),
+        basis: Sequence[np.ndarray] | np.ndarray | None = None,
         notes: str = "",
     ) -> tuple[AuthorshipProposal, ...]:
-        """Emit zero or more SPECULATIVE proposals. Never stores them."""
         cur = np.asarray(current, dtype=np.float64)
         ref = np.asarray(reference, dtype=np.float64)
         if cur.shape != (N_COMPONENTS,) or ref.shape != (N_COMPONENTS,):
             raise ValueError("current and reference must be 32-component multivectors")
 
-        residual: CoherenceResidual = self.goldtether.measure(
-            cur, ref, mode=OperatingMode.PRACTICE
-        )
-        proposals: list[AuthorshipProposal] = []
-
-        # Closure proof for the reference/current pair under transition.
+        r_cur = coherence_residual(cur)
+        r_ref = coherence_residual(ref)
         try:
-            proc = conformal_procrustes([ref], [cur])
-            closure_ok = versor_condition(proc.versor) < 1e-6
-            proc_res = float(proc.residual_norm)
+            V, proc_r = conformal_procrustes(ref, cur)
+            closed = versor_condition(V) < 1e-6
         except ValueError as exc:
-            closure_ok = False
-            proc_res = float("inf")
-            proc_err = str(exc)
+            V, proc_r, closed = None, float("inf"), False
+            err = str(exc)
         else:
-            proc_err = ""
+            err = ""
 
         closure_proof = {
+            "coherence_residual_current": float(r_cur),
+            "coherence_residual_reference": float(r_ref),
+            "procrustes_residual": float(proc_r),
+            "procrustes_closed": closed,
+            "procrustes_error": err,
             "versor_condition_current": float(versor_condition(cur)),
             "versor_condition_reference": float(versor_condition(ref)),
-            "procrustes_residual": proc_res,
-            "procrustes_closed": closure_ok,
-            "procrustes_error": proc_err,
-            "coherence_combined": float(residual.combined),
-            "kappa": float(residual.kappa),
         }
 
-        if residual.combined >= self.residual_threshold and closure_ok:
+        proposals: list[AuthorshipProposal] = []
+        if r_cur >= self.residual_threshold or proc_r >= self.residual_threshold:
             body = {
                 "notes": notes,
                 "suggested_action": "review_coherence_gap",
-                "drift": float(residual.drift),
-                "geometric_distance": float(residual.geometric_distance),
+                "residual_current": float(r_cur),
             }
             pid = _content_id({"kind": "coherence_gap", "body": body, "proof": closure_proof})
             proposals.append(
@@ -120,71 +100,39 @@ class SelfAuthorshipMiner:
                     proposal_id=f"selfauth-{pid}",
                     kind="coherence_gap",
                     epistemic_status="SPECULATIVE",
-                    drift_residual=float(residual.combined),
+                    drift_residual=float(max(r_cur, proc_r if np.isfinite(proc_r) else r_cur)),
                     closure_proof=closure_proof,
                     body=body,
                     adr_refs=("ADR-0238", "ADR-0240"),
                 )
             )
 
-        if basis:
-            surp = surprise_residual(cur, basis)
-            dual = dual_operator(
-                cur,
-                basis,
-                analogs,
-                kappa=max(residual.kappa, 1e-6),
-            )
-            if dual.productive:
+        if basis is not None:
+            B = np.asarray(basis, dtype=np.float64)
+            if B.ndim == 1:
+                B = B.reshape(N_COMPONENTS, 1)
+            elif B.shape[0] != N_COMPONENTS and B.shape[1] == N_COMPONENTS:
+                B = B.T
+            dual = dual_procrustes_surprise(ref, cur, B)
+            if not dual["transfer_accepted"]:
                 body = {
                     "notes": notes,
-                    "suggested_action": "review_analogical_extension",
-                    "surprise_norm": float(surp.residual_norm),
-                    "selected_analog_id": dual.selected_analog_id,
-                    "procrustes_residual": (
-                        float(dual.procrustes.residual_norm) if dual.procrustes else None
-                    ),
+                    "suggested_action": "review_surprise_boundary",
+                    "surprise_norm": float(dual["surprise_norm"]),
+                    "procrustes_residual": float(dual["procrustes_residual"]),
                 }
-                pid = _content_id(
-                    {"kind": "analogical_extension", "body": body, "proof": closure_proof}
-                )
+                pid = _content_id({"kind": "surprise_boundary", "body": body})
                 proposals.append(
                     AuthorshipProposal(
                         proposal_id=f"selfauth-{pid}",
-                        kind="analogical_extension",
+                        kind="surprise_boundary",
                         epistemic_status="SPECULATIVE",
-                        drift_residual=float(surp.residual_norm),
+                        drift_residual=float(dual["surprise_norm"]),
                         closure_proof=closure_proof,
                         body=body,
                         adr_refs=("ADR-0239", "ADR-0240"),
                     )
                 )
 
-        # Optional manifold annotation when a small cloud is available via analogs.
-        cloud = [ref, cur] + [s for _, s, _ in analogs] + [t for _, _, t in analogs]
-        if len(cloud) >= 2:
-            pca = signature_aware_pca(cloud, max_axes=4)
-            if pca.n_null > 0:
-                body = {
-                    "notes": notes,
-                    "suggested_action": "review_null_axes",
-                    "n_null": int(pca.n_null),
-                    "n_spacelike": int(pca.n_spacelike),
-                    "n_timelike": int(pca.n_timelike),
-                }
-                pid = _content_id({"kind": "null_axis_review", "body": body})
-                proposals.append(
-                    AuthorshipProposal(
-                        proposal_id=f"selfauth-{pid}",
-                        kind="null_axis_review",
-                        epistemic_status="SPECULATIVE",
-                        drift_residual=float(residual.combined),
-                        closure_proof=closure_proof,
-                        body=body,
-                        adr_refs=("ADR-0239", "ADR-0240"),
-                    )
-                )
-
-        # Stable order by proposal_id for replay-determinism.
         proposals.sort(key=lambda p: p.proposal_id)
         return tuple(proposals)

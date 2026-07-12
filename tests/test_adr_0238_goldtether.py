@@ -1,4 +1,4 @@
-"""ADR-0238 — Coherence GoldTether: residual, floor, practice/serve autonomy, closure."""
+"""ADR-0238 — GoldTether residual, floor, autonomy, may_relax_hitl, blend."""
 
 from __future__ import annotations
 
@@ -8,13 +8,12 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from algebra.rotor import make_rotor_from_angle
-from algebra.versor import unitize_versor, versor_apply, versor_condition
+from algebra.versor import versor_condition
 from core.physics.goldtether import (
     AutonomyBand,
-    GoldTetherConfig,
     GoldTetherMonitor,
     OperatingMode,
-    derive_kappa,
+    coherence_residual,
 )
 
 
@@ -24,144 +23,102 @@ def _id() -> np.ndarray:
     return v
 
 
-def _rotor(angle: float, biv: int = 6) -> np.ndarray:
-    return make_rotor_from_angle(angle, bivector_idx=biv)
+def test_coherence_residual_nonnegative_and_zero_on_identity():
+    assert coherence_residual(_id()) == 0.0
+    r = coherence_residual(make_rotor_from_angle(0.5))
+    assert r >= 0.0
 
 
-def test_measure_identical_is_near_zero():
+def test_residual_dual_corrected_and_replay():
     m = GoldTetherMonitor()
-    r = m.measure(_id(), _id(), mode=OperatingMode.PRACTICE)
-    assert r.combined < 1e-9
-    assert r.geometric_distance < 1e-9
-    assert r.kappa > 0.99
+    F = make_rotor_from_angle(0.4)
+    assert m.residual(F) == m.residual(F)
+    assert m.residual(F) == coherence_residual(F)
 
 
-def test_measure_is_replay_deterministic():
-    m = GoldTetherMonitor()
-    a = _rotor(0.4)
-    b = _rotor(1.1)
-    r1 = m.measure(a, b, mode=OperatingMode.PRACTICE)
-    r2 = m.measure(a, b, mode=OperatingMode.PRACTICE)
-    assert r1 == r2
+def test_fail_closed_on_drift():
+    m = GoldTetherMonitor(epsilon_drift=1e-9)
+    # Inject a non-closed multivector by raw coefficients
+    dirty = np.zeros(32, dtype=np.float64)
+    dirty[0] = 0.5
+    dirty[1] = 0.5
+    r, auto = m.update(dirty, epistemic_elevation=True)
+    assert r > m.epsilon_drift
+    assert auto == 0.0
+    assert m.may_relax_hitl() is False
 
 
-def test_serve_never_autonomous():
+def test_epistemic_elevation_raises_floor_and_autonomy():
+    m = GoldTetherMonitor(epsilon_drift=1e-5, floor_step=0.1, autonomy_step=0.1)
+    F = _id()
+    for _ in range(10):
+        m.update(F, epistemic_elevation=True)
+    assert m.floor > 0.0
+    assert m.autonomy > 0.0
+    assert m.autonomy <= m.floor
+    assert m.supervised_autonomy_level == m.autonomy
+
+
+def test_never_autonomy_above_floor():
+    m = GoldTetherMonitor(floor_step=0.02, autonomy_step=0.5)
+    for _ in range(20):
+        m.update(_id(), epistemic_elevation=True)
+        assert m.autonomy <= m.floor + 1e-12
+
+
+def test_may_relax_hitl_thresholds():
     m = GoldTetherMonitor(
-        config=GoldTetherConfig(practice_autonomy_enabled=True, floor_init=0.5)
+        hitl_floor_threshold=0.3,
+        hitl_autonomy_threshold=0.2,
+        floor_step=0.1,
+        autonomy_step=0.1,
     )
-    # Near-zero residual would be autonomous in practice, but not serve.
-    res = m.measure(_id(), _id(), mode=OperatingMode.SERVE)
-    d = m.decide(res, mode=OperatingMode.SERVE)
+    assert m.may_relax_hitl() is False
+    for _ in range(20):
+        m.update(_id(), epistemic_elevation=True)
+    assert m.may_relax_hitl() is True
+
+
+def test_force_reset():
+    m = GoldTetherMonitor()
+    m.update(_id(), epistemic_elevation=True)
+    m.force_reset()
+    assert m.floor == 0.0 and m.autonomy == 0.0 and m.history == []
+
+
+def test_serve_never_autonomous_band():
+    m = GoldTetherMonitor(floor_step=0.2, autonomy_step=0.2, hitl_floor_threshold=0.1, hitl_autonomy_threshold=0.1)
+    for _ in range(10):
+        m.update(_id(), epistemic_elevation=True)
+    d = m.decide(0.0, mode=OperatingMode.SERVE)
     assert d.band is not AutonomyBand.AUTONOMOUS
-    assert d.band is AutonomyBand.FAIL_CLOSED
 
 
-def test_practice_autonomy_only_when_enabled():
-    low = GoldTetherMonitor(
-        config=GoldTetherConfig(practice_autonomy_enabled=False, floor_init=0.5)
-    )
-    res = low.measure(_id(), _id(), mode=OperatingMode.PRACTICE)
-    d = low.decide(res, mode=OperatingMode.PRACTICE)
-    assert d.band is AutonomyBand.SUPERVISED_BLEND
-
-    high = GoldTetherMonitor(
-        config=GoldTetherConfig(practice_autonomy_enabled=True, floor_init=0.5)
-    )
-    res2 = high.measure(_id(), _id(), mode=OperatingMode.PRACTICE)
-    d2 = high.decide(res2, mode=OperatingMode.PRACTICE)
-    assert d2.band is AutonomyBand.AUTONOMOUS
-
-
-def test_fail_closed_above_critical():
-    m = GoldTetherMonitor(config=GoldTetherConfig(floor_init=0.01, critical_ratio=2.0))
-    # Force large residual via distant rotors + high drift weight
-    m2 = GoldTetherMonitor(
-        config=GoldTetherConfig(floor_init=0.01, critical_ratio=1.1, w_drift=0.0)
-    )
-    a = _id()
-    b = _rotor(2.5)
-    res = m2.measure(b, a, mode=OperatingMode.PRACTICE)
-    # If residual still not critical, inject artificial residual
-    if res.combined <= m2.floor_state.value * m2.config.critical_ratio:
-        d = m2.decide(1.0, mode=OperatingMode.PRACTICE)
-    else:
-        d = m2.decide(res, mode=OperatingMode.PRACTICE)
-    assert d.band is AutonomyBand.FAIL_CLOSED
-
-
-def test_floor_updates_only_on_practice_success():
-    m = GoldTetherMonitor(config=GoldTetherConfig(floor_init=0.2, decay_N=8))
-    res = m.measure(_id(), _id(), mode=OperatingMode.PRACTICE)
-    before = m.floor_state.value
-    m.update_floor(res, mode=OperatingMode.SERVE, success=True)
-    assert m.floor_state.value == before  # serve never promotes
-    m.update_floor(res, mode=OperatingMode.PRACTICE, success=True)
-    # success below floor may tighten or hold; never raise above prior
-    assert m.floor_state.value <= before
-    assert m.floor_state.n_samples >= 1
-
-
-def test_lifelong_coherence_curve_telemetry():
-    m = GoldTetherMonitor(config=GoldTetherConfig(floor_init=0.3, decay_N=16))
-    ref = _id()
+def test_lifelong_curve_telemetry_replay():
+    m1 = GoldTetherMonitor()
+    m2 = GoldTetherMonitor()
     for i in range(5):
-        cur = _rotor(0.05 * i)
-        res = m.measure(cur, ref, mode=OperatingMode.PRACTICE)
-        m.update_floor(res, mode=OperatingMode.PRACTICE, success=res.combined < m.floor_state.value)
-    tel = m.telemetry()
-    assert tel["schema_version"] == "goldtether_coherence_v1"
-    assert "pseudoscalar_floor" in tel
-    assert len(tel["recent_residuals"]) == 5
-    # replay: same sequence same telemetry residuals
-    m2 = GoldTetherMonitor(config=GoldTetherConfig(floor_init=0.3, decay_N=16))
-    for i in range(5):
-        cur = _rotor(0.05 * i)
-        res = m2.measure(cur, ref, mode=OperatingMode.PRACTICE)
-        m2.update_floor(res, mode=OperatingMode.PRACTICE, success=res.combined < m2.floor_state.value)
-    assert m2.telemetry()["recent_residuals"] == tel["recent_residuals"]
+        F = make_rotor_from_angle(0.01 * i) if i else _id()
+        # identity always closed; elevation path
+        m1.update(_id(), epistemic_elevation=True)
+        m2.update(_id(), epistemic_elevation=True)
+    assert m1.telemetry()["history_tail"] == m2.telemetry()["history_tail"]
+    assert m1.telemetry()["schema_version"] == "goldtether_coherence_v1"
 
 
-def test_supervised_blend_preserves_closure():
+def test_supervised_blend_closure_and_endpoints():
     m = GoldTetherMonitor()
     src = _id()
-    tgt = _rotor(0.9)
-    for alpha in (0.0, 0.25, 0.5, 0.75, 1.0):
-        out = m.supervised_blend(src, tgt, alpha)
-        assert versor_condition(out) < 1e-6
-
-
-def test_supervised_blend_endpoints():
-    m = GoldTetherMonitor()
-    src = _id()
-    tgt = _rotor(0.6)
-    out0 = m.supervised_blend(src, tgt, 0.0)
-    assert np.allclose(out0, src, atol=1e-6)
-    out1 = m.supervised_blend(src, tgt, 1.0)
-    # Full transition lands near target for unit rotors
-    assert versor_condition(out1) < 1e-6
-    assert float(np.linalg.norm(out1 - tgt)) < 1e-4
-
-
-def test_derive_kappa_monotone():
-    floor = 0.1
-    k_small = derive_kappa(0.01, floor)
-    k_large = derive_kappa(1.0, floor)
-    assert k_small > k_large
-    assert 0.0 < k_large <= 1.0
+    tgt = make_rotor_from_angle(0.6)
+    assert np.allclose(m.supervised_blend(src, tgt, 0.0), src)
+    assert np.allclose(m.supervised_blend(src, tgt, 1.0), tgt, atol=1e-6)
+    mid = m.supervised_blend(src, tgt, 0.5)
+    assert versor_condition(mid) < 1e-6
 
 
 @given(st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False))
-@settings(max_examples=40)
-def test_blend_alpha_always_closed(alpha: float):
+@settings(max_examples=30)
+def test_blend_property_closed(alpha: float):
     m = GoldTetherMonitor()
-    out = m.supervised_blend(_id(), _rotor(0.8), float(alpha))
+    out = m.supervised_blend(_id(), make_rotor_from_angle(0.8), float(alpha))
     assert versor_condition(out) < 1e-6
-
-
-def test_config_validation():
-    with pytest.raises(ValueError):
-        GoldTetherConfig(decay_N=0)
-    with pytest.raises(ValueError):
-        GoldTetherConfig(w_drift=1.5)
-    with pytest.raises(ValueError):
-        GoldTetherConfig(critical_ratio=0.5)

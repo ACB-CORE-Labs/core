@@ -1,140 +1,87 @@
-# ADR-0238: GoldTether-Modulated Supervised Autonomy + Dynamic Pseudoscalar Floor
+# ADR-0238: GoldTether-Modulated Supervised Autonomy
 
-**Status:** Proposed  
-**Date:** 2026-07-11  
-**Branch:** `r&d/generalized-agent`  
-**Parent tracking:** [#10](https://core-gitquarters.acbcontent.org/core-labs/core/issues/10) · Issue [#11](https://core-gitquarters.acbcontent.org/core-labs/core/issues/11)  
-**Owners:** CORE Labs / R&D  
-**Canonical path:** `docs/adr/` (not historical `docs/decisions/`)
+**Status**: Proposed (acceptance path: tests green + Josh review)  
+**Date**: 2026-07-11  
+**Deciders**: Joshua Shay (CORE lead) + multi-model R&D chain  
+**Traceability**: Issue #11, parent Issue #10  
+**Related**: ADR-0055 (inter-session memory), ADR-0056 (contemplation C1), ADR-0080, GoldTether physics, Practice/Serve boundary, ADR-0199 (Arena GoldTether — distinct contract)  
+**Canonical path**: `docs/adr/` (redirect stub under `docs/decisions/`)
 
-**Related:**
+## Context
 
-- ADR-0010 Identity Physics
-- ADR-0006 Field Energy (distinct residual namespace)
-- ADR-0055 / ADR-0056 / ADR-0080 Contemplation + reviewed promotion
-- ADR-0175 Calibrated Attempt-and-Eliminate
-- ADR-0199 Cross-Domain Learning Arena (`GoldTether` *protocol* — different contract)
-- ADR-0239 Conformal Procrustes + Surprise Dual
-- ADR-0240 Analogical Transfer + Biography Holonomy
+CORE must grow a forever-lived intelligence through experiences while remaining under hard safety control. The current HITL gate is correct but static. We need a continuous, geometry-native modulator that:
 
-**Depends on:** Cl(4,1) closure (`algebra/versor.py`), manifold slerp (`algebra/rotor.py`)
+1. Measures coherence residual of the lived trajectory (GoldTether).
+2. Dynamically raises or lowers the autonomy floor (pseudoscalar floor).
+3. Only allows progressive reduction of HITL once the system has proven, through articulate reason + contemplation + successful epistemic elevation, that it can self-review safely.
+4. Never permits unsupervised mutation of identity, admissibility regions, or safety invariants.
 
-**Acceptance path:** green `tests/test_adr_0238_goldtether.py` + smoke/algebra lanes + Josh review.
-
----
-
-## 1. Context
-
-CORE needs a **coherence tether** that modulates autonomy without violating HITL defaults, one-mutation-path review, or algebraic closure. Issue #10/#11 name this the GoldTether-modulated supervised autonomy envelope with a dynamic grade-5 pseudoscalar floor.
+This is the controlled path from supervised to self-supervised to eventual self-authoring (the "grow out of the need for HITL" trajectory).
 
 ### Dual ontology (mastery refinement)
 
 | Name | ADR | Contract |
 |---|---|---|
-| **Arena GoldTether** | ADR-0199 | `is_correct` / `gold_answer` — independent truth for practice scoring |
-| **Coherence GoldTether** | **this ADR** | residual + dynamic floor + practice/serve autonomy bands |
+| **Arena GoldTether** | ADR-0199 | independent truth for practice scoring (`is_correct` / `gold_answer`) |
+| **Coherence GoldTether** | **this ADR** | field residual + dynamic floor + `supervised_autonomy_level` |
 
-Shared metaphor (gold as anchor). **Different types, different modules.** Implementation lives in `core/physics/goldtether.py` as `GoldTetherMonitor` / `CoherenceResidual` — never shadows `core.learning_arena.protocols.GoldTether`.
+Shared metaphor; different modules. Never shadow `core.learning_arena.protocols.GoldTether`.
 
-### Problem
+## Decision
 
-Without a geometric autonomy envelope, either:
+Introduce a first-class **GoldTetherMonitor** that:
 
-1. autonomy is premature (unsafe serve-path self-action), or  
-2. supervision is unstructured (no residual, no floor, no dual-correction blend).
+- Continuously computes the coherence residual \( R_{\text{GoldTether}}(t) = \| F(t) \cdot \widetilde{F}(t) - 1 \|_F \) (and higher-grade projections). Implemented as `algebra.versor.versor_unit_residual` dual-checked with `reverse(F)`.
+- Maintains a **dynamic pseudoscalar floor** that rises only on proven epistemic elevation (successful contemplation + dual-corrected claim that reaches VERIFIED).
+- Exposes a `supervised_autonomy_level ∈ [0.0, 1.0]` that gates B1 / R0 / R1 sequencing and the practice-vs-serve boundary.
+- Implements a hard decay schedule and a fail-closed reset if residual ever exceeds ε_drift.
+- Exposes `may_relax_hitl()` — hard gate; HITL override can never be disabled by the monitor itself.
+- Exposes `force_reset()` for emergency fail-closed (HITL / safety pack only).
 
----
+The monitor is pure geometry, replay-deterministic, and dual-corrected. It never samples, never uses learned weights for the gate itself.
 
-## 2. Decision
+### Named configuration
 
-### 2.1 Harmonized residual
+`epsilon_drift`, `max_history`, floor step / decay step (documented in module), optional practice/serve envelope helpers.
 
-```text
-drift            = |ps(current) − ps(reference)|  (grade-5 / magnitude)
-geometric_distance = || reverse(ref) * current − 1 ||_F
-combined         = w_drift * drift + (1 − w_drift) * normalize(geo)
-kappa            = 1 / (1 + combined / floor)     # monotone; scales blend only
-```
+### Supervised blend (dual-correction geodesic)
 
-Named config only: `decay_N`, `w_drift`, `floor_init`, `critical_ratio`, `practice_autonomy_enabled`, `serve_supervised_blend_authorized`.
-
-**Residual namespaces (non-negotiable):**
-
-- ADR-0006 `EnergyProfile.coherence_residual` — thermodynamic class input  
-- ADR-0238 `CoherenceResidual.combined` — autonomy tether  
-- ADR-0239 `procrustes_residual` / surprise residual — structural transfer  
-
-Do not conflate.
-
-### 2.2 Dynamic pseudoscalar floor
-
-- Initialized at `floor_init` (primal retained forever under decay).
-- Updated **only** on practice successes with residual &lt; current floor.
-- Decay window `decay_N` keeps recent residuals; floor never drops below half primal.
-- Serve mode never promotes the floor.
-- Telemetry schema: `goldtether_coherence_v1` (value, sign, n_samples, recent_residuals, config).
-
-### 2.3 Autonomy envelope
-
-| Band | Condition | Practice | Serve |
-|---|---|---|---|
-| `AUTONOMOUS` | R &lt; floor | only if `practice_autonomy_enabled` | **never** |
-| `SUPERVISED_BLEND` | R ≤ critical | default below/mid band | only if `serve_supervised_blend_authorized` |
-| `FAIL_CLOSED` | R &gt; critical or serve default | yes | **default** |
-
-HITL phase-out is a **measured curve**, not a flag flip. Self-review gates are documented; they are not auto-proven by this ADR.
-
-### 2.4 Supervised blend (dual-correction)
+When a blended field state is required:
 
 ```text
-R = word_transition_rotor(source, target)   # = target * reverse(source)
-R^α = rotor_power(R, α)
-out = R^α * source                          # Spin left-composition
+R = word_transition_rotor(source, target)
+out = rotor_power(R, α) * source     # Spin left-composition
 assert versor_condition(out) < 1e-6
-# α=0 → source; α=1 → target (unit versors)
 ```
 
-**Mastery correction:** sandwich conjugation `R^α * source * reverse(R^α)` is the wrong geodesic for *state* interpolation (it maps the identity to itself). Left composition on the rotor group is the dual-correction surface that lands exactly on the endpoints.
+Sandwich conjugation is not the state geodesic (maps identity→identity). Left composition lands α=0→source, α=1→target.
 
-No Euclidean lerp on multivector coefficients. No hot-path unitize repair.
-
-### 2.5 Implementation surface
-
-- Module: `core/physics/goldtether.py`
-- Types: `GoldTetherConfig`, `CoherenceResidual`, `AutonomyBand`, `AutonomyDecision`, `PseudoscalarFloorState`, `GoldTetherMonitor`, `OperatingMode`
-- Proof tests: `tests/test_adr_0238_goldtether.py`
-
----
-
-## 3. Consequences
+## Consequences
 
 ### Positive
+- Single forever-lived trajectory can now safely accumulate wisdom.
+- HITL phase-out becomes measurable and gated by geometry, not calendar or vibes.
+- Full auditability of every autonomy increase.
+- Compatible with existing vault/CRDT, contemplation loop, and risk-reward physics.
 
-- Geometry-first autonomy modulation without stochastic fallback.
-- Serve remains fail-closed by default (HITL preserved).
-- Pseudoscalar floor is a first-class telemetry channel for lifelong coherence curves.
-- Explicit dual ontology prevents Arena vs Coherence confusion under review.
+### Negative / Risks
+- Incorrect floor calculation could stall progress or (worse) over-grant autonomy. Mitigated by dual-correction + explicit residual tests + HITL override that can never be disabled by the monitor itself.
+- Additional telemetry surface. Mitigated by making the channel first-class (`telemetry()` schema `goldtether_coherence_v1`).
 
-### Risks / mitigations
+### Neutral
+- New module `core/physics/goldtether.py`.
+- New ADR chain dependency for any future self-authorship work (ADR-0240).
 
-| Risk | Mitigation |
-|---|---|
-| Residual conflation with energy residual | Distinct type names + ADR text + tests |
-| Premature autonomy | `practice_autonomy_enabled=False` default; serve never autonomous |
-| Drift repair disguised as blend | Blend only via `rotor_power` / transition rotors |
+## Implementation Notes
 
-### Non-goals
+See `core/physics/goldtether.py` for the exact operator suite.
+All public methods must enforce algebraic closure before returning.
+The monitor is the single source of truth for "how much HITL can be relaxed right now".
 
-- Auto-promotion of SPECULATIVE → COHERENT
-- Replacing ADR-0199 arena GoldTether
-- Approximate recall or sampling
+## Validation
 
----
-
-## 4. Proof obligations
-
-- **G-1** Replay: identical (current, reference, config, sequence) → identical residual/floor/decision telemetry.
-- **G-2** Closure: every `supervised_blend` output has `versor_condition < 1e-6`.
-- **G-3** Serve never returns `AUTONOMOUS`.
-- **G-4** Floor updates only on practice success below floor.
-- **G-5** Arena GoldTether protocol tests remain green unchanged.
+- Property tests: residual is always ≥ 0 and dual-corrected under reverse.
+- Replay tests: identical field sequences produce identical autonomy levels.
+- Lifelong curve: epistemic elevation events correctly raise the floor; residual breach forces fail-closed.
+- Never allows autonomy > 0 while residual > ε_drift.
+- `may_relax_hitl()` false until floor and autonomy thresholds met.

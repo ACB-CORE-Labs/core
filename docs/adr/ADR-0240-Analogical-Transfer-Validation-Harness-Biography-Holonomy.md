@@ -1,102 +1,72 @@
-# ADR-0240: Analogical Transfer Harness + Biography Holonomy + Temporal Gate + Self-Authorship Miner
+# ADR-0240: Analogical Transfer Validation Harness + Biography Holonomy Blade
 
-**Status:** Proposed  
-**Date:** 2026-07-11  
-**Branch:** `r&d/generalized-agent`  
-**Parent:** [#10](https://core-gitquarters.acbcontent.org/core-labs/core/issues/10) · Issue [#13](https://core-gitquarters.acbcontent.org/core-labs/core/issues/13)  
-**Canonical path:** `docs/adr/`
+**Status**: Proposed (acceptance path: tests green + Josh review)  
+**Date**: 2026-07-11  
+**Deciders**: Joshua Shay + multi-model R&D  
+**Traceability**: Issue #13, parent #10  
+**Related**: ADR-0238, ADR-0239, inter-session memory (0055), contemplation (0056), ADR-0151 proposal corridor  
+**Canonical path**: `docs/adr/`
 
-**Related:** ADR-0010 Identity · ADR-0055/0080 Contemplation · ADR-0150/0151 Proposal corridor · ADR-0199 Arena · ADR-0238/0239 Third Door operators
+## Context
 
-**Acceptance path:** green `tests/test_adr_0240_*.py` + harness wrong=0 on fixture pair + Josh review.
+We now have GoldTether (autonomy modulation) and the Procrustes+Surprise dual (analogical transfer + boundary sensing).  
 
----
+We still lack:
 
-## 1. Context
+1. A rigorous, replayable **validation harness** that proves a transfer actually raised epistemic level and did not overfit or fabricate.
+2. A first-class geometric object that records the lifelong holonomy of the identity motor (the Biography Holonomy Blade). This is the "single forever-lived life" made concrete.
 
-Operators alone do not prove generalized agency. This ADR lands the **genius layer** that binds them to lifelong identity and safe proposal discipline:
+Without these two, the system cannot safely grow wisdom or ever phase out HITL.
 
-1. **Analogical Transfer Validation Harness** — solved domain → novel domain under residual measurement + wrong=0  
-2. **Biography Holonomy Blade** — forever-lived individuality as reconstructible holonomy  
-3. **Temporal Admissibility Gate** — wisdom as geometry (`ADMIT` / `NOT_YET` / `REFUSE`)  
-4. **Self-Authorship Miner** — geometry-guided **proposal-only** extensions  
+## Decision
 
-### Mastery refinements
+### 1. Analogical Transfer Validation Harness
 
-- Biography is **recompute-from-trajectory**, not raw experience storage (reconstruction-over-storage).  
-- Temporal gate never confabulates early — typed `NOT_YET` disclosures.  
-- Miner emits `epistemic_status=SPECULATIVE` only; zero vault writes; stable proposal_id ordering.  
-- Harness is pytest-first; Tier-2 CLAIMS pin deferred until green history exists (do not hand-edit `CLAIMS.md`).
+A sealed, deterministic harness that:
 
----
+- Takes a solved problem (source multivector + proof trace) and a novel target domain.
+- Runs the dual operator (ADR-0239).
+- Measures residual, epistemic elevation posture, and GoldTether residual before/after.
+- Only accepts the transfer if:
+  - residual < ε
+  - dual-correction passes
+  - GoldTether residual does not increase (when monitor supplied)
+- Records accepted transfer metadata for teaching-chain / biography update (proposal path).
 
-## 2. Decision
+**Location**: `evals/analogical_transfer/harness.py`
 
-### 2.1 Analogical transfer harness
+### 2. Biography Holonomy Blade
 
-Path: `evals/analogical_transfer/harness.py`
+A grade-appropriate multivector that records the cumulative holonomy of the identity motor across the entire lived trajectory.  
 
-```text
-learn V = conformal_procrustes(source → target)
-mapped = V * novel_query * reverse(V)
-residual = ||mapped − expected||
-wrong++ if residual > threshold and not refused
-```
+It is updated only on successful, validated, dual-corrected experiences. It is the geometric embodiment of "I have lived this life and these are the transformations I have undergone."
 
-Fixture pair: rotation structural transfer across domains (`make_fixture_pair`).
+It is the substrate that later self-authorship miners will read.
 
-### 2.2 Biography Holonomy Blade
+**Location**: `core/physics/biography.py` — reconstructible via `holonomy_encode` (reconstruction-over-storage; no raw experience dump). Vault field wiring remains one-mutation-path / proposal-gated.
 
-Path: `core/physics/biography.py`
+### 3. Temporal Admissibility Gate + Self-Authorship Miner (scaffold)
 
-- `integrate_biography(trajectory)` → `BiographyHolonomyBlade` via `holonomy_encode`  
-- Order is load-bearing; empty trajectory refused  
-- Telemetry schema `biography_holonomy_v1` (hash, steps, closure, scalar/pseudoscalar projections)
+- Temporal gate: typed `ADMIT` / `NOT_YET` / `REFUSE` (wisdom as geometry).
+- Self-authorship miner: emits **SPECULATIVE** proposals only with drift residual + closure proof; never writes vault COHERENT.
 
-### 2.3 Temporal Admissibility Gate
+## Consequences
 
-Path: `core/physics/temporal_gate.py`
+- CORE now has a complete closed loop for lifelong learning: experience → dual operator → validation → GoldTether update → biography holonomy update.
+- HITL phase-out becomes a measurable geometric condition (high biography coherence + low residual + high floor + `may_relax_hitl()`).
+- Full audit trail of every wisdom gain.
 
-Pure predicate over `TemporalContext` (step, min_step, evidence counts, residual ceiling, prerequisites). Returns typed disclosure payloads suitable for epistemic surfaces.
+## Implementation Notes
 
-### 2.4 Self-Authorship Miner
+- Harness: `evals/analogical_transfer/`
+- Biography: `core/physics/biography.py`
+- Temporal: `core/physics/temporal_gate.py`
+- Miner: `core/physics/self_authorship.py`
+- All durable mutations go through the one-mutation-path.
 
-Path: `core/physics/self_authorship.py`
+## Validation
 
-- Inputs: current/reference versors, optional basis + analogs  
-- Outputs: ordered `AuthorshipProposal` tuples with `drift_residual` + `closure_proof`  
-- **Never** calls `VaultStore.store`; promotion remains ADR-0151 / review corridor  
-
----
-
-## 3. Consequences
-
-### Positive
-
-- Lifelong identity strengthened via reconstructible holonomy.  
-- Transfer claims become falsifiable (wrong=0 harness).  
-- Self-extension stays proposal-only (INV-21/22/23 spirit).  
-
-### Risks
-
-| Risk | Mitigation |
-|---|---|
-| Biography used as memory dump | hash + holonomy only; no raw transcript storage |
-| Miner auto-serve | SPECULATIVE only; no serving path import |
-| Premature claim emission | Temporal gate NOT_YET |
-
-### Non-goals
-
-- Physical motor decode  
-- Auto-accept proposals  
-- CLAIMS Tier-2 pin in this PR  
-
----
-
-## 4. Proof obligations
-
-- **H-1** Fixture transfer wrong=0 under threshold.  
-- **H-2** Biography reconstructible and order-sensitive.  
-- **H-3** Temporal NOT_YET before min_step / insufficient evidence.  
-- **H-4** Miner proposals all SPECULATIVE; deterministic id order.  
-- **H-5** No module imports vault store for mutation.
+- End-to-end lifelong coherence curve test (GoldTether history + telemetry).
+- Transfer fixture with residual below threshold (wrong=0).
+- Biography blade remains closed under reverse product after every update.
+- Miner proposals all SPECULATIVE; deterministic ordering.
