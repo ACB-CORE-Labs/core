@@ -4,7 +4,7 @@ Conformal Geometric Algebra geometry on Cl(4,1).
 Signature: (+,+,+,+,-), with Euclidean coordinates on e1,e2,e3.
 The two conformal null directions are built from e4 and e5:
 
-    n_o   = 0.5 * (e4 - e5)   # origin, n_o^2 = 0
+    n_o   = 0.5 * (e5 - e4)   # origin, n_o^2 = 0
     n_inf = e4 + e5           # infinity, n_inf^2 = 0
     n_o · n_inf = -1
 
@@ -38,6 +38,24 @@ _I5[_PSEUDOSCALAR_INDEX] = 1.0
 # component 1=e1, 2=e2, 3=e3, 4=e4, 5=e5.
 _E4_IDX = 4
 _E5_IDX = 5
+
+# The two conformal null directions, frozen as f64 32-vectors — the canonical
+# origin/infinity of the CGA point map. These are the SAME vectors ``embed_point``
+# builds inline (origin embeds to N_O; N_INF is fixed by every Euclidean isometry),
+# hoisted to module constants so the null-point recovery primitives (dilation /
+# translation peel) and any incidence code share one exact definition instead of
+# re-deriving the signs. Invariants (pinned in tests/test_null_point_primitives.py):
+#   N_O · N_O = 0,  N_INF · N_INF = 0,  N_O · N_INF = -1.
+# Never mutated; callers that need a scratch copy must ``.copy()``.
+N_O = np.zeros(N_COMPONENTS, dtype=np.float64)
+N_O[_E4_IDX] = -0.5  # n_o = 0.5 * (e5 - e4)
+N_O[_E5_IDX] = 0.5
+N_O.setflags(write=False)
+
+N_INF = np.zeros(N_COMPONENTS, dtype=np.float64)
+N_INF[_E4_IDX] = 1.0  # n_inf = e4 + e5
+N_INF[_E5_IDX] = 1.0
+N_INF.setflags(write=False)
 
 # Pinned magnitude ceiling for f64-exact embedding + read-back (Phase 0A).
 # Below this bound, ``embed_point(..., dtype=np.float64)`` round-trips integer
