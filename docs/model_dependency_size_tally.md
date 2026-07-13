@@ -100,7 +100,7 @@ learned-params tally above. Measure precisely with
 | `pytest-xdist` | >=3.6 | parallel tests | <1 MB |
 | `hypothesis` | >=6.152.7 | property tests | ~5 MB |
 | `psutil` | >=7.0 | process/resource probing | ~2 MB |
-| `pyrage` | ==1.2.3 | age encryption (Rust binding) | ~3 MB |
+| `pyrage` | ==1.2.4 | age encryption (Rust binding) | ~3 MB |
 | `pyyaml` | >=6.0 | config/manifest parsing | ~1 MB |
 
 > **Footprint note:** `datasets` dominates the Python install. If the GSM8K
