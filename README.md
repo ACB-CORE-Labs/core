@@ -6,14 +6,54 @@
 > 
 > Please update your remotes and direct any issues, pull requests, or contributions to the new git headquarters.
 
-# CORE-AI: Versor Engine
+# CORE — A Deterministic Cognition Engine
 
-A cognitive field system built on Cl(4,1) Conformal Geometric Algebra.
+**CORE is a single-life, deterministic cognition engine in which a unified conformal-geometric substrate is the medium for memory, language, identity, and epistemics — governed so that it can earn autonomy from human oversight by proving reliability, never by asserting it.**
 
-**Core invariant:** `||F * reverse(F) - 1||_F < 1e-6` at all times.
+A unified Cl(4,1) conformal-geometric-algebra substrate serves as the common medium for **all modalities** (through CRDT-sharded, content-addressed, *exact*-recall memory), **all language** (through compiled linguistic manifolds where morphology and grammatical relation are *operators*, not tokens), **all identity** (as a fixed geometric subspace that content cannot rewrite — paraphrase-invariantly), and **all epistemics** (truth-status travels with every claim; admission is by coherence, not authority; the system publishes its own gaps and holds that discipline recursively over its own claims). A deterministic risk–reward governor lets CORE earn its way out of human-in-the-loop supervision by accumulating a replayable, conservatively-bounded reliability ledger — while never self-authorizing, and always leaving a door open for monitoring and upgrades. Thermodynamics (energy, salience, surprise), topology (the manifold, holonomy, the CRDT semilattice), the scientific method (falsifiable proof obligations, sealed holdouts), and a theological–linguistic philosophy of language (the *Logos* as the structuring principle recovered at every input boundary) are not decoration — each is load-bearing, and nothing is included without deliberate intent.
 
-All state is a versor. All transitions are versor products.
-Coherence is algebraic by construction — not monitored, not corrected.
+**Core invariant:** `‖F · reverse(F) − 1‖_F < 1e-6` at all times. All state is a versor; all transitions are versor products; coherence is algebraic by construction — not monitored, not corrected.
+
+> **Provisional Patent No. 64/080,054** · U.S. Patent and Trademark Office
+> Independent research program · [core-gitquarters.acbcontent.org](https://core-gitquarters.acbcontent.org)
+
+---
+
+## What CORE Is Not — Read This Before Pattern-Matching
+
+CORE reuses vocabulary from several established fields. **The words collide with things you already know; the architecture does not.** If you skim the concepts and file CORE under a category you recognize, you will be wrong in a specific, load-bearing way. This section exists to prevent that.
+
+**CORE is not a geometric deep-learning model.** It shares the *words* "Clifford/geometric algebra" and "versor" with GATr, CGENN, and similar equivariant networks — but those are neural networks trained by gradient descent that *use* geometric algebra to get equivariance. CORE has **no neural network, no gradients, no learned weights, no training loss**. The geometry is not a feature space for a model to learn in; it is the deterministic medium in which cognition, memory, and governance invariants are *physically enforced*. There is nothing to train.
+
+**CORE is not a vector database and its recall is not approximate nearest-neighbor.** The vault shares the *words* "inner-product recall" with ANN systems, but it is a **Delta-CRDT join-semilattice**: write-accumulation that is commutative, associative, and idempotent, content-addressed by IEEE-754 bit pattern so recall is **total, exact, and arrival-order-independent**. Exactness is not a naïve choice waiting to be replaced by an index at scale — it is the *enabling property* of cross-modal unification. Approximate recall would corrupt the geometry that lets any two modalities resonate in one manifold; an ANN index was deliberately *deleted* for exactly this reason.
+
+**CORE is not an LLM, and not an LLM wrapper.** It generates language without sampling, temperature, beam search, or a softmax over subword tokens. Generation is a deterministic geometric walk, and where the walk could emit something inadmissible under the relation being asserted, the engine emits a **typed refusal** rather than a plausible-but-wrong token. There is no probabilistic decoder anywhere in the system. "Zero confabulation" is not a tuned abstention rate — it is a structural consequence of the same mechanism that makes the system truth-seeking.
+
+**CORE is not a safety layer bolted onto a generative model.** There is no classifier downstream of a generator, no instruction-following prompt, no guardrail the model could in principle ignore. Identity is a geometric subspace; truth-status is a typed value carried by every admitted claim; the boundaries the system will never cross are enforced at the substrate. A system that samples has nowhere to attach these properties. CORE has them because every admitted claim carries one and the only path to admission is the review path.
+
+**CORE is not "another neuro-symbolic system," and its symbolic character is not GOFAI brittleness.** It does not hand-encode a rule base for a brittle inference engine. Meaning lives in geometric structure — morphology as operator composition, relation as manifold path — and knowledge enters through a reviewed, replayable, epistemically-typed promotion path, never by absorbing a corpus or by an opaque model's say-so.
+
+**The one-line test:** if a description of CORE would apply equally well to a transformer, an embedding store, or a fine-tuned model, that description has miscategorized it. CORE's distinctive claim is that properties which frontier systems implement as *soft, promptable, sampling-level behaviors* are here **architectural invariants that content cannot rewrite** — and that this is what makes a path to trustworthy, auditable autonomy possible at all.
+
+---
+
+## What This Buys You (the same claims, made concrete)
+
+| You might assume… | What CORE actually does |
+|---|---|
+| "Geometric algebra → it's an equivariant neural net" | No network, no gradients. The Cl(4,1) manifold is the deterministic medium for state, memory, and governance — not a learned feature space. |
+| "Inner-product recall → it's a vector DB / ANN" | A Delta-CRDT semilattice: exact, content-addressed, arrival-independent recall that unifies all modalities in one manifold. Exactness is load-bearing, not a scaling liability. |
+| "Argmax generation → it's greedy decoding" | A deterministic geometric walk with Forward Semantic Control: inadmissible continuations raise a *typed refusal*, not a forced token. No sampling exists to degenerate. |
+| "Refuses a lot → low-coverage abstention" | A deterministic risk–reward governor: serving is `wrong=0` by construction; capability compounds in a sealed practice regime; the engine earns coverage by proving reliability. |
+| "Identity/persona → a system prompt" | A fixed geometric subspace; override attempts are caught by the geometry of the field-state delta they induce — paraphrase-invariantly, verified against adversarial holdouts. |
+| "Learns from data → gradient updates / ingestion" | Reviewed, replay-gated promotion through epistemic tiers. No opaque updates; every extension is auditable and reversible; identity and safety packs are off-limits to self-modification. |
+
+Everything above is enforced in code with a test that fails if the property breaks. Start with the invariant, then the schema, then the evidence:
+
+- **The core invariant:** `pytest tests/test_versor_closure.py`
+- **The epistemic substrate:** [`docs/truth_seeking_schema.md`](docs/truth_seeking_schema.md)
+- **Reproducible claims (auto-generated, CI-verified):** [`CLAIMS.md`](CLAIMS.md)
+- **Architectural vision and formal spec:** [`docs/Whitepaper.md`](docs/Whitepaper.md), [`docs/Yellowpaper.md`](docs/Yellowpaper.md)
 
 ---
 
