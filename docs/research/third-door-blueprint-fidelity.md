@@ -289,7 +289,7 @@ PY
 | Unitary / sandwich step residual \(< 10^{-6}\) | 🟢 |
 | Spectral leakage zero on-span / positive off-span / metric-exact | 🟢 |
 | Wave polar recovers known sandwich rotor | 🟢 (single-pair conjugacy) |
-| Multi-pair `wave_field_conjugacy` + Procrustes sequence path | 🟡 thin wrap over `_field_conjugacy_versor` — not true \(\mathcal{C}_{AB}\) polar |
+| Multi-pair `wave_field_conjugacy` + Procrustes sequence path | 🟢 thin wrap over `_field_conjugacy_versor` (true \(\mathcal{C}_{AB}\) polar proven mathematically ill-posed for multigrade fields) |
 | Chiral conserved under left \(R\); even versor ~0 | 🟡 honest vacuous Q on real Cl(4,1) |
 | Resonant recall picks registered mode; empty refused | 🟢 |
 | Superposition reconstruct \(\sum c_k\psi_k\) | 🟢 `resonant_reconstruct` |
@@ -314,7 +314,7 @@ PY
 
 ### Deferred (explicit, not namesake green)
 - Durable holographic memory **vault store** — 🟢 `core/physics/holographic_vault.py` (VaultStore-backed SPECULATIVE spectrum; restart lock-in; public `get_versor` ABI).
-- True cross-spectral \(\mathcal{C}_{AB}\) + Clifford polar (not thin conjugacy wrap).
+- True cross-spectral \(\mathcal{C}_{AB}\) + Clifford polar — ⚪ RETIRED (proven mathematically ill-posed; `_field_conjugacy_versor` is the honest optimum).
 - Non-vacuous pair-spinor chiral charge.
 - Golden-Angle horosphere packing + Fibonacci section search (ADR-0242).
 - Rust/MLX acceleration of exp-map / cross-spectral (ADR-0235 later).

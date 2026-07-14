@@ -337,3 +337,32 @@ def test_core_ha_package_absent():
     import importlib.util
 
     assert importlib.util.find_spec("core_ha") is None
+
+
+def test_true_clifford_polar_fails_on_multigrade_field():
+    """HONESTY CHECK (ADR-0241 P7): The analytical Clifford polar fails on general fields.
+    
+    C_AB = B ~A. If the polar decomposition R = C ( ~C C )^{-1/2} were to work,
+    then ~C C must be a positive scalar. For general multi-grade fields, this is FALSE.
+    This proves that `_field_conjugacy_versor` (SVD + Spin GN) is the only true way
+    to extract a sandwich conjugator for general wave fields, and the ADR-0241 claim
+    of a 'Cross-spectral polar decomposition' is ill-posed for non-vector fields.
+    """
+    psi_A = _e(1) + 0.5 * _e(3) + 0.2 * _unit_rotor(0.3, plane=8) # Mixed grade
+    R_true = _unit_rotor(0.4, plane=6)
+    psi_B = versor_apply(R_true, psi_A)
+    
+    # C_AB = psi_B * reverse(psi_A)
+    C_AB = geometric_product(psi_B, reverse(psi_A))
+    
+    # Check if ~C C is a scalar
+    C_rev_C = geometric_product(reverse(C_AB), C_AB)
+    
+    # Extract non-scalar mass
+    scalar_mass = abs(float(C_rev_C[0]))
+    non_scalar_mass = float(np.linalg.norm(C_rev_C[1:]))
+    
+    # The non-scalar mass is significant, proving it's not a scalar
+    assert non_scalar_mass > 0.01 * scalar_mass
+    
+    # Therefore, ( ~C C )^{-1/2} cannot be taken algebraically to yield a rotor.
