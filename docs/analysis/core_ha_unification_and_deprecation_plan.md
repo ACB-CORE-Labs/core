@@ -1,6 +1,6 @@
 # Technical Memorandum: core_ha Integration, Substrate Unification, and Deprecation Plan
 
-**Status**: Proposed (acceptance path: tests green + Joshua review)
+**Status**: Proposed — absorption map applied (no live `core_ha/` tree; wave substrate + hygiene pin); acceptance path: Joshua review + merge
 **Date**: 2026-07-13
 **Authors**: Multi-model R&D + Joshua Shay
 **Traceability**: Notion R&D (Reference Vault Interconnection: `core_HA` Patterns)

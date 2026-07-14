@@ -71,10 +71,11 @@ def integrate_biography(
 
     Order is load-bearing. Empty trajectory is refused (no confabulated self).
 
-    ADR-0241 Slice 2: each trajectory versor and the integrated blade must pass
-    the wave unitary residual (standing-wave / unitary-propagator lock-in). The
-    holonomy blade itself remains reconstruction-over-storage via
-    :func:`holonomy_encode` (no raw experience dump).
+    ADR-0241 Slice 2–3: each trajectory versor and the integrated blade must pass
+    the wave unitary residual (standing-wave / unitary-propagator lock-in). Modes
+    are registered for resonant recall of the lived trajectory (session-local
+    registry on the manifold instance — not vault storage). The holonomy blade
+    itself remains reconstruction-over-storage via :func:`holonomy_encode`.
     """
     if not trajectory:
         raise ValueError("biography trajectory must be non-empty")
@@ -86,6 +87,7 @@ def integrate_biography(
             raise ValueError(
                 f"trajectory[{i}] failed wave unitary residual: {r:.3e}"
             )
+        wave.register_resonant_mode(v)
     blade = holonomy_encode(closed, alpha=alpha)
     cond = versor_condition(blade)
     if cond >= _CLOSURE_TOL:
@@ -94,6 +96,11 @@ def integrate_biography(
     r_blade = wave.measure_unitary_residual(blade_arr)
     if r_blade >= _CLOSURE_TOL:
         raise ValueError(f"biography blade wave unitary residual: {r_blade:.3e}")
+    # Resonant lock-in: last trajectory step must be recallable from the mode set
+    # (order-sensitive registry; reconstruction-over-storage of the trajectory).
+    _mode, _E, idx = wave.resonant_recall(closed[-1])
+    if idx < 0 or idx >= len(closed):
+        raise ValueError("biography resonant recall index out of range")
     return BiographyHolonomyBlade(
         blade=blade_arr,
         n_steps=len(closed),

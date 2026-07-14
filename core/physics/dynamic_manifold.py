@@ -723,22 +723,20 @@ def _procrustes_multivector_pairs(
             pair_residuals=pair_res,
         )
 
-    # Field conjugacy / wave polar (ADR-0241 Slice 2): single non-null pair uses
-    # WaveManifold.wave_analogical_polar as the canonical sandwich conjugator.
-    # Multi-pair keeps the stacked conjugacy engine (same geometry family).
+    # Field conjugacy / wave polar (ADR-0241 Slice 2–3): all non-null field paths
+    # go through WaveManifold (single-pair polar; multi-pair thin conjugacy wrap).
     # Null-point clouds already returned above (Kabsch point-cloud path).
-    if len(src_list) == 1:
-        from core.physics.wave_manifold import WaveManifold
+    from core.physics.wave_manifold import WaveManifold
 
-        V = WaveManifold().wave_analogical_polar(src_list[0], tgt_list[0])
-        pair_res = (procrustes_residual(src_list[0], tgt_list[0], V),)
-        residual_norm = float(pair_res[0])
+    wave = WaveManifold()
+    if len(src_list) == 1:
+        V = wave.wave_analogical_polar(src_list[0], tgt_list[0])
     else:
-        V, residual_norm = _field_conjugacy_versor(src_list, tgt_list)
-        pair_res = tuple(
-            procrustes_residual(s, t, V) for s, t in zip(src_list, tgt_list)
-        )
-        residual_norm = float(np.sqrt(sum(r * r for r in pair_res) / len(pair_res)))
+        V, _engine_r = wave.wave_field_conjugacy(src_list, tgt_list)
+    pair_res = tuple(
+        procrustes_residual(s, t, V) for s, t in zip(src_list, tgt_list)
+    )
+    residual_norm = float(np.sqrt(sum(r * r for r in pair_res) / len(pair_res)))
     return ConformalProcrustesResult(
         versor=V,
         residual_norm=residual_norm,

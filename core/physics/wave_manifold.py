@@ -180,11 +180,15 @@ class WaveManifold:
     """Continuous wave propagation + resonant measures over Cl(4,1) fields.
 
     Construction-closed rotors; dual-checked unitary residual; deterministic.
+    Optional standing-wave mode registry for resonant recall (ADR-0241 §2.2);
+    not a vault/store — reconstruction-over-storage, off-serving.
     """
 
     def __init__(self, epsilon_drift: float = 1e-6) -> None:
         self.epsilon_drift = float(epsilon_drift)
         self.n_dims = N_COMPONENTS
+        # Standing-wave eigenmode registry (session-local; not durable memory).
+        self._resonant_modes: list[np.ndarray] = []
 
     # --- Transport -----------------------------------------------------------
 
@@ -257,13 +261,77 @@ class WaveManifold:
         ``dynamic_manifold`` (lazy import — avoids import cycle; Procrustes
         multi-pair path calls this for single non-null pairs).
         """
+        R, _residual = self.wave_field_conjugacy([psi_A], [psi_B])
+        return R
+
+    def wave_field_conjugacy(
+        self,
+        sources: Sequence[np.ndarray],
+        targets: Sequence[np.ndarray],
+    ) -> Tuple[np.ndarray, float]:
+        """Multi-pair sandwich conjugacy (thin wrap over stacked field engine).
+
+        Canonical multi-field path for Procrustes (ADR-0241 Slice 3). Returns
+        ``(R, residual)`` where residual is the mean raw-sandwich residual from
+        the conjugacy engine (callers may recompute pair residuals).
+        """
         # Lazy import: dynamic_manifold may call WaveManifold at runtime.
         from core.physics.dynamic_manifold import _field_conjugacy_versor
 
-        psi_A_arr = _as_mv(psi_A, "ψ_A")
-        psi_B_arr = _as_mv(psi_B, "ψ_B")
-        R, _residual = _field_conjugacy_versor([psi_A_arr], [psi_B_arr])
-        return _require_closed_rotor(R, name="R_polar")
+        src = [_as_mv(s, f"source[{i}]") for i, s in enumerate(sources)]
+        tgt = [_as_mv(t, f"target[{i}]") for i, t in enumerate(targets)]
+        if len(src) != len(tgt) or not src:
+            raise ValueError("wave_field_conjugacy: non-empty equal-length pairs required")
+        R, residual = _field_conjugacy_versor(src, tgt)
+        return _require_closed_rotor(R, name="R_conjugacy"), float(residual)
+
+    # --- Standing-wave registry / resonant recall (ADR-0241 §2.2) ------------
+
+    def register_resonant_mode(self, psi_k: np.ndarray) -> int:
+        """Register a standing-wave mode. Returns mode index. Session-local only."""
+        mode = _as_mv(psi_k, "ψ_k").copy()
+        self._resonant_modes.append(mode)
+        return len(self._resonant_modes) - 1
+
+    def clear_resonant_modes(self) -> None:
+        """Drop all registered modes (tests / session reset)."""
+        self._resonant_modes.clear()
+
+    @property
+    def resonant_modes(self) -> tuple[np.ndarray, ...]:
+        return tuple(m.copy() for m in self._resonant_modes)
+
+    def resonant_recall(
+        self,
+        psi_query: np.ndarray,
+        *,
+        modes: Sequence[np.ndarray] | None = None,
+    ) -> Tuple[np.ndarray, float, int]:
+        """Holographic resonant lock-in: max constructive overlap with modes.
+
+        Overlap uses the scalar part of ``ψ_q · ~ψ_k`` (algebraic inner structure
+        via reverse product — not cosine/ANN). Returns
+        ``(best_mode, resonance_energy, index)``.
+        Empty mode set raises ``ValueError`` (no confabulated recall).
+        """
+        query = _as_mv(psi_query, "ψ_query")
+        if modes is None:
+            mode_list = list(self._resonant_modes)
+        else:
+            mode_list = [_as_mv(m, f"mode[{i}]") for i, m in enumerate(modes)]
+        if not mode_list:
+            raise ValueError("resonant_recall: empty mode set (no confabulated recall)")
+
+        best_i = 0
+        best_E = -1.0
+        for i, mode in enumerate(mode_list):
+            # Resonance energy: |⟨ψ_q ~ψ_k⟩_0| — constructive phase lock magnitude.
+            prod = geometric_product(query, reverse(mode))
+            energy = abs(float(scalar_part(prod)))
+            if energy > best_E:
+                best_E = energy
+                best_i = i
+        return mode_list[best_i].copy(), float(best_E), int(best_i)
 
     # --- Chiral spinor charge ------------------------------------------------
 

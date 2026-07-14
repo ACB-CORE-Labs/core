@@ -19,7 +19,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from algebra.cl41 import N_COMPONENTS, geometric_product, reverse
+from algebra.cl41 import N_COMPONENTS, geometric_product, reverse  # noqa: F401 — reverse used in helpers/docs
 from algebra.rotor import make_rotor_from_angle
 from algebra.versor import versor_apply, versor_condition, versor_unit_residual
 
@@ -266,3 +266,53 @@ def test_conformal_procrustes_single_field_uses_wave_polar():
     )
     assert err_p < 1e-5
     assert err_w < 1e-5
+
+
+def test_wave_field_conjugacy_multi_pair_thin_wrap():
+    """Multi-pair field conjugacy is available on WaveManifold (Slice 3 thin wrap)."""
+    from core.physics.dynamic_manifold import conformal_procrustes
+
+    M = WaveManifold()
+    R = _unit_rotor(0.4, plane=9)
+    sources = [_unit_rotor(0.1 * (i + 1), plane=6) for i in range(3)]
+    targets = [versor_apply(R, s) for s in sources]
+    V, engine_r = M.wave_field_conjugacy(sources, targets)
+    assert V.shape == (N_COMPONENTS,)
+    assert versor_condition(V) < _CLOSURE
+    assert engine_r < 1e-4
+    # Sequence Procrustes uses the same wave conjugacy path.
+    V2, res2 = conformal_procrustes(sources, targets)
+    assert res2 < 1e-4
+    for s, t in zip(sources, targets):
+        err = min(
+            float(np.linalg.norm(versor_apply(V2, s) - t)),
+            float(np.linalg.norm(versor_apply(-V2, s) - t)),
+        )
+        assert err < 1e-4
+
+
+def test_resonant_recall_picks_registered_mode():
+    """Standing-wave registry: query locks onto the matching registered mode."""
+    M = WaveManifold()
+    a = _unit_rotor(0.2, plane=6)
+    b = _unit_rotor(0.9, plane=7)
+    M.register_resonant_mode(a)
+    M.register_resonant_mode(b)
+    mode, energy, idx = M.resonant_recall(b)
+    assert idx == 1
+    assert energy > 0.5
+    assert np.allclose(mode, b, atol=1e-12)
+
+
+def test_resonant_recall_empty_refused():
+    """No confabulated recall from an empty mode set."""
+    M = WaveManifold()
+    with pytest.raises(ValueError, match="empty mode set"):
+        M.resonant_recall(_unit_rotor(0.3, plane=6))
+
+
+def test_core_ha_package_absent():
+    """core_ha deprecation: no live package tree in this repo (W6 hygiene)."""
+    import importlib.util
+
+    assert importlib.util.find_spec("core_ha") is None
