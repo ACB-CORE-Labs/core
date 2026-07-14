@@ -14,8 +14,11 @@
 |---|---|
 | `CORE ASI Super-Blueprint_ Third-Door Horizon.docx` (mirror: `docs/research/CORE-ASI-Super-Blueprint-Third-Door-Horizon.md`) | Specifies signature-aware PCA (§2.1), Cartan–Iwasawa (§2.2), GoldTether scale harmonization (§2.3), Conformal Procrustes (§3.1), Surprise (§3.2), grade-5 pseudoscalar invariant (§3.3). **"Super §x"** below. |
 | `CORE Advanced AGI_ASI R&D Blueprint (Revised).docx` | Specifies blade induction (§2.1), trajectory invariants + zero-fabrication (§2.2), GoldTether-modulated transition surface + α control law (§2.3), ADR-DAG embedding (§2.4), bootstrapping (§5). **"R&D §x"** below. |
-| `core/physics/{goldtether,dynamic_manifold,surprise,biography,temporal_gate,self_authorship}.py` | The landed code. |
-| `tests/test_adr_023{8,9}_*.py`, `test_adr_0240_*.py` | The landed tests (34, all green — see §7 for why green ≠ faithful). |
+| `docs/adr/ADR-0241-wave-field-driven-hyperbolic-atlas-and-resonant-cognition.md` | Wave-field substrate \(\psi\): unitary propagation, spectral leakage, polar analogy, chiral charge. **"ADR-0241"** below. |
+| `docs/analysis/core_ha_unification_and_deprecation_plan.md` | Deprecate standalone `core_ha` pointwise atlas; absorb into wave + energy + GoldTether + CRDT vault. |
+| `core/physics/{goldtether,dynamic_manifold,surprise,biography,temporal_gate,self_authorship}.py` | The landed Third-Door code (pointwise). Wave module: `wave_manifold.py` (Proposed). |
+| `tests/test_adr_023{8,9}_*.py`, `test_adr_0240_*.py` | Landed Third-Door tests (see §7 for why green ≠ faithful historically). |
+| `tests/test_adr_0241_wave_manifold.py` | Wave-field behavioral contract (RED until Slice 1 GREEN). |
 | `tests/test_third_door_blueprint_fidelity.py` | The living gap ledger (this document, executable). |
 
 **Containment fact (why this is safe to land):** nothing in serving / runtime / cognition imports `core.physics.*` — only the package `__init__`, the eval harness, and tests. `chat/runtime.py` is untouched on this branch. The autonomy `decide()` is fail-closed and never `AUTONOMOUS` in `SERVE`. The self-authorship miner is proposal-only and never writes the vault. None of the defects below can reach the `wrong=0` serving path.
@@ -29,12 +32,18 @@
 | 1 | Signature-aware PCA | Super §2.1 / R&D §2.1 | 🟢 faithful (one untested add-on) | — |
 | 2 | Cartan–Iwasawa decomposition | Super §2.2 | 🟢 faithful (null-point peel + Spin remainder) | #16 |
 | 3 | Conformal Procrustes | Super §3.1 | 🟢 faithful (Kabsch + field conjugacy) | #17 |
-| 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🟡 partial (#24 residual+α; bootstrap/prune deferred) | #18 |
+| 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🟡 partial (#24 residual+α landed; bootstrap/prune deferred) | #18 |
 | 5 | Grade-5 pseudoscalar invariant | Super §3.3 | ⚪ RETIRED — vacuous in odd-dim Cl(4,1) | #19 (closed) |
 | 6 | Surprise residual operator | Super §3.2 | 🟢 math + DiscoveryCandidate wiring landed (#26 + #31) | #20 |
 | 7 | Trajectory invariants + zero-fabrication | R&D §2.2 | ⚫ absent | #21 |
 | 8 | ADR-DAG conformal embedding | R&D §2.4 | ⚫ absent | #21 |
-| — | Biography holonomy | (ADR-0240; not in blueprints) | 🟢 sound | — |
+| W1 | WaveManifold unitary / sandwich step | ADR-0241 §2 | 🟢 | ADR-0241 |
+| W2 | Spectral leakage surprise | ADR-0241 §2.4B | 🟢 subsumed into `surprise_residual` | ADR-0241 |
+| W3 | Wave polar + multi-pair conjugacy | ADR-0241 §2.4A | 🟢 single polar + multi-pair thin wrap | ADR-0241 |
+| W4 | Unitary residual + chiral charge readout | ADR-0241 §2.4C–D | 🟢 (Q structural 0 in real Cl(4,1); see §12) | ADR-0241 / #18 |
+| W5 | Biography resonant lock-in | ADR-0241 + ADR-0240 | 🟢 unitary lock-in + mode registry / resonant_recall; durable holographic vault store deferred | ADR-0241 |
+| W6 | `core_ha` deprecation / absorption | deprecation plan | 🟢 no live tree + hygiene pin | ADR-0241 |
+| — | Biography holonomy | (ADR-0240; not in blueprints) | 🟢 sound (pointwise) | — |
 | — | Temporal admissibility gate | (ADR-0240; not in blueprints) | 🟢 sound | — |
 | — | Self-authorship miner | (ADR-0240; not in blueprints) | 🟢 sound (proposal-only) | — |
 
@@ -81,7 +90,7 @@ Two fields `F_A`, `F_B` are structurally analogous iff a single versor `V` maps 
 
 ---
 
-## 4. GoldTether residual + α control law — 🔴 half-missing (#18)
+## 4. GoldTether residual + α control law — 🟡 partial (#18)
 
 ### Blueprint spec (Super §2.3, R&D §2.3/§5)
 - **Residual (scale-harmonized — Super §2.3, the blueprint's stated mission #1):**
@@ -89,16 +98,21 @@ Two fields `F_A`, `F_B` are structurally analogous iff a single versor `V` maps 
 - **α control law (R&D §2.3):** `α(t) = Φ(R; R_floor, R_critical)` — a smooth-step of the **instantaneous** residual. `α=0` (autonomous) when `R < R_floor`; linear ramp in between; `α=1` (full human override / fail-closed) when `R > R_critical`. α is the *constraint weight*; the supervised transition is the Cartan–Iwasawa factor-wise slerp of §2.3.
 - **Bootstrapping (R&D §5):** `𝓘_gold` primed with `n_o, n∞, 1`; audit-passed replay-deterministic state versors promoted into it by signed review vote (ADR-0092); decay/pruning to principal axes.
 
-### What landed (`goldtether.py`)
-- `coherence_residual(F) = max(versor_unit_residual(F), versor_unit_residual(reverse(F)))` — **drift term only**. No `gold_invariants` field exists; the geometric distance term and scale harmonization are absent. (`measure()` has an optional reference-distance term but the `residual()`/`update()` path the monitor uses does not.)
-- Autonomy is a **monotonic per-step accumulator** (`autonomy += 0.01`, capped by a `floor` that rises `+0.02` only on `epistemic_elevation`) — **not** `Φ(R)`. `supervised_blend(source, target, alpha)` takes an **external** α, not one derived from the residual.
-- No bootstrapping / `𝓘_gold` / promotion / decay.
+### What landed (`goldtether.py`) — residual+α path (#24)
+- `coherence_residual(F)` remains the fail-closed **closure** gate (dual-checked unit residual).
+- `gold_invariants` seeded with identity + `n_o` + `n∞` (`_primal_gold_invariants`).
+- `goldtether_residual(F)` = scale-harmonized two-term residual (drift/ε + dist-to-gold / ‖F‖).
+- `alpha_constraint(F, mode=…)` = `Φ(R_gt; r_floor, r_critical)` composed with earned-autonomy floor; **SERVE always α=1**.
+- `supervised_transition` / `supervised_blend` on the Spin geodesic (`word_transition_rotor` + `rotor_power`).
+- `promote_gold_invariant(..., authorized=True)` is **caller-gated** (no self-authorize); `prune_gold_invariants` is a size bound retaining the three primals — **not** full principal-axis decay.
 
-### The gap
-The entire §2.3 harmonization fix and the §2.3/§5 gold-set machinery — the parts that give GoldTether its meaning — are not in the code path the monitor runs. The landed "earned autonomy" model is arguably a *safer* HITL story (autonomy must be earned slowly; serve never autonomous) but it is a different mechanism wearing the blueprint's names.
+### Remaining gap (#18 follow-up — deferred while wave GoldTether lands)
+- Full ADR-0092 / replay-verified promotion pipeline into `𝓘_gold`.
+- Principal-axis decay/pruning of the gold set (R&D §5).
+- ADR-0241 upgrade: unitary amplitude residual on \(\psi\) + optional chiral spinor charge (does not replace SERVE-never-autonomous).
 
-### Done right
-Add `𝓘_gold` (seeded `n_o, n∞, 1`), the two-term harmonized residual, and `α = Φ(R; R_floor, R_critical)` driving the Cartan–Iwasawa slerp. Preserve fail-closed + serve-never-autonomous. Document how the earned-autonomy ramp relates to (or is replaced by) `Φ(R)`. Depends on #16.
+### Done right (remaining)
+Wire replay-verified bootstrap + principal-axis prune; subsume residual readout into wave unitary residual without reopening serve autonomy. Preserve fail-closed + serve-never-autonomous.
 
 ---
 
@@ -237,7 +251,55 @@ PY
 
 ---
 
-## 12. Tracked follow-ups
+## 12. Wave-field substrate (ADR-0241) — 🟢 complete on this branch
+
+> **Status (2026-07-14):** ADR-0241 + `core_ha` deprecation plan + `wave_manifold.py`
+> + Slice-2 operator subsumption + Slice-3 multi-pair thin wrap / resonant recall
+> on `feat/third-door-wave-field-substrate`. Suite
+> `tests/test_adr_0241_wave_manifold.py` is **GREEN**. Third-Door operators
+> **delegate into** wave primitives (no parallel residual/projection path).
+> Off-serving containment preserved.
+
+### Spec (ADR-0241) — contract
+- Continuous multivector wave-field \(\psi \in Cl(4,1)\) (32-coeff) under Cartan/Procrustes, Surprise, GoldTether, Biography.
+- **Transport pin:** multivector fields → sandwich \(R\psi\widetilde{R}\); spinor/chiral → left multiply \(R\psi\). No silent mix.
+- Spectral leakage = metric proj onto resonant modes (definite Euclidean energy after metric-exact proj).
+- Unitary residual \(\|\psi\widetilde{\psi}-1\|_F\) dual-checked. Chiral \(\langle\psi I\widetilde{\psi}\rangle_0\) structurally ~0 in real Cl(4,1) (honest; #19 family).
+- Standing-wave registry + `resonant_recall` (session-local; not vault).
+- `core_ha` standalone atlas: **deprecated** (no live tree; hygiene pin).
+
+### Acceptance (behavioral — GREEN)
+| Pin | Status |
+|-----|--------|
+| Unitary / sandwich step residual \(< 10^{-6}\) | 🟢 |
+| Spectral leakage zero on-span / positive off-span / metric-exact | 🟢 |
+| Wave polar recovers known sandwich rotor | 🟢 |
+| Multi-pair `wave_field_conjugacy` + Procrustes sequence path | 🟢 |
+| Chiral conserved under left \(R\); even versor ~0 | 🟢 |
+| Resonant recall picks registered mode; empty refused | 🟢 |
+| Surprise / GoldTether / biography delegate to wave | 🟢 |
+| No teaching import in `wave_manifold`; no `core_ha` package | 🟢 |
+| Serve path not wired to wave (containment) | 🟢 (by design) |
+
+### Subsumption map (Slice 2–3)
+| Operator | Delegation |
+|----------|------------|
+| `surprise_residual` (32-vec) | `WaveManifold.compute_spectral_leakage` |
+| `conformal_procrustes` single non-null pair | `wave_analogical_polar` |
+| `conformal_procrustes` multi non-null pairs | `wave_field_conjugacy` (thin wrap) |
+| Null-point / (5,K) clouds | Kabsch retained (compatibility) |
+| `coherence_residual` / GoldTether drift | `measure_unitary_residual` (+ chiral term) |
+| `integrate_biography` | unitary lock-in + mode register + resonant_recall; encode `holonomy_encode` |
+
+### Deferred (explicit, not namesake green)
+- Durable holographic memory **vault store** (CRDT-backed standing-wave spectrum) — session registry only today.
+- Rust/MLX acceleration of exp-map / cross-spectral (ADR-0235 later).
+- #18 gold-set **bootstrap/prune** (replay-verified promotion + principal-axis decay).
+- R&D #21 trajectory invariants + ADR-DAG embedding.
+
+---
+
+## 13. Tracked follow-ups
 
 | Gap | Issue |
 |---|---|
@@ -247,5 +309,8 @@ PY
 | Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
 | Surprise: metric projection + productivity polarity + DiscoveryCandidate wiring — 🟢 done | #20 (math #26; wiring #31) |
 | Absent proposals: sensorimotor + ADR-DAG | #21 |
+| Wave-field substrate + operator subsumption (W1–W6) — 🟢 on branch | ADR-0241 |
+| `core_ha` deprecation — 🟢 no live tree + hygiene pin | ADR-0241 / deprecation plan |
+| Durable holographic vault spectrum — deferred | ADR-0241 follow-on |
 
-Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.
+Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` (or the ADR-0241 suite) to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.

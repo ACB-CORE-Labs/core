@@ -723,9 +723,19 @@ def _procrustes_multivector_pairs(
             pair_residuals=pair_res,
         )
 
-    # Field conjugacy: sandwich residual, stacked multi-pair constraints.
-    V, residual_norm = _field_conjugacy_versor(src_list, tgt_list)
-    pair_res = tuple(procrustes_residual(s, t, V) for s, t in zip(src_list, tgt_list))
+    # Field conjugacy / wave polar (ADR-0241 Slice 2–3): all non-null field paths
+    # go through WaveManifold (single-pair polar; multi-pair thin conjugacy wrap).
+    # Null-point clouds already returned above (Kabsch point-cloud path).
+    from core.physics.wave_manifold import WaveManifold
+
+    wave = WaveManifold()
+    if len(src_list) == 1:
+        V = wave.wave_analogical_polar(src_list[0], tgt_list[0])
+    else:
+        V, _engine_r = wave.wave_field_conjugacy(src_list, tgt_list)
+    pair_res = tuple(
+        procrustes_residual(s, t, V) for s, t in zip(src_list, tgt_list)
+    )
     residual_norm = float(np.sqrt(sum(r * r for r in pair_res) / len(pair_res)))
     return ConformalProcrustesResult(
         versor=V,

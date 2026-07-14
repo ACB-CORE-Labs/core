@@ -31,6 +31,7 @@ import numpy as np
 from algebra.cl41 import N_COMPONENTS, geometric_product, reverse
 from algebra.rotor import rotor_power, word_transition_rotor
 from algebra.versor import versor_condition, versor_unit_residual
+from core.physics.wave_manifold import WaveManifold
 
 _CLOSURE_TOL = 1e-6
 _NEAR_ZERO = 1e-12
@@ -98,11 +99,11 @@ def coherence_residual(F: np.ndarray) -> float:
     """Public one-shot residual for tests and harnesses.
 
     R = || F · reverse(F) − 1 ||_F  (dual-checked against reverse(F)).
+
+    Canonical path (ADR-0241 Slice 2): :meth:`WaveManifold.measure_unitary_residual`
+    — unitary wave amplitude drift, not a parallel residual implementation.
     """
-    F_arr = _as_mv(F)
-    r = float(versor_unit_residual(F_arr))
-    r_rev = float(versor_unit_residual(reverse(F_arr)))
-    return max(r, r_rev)
+    return WaveManifold().measure_unitary_residual(_as_mv(F))
 
 
 @dataclass
@@ -202,8 +203,18 @@ class GoldTetherMonitor:
         raw :func:`coherence_residual` stays the fail-closed *closure* gate.
         """
         F_arr = _as_mv(F)
-        drift = coherence_residual(F_arr)
-        drift_term = drift / self.epsilon_drift if self.epsilon_drift > 0.0 else drift
+        # Unitary amplitude drift (wave substrate) + optional chiral readout.
+        # Chiral charge is structurally ~0 on real even field-states (#19 family);
+        # included as a non-negative integrity term so a future non-vacuous spinor
+        # path can move the residual without a second API.
+        wave = WaveManifold()
+        drift = wave.measure_unitary_residual(F_arr)
+        chiral = abs(float(wave.chiral_charge(F_arr)))
+        drift_term = (
+            (drift + chiral) / self.epsilon_drift
+            if self.epsilon_drift > 0.0
+            else (drift + chiral)
+        )
         scale = float(np.linalg.norm(F_arr))
         if self.gold_invariants and scale > _NEAR_ZERO:
             min_dist = min(

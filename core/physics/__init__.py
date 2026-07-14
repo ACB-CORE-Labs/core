@@ -7,6 +7,9 @@ Three physics sublayers:
 
 Third-Door Horizon (ADR-0238–0240):
   GoldTether, dynamic manifold, surprise dual, biography holonomy.
+
+Wave-field substrate (ADR-0241):
+  WaveManifold — continuous ψ, spectral leakage, polar analogy, chiral charge.
 """
 
 from core.physics.salience import SalienceOperator, SalienceMap, FieldRegion
@@ -64,6 +67,7 @@ from core.physics.temporal_gate import (
     TemporalVerdict,
 )
 from core.physics.self_authorship import AuthorshipProposal, SelfAuthorshipMiner
+from core.physics.wave_manifold import WaveManifold
 
 __all__ = [
     "SalienceOperator", "SalienceMap", "FieldRegion",
@@ -93,4 +97,5 @@ __all__ = [
     "TemporalAdmissibilityGate", "TemporalContext",
     "TemporalDecision", "TemporalVerdict",
     "AuthorshipProposal", "SelfAuthorshipMiner",
+    "WaveManifold",
 ]
