@@ -43,6 +43,7 @@ from algebra.cga import cga_inner
 from algebra.cl41 import N_COMPONENTS, grade_project
 from algebra.versor import versor_condition
 from core.physics.dynamic_manifold import conformal_procrustes
+from core.physics.wave_manifold import WaveManifold, WaveSpectralLeakageError
 
 _ETA5 = np.diag([1.0, 1.0, 1.0, 1.0, -1.0]).astype(np.float64)
 _NEAR_ZERO = 1e-12
@@ -166,7 +167,9 @@ def surprise_residual(
         residual = x_arr - B @ coeffs
         return residual, float(np.linalg.norm(residual))
 
-    # --- 32-vector (Cl(4,1) multivector) branch: cga_inner projection --------
+    # --- 32-vector (Cl(4,1) multivector) branch: wave spectral leakage -------
+    # Canonical path (ADR-0241 Slice 2): metric proj via WaveManifold; no parallel
+    # Euclidean Gram-Schmidt. Typed degenerate-span refusal preserved.
     if x_arr.shape[0] == N_COMPONENTS:
         if B.shape[0] != N_COMPONENTS and B.shape[1] == N_COMPONENTS:
             B = B.T
@@ -176,13 +179,10 @@ def surprise_residual(
         if k == 0:
             return x_arr.copy(), float(np.linalg.norm(x_arr))
         cols = [B[:, i] for i in range(k)]
-        gram = np.array(
-            [[cga_inner(cols[i], cols[j]) for j in range(k)] for i in range(k)],
-            dtype=np.float64,
-        )
-        rhs = np.array([cga_inner(cols[i], x_arr) for i in range(k)], dtype=np.float64)
-        coeffs = _metric_projection_coeffs(B, gram, rhs)
-        residual = x_arr - B @ coeffs
+        try:
+            residual, energy = WaveManifold().compute_spectral_leakage(x_arr, cols)
+        except WaveSpectralLeakageError as exc:
+            raise SurpriseResidualError(exc.reason, **exc.disclosure) from exc
 
         # Grade-support containment: residual is a linear combination of x and the
         # basis columns, so its grades can only be a subset of theirs. ``allowed``
@@ -199,7 +199,7 @@ def surprise_residual(
                 "grade_leak", leaked=sorted(leaked), allowed=sorted(allowed)
             )
 
-        return residual, float(np.linalg.norm(residual))
+        return residual, float(energy)
 
     raise ValueError("surprise_residual expects 5-vector or 32-vector x")
 

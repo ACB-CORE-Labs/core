@@ -41,7 +41,7 @@
 | W2 | Spectral leakage surprise | ADR-0241 §2.4B | 🟢 substrate landed (metric proj) | ADR-0241 |
 | W3 | Wave polar analogy (Procrustes upgrade) | ADR-0241 §2.4A | 🟢 substrate landed (conjugacy polar) | ADR-0241 |
 | W4 | Unitary residual + chiral charge readout | ADR-0241 §2.4C–D | 🟢 substrate landed (Q structural 0 in real Cl(4,1); see §12) | ADR-0241 / #18 |
-| W5 | Biography resonant lock-in | ADR-0241 + ADR-0240 | ⚫ not started | ADR-0241 |
+| W5 | Biography resonant lock-in | ADR-0241 + ADR-0240 | 🟡 unitary lock-in on integrate; full holographic store deferred | ADR-0241 |
 | W6 | `core_ha` deprecation / absorption | deprecation plan | 🟡 docs-only (no live tree) | ADR-0241 |
 | — | Biography holonomy | (ADR-0240; not in blueprints) | 🟢 sound (pointwise) | — |
 | — | Temporal admissibility gate | (ADR-0240; not in blueprints) | 🟢 sound | — |
@@ -251,13 +251,12 @@ PY
 
 ---
 
-## 12. Wave-field substrate (ADR-0241) — 🟢 substrate + ⚫ subsumption pending
+## 12. Wave-field substrate (ADR-0241) — 🟢 substrate + Slice-2 subsumption
 
 > **Status (2026-07-14):** ADR + deprecation plan + `core/physics/wave_manifold.py`
-> landed on `feat/third-door-wave-field-substrate`. Behavioral suite
-> `tests/test_adr_0241_wave_manifold.py` is **GREEN**. Operator subsumption
-> (surprise / Procrustes / GoldTether / biography **delegate into** wave primitives)
-> is still pending Slice 2 — substrate exists; parallel path not yet collapsed.
+> + Slice-2 operator subsumption on `feat/third-door-wave-field-substrate`.
+> Behavioral suite `tests/test_adr_0241_wave_manifold.py` is **GREEN**. Third-Door
+> operators **delegate into** wave primitives (no parallel residual/projection path).
 
 ### Spec (ADR-0241)
 - Continuous multivector wave-field \(\psi \in Cl(4,1)\) (32-coeff) as the representation layer under Cartan/Procrustes, Surprise, GoldTether, Biography.
@@ -274,10 +273,20 @@ PY
 - Containment: no serve-path import of `wave_manifold` until explicit gate; physics still never imports teaching.
 - #18 bootstrap/prune of \(\mathcal{I}_{gold}\) **stays deferred** while wave GoldTether subsumption lands.
 
+### Slice-2 subsumption map (landed)
+| Operator | Delegation |
+|----------|------------|
+| `surprise_residual` (32-vec) | `WaveManifold.compute_spectral_leakage` |
+| `conformal_procrustes` single non-null field pair | `WaveManifold.wave_analogical_polar` |
+| Null-point / (5,K) clouds | Kabsch point-cloud path retained (compatibility) |
+| `coherence_residual` / GoldTether drift | `WaveManifold.measure_unitary_residual` (+ chiral term in harmonized residual) |
+| `integrate_biography` | unitary residual lock-in on trajectory + blade; encode still `holonomy_encode` |
+
 ### What is not done
-- Subsumption of `surprise` / `dynamic_manifold` / `goldtether` / `biography` into wave primitives (Slice 2).
-- Biography resonant lock-in (W5).
+- Multi-pair field conjugacy still uses stacked conjugacy engine directly (same family; not dual path).
+- Full resonant standing-wave memory / holographic recall store (W5 beyond unitary lock-in).
 - Rust/MLX acceleration of exp-map / cross-spectral (optional later).
+- #18 gold-set bootstrap/prune still deferred.
 
 ---
 
@@ -291,7 +300,7 @@ PY
 | Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
 | Surprise: metric projection + productivity polarity + DiscoveryCandidate wiring — 🟢 done | #20 (math #26; wiring #31) |
 | Absent proposals: sensorimotor + ADR-DAG | #21 |
-| Wave-field substrate (unitary, leakage, polar, chiral) — 🟢 substrate; subsumption pending | ADR-0241 |
+| Wave-field substrate + Slice-2 operator subsumption — 🟢 | ADR-0241 |
 | `core_ha` deprecation — 🟡 docs-only (no live tree) | ADR-0241 / deprecation plan |
 
 Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` (or the ADR-0241 suite) to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.

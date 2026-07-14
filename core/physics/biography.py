@@ -19,6 +19,7 @@ import numpy as np
 from algebra.cl41 import N_COMPONENTS
 from algebra.holonomy import holonomy_encode, holonomy_similarity
 from algebra.versor import unitize_versor, versor_condition
+from core.physics.wave_manifold import WaveManifold
 
 _CLOSURE_TOL = 1e-6
 _TELEMETRY_SCHEMA = "biography_holonomy_v1"
@@ -69,16 +70,32 @@ def integrate_biography(
     """Integrate ordered identity/session versors into a biography holonomy blade.
 
     Order is load-bearing. Empty trajectory is refused (no confabulated self).
+
+    ADR-0241 Slice 2: each trajectory versor and the integrated blade must pass
+    the wave unitary residual (standing-wave / unitary-propagator lock-in). The
+    holonomy blade itself remains reconstruction-over-storage via
+    :func:`holonomy_encode` (no raw experience dump).
     """
     if not trajectory:
         raise ValueError("biography trajectory must be non-empty")
     closed = [_as_versor(v, f"trajectory[{i}]") for i, v in enumerate(trajectory)]
+    wave = WaveManifold()
+    for i, v in enumerate(closed):
+        r = wave.measure_unitary_residual(v)
+        if r >= _CLOSURE_TOL:
+            raise ValueError(
+                f"trajectory[{i}] failed wave unitary residual: {r:.3e}"
+            )
     blade = holonomy_encode(closed, alpha=alpha)
     cond = versor_condition(blade)
     if cond >= _CLOSURE_TOL:
         raise ValueError(f"biography blade not closed: {cond:.3e}")
+    blade_arr = np.asarray(blade, dtype=np.float64)
+    r_blade = wave.measure_unitary_residual(blade_arr)
+    if r_blade >= _CLOSURE_TOL:
+        raise ValueError(f"biography blade wave unitary residual: {r_blade:.3e}")
     return BiographyHolonomyBlade(
-        blade=np.asarray(blade, dtype=np.float64),
+        blade=blade_arr,
         n_steps=len(closed),
         trajectory_hash=_trajectory_hash(closed),
         closure=float(cond),

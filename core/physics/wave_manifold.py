@@ -16,7 +16,7 @@ Off-serving until explicit gates; dual-checked unitary residual.
 
 from __future__ import annotations
 
-from typing import Sequence, Tuple
+from typing import Any, Sequence, Tuple
 
 import numpy as np
 
@@ -27,6 +27,19 @@ from algebra.versor import versor_apply, versor_condition, versor_unit_residual
 _CLOSURE_TOL = 1e-6
 _NEAR_ZERO = 1e-12
 _NONSIMPLE_TOL = 1e-6
+
+
+class WaveSpectralLeakageError(ValueError):
+    """Fail-closed spectral leakage (metric-degenerate resonant span).
+
+    Mapped to :class:`core.physics.surprise.SurpriseResidualError` at the
+    surprise boundary so discovery / dual contracts keep a stable error type.
+    """
+
+    def __init__(self, reason: str, **disclosure: Any) -> None:
+        self.reason = reason
+        self.disclosure = dict(disclosure)
+        super().__init__(f"spectral_leakage refused [{reason}]: {self.disclosure}")
 
 # Unit pseudoscalar I₅ = e1 e2 e3 e4 e5 (central; I² = −1 in Cl(4,1)).
 _I5 = np.zeros(N_COMPONENTS, dtype=np.float64)
@@ -139,12 +152,21 @@ def _metric_project(
     )
     rhs = np.array([cga_inner(cols[i], x_arr) for i in range(k)], dtype=np.float64)
     # Fail-closed on metric-degenerate span (null direction with no reciprocal).
-    rank_b = int(np.linalg.matrix_rank(np.column_stack(cols)))
+    Bmat = np.column_stack(cols)
+    rank_b = int(np.linalg.matrix_rank(Bmat))
     rank_g = int(np.linalg.matrix_rank(gram))
     if rank_g < rank_b:
-        raise ValueError(
-            f"spectral_leakage: degenerate metric span "
-            f"(rank_basis={rank_b}, rank_gram={rank_g})"
+        _u, _sv, vh = np.linalg.svd(gram)
+        degenerate_combo = [round(float(v), 6) for v in vh[-1]]
+        null_columns = [
+            i for i in range(k) if abs(float(gram[i, i])) < _NEAR_ZERO
+        ]
+        raise WaveSpectralLeakageError(
+            "degenerate_metric_span",
+            rank_basis=rank_b,
+            rank_gram=rank_g,
+            null_columns=null_columns,
+            degenerate_combo=degenerate_combo,
         )
     coeffs, *_ = np.linalg.lstsq(gram, rhs, rcond=None)
     projection = np.zeros(N_COMPONENTS, dtype=np.float64)
@@ -231,17 +253,17 @@ class WaveManifold:
     ) -> np.ndarray:
         """Recover sandwich conjugator R with ψ_B ≈ R ψ_A ~R (polar / conjugacy).
 
-        Delegates to field conjugacy in :func:`conformal_procrustes` (Kabsch path
-        when null-points; conjugacy otherwise). Returns a closed unit versor.
+        Canonical single-field analogy rotor. Uses the field-conjugacy engine in
+        ``dynamic_manifold`` (lazy import — avoids import cycle; Procrustes
+        multi-pair path calls this for single non-null pairs).
         """
-        # Local import keeps module graph light and avoids cycles at import time.
-        from core.physics.dynamic_manifold import conformal_procrustes
+        # Lazy import: dynamic_manifold may call WaveManifold at runtime.
+        from core.physics.dynamic_manifold import _field_conjugacy_versor
 
-        psi_A = _as_mv(psi_A, "ψ_A")
-        psi_B = _as_mv(psi_B, "ψ_B")
-        R, _residual = conformal_procrustes(psi_A, psi_B)
-        R_arr = _as_mv(R, "R_polar")
-        return _require_closed_rotor(R_arr, name="R_polar")
+        psi_A_arr = _as_mv(psi_A, "ψ_A")
+        psi_B_arr = _as_mv(psi_B, "ψ_B")
+        R, _residual = _field_conjugacy_versor([psi_A_arr], [psi_B_arr])
+        return _require_closed_rotor(R, name="R_polar")
 
     # --- Chiral spinor charge ------------------------------------------------
 
@@ -266,4 +288,4 @@ class WaveManifold:
         )
 
 
-__all__ = ["WaveManifold"]
+__all__ = ["WaveManifold", "WaveSpectralLeakageError"]

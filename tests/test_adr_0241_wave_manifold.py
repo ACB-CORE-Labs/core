@@ -215,3 +215,54 @@ def test_wave_manifold_module_does_not_import_teaching():
                 assert not alias.name.startswith("teaching")
         if isinstance(node, ast.ImportFrom) and node.module:
             assert not node.module.startswith("teaching")
+
+
+# --- Slice 2: operator subsumption (no parallel path) ----------------------
+
+
+def test_surprise_residual_delegates_to_wave_spectral_leakage():
+    """32-vec surprise residual matches WaveManifold.compute_spectral_leakage."""
+    from core.physics.surprise import surprise_residual
+
+    M = WaveManifold()
+    mode = _e(1) + 0.5 * _e(3)
+    mode = mode / float(np.linalg.norm(mode))
+    x = 0.7 * mode + 0.4 * _e(2)
+    B = mode.reshape(N_COMPONENTS, 1)
+    sur_vec, sur_n = surprise_residual(x, B)
+    leak_vec, leak_n = M.compute_spectral_leakage(x, [mode])
+    assert np.allclose(sur_vec, leak_vec, atol=1e-12)
+    assert abs(sur_n - leak_n) < 1e-12
+
+
+def test_coherence_residual_delegates_to_wave_unitary():
+    """GoldTether coherence_residual is WaveManifold.measure_unitary_residual."""
+    from core.physics.goldtether import coherence_residual
+
+    M = WaveManifold()
+    psi = _unit_rotor(0.42, plane=8)
+    assert abs(coherence_residual(psi) - M.measure_unitary_residual(psi)) < 1e-15
+
+
+def test_conformal_procrustes_single_field_uses_wave_polar():
+    """Single non-null field Procrustes recovers the same conjugator as wave polar."""
+    from core.physics.dynamic_manifold import conformal_procrustes
+
+    M = WaveManifold()
+    psi_A = _unit_rotor(0.15, plane=6)
+    R_true = _unit_rotor(0.55, plane=10)
+    psi_B = versor_apply(R_true, psi_A)
+    V_proc, res = conformal_procrustes(psi_A, psi_B)
+    V_wave = M.wave_analogical_polar(psi_A, psi_B)
+    # Both must sandwich A → B; residual small.
+    assert res < 1e-5
+    err_p = min(
+        float(np.linalg.norm(versor_apply(V_proc, psi_A) - psi_B)),
+        float(np.linalg.norm(versor_apply(-V_proc, psi_A) - psi_B)),
+    )
+    err_w = min(
+        float(np.linalg.norm(versor_apply(V_wave, psi_A) - psi_B)),
+        float(np.linalg.norm(versor_apply(-V_wave, psi_A) - psi_B)),
+    )
+    assert err_p < 1e-5
+    assert err_w < 1e-5
