@@ -103,4 +103,4 @@ Behavioral (not closure-only) tests in `tests/test_adr_0241_wave_manifold.py`:
 - Ledger: `docs/research/third-door-blueprint-fidelity.md` § Wave-field substrate.
 - Entity cohesion (Trace A/B, I-01…I-05, Phase 0 audits): `docs/analysis/core_cohesion_master_plan.md`.
 - GoldTether #18 bootstrap/prune is **landed** (fidelity ledger 🟢); wave unitary residual is the coherence residual path (Slice 2).
-- Multi-grade sandwich conjugacy is owned by `_field_conjugacy_versor` (wave thin wrap); analytic Clifford polar \(R=C(\widetilde{C}C)^{-1/2}\) is **retired for general multi-grade fields** (see `docs/briefs/P7_design_note.md`). Chiral \(\mathcal{Q}\) remains honest structural ~0 on real Cl(4,1) until pair-spinor design (P8).
+- Multi-grade sandwich conjugacy is owned by `_field_conjugacy_versor` (wave thin wrap); analytic Clifford polar \(R=C(\widetilde{C}C)^{-1/2}\) is **retired for general multi-grade fields** (see `docs/briefs/P7_design_note.md`). Chiral \(\mathcal{Q}\) is non-vacuous for general odd-capable spinor packets, while remaining structurally zero on even field states (P8).

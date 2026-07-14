@@ -40,7 +40,7 @@
 | W1 | WaveManifold unitary / sandwich step | ADR-0241 §2 | 🟢 | ADR-0241 |
 | W2 | Spectral leakage surprise | ADR-0241 §2.4B | 🟢 subsumed into `surprise_residual` | ADR-0241 |
 | W3 | Wave polar + multi-pair conjugacy | ADR-0241 §2.4A | 🟢 sandwich conjugacy (`_field_conjugacy_versor`); analytic multi-grade polar ⚪ RETIRED | ADR-0241 |
-| W4 | Unitary residual + chiral charge readout | ADR-0241 §2.4C–D | 🟢 (Q structural 0 in real Cl(4,1); see §12) | ADR-0241 / #18 |
+| W4 | Unitary residual + chiral charge readout | ADR-0241 §2.4C–D | 🟢 (Q non-vacuous for odd-capable spinors; structurally 0 for even fields) | ADR-0241 / #18 |
 | W5 | Biography resonant lock-in + durable holographic vault | ADR-0241 + ADR-0240 | 🟢 session registry + `HolographicVaultStore` (VaultStore-backed) | ADR-0241 |
 | W6 | `core_ha` deprecation / absorption | deprecation plan | 🟢 no live tree + hygiene pin | ADR-0241 |
 | — | Biography holonomy | (ADR-0240; not in blueprints) | 🟢 sound (pointwise) | — |
@@ -279,7 +279,7 @@ PY
 - Continuous multivector wave-field \(\psi \in Cl(4,1)\) (32-coeff) under Cartan/Procrustes, Surprise, GoldTether, Biography.
 - **Transport pin:** multivector fields → sandwich \(R\psi\widetilde{R}\); spinor/chiral → left multiply \(R\psi\). No silent mix.
 - Spectral leakage = metric proj onto resonant modes (definite Euclidean energy after metric-exact proj).
-- Unitary residual \(\|\psi\widetilde{\psi}-1\|_F\) dual-checked. Chiral \(\langle\psi I\widetilde{\psi}\rangle_0\) structurally ~0 in real Cl(4,1) (honest; #19 family).
+- Unitary residual \(\|\psi\widetilde{\psi}-1\|_F\) dual-checked. Chiral \(\langle\psi I_5\widetilde{\psi}\rangle_0\) is non-vacuous for odd-capable spinors, while remaining structurally ~0 for even field states (honest; #19 family).
 - Standing-wave registry + `resonant_recall` (session-local; durable via `HolographicVaultStore`).
 - `core_ha` standalone atlas: **deprecated** (no live tree; hygiene pin + Phase 0 grep).
 
@@ -315,7 +315,6 @@ PY
 ### Deferred (explicit, not namesake green)
 - Durable holographic memory **vault store** — 🟢 `core/physics/holographic_vault.py` (VaultStore-backed SPECULATIVE spectrum; restart lock-in; public `get_versor` ABI).
 - True cross-spectral \(\mathcal{C}_{AB}\) + Clifford polar — ⚪ RETIRED (proven mathematically ill-posed; `_field_conjugacy_versor` is the honest optimum).
-- Non-vacuous pair-spinor chiral charge.
 - Golden-Angle horosphere packing + Fibonacci section search (ADR-0242).
 - Rust/MLX acceleration of exp-map / cross-spectral (ADR-0235 later).
 - Full ADR-0092 reviewer-service integration (promote remains caller-gated).

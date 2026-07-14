@@ -403,11 +403,12 @@ class WaveManifold:
     def chiral_charge(self, psi: np.ndarray) -> float:
         """Topological spinor charge Q = ⟨ψ I₅ ~ψ⟩_0 (ADR-0241 §2.4C).
 
-        In real Cl(4,1), ψ~ψ is always even-grade, so ⟨I₅ (ψ~ψ)⟩_0 is structurally
-        zero — the same odd-grade vacuity that retired Super §3.3 on even field
-        states (#19). The formula is implemented honestly (returns ~0) and is
-        conserved under left unitary multiply; a non-vacuous complex/pair-spinor
-        extension remains future work. Even unit versors stay honest at ~0.
+        For strictly even field-states, ⟨I₅ (ψ~ψ)⟩_0 is structurally zero, remaining
+        honest about the vacuity of the retired #19 gate. However, for odd-capable
+        spinor packets (mixed parity), ψ~ψ carries a grade-5 component, yielding a
+        strictly NON-VACUOUS and informative Q that measures the correlation
+        between the even part and the odd dual part. Q is strictly conserved
+        under left unitary multiplication by any rotor R.
         """
         psi_arr = _as_mv(psi, "ψ")
         # ⟨ψ I ~ψ⟩_0 = ⟨I (ψ ~ψ)⟩_0 (I central)

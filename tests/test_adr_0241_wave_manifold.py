@@ -170,13 +170,29 @@ def test_wave_polar_recovers_known_sandwich_rotor():
 # --- W4: chiral spinor charge ----------------------------------------------
 
 
-def test_chiral_charge_conserved_under_left_spinor_step():
-    """Q = ⟨ψ I ~ψ⟩_0 conserved under unitary left multiply (odd-capable ψ)."""
+def test_chiral_charge_nonzero_on_designed_spinor_packet():
+    """Q = ⟨ψ I₅ ~ψ⟩_0 is strictly non-zero for odd-capable mixed-parity spinors (e.g. ψ = v + v I₅)."""
     M = WaveManifold()
-    psi = _e(1) + 0.3 * _e(3) + 0.1 * _unit_rotor(0.2, plane=6)
+    from core.physics.wave_manifold import _I5
+    # Construct a non-vacuous spinor path
+    v = _e(1) + 0.5 * _e(3)
+    psi = v + geometric_product(v, _I5)
+    
+    q = M.chiral_charge(psi)
+    # The non-scalar mass of ψ~ψ correlates with Q. It is exactly non-zero.
+    assert abs(q) > 0.1
+
+def test_chiral_charge_conserved_under_left_spinor_step():
+    """Q = ⟨ψ I₅ ~ψ⟩_0 conserved under unitary left multiply (odd-capable non-vacuous ψ)."""
+    M = WaveManifold()
+    from core.physics.wave_manifold import _I5
+    v = _e(2) - 0.3 * _e(4)
+    psi = v + geometric_product(v, _I5)
     R = _unit_rotor(0.4, plane=7)
 
     q0 = M.chiral_charge(psi)
+    assert abs(q0) > 0.1  # Ensure we are not vacuously testing 0 == 0
+    
     psi_next = M.left_spinor_step(psi, R)
     q1 = M.chiral_charge(psi_next)
     assert abs(q0 - q1) < 1e-9
