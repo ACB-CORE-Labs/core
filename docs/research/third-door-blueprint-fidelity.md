@@ -39,7 +39,7 @@
 | 8 | ADR-DAG conformal embedding | R&D §2.4 | 🟢 Python surface (`core/adr/validator.py`) | #21 |
 | W1 | WaveManifold unitary / sandwich step | ADR-0241 §2 | 🟢 | ADR-0241 |
 | W2 | Spectral leakage surprise | ADR-0241 §2.4B | 🟢 subsumed into `surprise_residual` | ADR-0241 |
-| W3 | Wave polar + multi-pair conjugacy | ADR-0241 §2.4A | 🟢 single polar + multi-pair thin wrap | ADR-0241 |
+| W3 | Wave polar + multi-pair conjugacy | ADR-0241 §2.4A | 🟢 sandwich conjugacy (`_field_conjugacy_versor`); analytic multi-grade polar ⚪ RETIRED | ADR-0241 |
 | W4 | Unitary residual + chiral charge readout | ADR-0241 §2.4C–D | 🟢 (Q structural 0 in real Cl(4,1); see §12) | ADR-0241 / #18 |
 | W5 | Biography resonant lock-in + durable holographic vault | ADR-0241 + ADR-0240 | 🟢 session registry + `HolographicVaultStore` (VaultStore-backed) | ADR-0241 |
 | W6 | `core_ha` deprecation / absorption | deprecation plan | 🟢 no live tree + hygiene pin | ADR-0241 |
@@ -314,10 +314,9 @@ PY
 
 ### Deferred (explicit, not namesake green)
 - Durable holographic memory **vault store** — 🟢 `core/physics/holographic_vault.py` (VaultStore-backed SPECULATIVE spectrum; restart lock-in; public `get_versor` ABI).
-- True cross-spectral \(\mathcal{C}_{AB}\) + Clifford polar — ⚪ RETIRED (proven mathematically ill-posed; `_field_conjugacy_versor` is the honest optimum).
-- Non-vacuous pair-spinor chiral charge.
-- Golden-Angle horosphere packing + Fibonacci section search (ADR-0242).
-- Rust/MLX acceleration of exp-map / cross-spectral (ADR-0235 later).
+- Analytic vector-style Clifford polar \(R=C(\widetilde{C}C)^{-1/2}\) for **general multi-grade** fields — ⚪ RETIRED (ill-posed; sandwich conjugacy via `_field_conjugacy_versor` is authority). Grade-1-only polar remains theoretically valid but is not the wave-field API.
+- Non-vacuous pair-spinor chiral charge (P8).
+- Rust/MLX acceleration of exp-map (ADR-0235 later).
 - Full ADR-0092 reviewer-service integration (promote remains caller-gated).
 - Optional Rust Ring-1 port of trajectory invariants (Python is authority today).
 

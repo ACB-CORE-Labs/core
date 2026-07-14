@@ -255,11 +255,12 @@ class WaveManifold:
         psi_A: np.ndarray,
         psi_B: np.ndarray,
     ) -> np.ndarray:
-        """Recover sandwich conjugator R with ψ_B ≈ R ψ_A ~R (polar / conjugacy).
+        """Recover sandwich conjugator R with ψ_B ≈ R ψ_A ~R.
 
-        Canonical single-field analogy rotor. Uses the field-conjugacy engine in
-        ``dynamic_manifold`` (lazy import — avoids import cycle; Procrustes
-        multi-pair path calls this for single non-null pairs).
+        Canonical single-field analogy rotor via field conjugacy (SVD + Spin GN).
+        Analytic Clifford polar \(R = C(\\widetilde{C}C)^{-1/2}\) is **not** used:
+        for multi-grade Cl(4,1) fields \(\\widetilde{C}C\) is non-scalar (ADR-0241
+        P7 demotion; ``docs/briefs/P7_design_note.md``).
         """
         R, _residual = self.wave_field_conjugacy([psi_A], [psi_B])
         return R
