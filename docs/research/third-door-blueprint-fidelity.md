@@ -299,8 +299,8 @@ PY
 | Serve path not wired to wave / Fibonacci (containment) | 🟢 (AST-pinned in cohesion suite) |
 | Entity I-01…I-05 cohesion suite | 🟢 progressive pins in `test_third_door_cohesion.py` (I-02 float32-honest) |
 | Vault public `get_versor` ABI | 🟢 |
-| Golden-Angle atlas packing \(d_{\min}=0.12\) | 🔴 STOP → `docs/briefs/ADR-0242-atlas-packing-and-fibonacci-brief.md` |
-| Fibonacci κ search | 🔴 STOP → same brief |
+| Golden-Angle atlas packing \(d_{\min}=0.12\) | 🟢 ADR-0242 (`atlas_packing`; CGA null-point \(d\)) |
+| Fibonacci κ search | 🟢 ADR-0242 (`fibonacci_search`) |
 
 ### Subsumption map (Slice 2–3)
 | Operator | Delegation |
@@ -337,6 +337,6 @@ PY
 | `core_ha` deprecation — 🟢 no live tree + hygiene + Phase 0 grep | ADR-0241 / deprecation plan |
 | Durable holographic vault spectrum — 🟢 HolographicVaultStore | ADR-0241 |
 | Entity cohesion I-01…I-05 + Trace A/B | cohesion master plan |
-| Atlas packing + Fibonacci κ (ADR-0242) | cohesion master plan |
+| Atlas packing + Fibonacci κ (ADR-0242) — 🟢 packing + search | PR #37 / ADR-0242 |
 
 Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` (or the ADR-0241 / cohesion suite) to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.

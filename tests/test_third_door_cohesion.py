@@ -269,11 +269,22 @@ def test_resonant_reconstruct_empty_refused():
 # --- ADR-0242 placeholder (Fibonacci not yet landed) --------------------------
 
 
-def test_fibonacci_search_module_absent_or_importable_placeholder():
-    """Until P5, fibonacci_search may be absent; if present it must not hit serve."""
-    spec = importlib.util.find_spec("core.physics.fibonacci_search")
-    if spec is None:
-        pytest.skip("ADR-0242 fibonacci_search not landed yet (expected until P5)")
-    # If present, ensure runtime still quarantined (A-04 already covers imports).
-    mod = importlib.import_module("core.physics.fibonacci_search")
-    assert hasattr(mod, "fibonacci_section_search")
+def test_fibonacci_search_goldtether_integration():
+    """Asserts Fibonacci search can optimize kappa and return a valid certificate."""
+    from core.physics.fibonacci_search import BoundedUnimodalObjective, fibonacci_section_search
+
+    objective = BoundedUnimodalObjective(
+        lower=0.1,
+        upper=2.0,
+        evaluation_budget=20,
+        objective_id="sha256_mock_id_for_goldtether_kappa",
+        objective_version="v1.0",
+    )
+
+    def synthetic_objective(kappa: float) -> float:
+        return (kappa - 0.789) ** 2  # unimodal minimum at 0.789
+
+    trace = fibonacci_section_search(objective, synthetic_objective)
+    assert abs(trace.best_observed_point - 0.789) < 1e-3
+    assert len(trace.eval_sequence) == 20
+    assert trace.certificate.get("budget") == 20
