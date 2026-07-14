@@ -94,3 +94,44 @@ def test_rotor_power_null_translator_scales_translation() -> None:
 def test_rotor_power_rejects_wrong_shape() -> None:
     with pytest.raises(ValueError):
         rotor_power(np.zeros(16, dtype=np.float64), 0.5)
+
+
+def test_rotor_power_near_zero_alpha_is_identity() -> None:
+    """Stream weights can be denormal tiny; R^α → I as α → 0 without split."""
+    from algebra.cl41 import geometric_product
+    from algebra.versor import unitize_versor
+
+    v = make_rotor_from_angle(0.4, bivector_idx=6)
+    for plane in (7, 8, 10):
+        v = geometric_product(v, make_rotor_from_angle(0.25, bivector_idx=plane))
+    R = unitize_versor(v)
+    out = rotor_power(R, 1e-40)
+    expected = np.zeros(32, dtype=np.float64)
+    expected[0] = 1.0
+    np.testing.assert_allclose(out, expected, atol=1e-12)
+
+
+def test_rotor_power_multiplane_transition_half_stays_closed() -> None:
+    """Live path: multi-plane word_transition_rotor then fractional power.
+
+    Regression for smoke: invariant-split factors have B² higher residual in the
+    1e-6..1e-3 float-dust band; must not raise non-simple under simple dispatch.
+    """
+    from algebra.cl41 import geometric_product
+    from algebra.versor import unitize_versor
+
+    def compose(scale: float) -> np.ndarray:
+        v = np.zeros(32, dtype=np.float64)
+        v[0] = 1.0
+        for k, plane in enumerate((6, 7, 8, 10, 11)):
+            v = geometric_product(
+                v, make_rotor_from_angle(0.2 + 0.11 * k + 0.05 * scale, bivector_idx=plane)
+            )
+        return unitize_versor(v)
+
+    R = word_transition_rotor(compose(1.0), compose(2.0))
+    for alpha in (0.1, 0.3, 0.5, 0.7, 0.9):
+        R_a = rotor_power(R, alpha)
+        assert versor_condition(R_a) < _TOL, (
+            f"multiplane transition power alpha={alpha}: cond={versor_condition(R_a):.3e}"
+        )

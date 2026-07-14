@@ -18,6 +18,11 @@ _STRICT_RESIDUE_TOL = 1e-2
 # A rotor is SIMPLE iff its grade-4 part vanishes (<R>_4 == 0 <=> R = R1 with a
 # single invariant plane). Above this, the rotor needs the invariant split.
 _SIMPLE_GRADE4_TOL = 1e-10
+# After the invariant (bivector) split, each factor is *approximately* simple;
+# B² higher-grade residual is float dust, not a true multi-plane bivector.
+# 1e-6 was too tight (raised on live word-transition / stream weights ≈ 1e-6..1e-3).
+# Refuse only residuals that are clearly structural non-simplicity.
+_SIMPLE_BSQ_HIGHER_TOL = 1e-3
 # |discriminant| below this => the two invariant eigenvalues coincide (isoclinic).
 _DEGEN_TOL = 1e-9
 
@@ -107,10 +112,17 @@ def rotor_power(R: np.ndarray, alpha: float) -> np.ndarray:
             f"rotor_power expects a {N_COMPONENTS}-component rotor; got {R_arr.shape}."
         )
     dtype = _result_dtype(R_arr)
+    a = float(alpha)
+    # Endpoints by continuity: R^0 = 1, R^1 = R. Stream weights can be denormal
+    # tiny; never run the invariant split on α≈0 (smoke / generate.stream path).
+    if abs(a) <= _NEAR_ZERO_TOL:
+        return _identity(dtype)
+    if abs(a - 1.0) <= _NEAR_ZERO_TOL:
+        return R_arr.astype(dtype, copy=True)
     # <R>_4 == 0  <=>  R is a single simple rotor. Otherwise take the split path.
     if float(np.linalg.norm(grade_project(R_arr, 4))) >= _SIMPLE_GRADE4_TOL:
-        return _general_rotor_power(R_arr, alpha, dtype)
-    return _simple_rotor_power(R_arr, alpha, dtype)
+        return _general_rotor_power(R_arr, a, dtype)
+    return _simple_rotor_power(R_arr, a, dtype)
 
 
 def _simple_rotor_power(R_arr: np.ndarray, alpha: float, dtype: np.dtype) -> np.ndarray:
@@ -123,16 +135,20 @@ def _simple_rotor_power(R_arr: np.ndarray, alpha: float, dtype: np.dtype) -> np.
     B[0] = 0.0
 
     # A simple rotor's bivector squares to a scalar (B² is grade-0 only).
+    # Higher-grade residual above _SIMPLE_BSQ_HIGHER_TOL is structural non-simplicity
+    # (fail closed). Below that, treat as float dust from the invariant split and
+    # use only the scalar part of B² (closed form still exact on the simple plane).
     B_sq_full = geometric_product(B, B).astype(np.float64)
     bsq_scalar = float(B_sq_full[0])
     B_sq_higher = B_sq_full.copy()
     B_sq_higher[0] = 0.0
-    if float(np.linalg.norm(B_sq_higher)) > 1e-6:
+    higher_norm = float(np.linalg.norm(B_sq_higher))
+    if higher_norm > _SIMPLE_BSQ_HIGHER_TOL:
         # Not a simple bivector under the simple dispatch — fail closed, never
         # silently return identity (that zeros motion without a signal).
         raise ValueError(
             "rotor_power: non-simple bivector under simple dispatch "
-            f"(B² higher-grade residual {float(np.linalg.norm(B_sq_higher)):.3e})"
+            f"(B² higher-grade residual {higher_norm:.3e})"
         )
 
     # Near-identity: nothing to scale.
