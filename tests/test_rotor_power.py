@@ -77,6 +77,20 @@ def test_rotor_power_on_word_transition_preserves_closure() -> None:
         assert cond < _TOL, f"alpha={alpha}: versor_condition = {cond:.3e}"
 
 
+def test_rotor_power_null_translator_scales_translation() -> None:
+    """B²=0 (CGA translator): T^α = 1 + αB, not identity (Cartan dual-slerp)."""
+    from algebra.null_point import recover_translation, translator
+
+    T = translator(np.array([2.0, 0.0, 0.0], dtype=np.float64))
+    half = rotor_power(T, 0.5)
+    assert versor_condition(half) < _TOL
+    a, _ = recover_translation(half)
+    np.testing.assert_allclose(a, [1.0, 0.0, 0.0], atol=1e-9)
+    # Full power recovers the original translator.
+    full = rotor_power(T, 1.0)
+    np.testing.assert_allclose(full, T, atol=1e-9)
+
+
 def test_rotor_power_rejects_wrong_shape() -> None:
     with pytest.raises(ValueError):
         rotor_power(np.zeros(16, dtype=np.float64), 0.5)
