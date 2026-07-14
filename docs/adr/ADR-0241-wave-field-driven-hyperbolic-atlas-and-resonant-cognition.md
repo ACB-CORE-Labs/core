@@ -50,7 +50,7 @@ Recall is resonant phase lock-in (overlap + constructive interference), not coor
 
 | Operator | Pointwise (landed) | Wave-field (this ADR) |
 |----------|--------------------|------------------------|
-| Conformal Procrustes | Kabsch / field conjugacy | Cross-spectral correlation \(\mathcal{C}_{AB}\) → Clifford polar decomposition for analogy rotor |
+| Conformal Procrustes | Kabsch / field conjugacy | Thin wrap over `_field_conjugacy_versor` (SVD + Spin GN); true Clifford polar demoted as mathematically ill-defined for multi-grade fields. |
 | Surprise | Metric-orthogonal residual | Non-resonant **spectral leakage** onto resonant eigenmodes |
 | GoldTether | Harmonized drift + dist-to-\(\mathcal{I}_{gold}\) + \(\alpha=\Phi(R)\) | **Unitary amplitude** residual \(\sup\|\psi\widetilde{\psi}-1\|\) + optional chiral anomaly |
 | Grade-5 / integrity | RETIRED on even versors (#19) | **Chiral spinor charge** \(\mathcal{Q}=\langle\psi I\widetilde{\psi}\rangle_0\) on general spinor \(\psi\) (non-vacuous) |
