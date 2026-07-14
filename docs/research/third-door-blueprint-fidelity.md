@@ -41,7 +41,7 @@
 | W2 | Spectral leakage surprise | ADR-0241 §2.4B | 🟢 subsumed into `surprise_residual` | ADR-0241 |
 | W3 | Wave polar + multi-pair conjugacy | ADR-0241 §2.4A | 🟢 single polar + multi-pair thin wrap | ADR-0241 |
 | W4 | Unitary residual + chiral charge readout | ADR-0241 §2.4C–D | 🟢 (Q structural 0 in real Cl(4,1); see §12) | ADR-0241 / #18 |
-| W5 | Biography resonant lock-in | ADR-0241 + ADR-0240 | 🟢 unitary lock-in + mode registry / resonant_recall; durable holographic vault store deferred | ADR-0241 |
+| W5 | Biography resonant lock-in + durable holographic vault | ADR-0241 + ADR-0240 | 🟢 session registry + `HolographicVaultStore` (VaultStore-backed) | ADR-0241 |
 | W6 | `core_ha` deprecation / absorption | deprecation plan | 🟢 no live tree + hygiene pin | ADR-0241 |
 | — | Biography holonomy | (ADR-0240; not in blueprints) | 🟢 sound (pointwise) | — |
 | — | Temporal admissibility gate | (ADR-0240; not in blueprints) | 🟢 sound | — |
@@ -307,7 +307,7 @@ PY
 | `integrate_biography` | unitary lock-in + mode register + resonant_recall; encode `holonomy_encode` |
 
 ### Deferred (explicit, not namesake green)
-- Durable holographic memory **vault store** (CRDT-backed standing-wave spectrum) — session registry only today.
+- Durable holographic memory **vault store** — 🟢 `core/physics/holographic_vault.py` (VaultStore-backed SPECULATIVE spectrum; restart lock-in).
 - Rust/MLX acceleration of exp-map / cross-spectral (ADR-0235 later).
 - Full ADR-0092 reviewer-service integration (promote remains caller-gated).
 - Optional Rust Ring-1 port of trajectory invariants (Python is authority today).
@@ -326,6 +326,6 @@ PY
 | Trajectory invariants + ADR-DAG embedding — 🟢 Python surfaces | #21 |
 | Wave-field substrate + operator subsumption (W1–W6) — 🟢 on branch | ADR-0241 |
 | `core_ha` deprecation — 🟢 no live tree + hygiene pin | ADR-0241 / deprecation plan |
-| Durable holographic vault spectrum — deferred | ADR-0241 follow-on |
+| Durable holographic vault spectrum — 🟢 HolographicVaultStore | ADR-0241 |
 
 Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` (or the ADR-0241 suite) to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.

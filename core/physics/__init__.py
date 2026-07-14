@@ -77,6 +77,11 @@ from core.physics.trajectory_invariants import (
     relative_holonomy,
     trajectory_divergence,
 )
+from core.physics.holographic_vault import (
+    HolographicVaultError,
+    HolographicVaultStore,
+    SealedMode,
+)
 
 __all__ = [
     "SalienceOperator", "SalienceMap", "FieldRegion",
@@ -110,4 +115,5 @@ __all__ = [
     "TrajectoryAssessment", "TrajectoryInvariantError",
     "assess_trajectory", "energy_boundary_ok",
     "relative_holonomy", "trajectory_divergence",
+    "HolographicVaultError", "HolographicVaultStore", "SealedMode",
 ]
