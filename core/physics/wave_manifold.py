@@ -255,12 +255,12 @@ class WaveManifold:
         psi_A: np.ndarray,
         psi_B: np.ndarray,
     ) -> np.ndarray:
-        """Recover sandwich conjugator R with ψ_B ≈ R ψ_A ~R.
+        """Recover sandwich conjugator R with psi_B ≈ R psi_A ~R.
 
         Canonical single-field analogy rotor via field conjugacy (SVD + Spin GN).
-        Analytic Clifford polar \(R = C(\\widetilde{C}C)^{-1/2}\) is **not** used:
-        for multi-grade Cl(4,1) fields \(\\widetilde{C}C\) is non-scalar (ADR-0241
-        P7 demotion; ``docs/briefs/P7_design_note.md``).
+        Analytic Clifford polar R = C (~C C)^{-1/2} is **not** used: for
+        multi-grade Cl(4,1) fields ~C C is non-scalar (ADR-0241 P7 demotion;
+        ``docs/briefs/P7_design_note.md``).
         """
         R, _residual = self.wave_field_conjugacy([psi_A], [psi_B])
         return R
