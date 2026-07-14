@@ -291,15 +291,16 @@ class GoldTetherMonitor:
         return self.supervised_blend(v_self, v_constraint, alpha)
 
     def promotion_eligible(self, F: np.ndarray) -> bool:
-        """True iff F is closed and harmonized residual is at/below ε_drift.
+        """True iff F is closed and unit-residual (drift) is at/below ε_drift.
 
-        Bootstrap gate (R&D §5): only audit-grade coherent states are candidates
-        for 𝓘_gold. Does not authorize promotion by itself.
+        Bootstrap gate (R&D §5): only coherent states are candidates for 𝓘_gold.
+        Uses the dual-checked *closure* residual (not geo distance to gold), so
+        novel closed states remain eligible for promotion. Does not authorize.
         """
-        # RED until #18 GREEN: live residual/closure check not yet wired as eligibility.
-        raise NotImplementedError(
-            "promotion_eligible: issue #18 bootstrap eligibility not implemented"
-        )
+        F_arr = _as_mv(F)
+        if float(versor_condition(F_arr)) >= _CLOSURE_TOL:
+            return False
+        return float(coherence_residual(F_arr)) <= float(self.epsilon_drift)
 
     def promote_gold_invariant(
         self,
@@ -312,21 +313,29 @@ class GoldTetherMonitor:
         """Add a state versor to 𝓘_gold. CALLER-GATED (ADR-0092).
 
         - Without ``authorized=True``: refuse (proposal-only; proof alone is insufficient).
-        - With authorize: refuse non-closed or high-residual F (live check, not proof trust).
+        - With authorize: refuse non-closed or high *drift* residual (live check —
+          never trusts proof.closed / proof.residual as truth).
         - ``require_proof=True``: refuse if ``proof`` is missing.
         - Physics never self-signs reviews; ``proof`` is caller-supplied audit pin.
-
-        Partial (#24): authorize-only append. Full residual/proof gates are #18 GREEN.
         """
         if not authorized:
             raise ValueError(
                 "promote_gold_invariant requires explicit authorization (ADR-0092 gate)"
             )
-        # Intentionally incomplete for RED: does not yet refuse dirty F / require proof.
         if require_proof and proof is None:
-            # Minimal stub so require_proof tests can go red on residual/close paths first.
             raise ValueError("promote_gold_invariant requires proof when require_proof=True")
-        self.gold_invariants.append(_as_mv(F).copy())
+
+        F_arr = _as_mv(F)
+        cond = float(versor_condition(F_arr))
+        # Closure residual only (geo distance to 𝓘_gold is expected for new axes).
+        drift = float(coherence_residual(F_arr))
+        if cond >= _CLOSURE_TOL or drift > float(self.epsilon_drift):
+            raise ValueError(
+                "promote_gold_invariant refused: not a closed versor "
+                f"(versor_condition={cond:.3e}) or residual/drift {drift:.3e} "
+                f"exceeds epsilon_drift={float(self.epsilon_drift)}"
+            )
+        self.gold_invariants.append(F_arr.copy())
 
     def prune_gold_invariants(
         self,
@@ -337,21 +346,72 @@ class GoldTetherMonitor:
         """Bound 𝓘_gold, always retaining the three primal seeds.
 
         Modes:
-          * ``fifo`` — keep primals + most recent (landed #24).
-          * ``principal_axes`` — R&D §5 principal-axis decay (#18; RED until GREEN).
+          * ``fifo`` — keep primals + most recent (#24).
+          * ``principal_axes`` — keep primals + highest principal-energy non-primals
+            (R&D §5 decay; coefficient PCA on the non-primal stack).
+        ``max_size < 3`` is clamped to 3 so primals are never stripped.
         """
         mode_s = str(mode)
         if mode_s not in ("fifo", "principal_axes"):
             raise ValueError(f"prune_gold_invariants unknown mode: {mode_s!r}")
-        if mode_s == "principal_axes":
-            raise NotImplementedError(
-                "prune_gold_invariants(mode='principal_axes'): issue #18 not implemented"
-            )
         max_size = max(3, int(max_size))
-        if len(self.gold_invariants) > max_size:
+        if len(self.gold_invariants) <= max_size:
+            return
+        if mode_s == "fifo":
             primal = self.gold_invariants[:3]
-            recent = self.gold_invariants[3:][-(max_size - 3):]
+            recent = self.gold_invariants[3:][-(max_size - 3) :]
             self.gold_invariants = primal + recent
+            return
+        self._prune_principal_axes(max_size)
+
+    def _prune_principal_axes(self, max_size: int) -> None:
+        """R&D §5: retain primals + non-primals with highest principal-subspace energy.
+
+        Stack non-primal 32-vectors as columns, take top eigen-directions of
+        ``XXᵀ/m``, score each member by squared projection onto that subspace,
+        keep the top ``max_size - 3`` (stable by original index on ties).
+        Differs from FIFO (last-N) whenever early high-energy axes outrank recent
+        near-identity members.
+        """
+        primal = list(self.gold_invariants[:3])
+        rest = [
+            np.asarray(v, dtype=np.float64).copy() for v in self.gold_invariants[3:]
+        ]
+        n_keep = int(max_size) - 3
+        if n_keep <= 0 or not rest:
+            self.gold_invariants = primal
+            return
+        if len(rest) <= n_keep:
+            self.gold_invariants = primal + rest
+            return
+
+        X = np.column_stack(rest)  # (32, m)
+        m = X.shape[1]
+        # Gram on ambient 32-space (deterministic; no external deps).
+        C = (X @ X.T) / float(max(m, 1))
+        evals, evecs = np.linalg.eigh(C)
+        # Leading subspace dimension: enough to distinguish members, ≤ n_keep.
+        k = max(1, min(n_keep, m, N_COMPONENTS))
+        order = np.argsort(evals)[::-1]
+        basis = evecs[:, order[:k]]  # (32, k)
+        scored: list[tuple[float, int]] = []
+        for i, v in enumerate(rest):
+            coeff = basis.T @ v
+            energy = float(coeff @ coeff)
+            scored.append((energy, i))
+        # Highest energy first; lower index wins ties (stable, anti-FIFO bias).
+        scored.sort(key=lambda t: (-t[0], t[1]))
+        keep_idx = sorted(i for _e, i in scored[:n_keep])
+        kept = [rest[i] for i in keep_idx]
+        # Non-primal retained members should stay closed when they entered as versors.
+        for i, inv in enumerate(kept):
+            cond = float(versor_condition(inv))
+            if cond >= _CLOSURE_TOL:
+                raise ValueError(
+                    f"prune principal_axes retained non-closed member[{i}]: "
+                    f"versor_condition={cond:.3e}"
+                )
+        self.gold_invariants = primal + kept
 
     def measure(self, F: np.ndarray, reference: Optional[np.ndarray] = None) -> CoherenceResidual:
         """Structured residual (primary + optional geometric distance to reference)."""
