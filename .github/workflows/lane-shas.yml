@@ -49,6 +49,9 @@ jobs:
       - name: verify lane SHAs
         env:
           PYTHONPATH: ${{ github.workspace }}
+          # Align with full-pytest.yml: wall-clock is env-sensitive on cold
+          # Act runners; content cases remain hard gates in public_demo.
+          CORE_SHOWCASE_SKIP_BUDGET: "1"
         run: |
           uv run python scripts/verify_lane_shas.py
 

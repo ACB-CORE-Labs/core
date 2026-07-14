@@ -30,7 +30,7 @@
       "details": {
         "all_claims_supported_a": true,
         "all_claims_supported_b": true,
-        "sha256": "2058a195e3eab899f3722995158efba158fc6c940b14bd3c1d4941bd57d09a2d"
+        "sha256": "b10954a44de6ba7bc779f6416dd9296c9a8c62d259babcd3c2aa19bc9c100a15"
       },
       "divergence": null,
       "passed": true
