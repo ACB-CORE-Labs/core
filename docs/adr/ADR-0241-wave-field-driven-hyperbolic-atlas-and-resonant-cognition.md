@@ -4,7 +4,7 @@
 **Date**: 2026-07-13
 **Deciders**: Joshua Shay + multi-model R&D
 **Traceability**: Issue #14, parent #10
-**Related**: ADR-0003, ADR-0006, ADR-0238, ADR-0239, ADR-0240, `core/physics/dynamic_manifold.py`, `core/physics/surprise.py`, `core/physics/goldtether.py`, `docs/analysis/core_ha_unification_and_deprecation_plan.md`
+**Related**: ADR-0003, ADR-0006, ADR-0238, ADR-0239, ADR-0240, ADR-0242 (draft track), `core/physics/dynamic_manifold.py`, `core/physics/surprise.py`, `core/physics/goldtether.py`, `docs/analysis/core_ha_unification_and_deprecation_plan.md`, `docs/analysis/core_cohesion_master_plan.md`
 **Canonical path**: `docs/adr/`
 
 ---
@@ -101,4 +101,6 @@ Behavioral (not closure-only) tests in `tests/test_adr_0241_wave_manifold.py`:
 
 - Prototype sketch in earlier R&D dump is **not** shippable as written (scipy `expm`, ad-hoc \(I\) matrix). Re-express on Cl(4,1) 32-vectors.
 - Ledger: `docs/research/third-door-blueprint-fidelity.md` § Wave-field substrate.
-- GoldTether #18 bootstrap/prune remains **deferred** while wave unitary residual lands.
+- Entity cohesion (Trace A/B, I-01…I-05, Phase 0 audits): `docs/analysis/core_cohesion_master_plan.md`.
+- GoldTether #18 bootstrap/prune is **landed** (fidelity ledger 🟢); wave unitary residual is the coherence residual path (Slice 2).
+- Thin vs mastery: multi-pair polar is still a conjugacy thin wrap; chiral \(\mathcal{Q}\) is honest structural ~0 on real Cl(4,1) until pair-spinor design lands.

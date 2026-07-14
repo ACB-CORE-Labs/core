@@ -559,6 +559,34 @@ class VaultStore:
         for i, meta in enumerate(self._metadata):
             yield i, meta
 
+    def get_versor(self, index: int) -> np.ndarray:
+        """Return a copy of the stored versor at live deque ``index``.
+
+        Public read ABI for structured reloaders (e.g. holographic standing-wave
+        spectrum). Does not mutate, reproject, or repair. Raises ``IndexError``
+        for out-of-range indices. Callers that need float64 algebra should cast;
+        storage remains float32 by construction (see ``store``).
+        """
+        n = len(self._versors)
+        if index < 0 or index >= n:
+            raise IndexError(
+                f"vault index {index} out of range for {n} stored entries"
+            )
+        return np.asarray(self._versors[index], dtype=np.float32).copy()
+
+    def get_entry(self, index: int) -> dict:
+        """Return ``{versor, metadata, index}`` for a live deque index (copies).
+
+        Read-only; metadata is a shallow copy so callers cannot mutate vault
+        bookkeeping through the returned dict.
+        """
+        versor = self.get_versor(index)
+        return {
+            "versor": versor,
+            "metadata": dict(self._metadata[index]),
+            "index": int(index),
+        }
+
     @property
     def reproject_interval(self) -> int:
         return self._reproject_interval

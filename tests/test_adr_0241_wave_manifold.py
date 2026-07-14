@@ -311,6 +311,27 @@ def test_resonant_recall_empty_refused():
         M.resonant_recall(_unit_rotor(0.3, plane=6))
 
 
+def test_resonant_reconstruct_interference_weights():
+    """Superposition reconstruct recovers a weighted combo better than pure modes."""
+    M = WaveManifold()
+    a = _unit_rotor(0.2, plane=6)
+    b = _unit_rotor(0.9, plane=10)
+    query = 0.6 * a + 0.4 * b
+    psi_hat, coeffs, _energies = M.resonant_reconstruct(query, modes=[a, b])
+    assert coeffs.shape == (2,)
+    err_hat = float(np.linalg.norm(psi_hat - query))
+    assert err_hat < float(np.linalg.norm(a - query))
+    assert err_hat < float(np.linalg.norm(b - query))
+
+
+def test_phase_correlation_symmetric():
+    """I-04 algebraic resonance: ρ(A,B)=ρ(B,A)."""
+    M = WaveManifold()
+    a = _unit_rotor(0.2, plane=6)
+    b = _unit_rotor(0.55, plane=8)
+    assert abs(M.phase_correlation(a, b) - M.phase_correlation(b, a)) < 1e-12
+
+
 def test_core_ha_package_absent():
     """core_ha deprecation: no live package tree in this repo (W6 hygiene)."""
     import importlib.util

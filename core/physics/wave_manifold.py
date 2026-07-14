@@ -315,10 +315,7 @@ class WaveManifold:
         Empty mode set raises ``ValueError`` (no confabulated recall).
         """
         query = _as_mv(psi_query, "ψ_query")
-        if modes is None:
-            mode_list = list(self._resonant_modes)
-        else:
-            mode_list = [_as_mv(m, f"mode[{i}]") for i, m in enumerate(modes)]
+        mode_list = self._resolve_modes(modes)
         if not mode_list:
             raise ValueError("resonant_recall: empty mode set (no confabulated recall)")
 
@@ -332,6 +329,73 @@ class WaveManifold:
                 best_E = energy
                 best_i = i
         return mode_list[best_i].copy(), float(best_E), int(best_i)
+
+    def resonant_reconstruct(
+        self,
+        psi_query: np.ndarray,
+        *,
+        modes: Sequence[np.ndarray] | None = None,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Superposition reconstruction ψ̂ = Σ_k c_k ψ_k.
+
+        Coefficients c_k are reverse-product scalar overlaps
+        ⟨ψ_q ~ψ_k⟩_0, L1-normalized when the total absolute mass is nonzero.
+        Reconstruction-over-storage via interference weights — not cosine
+        similarity and not argmax-only lock-in (use :meth:`resonant_recall`
+        for hard mode selection).
+
+        Returns ``(psi_hat, coeffs, energies)``. Empty mode set raises
+        ``ValueError`` (no confabulation).
+        """
+        query = _as_mv(psi_query, "ψ_query")
+        mode_list = self._resolve_modes(modes)
+        if not mode_list:
+            raise ValueError(
+                "resonant_reconstruct: empty mode set (no confabulated recall)"
+            )
+        energies = np.array(
+            [
+                float(scalar_part(geometric_product(query, reverse(m))))
+                for m in mode_list
+            ],
+            dtype=np.float64,
+        )
+        mass = float(np.sum(np.abs(energies)))
+        if mass < _NEAR_ZERO:
+            coeffs = np.zeros(len(mode_list), dtype=np.float64)
+            # Uniform refuse-to-invent: zero reconstruction when no overlap.
+            psi_hat = np.zeros(N_COMPONENTS, dtype=np.float64)
+            return psi_hat, coeffs, energies
+        coeffs = energies / mass
+        psi_hat = np.zeros(N_COMPONENTS, dtype=np.float64)
+        for c, mode in zip(coeffs, mode_list):
+            psi_hat = psi_hat + float(c) * mode
+        return psi_hat.astype(np.float64), coeffs, energies
+
+    def phase_correlation(
+        self,
+        psi_A: np.ndarray,
+        psi_B: np.ndarray,
+    ) -> float:
+        """Algebraic multimodal resonance (cohesion I-04).
+
+        rho(A,B) = ⟨ψ_A ~ψ_B + ψ_B ~ψ_A⟩_0
+
+        Symmetric, deterministic, reverse-product structure. Not cosine/ANN.
+        """
+        a = _as_mv(psi_A, "ψ_A")
+        b = _as_mv(psi_B, "ψ_B")
+        ab = geometric_product(a, reverse(b))
+        ba = geometric_product(b, reverse(a))
+        return float(scalar_part(ab + ba))
+
+    def _resolve_modes(
+        self,
+        modes: Sequence[np.ndarray] | None,
+    ) -> list[np.ndarray]:
+        if modes is None:
+            return list(self._resonant_modes)
+        return [_as_mv(m, f"mode[{i}]") for i, m in enumerate(modes)]
 
     # --- Chiral spinor charge ------------------------------------------------
 
