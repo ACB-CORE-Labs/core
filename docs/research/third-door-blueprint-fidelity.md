@@ -31,7 +31,7 @@
 | 3 | Conformal Procrustes | Super §3.1 | 🟢 faithful (Kabsch + field conjugacy) | #17 |
 | 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🟡 partial (#24 residual+α; bootstrap/prune deferred) | #18 |
 | 5 | Grade-5 pseudoscalar invariant | Super §3.3 | ⚪ RETIRED — vacuous in odd-dim Cl(4,1) | #19 (closed) |
-| 6 | Surprise residual operator | Super §3.2 | 🟢 math fixed; DiscoveryCandidate wiring on branch (issue #30) | #20 |
+| 6 | Surprise residual operator | Super §3.2 | 🟢 math + DiscoveryCandidate wiring landed (#26 + #31) | #20 |
 | 7 | Trajectory invariants + zero-fabrication | R&D §2.2 | ⚫ absent | #21 |
 | 8 | ADR-DAG conformal embedding | R&D §2.4 | ⚫ absent | #21 |
 | — | Biography holonomy | (ADR-0240; not in blueprints) | 🟢 sound | — |
@@ -141,9 +141,11 @@ This diagnostic is what killed §3.3, and it should be applied to every remainin
 
 ---
 
-## 6. Surprise residual operator — 🟢 operator math fixed (#20); DiscoveryCandidate wiring split to follow-up
+## 6. Surprise residual operator — 🟢 math + DiscoveryCandidate wiring (#20 closed)
 
-> **Resolution (2026-07-12):** the two operator-math defects are fixed in this PR — an exact metric-orthogonal projection and a reconciled productivity polarity. The third item (raise a `DiscoveryCandidate` into the contemplation loop) is a distinct cross-cutting surface — it touches `teaching/discovery` and the proposal-only / no-self-install discipline — and is split to its own follow-up so each PR is one coherent surface.
+> **Resolution (2026-07-12):** the two operator-math defects are fixed (#26) — exact metric-orthogonal projection and reconciled productivity polarity.
+>
+> **Resolution (2026-07-14, PR #31 / issue #30):** high surprise now raises a proposal-only `DiscoveryCandidate` (`trigger=high_surprise`) into the existing discovery sink stream. Contemplation consumes that JSONL unchanged. No vault/self-install; physics never imports teaching.
 
 ### Blueprint spec (Super §3.2)
 `S(x) = x − proj_{B_union}(x)`, where `proj_B(x) = (x·B)·B⁻¹` is the **geometric blade contraction**. `|S(x)|²` measures the epistemic frontier; high surprise (`> γ`) raises a `DiscoveryCandidate` in the contemplation loop (self-directed learning).
@@ -159,11 +161,13 @@ This diagnostic is what killed §3.3, and it should be applied to every remainin
 - **Reconciled productivity polarity.** `productive` (and `transfer_accepted`) now both mean **productive TRANSFER = low Procrustes ∧ low surprise** (a structural match found AND the query inside the admissible span). This **corrects** §6's earlier "high surprise ∧ low procrustes = productive" phrasing, which conflated *transfer* with *discovery*: HIGH surprise is a **discovery** signal, not a productive transfer, and routes to the (split-out) `DiscoveryCandidate` path.
 - Tests: `tests/test_adr_0239_surprise_metric_projection.py` — metric-vs-Euclidean divergence (the load-bearing proof), null refusal, null-pair admission, redundant-basis admission, in/out-of-span, grade purity, polarity, determinism.
 
-### Remaining → wiring landed (issue #30 / this surface)
-High surprise now routes to a proposal-only `DiscoveryCandidate`:
+### Wiring landed (PR #31 / issue #30) — acceptance
+High surprise routes to a proposal-only `DiscoveryCandidate`:
 - Physics (`dual_operator` / `dual_procrustes_surprise`) sets `discovery_eligible` when `sur_norm > γ` and transfer is not productive (`is_discovery_eligible`; default `γ = 0.35`). **No teaching import** in `core.physics.surprise`.
 - Teaching factory: `candidate_from_surprise_dual` / `emit_surprise_discovery` produce `trigger=high_surprise`, `review_state=unreviewed`, `domain=math`. Opt-in `DiscoveryCandidateSink` emit (same stream contemplation already consumes). **Never** vault/store/self-install.
-- Tests: `tests/test_third_door_surprise_discovery_wiring.py`.
+- Tests: `tests/test_third_door_surprise_discovery_wiring.py` + dual suite.
+
+No remaining #20 follow-up.
 
 ---
 
@@ -237,11 +241,11 @@ PY
 
 | Gap | Issue |
 |---|---|
-| Real Cartan–Iwasawa via `n_o`/`n∞` — 🟢 done (null-point peel + Spin remainder) | #16 |
-| Kabsch-conformal Procrustes on point sets | #17 |
-| GoldTether gold-set + harmonized residual + α=Φ(R) | #18 |
+| Real Cartan–Iwasawa via `n_o`/`n∞` — 🟢 done (null-point peel + Spin remainder) | #16 (closed via #29) |
+| Kabsch-conformal Procrustes on point sets — 🟢 done | #17 (closed via #29) |
+| GoldTether gold-set + harmonized residual + α=Φ(R) — 🟡 partial (#24); bootstrap/prune remain | #18 |
 | Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
-| Surprise: metric projection + productivity polarity — 🟢 done (#20); DiscoveryCandidate wiring — issue #30 / branch `feat/third-door-surprise-discovery-wiring` | #20 |
+| Surprise: metric projection + productivity polarity + DiscoveryCandidate wiring — 🟢 done | #20 (math #26; wiring #31) |
 | Absent proposals: sensorimotor + ADR-DAG | #21 |
 
 Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.
