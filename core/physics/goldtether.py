@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional, Tuple
+from typing import Any, Literal, Optional, Tuple
 
 import numpy as np
 
@@ -38,6 +38,23 @@ _NEAR_ZERO = 1e-12
 _TELEMETRY_SCHEMA = "goldtether_coherence_v2"  # v2: dropped vacuous grade-5 channel (#19)
 _E4_IDX = 4
 _E5_IDX = 5
+
+PruneMode = Literal["fifo", "principal_axes"]
+
+
+@dataclass(frozen=True, slots=True)
+class GoldPromotionProof:
+    """Caller-supplied proof for replay-verified promotion into 𝓘_gold (ADR-0092).
+
+    Physics never signs reviews. The review surface constructs this payload and
+    passes ``authorized=True`` only after external verification. ``replay_hash``
+    is opaque to GoldTether (determinism pin for the caller).
+    """
+
+    residual: float
+    replay_hash: str
+    reviewer_id: str
+    closed: bool
 
 
 def _primal_gold_invariants() -> list:
@@ -273,21 +290,63 @@ class GoldTetherMonitor:
         alpha = self.alpha_constraint(F, mode=mode)
         return self.supervised_blend(v_self, v_constraint, alpha)
 
-    def promote_gold_invariant(self, F: np.ndarray, *, authorized: bool = False) -> None:
-        """Add a state versor to 𝓘_gold. CALLER-GATED: the ADR-0092 signed /
-        replay-verified promotion happens in the caller; this refuses to
-        self-authorize (one-mutation-path discipline). The full replay-verified
-        promotion pipeline + principal-axis decay are deferred (issue #18 follow-up).
+    def promotion_eligible(self, F: np.ndarray) -> bool:
+        """True iff F is closed and harmonized residual is at/below ε_drift.
+
+        Bootstrap gate (R&D §5): only audit-grade coherent states are candidates
+        for 𝓘_gold. Does not authorize promotion by itself.
+        """
+        # RED until #18 GREEN: live residual/closure check not yet wired as eligibility.
+        raise NotImplementedError(
+            "promotion_eligible: issue #18 bootstrap eligibility not implemented"
+        )
+
+    def promote_gold_invariant(
+        self,
+        F: np.ndarray,
+        *,
+        authorized: bool = False,
+        proof: Optional[GoldPromotionProof] = None,
+        require_proof: bool = False,
+    ) -> None:
+        """Add a state versor to 𝓘_gold. CALLER-GATED (ADR-0092).
+
+        - Without ``authorized=True``: refuse (proposal-only; proof alone is insufficient).
+        - With authorize: refuse non-closed or high-residual F (live check, not proof trust).
+        - ``require_proof=True``: refuse if ``proof`` is missing.
+        - Physics never self-signs reviews; ``proof`` is caller-supplied audit pin.
+
+        Partial (#24): authorize-only append. Full residual/proof gates are #18 GREEN.
         """
         if not authorized:
             raise ValueError(
                 "promote_gold_invariant requires explicit authorization (ADR-0092 gate)"
             )
+        # Intentionally incomplete for RED: does not yet refuse dirty F / require proof.
+        if require_proof and proof is None:
+            # Minimal stub so require_proof tests can go red on residual/close paths first.
+            raise ValueError("promote_gold_invariant requires proof when require_proof=True")
         self.gold_invariants.append(_as_mv(F).copy())
 
-    def prune_gold_invariants(self, max_size: int = 64) -> None:
-        """Bound 𝓘_gold (decay hook), always retaining the three primal seeds.
-        Full principal-axis pruning (R&D-Revised §5) is deferred."""
+    def prune_gold_invariants(
+        self,
+        max_size: int = 64,
+        *,
+        mode: PruneMode | str = "fifo",
+    ) -> None:
+        """Bound 𝓘_gold, always retaining the three primal seeds.
+
+        Modes:
+          * ``fifo`` — keep primals + most recent (landed #24).
+          * ``principal_axes`` — R&D §5 principal-axis decay (#18; RED until GREEN).
+        """
+        mode_s = str(mode)
+        if mode_s not in ("fifo", "principal_axes"):
+            raise ValueError(f"prune_gold_invariants unknown mode: {mode_s!r}")
+        if mode_s == "principal_axes":
+            raise NotImplementedError(
+                "prune_gold_invariants(mode='principal_axes'): issue #18 not implemented"
+            )
         max_size = max(3, int(max_size))
         if len(self.gold_invariants) > max_size:
             primal = self.gold_invariants[:3]
