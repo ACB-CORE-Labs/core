@@ -1,6 +1,6 @@
 # ADR-0241: Wave-Field Driven Hyperbolic Atlas and Resonant Algebraic Cognition
 
-**Status**: Proposed (acceptance path: tests green + Joshua review)
+**Status**: Proposed — substrate implemented (`core/physics/wave_manifold.py`); operator subsumption pending (acceptance path: Slice-2 wiring + Joshua review)
 **Date**: 2026-07-13
 **Deciders**: Joshua Shay + multi-model R&D
 **Traceability**: Issue #14, parent #10
