@@ -31,7 +31,7 @@
 | 3 | Conformal Procrustes | Super §3.1 | 🟢 faithful (Kabsch + field conjugacy) | #17 |
 | 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🟡 partial (#24 residual+α; bootstrap/prune deferred) | #18 |
 | 5 | Grade-5 pseudoscalar invariant | Super §3.3 | ⚪ RETIRED — vacuous in odd-dim Cl(4,1) | #19 (closed) |
-| 6 | Surprise residual operator | Super §3.2 | 🟢 operator math fixed (metric proj + polarity); wiring split | #20 |
+| 6 | Surprise residual operator | Super §3.2 | 🟢 math fixed; DiscoveryCandidate wiring on branch (issue #30) | #20 |
 | 7 | Trajectory invariants + zero-fabrication | R&D §2.2 | ⚫ absent | #21 |
 | 8 | ADR-DAG conformal embedding | R&D §2.4 | ⚫ absent | #21 |
 | — | Biography holonomy | (ADR-0240; not in blueprints) | 🟢 sound | — |
@@ -159,8 +159,11 @@ This diagnostic is what killed §3.3, and it should be applied to every remainin
 - **Reconciled productivity polarity.** `productive` (and `transfer_accepted`) now both mean **productive TRANSFER = low Procrustes ∧ low surprise** (a structural match found AND the query inside the admissible span). This **corrects** §6's earlier "high surprise ∧ low procrustes = productive" phrasing, which conflated *transfer* with *discovery*: HIGH surprise is a **discovery** signal, not a productive transfer, and routes to the (split-out) `DiscoveryCandidate` path.
 - Tests: `tests/test_adr_0239_surprise_metric_projection.py` — metric-vs-Euclidean divergence (the load-bearing proof), null refusal, null-pair admission, redundant-basis admission, in/out-of-span, grade purity, polarity, determinism.
 
-### Remaining (follow-up — its own PR)
-Raise a `DiscoveryCandidate` (`teaching/discovery.py`) on high surprise into the contemplation loop, behind the existing proposal-only / no-self-install discipline, with no-self-install boundary tests.
+### Remaining → wiring landed (issue #30 / this surface)
+High surprise now routes to a proposal-only `DiscoveryCandidate`:
+- Physics (`dual_operator` / `dual_procrustes_surprise`) sets `discovery_eligible` when `sur_norm > γ` and transfer is not productive (`is_discovery_eligible`; default `γ = 0.35`). **No teaching import** in `core.physics.surprise`.
+- Teaching factory: `candidate_from_surprise_dual` / `emit_surprise_discovery` produce `trigger=high_surprise`, `review_state=unreviewed`, `domain=math`. Opt-in `DiscoveryCandidateSink` emit (same stream contemplation already consumes). **Never** vault/store/self-install.
+- Tests: `tests/test_third_door_surprise_discovery_wiring.py`.
 
 ---
 
@@ -238,7 +241,7 @@ PY
 | Kabsch-conformal Procrustes on point sets | #17 |
 | GoldTether gold-set + harmonized residual + α=Φ(R) | #18 |
 | Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
-| Surprise: metric projection + productivity polarity — 🟢 done (#20); DiscoveryCandidate wiring split to follow-up | #20 |
+| Surprise: metric projection + productivity polarity — 🟢 done (#20); DiscoveryCandidate wiring — issue #30 / branch `feat/third-door-surprise-discovery-wiring` | #20 |
 | Absent proposals: sensorimotor + ADR-DAG | #21 |
 
 Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.

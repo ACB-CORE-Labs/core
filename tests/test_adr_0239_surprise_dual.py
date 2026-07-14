@@ -54,7 +54,9 @@ def test_dual_procrustes_surprise_audit_dict():
     assert "procrustes_residual" in out
     assert "surprise_norm" in out
     assert "transfer_accepted" in out
+    assert "discovery_eligible" in out
     assert isinstance(out["transfer_accepted"], bool)
+    assert isinstance(out["discovery_eligible"], bool)
     if np.asarray(out["versor"]).shape == (32,):
         assert versor_condition(out["versor"]) < 1e-6
 
