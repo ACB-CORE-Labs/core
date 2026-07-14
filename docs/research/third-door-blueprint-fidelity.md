@@ -32,7 +32,7 @@
 | 1 | Signature-aware PCA | Super §2.1 / R&D §2.1 | 🟢 faithful (one untested add-on) | — |
 | 2 | Cartan–Iwasawa decomposition | Super §2.2 | 🟢 faithful (null-point peel + Spin remainder) | #16 |
 | 3 | Conformal Procrustes | Super §3.1 | 🟢 faithful (Kabsch + field conjugacy) | #17 |
-| 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🟡 partial (#24 residual+α landed; bootstrap/prune deferred) | #18 |
+| 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🟢 residual+α + bootstrap gates + principal-axis prune (#24+#18) | #18 |
 | 5 | Grade-5 pseudoscalar invariant | Super §3.3 | ⚪ RETIRED — vacuous in odd-dim Cl(4,1) | #19 (closed) |
 | 6 | Surprise residual operator | Super §3.2 | 🟢 math + DiscoveryCandidate wiring landed (#26 + #31) | #20 |
 | 7 | Trajectory invariants + zero-fabrication | R&D §2.2 | ⚫ absent | #21 |
@@ -106,13 +106,15 @@ Two fields `F_A`, `F_B` are structurally analogous iff a single versor `V` maps 
 - `supervised_transition` / `supervised_blend` on the Spin geodesic (`word_transition_rotor` + `rotor_power`).
 - `promote_gold_invariant(..., authorized=True)` is **caller-gated** (no self-authorize); `prune_gold_invariants` is a size bound retaining the three primals — **not** full principal-axis decay.
 
-### Remaining gap (#18 follow-up — deferred while wave GoldTether lands)
-- Full ADR-0092 / replay-verified promotion pipeline into `𝓘_gold`.
-- Principal-axis decay/pruning of the gold set (R&D §5).
-- ADR-0241 upgrade: unitary amplitude residual on \(\psi\) + optional chiral spinor charge (does not replace SERVE-never-autonomous).
+### Bootstrap / prune (#18 — landed)
+- `GoldPromotionProof` + `promote_gold_invariant(..., proof=, require_proof=)`: proposal-only without `authorized=True`; live **closure drift** gate (not geo-to-gold); refuses non-closed / high-drift even when authorized; never trusts proof fields as truth.
+- `promotion_eligible(F)`: closed ∧ drift ≤ ε_drift (does not self-authorize).
+- `prune_gold_invariants(mode="fifo"|"principal_axes")`: primals immovable; PCA ranks non-primals by principal-subspace energy (differs from last-N FIFO); `max_size < 3` clamped.
+- Unitary residual path still via wave (`measure_unitary_residual`); SERVE never autonomous.
 
-### Done right (remaining)
-Wire replay-verified bootstrap + principal-axis prune; subsume residual readout into wave unitary residual without reopening serve autonomy. Preserve fail-closed + serve-never-autonomous.
+### Explicit non-goals still open
+- Full signed ADR-0092 *reviewer service* wiring (physics stays caller-gated only).
+- Durable vault-backed gold set (session monitor field only).
 
 ---
 
@@ -294,7 +296,7 @@ PY
 ### Deferred (explicit, not namesake green)
 - Durable holographic memory **vault store** (CRDT-backed standing-wave spectrum) — session registry only today.
 - Rust/MLX acceleration of exp-map / cross-spectral (ADR-0235 later).
-- #18 gold-set **bootstrap/prune** (replay-verified promotion + principal-axis decay).
+- Full ADR-0092 reviewer-service integration (promote remains caller-gated).
 - R&D #21 trajectory invariants + ADR-DAG embedding.
 
 ---
@@ -305,7 +307,7 @@ PY
 |---|---|
 | Real Cartan–Iwasawa via `n_o`/`n∞` — 🟢 done (null-point peel + Spin remainder) | #16 (closed via #29) |
 | Kabsch-conformal Procrustes on point sets — 🟢 done | #17 (closed via #29) |
-| GoldTether gold-set + harmonized residual + α=Φ(R) — 🟡 partial (#24); bootstrap/prune remain | #18 |
+| GoldTether gold-set + harmonized residual + α=Φ(R) + bootstrap/prune — 🟢 | #18 |
 | Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
 | Surprise: metric projection + productivity polarity + DiscoveryCandidate wiring — 🟢 done | #20 (math #26; wiring #31) |
 | Absent proposals: sensorimotor + ADR-DAG | #21 |
