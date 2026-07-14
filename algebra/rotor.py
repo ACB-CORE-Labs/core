@@ -128,8 +128,12 @@ def _simple_rotor_power(R_arr: np.ndarray, alpha: float, dtype: np.dtype) -> np.
     B_sq_higher = B_sq_full.copy()
     B_sq_higher[0] = 0.0
     if float(np.linalg.norm(B_sq_higher)) > 1e-6:
-        # Not a simple bivector — should not reach here via the public dispatch.
-        return _identity(dtype)
+        # Not a simple bivector under the simple dispatch — fail closed, never
+        # silently return identity (that zeros motion without a signal).
+        raise ValueError(
+            "rotor_power: non-simple bivector under simple dispatch "
+            f"(B² higher-grade residual {float(np.linalg.norm(B_sq_higher)):.3e})"
+        )
 
     # Near-identity: nothing to scale.
     bivector_norm = float(np.linalg.norm(B))
@@ -144,19 +148,30 @@ def _simple_rotor_power(R_arr: np.ndarray, alpha: float, dtype: np.dtype) -> np.
         new_a = float(np.cos(alpha * theta_half))
         new_b_mag = float(np.sin(alpha * theta_half))
     elif bsq_scalar > 0.0:
-        # Boost plane.
+        # Boost plane. Domain of atanh requires |b_mag/a| < 1 and a > 0.
         b_mag = float(np.sqrt(bsq_scalar))
-        # atanh requires |b_mag/a| < 1; for closed rotors a² - B² = 1 means
-        # |b_mag| < |a|, so this is safe when a > 0.
-        if a == 0.0:
-            return _identity(dtype)
+        if a <= 0.0 or abs(b_mag / a) >= 1.0 - 1e-12:
+            raise ValueError(
+                f"rotor_power: boost plane outside unit-rotor domain "
+                f"(a={a:.6g}, |B|/a={abs(b_mag / a) if a != 0.0 else float('inf'):.6g})"
+            )
         eta_half = float(np.arctanh(b_mag / a))
         new_a = float(np.cosh(alpha * eta_half))
         new_b_mag = float(np.sinh(alpha * eta_half))
     else:
-        # B² = 0: null bivector. Cannot interpolate on the manifold;
-        # return identity to fail safely.
-        return _identity(dtype)
+        # B² = 0: null bivector (translator generators in CGA). Exact binomial:
+        # (a + B)^α = a^α + α a^{α-1} B  (higher powers of B vanish).
+        # Unit translators have a = 1 ⇒ T^α = 1 + α B = translator(α·a_eucl).
+        # Historically this returned identity — a silent zeroing of the Cartan
+        # translation leg in dual_correction_slerp (fidelity #16 follow-up).
+        if abs(a) < _NEAR_ZERO_TOL:
+            return _identity(dtype)
+        result = np.zeros(N_COMPONENTS, dtype=np.float64)
+        result[0] = float(a) ** float(alpha) if a > 0.0 else float(np.sign(a) * (abs(a) ** float(alpha)))
+        # Prefer real power for a>0; for a<0 (rare for unit translators) use |a|^α · sgn.
+        scale_B = float(alpha) * (float(a) ** (float(alpha) - 1.0)) if a > 0.0 else float(alpha) * (abs(a) ** (float(alpha) - 1.0)) * float(np.sign(a))
+        result = result + scale_B * B
+        return result.astype(dtype, copy=False)
 
     result = np.zeros(N_COMPONENTS, dtype=np.float64)
     result[0] = new_a

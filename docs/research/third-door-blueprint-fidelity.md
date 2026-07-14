@@ -27,9 +27,9 @@
 | # | Operator | Blueprint | Fidelity | Issue |
 |---|---|---|---|---|
 | 1 | Signature-aware PCA | Super §2.1 / R&D §2.1 | 🟢 faithful (one untested add-on) | — |
-| 2 | Cartan–Iwasawa decomposition | Super §2.2 | 🔴 replaced — raises ~45% | #16 |
-| 3 | Conformal Procrustes | Super §3.1 | 🔴 replaced — degenerate | #17 |
-| 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🔴 half-missing | #18 |
+| 2 | Cartan–Iwasawa decomposition | Super §2.2 | 🟢 faithful (null-point peel + Spin remainder) | #16 |
+| 3 | Conformal Procrustes | Super §3.1 | 🟢 faithful (Kabsch + field conjugacy) | #17 |
+| 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🟡 partial (#24 residual+α; bootstrap/prune deferred) | #18 |
 | 5 | Grade-5 pseudoscalar invariant | Super §3.3 | ⚪ RETIRED — vacuous in odd-dim Cl(4,1) | #19 (closed) |
 | 6 | Surprise residual operator | Super §3.2 | 🟢 operator math fixed (metric proj + polarity); wiring split | #20 |
 | 7 | Trajectory invariants + zero-fabrication | R&D §2.2 | ⚫ absent | #21 |
@@ -40,7 +40,7 @@
 
 ---
 
-## 2. Cartan–Iwasawa decomposition — 🔴 replaced (#16)
+## 2. Cartan–Iwasawa decomposition — 🟢 faithful (#16)
 
 ### Blueprint spec (Super §2.2)
 Factor a conformal versor `V = R·T·D` by acting on the conformal null points `n_o` (origin) and `n∞` (infinity). Explicitly "mathematically exact, non-iterative, guarantees perfect decomposition":
@@ -49,39 +49,35 @@ Factor a conformal versor `V = R·T·D` by acting on the conformal null points `
 3. **Rotor** — the remainder `R` satisfies `R Ṙ = 1`, `R n_o Ṙ = n_o`, `R n∞ Ṙ = n∞`.
 
 ### What landed (`dynamic_manifold.py::cartan_iwasawa_factorize`)
-No action on `n_o`/`n∞`. It grade-projects `B = ⟨V⟩₂`, branches on whether `B²` is scalar (simple bivector) and its sign, and in the **general (non-simple) case fabricates**:
-```
-R[0] = D[0] = |V[0]|**0.5 ;  R = R + ½B ;  D = D + ½B ;  T = normalize(reverse(R·D)·V)
-```
-R and D are seeded identically — this is not a K/A/N decomposition. The function then guards each factor with `versor_condition < 1e-6` and **raises `ValueError` when the fabricated R fails to close**.
+Null-point peel via `algebra.null_point.recover_dilation` / `recover_translation` (right-peel D then T for reconstruction order `R·T·D`). **Strict** construction-boundary close (rescale true versors only — never seed-to-rotor fabrications). On `NullPointRecoveryError` (non-similarity — e.g. multi-plane products that do not fix `n∞`) fall through to honest **remainder-as-rotor**: `R=V`, `T=I`, `D=I`. Peel path that fails reconstruction residual falls back to Spin remainder. Every returned factor is closed (`versor_condition < 1e-6`); non-versor input raises `ValueError` (fail-closed). No grade-projection fabrication of R/D seeds.
 
-### The gap (empirical)
-- On composed conformal versors (products of ≥3 plane-rotations) it raises `factor R not closed` **84/200 (3 planes), 91/200 (4 planes)** ≈ 45%.
-- When it does *not* raise, reconstruction is faithful (`‖R·T·D − V‖ ~ 1e-16`) — so the closure guard makes it fail-*loud*, not silently-wrong. But it cannot factor ~half of realistic states.
-- The only test (`test_cartan_iwasawa_extract_closed`) uses a single simple rotor (angle 0.7, plane e6), where the simple branch sets `R = ⟨V⟩₀+⟨V⟩₂`, `T=D=1` and trivially reconstructs; it also asserts only `reconstruction_residual >= 0.0` (a tautology).
+**Dual-correction follow-on:** `rotor_power` now implements exact null-bivector power `(a+B)^α = a^α + α a^{α-1} B` so `dual_correction_slerp` no longer silently zeros the translation leg.
 
-### Done right
-Implement the §2.2 null-point algorithm. Prereq: `n_o`, `n∞`, and the `e_o∧e∞` blade accessors in `algebra/` (add if absent). Acceptance: no raise on any conformal motion; `‖R·T·D − V‖ < 1e-6`; flips `test_cartan_iwasawa_should_reconstruct_composed_motion` xfail→pass.
+### Acceptance (pinned)
+- Composed multi-plane versors never raise; residual `‖R·T·D − V‖ < 1e-6` (often ~0 for Spin remainder).
+- Pure similarities `V = R_euc·T·D` peel with residual < 1e-6 **and** peel-content pins (nontrivial D with recovered scale, nontrivial T, `R·T ≈ V·D⁻¹`).
+- Pure dilator / translator / identity round-trip with factor-content asserts (not residual alone).
+- `test_cartan_iwasawa_should_reconstruct_composed_motion` passes (xfail removed).
+- Translator half-slerp: `dual_correction_slerp(I, translator([2,0,0]), 0.5)` recovers displacement `[1,0,0]`.
 
 ---
 
-## 3. Conformal Procrustes — 🔴 replaced (#17)
+## 3. Conformal Procrustes — 🟢 faithful (#17)
 
 ### Blueprint spec (Super §3.1)
 Two fields `F_A`, `F_B` are structurally analogous iff a single versor `V` maps one to the other under the sandwich `V·F_A·Ṽ = F_B`. Solve as a metric-aware **Kabsch on null-vector point sets** `P={p_i}`, `Q={q_i}`:
 `K = Σ p_i q_iᵀ η` → signature-aware SVD `K = UΣVᵀ` → `R = V Uᵀ`; translation + dilation from null-cone centroids. Verified by margin `|V·F_A·Ṽ − F_B| < ε_analogy`. Enables zero-shot transport of `F_A`'s solution path to `F_B`.
 
 ### What landed (`dynamic_manifold.py::conformal_procrustes`)
-- **32-vector / multivector-pair path** (used by `evals/analogical_transfer/harness.py` and `self_authorship.py`): `_procrustes_multivector_pairs` computes `word_transition_rotor(s,t) = normalize(t·rev(s))` per pair and averages via repeated `rotor_power` — a transition rotor, **not** a Kabsch/SVD point-set fit.
-- **5×K path**: partial Kabsch on the first **3** Euclidean coords only (`Pc = P[:3]`), leaving conformal coords untransformed.
+- **(5,K) path**: dehomogenize (`w=e5−e4`), Umeyama scale + Kabsch `R` with `det=+1`, `t = μ_y − s R μ_x`, assemble `V = T(t)·D(s)·R` via `null_point.translator/dilator` + `so3_matrix_to_rotor`, return grade-1 sandwich adjoint `M` (5×5) with **weight-normalized** residual (dilation changes homogeneous weight; Euclidean images still match to ~1e-15).
+- **Null-point 32-lists**: extract (5,K), Kabsch, return **V32** with sandwich residual.
+- **Field conjugacy** (non-null 32-vecs): stacked linear `W F_A − F_B W = 0` nullspace candidates + multiplicative Lie GN on Spin; residual is **sandwich** (`versor_apply`), not left-composition. `word_transition_rotor` averaging **deleted** from this path.
+- Analogical harness fixture learns from probe null-point clouds under a known similarity (no longer I→I).
 
-### The gap (empirical)
-- Composed with the supervised-blend transport, the 32-vec path **degenerates** (see §4).
-- `test_conformal_procrustes_multivector_low_residual` is **vacuous**: `tgt = versor_apply(R, identity) = R·rev(R) = identity`, so `‖tgt − identity‖ = 0.0` exactly → src==tgt==identity. It "verifies" identity→identity.
-- `test_conformal_procrustes_5d_cloud` asserts only `residual >= 0.0` (a norm — always true).
-
-### Done right
-Implement §3.1 on full null-vector point sets (all 5 conformal coords), signature-aware SVD, centroid-derived T/D, margin verification. Acceptance: for `F_B = versor_apply(W, F_A)` with a **non-trivial** `W` on a composed state, recover `V` with `‖versor_apply(V, F_A) − F_B‖ < ε`.
+### Acceptance (pinned)
+- Multiplane `F_B = versor_apply(W, F_A)` → sandwich residual < 1e-5.
+- Known rotation / full similarity (s,R,t) clouds → residual < 1e-6, mapped points match.
+- Null-point list of 32-vecs → sandwich residual < 1e-6.
 
 ---
 
@@ -238,7 +234,7 @@ PY
 
 | Gap | Issue |
 |---|---|
-| Real Cartan–Iwasawa via `n_o`/`n∞` | #16 |
+| Real Cartan–Iwasawa via `n_o`/`n∞` — 🟢 done (null-point peel + Spin remainder) | #16 |
 | Kabsch-conformal Procrustes on point sets | #17 |
 | GoldTether gold-set + harmonized residual + α=Φ(R) | #18 |
 | Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
