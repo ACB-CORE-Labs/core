@@ -39,7 +39,7 @@
 | 8 | ADR-DAG conformal embedding | R&D §2.4 | 🟢 Python surface (`core/adr/validator.py`) | #21 |
 | W1 | WaveManifold unitary / sandwich step | ADR-0241 §2 | 🟢 | ADR-0241 |
 | W2 | Spectral leakage surprise | ADR-0241 §2.4B | 🟢 subsumed into `surprise_residual` | ADR-0241 |
-| W3 | Wave polar + multi-pair conjugacy | ADR-0241 §2.4A | 🟢 single polar + multi-pair thin wrap | ADR-0241 |
+| W3 | Wave polar + multi-pair conjugacy | ADR-0241 §2.4A | 🟢 sandwich conjugacy (`_field_conjugacy_versor`); analytic multi-grade polar ⚪ RETIRED | ADR-0241 |
 | W4 | Unitary residual + chiral charge readout | ADR-0241 §2.4C–D | 🟢 (Q structural 0 in real Cl(4,1); see §12) | ADR-0241 / #18 |
 | W5 | Biography resonant lock-in + durable holographic vault | ADR-0241 + ADR-0240 | 🟢 session registry + `HolographicVaultStore` (VaultStore-backed) | ADR-0241 |
 | W6 | `core_ha` deprecation / absorption | deprecation plan | 🟢 no live tree + hygiene pin | ADR-0241 |
