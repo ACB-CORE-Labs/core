@@ -48,6 +48,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -65,6 +66,9 @@ DiscoveryTrigger = Literal[
     "successful_comparison",
     "hedge_acknowledged",
     "oov_resolved_via_decomp",
+    # Third-Door Super §3.2 / fidelity #20: high geometric surprise on the
+    # dual Procrustes–Surprise operator (epistemic frontier signal).
+    "high_surprise",
 ]
 
 
@@ -362,12 +366,142 @@ def format_candidate_jsonl(candidate: DiscoveryCandidate) -> str:
     return json.dumps(candidate.as_dict(), sort_keys=True, separators=(",", ":"))
 
 
+def candidate_from_surprise_dual(
+    dual: dict[str, Any],
+    *,
+    source_turn_trace: str = "",
+    discovery_gamma: float | None = None,
+) -> DiscoveryCandidate | None:
+    """Build a proposal-only ``DiscoveryCandidate`` from a dual-operator audit dict.
+
+    Pure function of its inputs (plus the dual dict). Fires only when the dual
+    result is discovery-eligible: measured surprise above γ, not a productive
+    transfer, and no metric refusal. Never writes vault / packs / corpus.
+
+    ``dual`` is the audit dict from
+    :func:`core.physics.surprise.dual_operator` or
+    :func:`core.physics.surprise.dual_procrustes_surprise` (must carry
+    ``surprise_norm``; preferably also ``discovery_eligible``).
+
+    Returns ``None`` when the signal is not a high-surprise discovery.
+    """
+    from core.physics.surprise import (
+        DEFAULT_DISCOVERY_GAMMA,
+        is_discovery_eligible,
+    )
+
+    if not isinstance(dual, dict):
+        return None
+
+    gamma = float(
+        discovery_gamma
+        if discovery_gamma is not None
+        else dual.get("discovery_gamma", DEFAULT_DISCOVERY_GAMMA)
+    )
+    sur_norm = float(dual.get("surprise_norm", float("nan")))
+    refused = dual.get("surprise_refused")
+    productive = bool(
+        dual.get("productive", False) or dual.get("transfer_accepted", False)
+    )
+
+    # Prefer the physics flag when present; recompute otherwise so older dual
+    # dicts without the field still route correctly.
+    if "discovery_eligible" in dual:
+        eligible = bool(dual["discovery_eligible"])
+    else:
+        eligible = is_discovery_eligible(
+            surprise_norm=sur_norm,
+            productive_or_transfer=productive,
+            surprise_refused=refused if isinstance(refused, str) else None,
+            discovery_gamma=gamma,
+        )
+    if not eligible:
+        return None
+
+    proc_r = dual.get("procrustes_residual")
+    try:
+        proc_f = float(proc_r) if proc_r is not None and math.isfinite(float(proc_r)) else None
+    except (TypeError, ValueError):
+        proc_f = None
+    analog_id = dual.get("selected_analog_id")
+
+    # Partial proposed chain — geometric frontier evidence, not a ready teaching
+    # chain. Review / Phase C remains the only path to corpus extension.
+    proposed_chain: dict[str, Any] = {
+        "subject": "geometric_frontier",
+        "intent": "discovery",
+        "connective": None,
+        "object": None,
+        "kind": "high_surprise",
+        "surprise_norm": sur_norm,
+        "discovery_gamma": gamma,
+    }
+    if proc_f is not None:
+        proposed_chain["procrustes_residual"] = proc_f
+    if analog_id is not None:
+        proposed_chain["selected_analog_id"] = str(analog_id)
+
+    trace = str(source_turn_trace or "")
+    trigger: DiscoveryTrigger = "high_surprise"
+    hash_payload = {
+        "proposed_chain": proposed_chain,
+        "trigger": trigger,
+        "source_turn_trace": trace,
+    }
+    candidate_id = _hash_candidate_id(hash_payload)
+    return DiscoveryCandidate(
+        candidate_id=candidate_id,
+        proposed_chain=proposed_chain,
+        trigger=trigger,
+        source_turn_trace=trace,
+        pack_consistent=True,  # geometric signal; pack residency N/A
+        boundary_clean=True,
+        review_state="unreviewed",
+        domain="math",
+    )
+
+
+def emit_surprise_discovery(
+    dual: dict[str, Any],
+    sink: Any | None = None,
+    *,
+    source_turn_trace: str = "",
+    discovery_gamma: float | None = None,
+) -> DiscoveryCandidate | None:
+    """Opt-in sink emission of a high-surprise ``DiscoveryCandidate``.
+
+    Pure construction via :func:`candidate_from_surprise_dual`. When ``sink`` is
+    provided and a candidate is produced, emits one JSONL line through the
+    existing :class:`~teaching.discovery_sink.DiscoveryCandidateSink` protocol
+    (same stream contemplation already consumes). Without a sink this is a pure
+    factory. Never mutates vault, packs, or the teaching corpus.
+    """
+    candidate = candidate_from_surprise_dual(
+        dual,
+        source_turn_trace=source_turn_trace,
+        discovery_gamma=discovery_gamma,
+    )
+    if candidate is None:
+        return None
+    if sink is not None:
+        emit = getattr(sink, "emit", None)
+        if emit is None or not callable(emit):
+            raise TypeError(
+                "emit_surprise_discovery: sink must provide emit(line: str) "
+                "(DiscoveryCandidateSink protocol)"
+            )
+        emit(format_candidate_jsonl(candidate))
+    return candidate
+
+
 __all__ = [
     "ClaimDomain",
     "DiscoveryCandidate",
     "DiscoveryTrigger",
     "EvidencePointer",
     "SubQuestion",
+    "candidate_from_surprise_dual",
+    "emit_surprise_discovery",
     "extract_discovery_candidates",
     "format_candidate_jsonl",
 ]

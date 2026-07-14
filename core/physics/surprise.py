@@ -49,6 +49,14 @@ _NEAR_ZERO = 1e-12
 _CLOSURE_TOL = 1e-6
 _GRADE_TOL = 1e-9
 _MAX_GRADE = 5
+# Blueprint Super §3.2 discovery gate: high surprise (above γ) is a discovery
+# signal, not a productive transfer. Shared default γ for dual_operator and the
+# discovery_eligible flag on dual_procrustes_surprise. Teaching-layer factories
+# may override; physics never imports teaching.
+DEFAULT_DISCOVERY_GAMMA = 0.35
+# Productive-transfer surprise ceiling on the dual_procrustes_surprise path
+# (stricter than discovery γ — inside the admissible span for safe transport).
+_TRANSFER_SURPRISE_TOL = 1e-4
 
 
 class SurpriseResidualError(ValueError):
@@ -196,18 +204,45 @@ def surprise_residual(
     raise ValueError("surprise_residual expects 5-vector or 32-vector x")
 
 
+def is_discovery_eligible(
+    *,
+    surprise_norm: float,
+    productive_or_transfer: bool,
+    surprise_refused: Optional[str] = None,
+    discovery_gamma: float = DEFAULT_DISCOVERY_GAMMA,
+) -> bool:
+    """True iff high surprise is a discovery signal (Super §3.2).
+
+    Discovery requires a measured residual above γ, no metric refusal, and
+    **not** a productive transfer (transfer and discovery are dual, not the
+    same gate). Pure predicate — no I/O, no teaching import.
+    """
+    if surprise_refused is not None:
+        return False
+    if productive_or_transfer:
+        return False
+    sn = float(surprise_norm)
+    if not np.isfinite(sn):
+        return False
+    return sn > float(discovery_gamma)
+
+
 def dual_procrustes_surprise(
     P: np.ndarray,
     Q: np.ndarray,
     current_basis: np.ndarray,
+    *,
+    discovery_gamma: float = DEFAULT_DISCOVERY_GAMMA,
 ) -> dict:
     """The dual operator: run Procrustes and Surprise together.
 
     ``transfer_accepted`` is a PRODUCTIVE-TRANSFER gate: a structural match was
     found (low Procrustes residual) AND the probe is inside the admissible span
     (low surprise) — i.e. it is safe to transport ``P``'s solution to ``Q``. High
-    surprise is NOT a transfer; it is a *discovery* signal (wired separately). A
-    fail-closed surprise refusal (degenerate basis) is recorded, not raised.
+    surprise is NOT a transfer; it is a *discovery* signal
+    (``discovery_eligible``). A fail-closed surprise refusal (degenerate basis)
+    is recorded, not raised. Physics never constructs teaching objects — callers
+    pass this dict to ``teaching.discovery.candidate_from_surprise_dual``.
     """
     V, proc_residual = conformal_procrustes(P, Q)
     Q_arr = np.asarray(Q, dtype=np.float64)
@@ -232,16 +267,27 @@ def dual_procrustes_surprise(
     if np.asarray(V).shape == (N_COMPONENTS,):
         closed = versor_condition(V) < _CLOSURE_TOL
 
+    transfer_accepted = bool(
+        refused is None
+        and proc_residual < 1e-5
+        and sur_norm < _TRANSFER_SURPRISE_TOL
+        and closed
+    )
     return {
         "versor": V,
         "procrustes_residual": float(proc_residual),
         "surprise_vector": sur_vec,
         "surprise_norm": float(sur_norm),
-        "transfer_accepted": bool(
-            refused is None and proc_residual < 1e-5 and sur_norm < 1e-4 and closed
-        ),
+        "transfer_accepted": transfer_accepted,
         "versor_closed": bool(closed),
         "surprise_refused": refused,
+        "discovery_eligible": is_discovery_eligible(
+            surprise_norm=float(sur_norm),
+            productive_or_transfer=transfer_accepted,
+            surprise_refused=refused,
+            discovery_gamma=discovery_gamma,
+        ),
+        "discovery_gamma": float(discovery_gamma),
     }
 
 
@@ -255,6 +301,7 @@ def dual_operator(
     kappa: float = 1.0,
     productive_threshold: float = 0.35,
     surprise_threshold: float = 0.35,
+    discovery_gamma: float | None = None,
 ) -> dict:
     """Extended dual for multivector analogy seeds (ADR-0240 harness).
 
@@ -262,7 +309,9 @@ def dual_operator(
     a structural match (``proc_r <= thr``) AND the query being inside the
     admissible span (``sur_norm <= surprise_threshold``). The previous
     ``sur_norm >= 0.0`` conjunct was always true, so surprise never gated. A HIGH
-    ``sur_norm`` marks a discovery candidate, not a productive transfer.
+    ``sur_norm`` marks discovery (``discovery_eligible``), not a productive
+    transfer. Teaching constructs candidates from this flag; this module never
+    imports teaching.
     """
     if isinstance(basis, np.ndarray):
         B = basis
@@ -276,7 +325,10 @@ def dual_operator(
     except SurpriseResidualError as exc:
         sur_vec, sur_norm, surprise_refused = None, float("inf"), exc.reason
 
+    gamma = float(surprise_threshold if discovery_gamma is None else discovery_gamma)
+
     if not analogs:
+        productive = False
         return {
             "surprise_norm": float(sur_norm),
             "procrustes_residual": float("inf"),
@@ -285,6 +337,13 @@ def dual_operator(
             "selected_analog_id": None,
             "versor": None,
             "surprise_refused": surprise_refused,
+            "discovery_eligible": is_discovery_eligible(
+                surprise_norm=float(sur_norm),
+                productive_or_transfer=productive,
+                surprise_refused=surprise_refused,
+                discovery_gamma=gamma,
+            ),
+            "discovery_gamma": gamma,
         }
     aid, src, tgt = analogs[0]
     V, proc_r = conformal_procrustes(src, tgt)
@@ -303,4 +362,11 @@ def dual_operator(
         "versor": V,
         "surprise_vector": sur_vec,
         "surprise_refused": surprise_refused,
+        "discovery_eligible": is_discovery_eligible(
+            surprise_norm=float(sur_norm),
+            productive_or_transfer=bool(productive),
+            surprise_refused=surprise_refused,
+            discovery_gamma=gamma,
+        ),
+        "discovery_gamma": gamma,
     }

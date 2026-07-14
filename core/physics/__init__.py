@@ -44,7 +44,13 @@ from core.physics.dynamic_manifold import (
     signature_aware_pca,
     signature_aware_pca_report,
 )
-from core.physics.surprise import dual_operator, dual_procrustes_surprise, surprise_residual
+from core.physics.surprise import (
+    DEFAULT_DISCOVERY_GAMMA,
+    dual_operator,
+    dual_procrustes_surprise,
+    is_discovery_eligible,
+    surprise_residual,
+)
 from core.physics.biography import (
     BiographyHolonomyBlade,
     biography_telemetry,
@@ -79,7 +85,9 @@ __all__ = [
     "cartan_iwasawa_extract", "cartan_iwasawa_factorize",
     "conformal_procrustes", "dual_correction_slerp", "procrustes_residual",
     "signature_aware_pca", "signature_aware_pca_report",
-    "dual_operator", "dual_procrustes_surprise", "surprise_residual",
+    "DEFAULT_DISCOVERY_GAMMA",
+    "dual_operator", "dual_procrustes_surprise", "is_discovery_eligible",
+    "surprise_residual",
     "BiographyHolonomyBlade", "biography_telemetry",
     "integrate_biography", "reconstruct_biography",
     "TemporalAdmissibilityGate", "TemporalContext",
