@@ -35,8 +35,8 @@
 | 4 | GoldTether residual + α law | Super §2.3, R&D §2.3/§5 | 🟢 residual+α + bootstrap gates + principal-axis prune (#24+#18) | #18 |
 | 5 | Grade-5 pseudoscalar invariant | Super §3.3 | ⚪ RETIRED — vacuous in odd-dim Cl(4,1) | #19 (closed) |
 | 6 | Surprise residual operator | Super §3.2 | 🟢 math + DiscoveryCandidate wiring landed (#26 + #31) | #20 |
-| 7 | Trajectory invariants + zero-fabrication | R&D §2.2 | ⚫ absent | #21 |
-| 8 | ADR-DAG conformal embedding | R&D §2.4 | ⚫ absent | #21 |
+| 7 | Trajectory invariants + zero-fabrication | R&D §2.2 | 🟢 Python geometry surface (`trajectory_invariants.py`) | #21 |
+| 8 | ADR-DAG conformal embedding | R&D §2.4 | 🟢 Python surface (`core/adr/validator.py`) | #21 |
 | W1 | WaveManifold unitary / sandwich step | ADR-0241 §2 | 🟢 | ADR-0241 |
 | W2 | Spectral leakage surprise | ADR-0241 §2.4B | 🟢 subsumed into `surprise_residual` | ADR-0241 |
 | W3 | Wave polar + multi-pair conjugacy | ADR-0241 §2.4A | 🟢 single polar + multi-pair thin wrap | ADR-0241 |
@@ -206,10 +206,23 @@ The null add-on is **untested**: `test_signature_aware_pca_keeps_nulls` classifi
 
 ---
 
-## 9. Absent whole proposals — ⚫ (#21)
+## 9. Trajectory invariants + ADR-DAG — 🟢 Python surfaces (#21)
 
-- **Trajectory invariants + zero-fabrication (R&D §2.2 → `core-rs/src/sensorimotor.rs`):** relative holonomy `H(t)=V₁Ṽ₂`, divergence integral `D < ε_trajectory`, Hamiltonian energy boundary `E_exertion ≤ κ·E_sensory`. Not landed. Gated by the Zig/Rust substrate doctrine (Ring-1 only).
-- **ADR-DAG conformal embedding (R&D §2.4 → `core/adr/validator.py`):** `Ψ(M)` = SHA-256 → 10 bivector coeffs → simple-bivector projection → master-blade wedge → drift check. Not landed. Cross-check `core/abi/geometric_delta_validator.py` before adding a parallel validator.
+> **Landed (2026-07-14):** geometry-first Python authorities. Rust Ring-1 port remains optional acceleration, not a second truth.
+
+### Trajectory invariants (R&D §2.2 → `core/physics/trajectory_invariants.py`)
+- Relative holonomy `H = V_i · reverse(V_{i+1})`
+- Divergence `D = Σ log(1 + ‖H reverse(H) − 1‖) · Δt`; bound `D < ε_trajectory`
+- Energy boundary `E_exertion ≤ κ · E_sensory`
+- Zero-fabrication: empty / short / non-closed steps refused
+- Tests: `tests/test_third_door_trajectory_invariants.py`
+
+### ADR-DAG conformal embedding (R&D §2.4 → `core/adr/validator.py`)
+- `Ψ(M)`: SHA-256 → 10×3-byte → `c_k ∈ [−1,1]` → planes 6..15 → simple-bivector project
+- Master blade = successive wedge of load-bearing ADR embeddings
+- Proposal drift = `‖B_p ∧ A_master‖`
+- Does **not** parallel `core/abi/geometric_delta_validator.py` (that validates GeometricDelta ABI envelopes)
+- Tests: `tests/test_third_door_adr_dag_embedding.py`
 
 ---
 
@@ -297,7 +310,7 @@ PY
 - Durable holographic memory **vault store** (CRDT-backed standing-wave spectrum) — session registry only today.
 - Rust/MLX acceleration of exp-map / cross-spectral (ADR-0235 later).
 - Full ADR-0092 reviewer-service integration (promote remains caller-gated).
-- R&D #21 trajectory invariants + ADR-DAG embedding.
+- Optional Rust Ring-1 port of trajectory invariants (Python is authority today).
 
 ---
 
@@ -310,7 +323,7 @@ PY
 | GoldTether gold-set + harmonized residual + α=Φ(R) + bootstrap/prune — 🟢 | #18 |
 | Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
 | Surprise: metric projection + productivity polarity + DiscoveryCandidate wiring — 🟢 done | #20 (math #26; wiring #31) |
-| Absent proposals: sensorimotor + ADR-DAG | #21 |
+| Trajectory invariants + ADR-DAG embedding — 🟢 Python surfaces | #21 |
 | Wave-field substrate + operator subsumption (W1–W6) — 🟢 on branch | ADR-0241 |
 | `core_ha` deprecation — 🟢 no live tree + hygiene pin | ADR-0241 / deprecation plan |
 | Durable holographic vault spectrum — deferred | ADR-0241 follow-on |

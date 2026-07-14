@@ -69,6 +69,14 @@ from core.physics.temporal_gate import (
 )
 from core.physics.self_authorship import AuthorshipProposal, SelfAuthorshipMiner
 from core.physics.wave_manifold import WaveManifold
+from core.physics.trajectory_invariants import (
+    TrajectoryAssessment,
+    TrajectoryInvariantError,
+    assess_trajectory,
+    energy_boundary_ok,
+    relative_holonomy,
+    trajectory_divergence,
+)
 
 __all__ = [
     "SalienceOperator", "SalienceMap", "FieldRegion",
@@ -99,4 +107,7 @@ __all__ = [
     "TemporalDecision", "TemporalVerdict",
     "AuthorshipProposal", "SelfAuthorshipMiner",
     "WaveManifold",
+    "TrajectoryAssessment", "TrajectoryInvariantError",
+    "assess_trajectory", "energy_boundary_ok",
+    "relative_holonomy", "trajectory_divergence",
 ]
