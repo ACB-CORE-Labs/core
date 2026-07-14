@@ -290,7 +290,7 @@ PY
 | Spectral leakage zero on-span / positive off-span / metric-exact | 🟢 |
 | Wave polar recovers known sandwich rotor | 🟢 (single-pair conjugacy) |
 | Multi-pair `wave_field_conjugacy` + Procrustes sequence path | 🟢 thin wrap over `_field_conjugacy_versor` (true \(\mathcal{C}_{AB}\) polar proven mathematically ill-posed for multigrade fields) |
-| Chiral conserved under left \(R\); even versor ~0 | 🟡 honest vacuous Q on real Cl(4,1) |
+| Chiral non-vacuous on mixed-parity spinors; conserved under left \(R\); even versor ~0 | 🟢 P8 |
 | Resonant recall picks registered mode; empty refused | 🟢 |
 | Superposition reconstruct \(\sum c_k\psi_k\) | 🟢 `resonant_reconstruct` |
 | Phase correlation \(\rho\) (I-04 algebra) | 🟢 `phase_correlation` (sensorium feed still open) |
@@ -314,9 +314,8 @@ PY
 
 ### Deferred (explicit, not namesake green)
 - Durable holographic memory **vault store** — 🟢 `core/physics/holographic_vault.py` (VaultStore-backed SPECULATIVE spectrum; restart lock-in; public `get_versor` ABI).
-- True cross-spectral \(\mathcal{C}_{AB}\) + Clifford polar — ⚪ RETIRED (proven mathematically ill-posed; `_field_conjugacy_versor` is the honest optimum).
-- Golden-Angle horosphere packing + Fibonacci section search (ADR-0242).
-- Rust/MLX acceleration of exp-map / cross-spectral (ADR-0235 later).
+- Analytic multi-grade Clifford polar — ⚪ RETIRED (P7; conjugacy authority).
+- Rust/MLX acceleration of exp-map (ADR-0235 later).
 - Full ADR-0092 reviewer-service integration (promote remains caller-gated).
 - Optional Rust Ring-1 port of trajectory invariants (Python is authority today).
 
