@@ -648,6 +648,10 @@ ALLOWED_VAULT_WRITERS: frozenset[str] = frozenset({
     # it stores via the same VaultStore.store path (no parallel memory), defaults to
     # SPECULATIVE (never COHERENT), and writes nothing on a Refusal (wrong=0).
     "generate/realize/realize.py",
+    # ADR-0241 durable standing-wave spectrum: holographic modes sealed via the
+    # same VaultStore.store path (no parallel memory). Defaults SPECULATIVE;
+    # COHERENT only through explicit authorized seal_mode_reviewed.
+    "core/physics/holographic_vault.py",
 })
 
 PROJECT_ROOT_FOR_INV21 = Path(__file__).resolve().parent.parent
