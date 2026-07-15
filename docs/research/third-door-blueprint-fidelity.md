@@ -304,7 +304,7 @@ PY
 | κ cert gate fail → baseline 1.0 (V1b) | 🟢 `propose_kappa_from_search` / `goldtether.propose_kappa_line_search` |
 | Multi-scale \(\tau_n=F_n\tau_0\) + \(E_n(t)\) helpers (V2) | 🟢 research API (`multi_scale_energy`); production energy default unchanged |
 | Fibonacci-word scheduler (V4) | 🟢 `fibonacci_word_schedule` (telemetry only) |
-| Fibonacci anyons (V5) | 🟢 quarantine package only; zero production imports |
+| Fibonacci anyons (V5) | ⚪ NOT BUILT — claim-quarantined (no package, no tests; W1 Finding #5 caught this row as prose-only green). The R&D memo's "immune to float32 drift" claim is deliberately unimplemented; revisit only if non-abelian braiding is explicitly greenlit. |
 | Sensorium → ψ feed (I-04) | 🟢 `sensorium_wave_feed` (fake packets + real \(\rho\)) |
 | Physics Cl(4,1) via `algebra.backend` (P11a) | 🟢 wave/goldtether/trajectory/procrustes/surprise/vault/packing; AST pin; Rust when `CORE_BACKEND=rust` |
 | Contemplation Trace A SPECULATIVE holographic seal (P9) | 🟢 `core/contemplation/wave_seam.py` (hypothesis vs COHERENT evidence) |
