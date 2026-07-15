@@ -1,6 +1,6 @@
 # ADR-0242: Deterministic Fibonacci Operators and Evidence-Gated Optimization
 
-**Status**: Proposed — V1 cert discipline + V3 packing landed; V2/V4/V5 staged; **not** self-Accepted (Joshua review).  
+**Status**: Proposed — V1 cert + V3 packing + V2 research helpers + V4 word schedule + V5 quarantine + sensorium feed landed; ready for Joshua review (do not self-accept).
 **Date**: 2026-07-13 (Drive authority); in-repo expansion 2026-07-15  
 **Deciders**: Joshua Shay + multi-model R&D  
 **Traceability**: Drive ADR-0242 (`15_NECCPy-tEWGfYi_BNqawm8GytUTMkz1DsOqGVMXhI`), PR #37/#38, cohesion plan  
@@ -41,7 +41,7 @@ Module: `core/physics/fibonacci_search.py`
   - success → proposed κ = minimizer (telemetry; no auto state mutation)  
   - failure → **baseline κ = 1.0**
 
-### Vector 2 — Multi-scale temporal basis (research) 🟡
+### Vector 2 — Multi-scale temporal basis (research helpers) 🟢 research / 🟡 production
 
 Drive:
 
@@ -49,8 +49,9 @@ Drive:
 E_n(t) = E_n(t_0)\,\exp\bigl(-(t-t_0)/(F_n\tau_0)\bigr)
 \]
 
-Landed progressive form: `fibonacci_tau_schedule` / `recency_band_index` in `wave_energy_boundary.py` (constants table).  
-**Not** yet production default inside `FieldEnergyOperator`. Promotion requires comparative benchmark vs dyadic \(2^n\tau_0\) (Drive comparative hypothesis).
+- `wave_energy_boundary.fibonacci_tau_schedule` / `recency_band_index` (constants table)  
+- `multi_scale_energy.py`: `multi_scale_energy_vector`, `dyadic_tau_schedule`, `comparative_residual_separation`  
+**Not** production default inside `FieldEnergyOperator`. Flip requires comparative benchmark + Joshua gate.
 
 ### Vector 3 — Golden-Angle mode allocator 🟢
 
@@ -62,15 +63,18 @@ Module: `core/physics/atlas_packing.py`
 - Reconstruction-over-storage: `ALLOCATOR_VERSION = golden_angle_v1` + `allocator_layout_descriptor`  
 - Not holographic seals (null points ≠ closed unit versors)
 
-### Vector 4 — Fibonacci-word observability choreography 🔴 staged
+### Vector 4 — Fibonacci-word observability choreography 🟢
+
+Module: `core/physics/fibonacci_word_schedule.py`
 
 Drive: \(W_0=B, W_1=A, W_{n+1}=W_n W_{n-1}\) for telemetry / sealed-holdout sampling.  
-**Outside cognitive truth path.** Not yet implemented (plan D5).
+**Outside cognitive truth path** — pure schedule only; no vault/field mutation.
 
-### Vector 5 — Topological anyon / braid holonomy 🔴 research quarantine
+### Vector 5 — Topological anyon / braid holonomy 🟢 quarantine box
 
-Drive: isolated `algebra/topological_reasoning/` study; blocked from production.  
-Not implemented (plan D6). Must not enter serve/FFI until proofs exist.
+Package: `algebra/topological_reasoning/` (README + `FUSION_RULE` stub).  
+Production AST pin: `chat/`, `core/physics/`, `generate/`, `vault/`, `teaching/` must not import it.  
+No fusion/braid logic until proofs + human Accept.
 
 ---
 
@@ -79,10 +83,10 @@ Not implemented (plan D6). Must not enter serve/FFI until proofs exist.
 | Phase | Vector | Status |
 |-------|--------|--------|
 | 1 | V1 search + κ cert gate | 🟢 |
-| 2 | V2 multi-scale energy study | 🟡 table only |
+| 2 | V2 multi-scale energy study | 🟢 helpers; 🟡 not production default |
 | 3 | V3 packing | 🟢 |
-| 4 | V4 word scheduler | 🔴 |
-| 5 | V5 anyons | 🔴 quarantine |
+| 4 | V4 word scheduler | 🟢 |
+| 5 | V5 anyons | 🟢 quarantine only (no logic) |
 
 ---
 

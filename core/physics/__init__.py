@@ -101,6 +101,13 @@ from core.physics.fibonacci_search import (
     fibonacci_section_search,
     propose_kappa_from_search,
 )
+from core.physics.multi_scale_energy import (
+    comparative_residual_separation,
+    dyadic_tau_schedule,
+    multi_scale_energy_for_schedule,
+    multi_scale_energy_vector,
+    schedule_mid_span_fraction,
+)
 
 __all__ = [
     "SalienceOperator", "SalienceMap", "FieldRegion",
@@ -150,4 +157,9 @@ __all__ = [
     "fibonacci_section_search",
     "propose_kappa_from_search",
     "propose_kappa_line_search",
+    "comparative_residual_separation",
+    "dyadic_tau_schedule",
+    "multi_scale_energy_for_schedule",
+    "multi_scale_energy_vector",
+    "schedule_mid_span_fraction",
 ]

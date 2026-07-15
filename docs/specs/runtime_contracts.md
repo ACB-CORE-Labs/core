@@ -866,10 +866,14 @@ wrong=0 serve entry path (AST-pinned in `tests/test_third_door_cohesion.py`):
 |--------|------|
 | `core.physics.wave_manifold` | Cl(4,1) wave field \(\psi\), leakage, polar conjugacy, chiral, \(\rho\) |
 | `core.physics.holographic_vault` | Durable standing-wave spectrum via `VaultStore` |
-| `core.physics.atlas_packing` | Golden-Angle mode packing (ADR-0242) |
-| `core.physics.fibonacci_search` | Fixed-budget unimodal section search (ADR-0242) |
+| `core.physics.atlas_packing` | Golden-Angle mode packing (ADR-0242 V3) |
+| `core.physics.fibonacci_search` | Cert-gated Fibonacci section search (ADR-0242 V1) |
+| `core.physics.fibonacci_word_schedule` | Fibonacci-word observability choreography (ADR-0242 V4; telemetry only) |
+| `core.physics.multi_scale_energy` | Multi-band \(E_n(t)\) research helpers (ADR-0242 V2; not serve) |
+| `core.physics.sensorium_wave_feed` | Sensorium → \(\psi\) construction feed (I-04) |
 | `core.contemplation.wave_seam` | P9 Trace A SPECULATIVE seal + hypothesis/evidence reconstruct |
 | `core.physics.wave_energy_boundary` | P10 Trace B residual→energy / \(\tau_n\) / crystallization |
+| `algebra.topological_reasoning` | ADR-0242 V5 research quarantine only — never serve/production |
 
 Wiring any of these into serve requires an explicit ADR amendment and a
 failing-to-green containment test change in the same PR.

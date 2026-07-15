@@ -302,9 +302,10 @@ PY
 | Golden-Angle atlas packing \(d_{\min}=0.12\) (V3) | 🟢 ADR-0242 (`atlas_packing`; CGA null-point \(d\); `golden_angle_v1`) |
 | Fibonacci section search cert/failure (V1) | 🟢 ADR-0242 (`FibonacciSearchCertificate` \| `OptimizationFailure`; dual-run digest) |
 | κ cert gate fail → baseline 1.0 (V1b) | 🟢 `propose_kappa_from_search` / `goldtether.propose_kappa_line_search` |
-| Multi-scale \(\tau_n=F_n\tau_0\) (V2) | 🟡 table only; production multi-band \(E_n(t)\) not default |
-| Fibonacci-word scheduler (V4) | 🔴 staged |
-| Fibonacci anyons (V5) | 🔴 research quarantine |
+| Multi-scale \(\tau_n=F_n\tau_0\) + \(E_n(t)\) helpers (V2) | 🟢 research API (`multi_scale_energy`); production energy default unchanged |
+| Fibonacci-word scheduler (V4) | 🟢 `fibonacci_word_schedule` (telemetry only) |
+| Fibonacci anyons (V5) | 🟢 quarantine package only; zero production imports |
+| Sensorium → ψ feed (I-04) | 🟢 `sensorium_wave_feed` (fake packets + real \(\rho\)) |
 | Contemplation Trace A SPECULATIVE holographic seal (P9) | 🟢 `core/contemplation/wave_seam.py` (hypothesis vs COHERENT evidence) |
 | Energy boundary + multi-scale τ (P10 Trace B) | 🟢 `wave_energy_boundary` (wave residual → energy/trajectory; τ_n=F_n·τ_0; E0–E1 crystallization) |
 

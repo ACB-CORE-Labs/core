@@ -60,17 +60,23 @@ def test_phase0_a04_serve_path_quarantines_wave_and_fibonacci():
         "wave_manifold",
         "holographic_vault",
         "fibonacci_search",
+        "fibonacci_word_schedule",
         "atlas_packing",
         "wave_seam",  # P9 Trace A — contemplation only, never serve
         "wave_energy_boundary",  # P10 Trace B — energy/τ gate, never serve
+        "multi_scale_energy",  # ADR-0242 V2 research multi-band E_n(t), never serve
+        "sensorium_wave_feed",  # D7 I-04 sensorium→ψ feed, never serve
     }
     banned_substrings = (
         "wave_manifold",
         "holographic_vault",
         "fibonacci_search",
+        "fibonacci_word_schedule",
         "atlas_packing",
         "wave_seam",
         "wave_energy_boundary",
+        "multi_scale_energy",
+        "sensorium_wave_feed",
     )
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
