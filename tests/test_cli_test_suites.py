@@ -46,6 +46,39 @@ def test_core_test_lists_curated_suites(capsys) -> None:
     assert "full" in captured.out.splitlines()
 
 
+def test_cli_smoke_suite_covers_ci_smoke_gate() -> None:
+    """Local-first parity pin: the CLI ``smoke`` suite must cover every test
+    path the CI smoke gate (.github/workflows/smoke.yml) runs.
+
+    AGENTS.md makes ``core test --suite smoke`` the mandatory pre-push gate;
+    if the CI yaml gains a path the CLI tuple lacks, the local gate silently
+    narrows and regressions clear it — this pin makes that divergence loud.
+    """
+    from core.cli_test import TEST_SUITES
+
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github/workflows/smoke.yml").read_text(encoding="utf-8")
+
+    ci_paths: set[str] = set()
+    for token in workflow.split():
+        token = token.strip("\\\"'")
+        if not token.startswith("tests/"):
+            continue
+        if "*" in token:
+            matches = sorted(root.glob(token))
+            assert matches, f"CI smoke glob {token!r} matches no files"
+            ci_paths.update(str(m.relative_to(root)) for m in matches)
+        else:
+            ci_paths.add(token)
+
+    assert ci_paths, "no tests/ paths parsed from smoke.yml — pin needs updating"
+    missing = ci_paths - set(TEST_SUITES["smoke"])
+    assert not missing, (
+        "CLI smoke suite is narrower than the CI smoke gate; add to "
+        f"core/cli_test.py TEST_SUITES['smoke']: {sorted(missing)}"
+    )
+
+
 def test_core_test_suite_expands_to_expected_pytest_paths(monkeypatch) -> None:
     calls: list[tuple[str, ...]] = []
 

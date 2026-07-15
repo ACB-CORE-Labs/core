@@ -26,6 +26,16 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_runtime_config.py",
         "tests/test_cognitive_turn_pipeline.py",
         "tests/test_architectural_invariants.py",
+        # Audio sensorium lane — part of the smoke.yml PR gate (compiler,
+        # CRDT merge, eval gates, pack manifest, mount, teachers; ~3s).
+        # Listed explicitly so the local-first pre-push gate (AGENTS.md
+        # protocol) equals the CI gate rather than silently narrowing it.
+        "tests/test_audio_compiler.py",
+        "tests/test_audio_crdt_merge.py",
+        "tests/test_audio_eval_gates.py",
+        "tests/test_audio_pack_manifest.py",
+        "tests/test_audio_sensorium_mount.py",
+        "tests/test_audio_teachers.py",
         # ADR-0043 — identity falsifiability: ratified identity packs must
         # produce distinct, directionally-correct articulations, with a
         # pack-invariant grounding/refusal floor and zero fabrication. Lives
