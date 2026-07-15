@@ -1,6 +1,6 @@
 # ADR-0242: Hyperbolic Atlas Golden-Angle Packing and Fibonacci Search
 
-**Status**: Proposed — packing + Fibonacci search green on branch; acceptance path: Joshua review + merge  
+**Status**: Proposed — packing + Fibonacci search + multi-scale τ schedule green; **ready for Joshua acceptance review** (do not self-Accept). Checklist: `docs/audit/adr_0241_cohesion_acceptance_checklist.md`.
 **Date**: 2026-07-14  
 **Deciders**: Joshua Shay + multi-model R&D (Gemini implementation pass)  
 **Traceability**: PR #37, parent ADR-0241 / cohesion master plan  

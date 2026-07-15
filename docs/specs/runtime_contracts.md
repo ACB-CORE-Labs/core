@@ -849,3 +849,69 @@ migration PR with verifier parity evidence.
 - Frontier baseline: `evals/gsm8k_math/baselines/`
 - Sealed holdout: `evals/gsm8k_math/holdouts/v1/cases.jsonl.age`
 - ADR chain: ADR-0119, ADR-0119.1 through ADR-0119.8
+
+## Wave-field cohesion substrate (ADR-0241 + ADR-0242)
+
+This section freezes the **off-serve** wave / holographic / packing contracts
+landed under the ADR-0241 cohesion plan (packages P0–P10). It prevents drift
+between physics modules, contemplation Trace A, energy Trace B, and serve
+containment.
+
+### Off-serve quarantine (hard)
+
+The following modules **must not** be imported by `chat/runtime.py` or any
+wrong=0 serve entry path (AST-pinned in `tests/test_third_door_cohesion.py`):
+
+| Module | Role |
+|--------|------|
+| `core.physics.wave_manifold` | Cl(4,1) wave field \(\psi\), leakage, polar conjugacy, chiral, \(\rho\) |
+| `core.physics.holographic_vault` | Durable standing-wave spectrum via `VaultStore` |
+| `core.physics.atlas_packing` | Golden-Angle mode packing (ADR-0242) |
+| `core.physics.fibonacci_search` | Fixed-budget unimodal section search (ADR-0242) |
+| `core.contemplation.wave_seam` | P9 Trace A SPECULATIVE seal + hypothesis/evidence reconstruct |
+| `core.physics.wave_energy_boundary` | P10 Trace B residual→energy / \(\tau_n\) / crystallization |
+
+Wiring any of these into serve requires an explicit ADR amendment and a
+failing-to-green containment test change in the same PR.
+
+### Holographic standing-wave epistemic standing
+
+- Default seal path: `HolographicVaultStore.seal_mode` → **SPECULATIVE** only.
+- COHERENT seal: `seal_mode_reviewed(..., authorized=True)` only — never from
+  contemplation / self-authorship / wave_seam.
+- Writes use `VaultStore.store` exclusively (INV-21 allowlist includes
+  `core/physics/holographic_vault.py`). No parallel memory path.
+- Restart reconstruct uses public `VaultStore.get_versor` / `iter_metadata`
+  (no private `_versors`).
+
+### Hypothesis vs evidence reconstruct (Trace A)
+
+| API | Spectrum filter | Standing label |
+|-----|-----------------|----------------|
+| `reconstruct_as_hypothesis` | full (incl. SPECULATIVE) | `hypothesis` |
+| `reconstruct_as_evidence` | `min_status=COHERENT` only | `evidence` |
+
+SPECULATIVE modes **must not** masquerade as reviewed evidence. Empty COHERENT
+spectrum on the evidence path refuses (no confabulation).
+
+### Energy crystallization (Trace B)
+
+- Unitary residual for energy / trajectory gates is measured by
+  `WaveManifold.measure_unitary_residual` (via `wave_energy_boundary`), not a
+  free-floating float.
+- Multi-scale recency table \(\tau_n = F_n \tau_0\) is a **constants schedule**,
+  not a serve-path optimizer.
+- `crystallization_for_holographic_seal`: E0/E1 **and** residual ≤ ε may
+  SPECULATIVE-seal; otherwise refuse. Never self-authorizes COHERENT.
+
+### Entity invariants (suite-pinned, not Tier-2 lane SHAs)
+
+I-01…I-05 and Phase 0 audits are behavioral pins in
+`tests/test_third_door_cohesion.py` (and related ADR-0241 tests). They are **not**
+Tier-2 `CLAIMS.md` lane-SHA rows (those remain eval-lane report digests only).
+Acceptance inventory: `docs/audit/adr_0241_cohesion_acceptance_checklist.md`.
+
+### Field invariant (unchanged)
+
+Every wave transition still obeys `versor_condition(F) < 1e-6`. Residual breach
+is **fail-closed** — no hot-path nearest-versor drift repair.

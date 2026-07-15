@@ -266,14 +266,14 @@ PY
 
 ---
 
-## 12. Wave-field substrate (ADR-0241) — 🟢 local operators / 🟡 entity mastery
+## 12. Wave-field substrate (ADR-0241) — 🟢 local + cohesion packages P0–P10
 
-> **Status (2026-07-14, honesty pass):** Local Slice 1–3 + holographic vault
-> behavioral suites are **GREEN**. Entity cohesion (I-01…I-05, Trace A/B,
-> Golden-Angle packing, true \(\mathcal{C}_{AB}\) polar, non-vacuous chiral,
-> multimodal \(\rho\)) is the remaining mastery surface — see
-> `docs/analysis/core_cohesion_master_plan.md` and
-> `tests/test_third_door_cohesion.py`.
+> **Status (2026-07-15, P12 honesty pass):** Local operators **and** entity
+> cohesion packages P0–P10 are **GREEN** (I-01…I-05 suite, Trace A/B seams,
+> packing, Fibonacci, polar honesty, chiral, ρ algebra). Human **Accepted**
+> flip is Joshua review only — see
+> `docs/audit/adr_0241_cohesion_acceptance_checklist.md`. Still open by design:
+> sensorium feed into ρ, optional P11 Rust/MLX, serve remains quarantined.
 
 ### Spec (ADR-0241) — contract
 - Continuous multivector wave-field \(\psi \in Cl(4,1)\) (32-coeff) under Cartan/Procrustes, Surprise, GoldTether, Biography.
@@ -333,12 +333,13 @@ PY
 | Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
 | Surprise: metric projection + productivity polarity + DiscoveryCandidate wiring — 🟢 done | #20 (math #26; wiring #31) |
 | Trajectory invariants + ADR-DAG embedding — 🟢 Python surfaces | #21 |
-| Wave-field local operators + subsumption (W1–W6) — 🟢 local / 🟡 entity mastery | ADR-0241 |
+| Wave-field local operators + subsumption (W1–W6) — 🟢 | ADR-0241 |
+| Entity cohesion I-01…I-05 + Trace A/B + P9/P10 — 🟢 | ADR-0241 / cohesion plan |
 | `core_ha` deprecation — 🟢 no live tree + hygiene + Phase 0 grep | ADR-0241 / deprecation plan |
 | Durable holographic vault spectrum — 🟢 HolographicVaultStore | ADR-0241 |
-| Entity cohesion I-01…I-05 + Trace A/B | cohesion master plan |
 | Contemplation Trace A SPECULATIVE seal (P9) — 🟢 wave_seam | ADR-0241 P9 |
 | Energy boundary + multi-scale τ (P10) — 🟢 wave_energy_boundary | ADR-0241 P10 |
-| Atlas packing + Fibonacci κ (ADR-0242) — 🟢 packing + search | PR #37 / ADR-0242 |
+| Atlas packing + Fibonacci κ (ADR-0242) — 🟢 packing + search | ADR-0242 |
+| Governance close (P12) — 🟢 contracts + checklist + ready-for-accept | ADR-0241 P12 |
 
 Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` (or the ADR-0241 / cohesion suite) to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.

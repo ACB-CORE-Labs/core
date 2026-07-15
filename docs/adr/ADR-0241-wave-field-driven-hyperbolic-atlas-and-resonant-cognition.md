@@ -1,6 +1,6 @@
 # ADR-0241: Wave-Field Driven Hyperbolic Atlas and Resonant Algebraic Cognition
 
-**Status**: Proposed — substrate + entity suite + ADR-0242 packing/Fibonacci + P9 Trace A wave_seam + P10 Trace B wave_energy_boundary (residual→energy/τ/crystallization); remaining cohesion package P12 governance (+ optional P11 Rust); acceptance path: Joshua review
+**Status**: Proposed — **implementation complete (P0–P10)**; ready for Joshua acceptance review (do not self-Accept). Optional P11 Rust deferred. Checklist: `docs/audit/adr_0241_cohesion_acceptance_checklist.md`.
 **Date**: 2026-07-13
 **Deciders**: Joshua Shay + multi-model R&D
 **Traceability**: Issue #14, parent #10
