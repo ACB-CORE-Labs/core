@@ -1,6 +1,6 @@
 # ADR-0241: Wave-Field Driven Hyperbolic Atlas and Resonant Algebraic Cognition
 
-**Status**: Proposed — substrate + Slice-2/3 subsumption complete on branch (`wave_manifold`, operator delegates, multi-pair conjugacy thin wrap, resonant recall); acceptance path: Joshua review + merge
+**Status**: Proposed — substrate + entity suite + ADR-0242 packing/Fibonacci + P9 Trace A wave_seam (SPECULATIVE holographic seal / hypothesis-vs-evidence reconstruct); remaining cohesion packages P10 energy + P12 governance; acceptance path: Joshua review
 **Date**: 2026-07-13
 **Deciders**: Joshua Shay + multi-model R&D
 **Traceability**: Issue #14, parent #10

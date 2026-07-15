@@ -61,15 +61,22 @@ def test_phase0_a04_serve_path_quarantines_wave_and_fibonacci():
         "holographic_vault",
         "fibonacci_search",
         "atlas_packing",
+        "wave_seam",  # P9 Trace A — contemplation only, never serve
     }
+    banned_substrings = (
+        "wave_manifold",
+        "holographic_vault",
+        "fibonacci_search",
+        "atlas_packing",
+        "wave_seam",
+    )
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 leaf = alias.name.split(".")[-1]
                 assert leaf not in banned_roots, f"banned import {alias.name}"
-                assert "wave_manifold" not in alias.name
-                assert "holographic_vault" not in alias.name
-                assert "fibonacci_search" not in alias.name
+                for ban in banned_substrings:
+                    assert ban not in alias.name
         if isinstance(node, ast.ImportFrom) and node.module:
             mod = node.module
             for ban in banned_roots:

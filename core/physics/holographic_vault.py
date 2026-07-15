@@ -222,14 +222,7 @@ class HolographicVaultStore:
         Empty spectrum / cold start without modes → refuse (no confabulation).
         Uses algebraic reverse-product energy via WaveManifold.
         """
-        if min_status is not None:
-            # Rebuild filtered view so COHERENT-tier evidence excludes SPECULATIVE.
-            spectrum = list(self.load_spectrum(min_status=min_status))
-        else:
-            spectrum = list(self._sealed)
-            if not spectrum:
-                # Cold start: attempt unfiltered load once.
-                spectrum = list(self.load_spectrum())
+        spectrum = self._spectrum_for_status(min_status)
         if not spectrum:
             raise HolographicVaultError(
                 "empty_spectrum",
@@ -239,6 +232,47 @@ class HolographicVaultStore:
         modes = [s.mode for s in spectrum]
         mode, energy, idx = self._manifold.resonant_recall(query, modes=modes)
         return mode, float(energy), int(idx), spectrum[int(idx)]
+
+    def resonant_reconstruct(
+        self,
+        psi_query: np.ndarray,
+        *,
+        min_status: EpistemicStatus | None = None,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, tuple[SealedMode, ...]]:
+        """Superposition reconstruct over the durable spectrum.
+
+        ``min_status=COHERENT`` excludes SPECULATIVE modes so hypothesis
+        mass cannot masquerade as reviewed evidence (Trace A / INV-24).
+        Empty filtered spectrum refuses (no confabulation).
+        """
+        spectrum = self._spectrum_for_status(min_status)
+        if not spectrum:
+            raise HolographicVaultError(
+                "empty_spectrum",
+                detail=(
+                    "no standing-wave modes for resonant reconstruct "
+                    f"(min_status={getattr(min_status, 'value', min_status)!r})"
+                ),
+            )
+        query = _as_mv(psi_query, "ψ_query")
+        modes = [s.mode for s in spectrum]
+        psi_hat, coeffs, energies = self._manifold.resonant_reconstruct(
+            query, modes=modes
+        )
+        return psi_hat, coeffs, energies, tuple(spectrum)
+
+    def _spectrum_for_status(
+        self,
+        min_status: EpistemicStatus | None,
+    ) -> list[SealedMode]:
+        if min_status is not None:
+            # Rebuild filtered view so COHERENT-tier evidence excludes SPECULATIVE.
+            return list(self.load_spectrum(min_status=min_status))
+        spectrum = list(self._sealed)
+        if not spectrum:
+            # Cold start: attempt unfiltered load once.
+            spectrum = list(self.load_spectrum())
+        return spectrum
 
     def spectrum_size(self) -> int:
         """Number of standing-wave modes currently in the reconstruction cache."""
