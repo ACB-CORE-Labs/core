@@ -56,8 +56,12 @@ def test_phase0_a04_serve_path_quarantines_wave_and_fibonacci():
     runtime_path = _ROOT / "chat/runtime.py"
     src = runtime_path.read_text()
     tree = ast.parse(src)
+    # Tier-2 OFF-SERVING modules only. wave_manifold is Tier-1 sanctioned serve
+    # substrate (goldtether/surprise/biography delegate to it) per the 2026-07-15
+    # reconciliation — see docs/research/adr-0241-0242-adversarial-and-fidelity-findings.md.
+    # Process-level (transitive) quarantine of these is enforced by
+    # tests/test_serve_quarantine_transitive.py; this pin catches direct imports.
     banned_roots = {
-        "wave_manifold",
         "holographic_vault",
         "fibonacci_search",
         "fibonacci_word_schedule",
@@ -68,7 +72,6 @@ def test_phase0_a04_serve_path_quarantines_wave_and_fibonacci():
         "sensorium_wave_feed",  # D7 I-04 sensorium→ψ feed, never serve
     }
     banned_substrings = (
-        "wave_manifold",
         "holographic_vault",
         "fibonacci_search",
         "fibonacci_word_schedule",

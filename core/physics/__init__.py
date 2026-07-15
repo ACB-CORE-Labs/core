@@ -78,36 +78,81 @@ from core.physics.trajectory_invariants import (
     relative_holonomy,
     trajectory_divergence,
 )
-from core.physics.holographic_vault import (
-    HolographicVaultError,
-    HolographicVaultStore,
-    SealedMode,
-)
-from core.physics.wave_energy_boundary import (
-    CrystallizationDecision,
-    assess_wave_trajectory,
-    crystallization_for_holographic_seal,
-    energy_profile_from_wave,
-    fibonacci_tau_schedule,
-    recency_band_index,
-    wave_unitary_residual,
-)
-from core.physics.fibonacci_search import (
-    BASELINE_KAPPA,
-    BoundedUnimodalObjective,
-    FibonacciSearchCertificate,
-    OptimizationFailure,
-    fibonacci_number,
-    fibonacci_section_search,
-    propose_kappa_from_search,
-)
-from core.physics.multi_scale_energy import (
-    comparative_residual_separation,
-    dyadic_tau_schedule,
-    multi_scale_energy_for_schedule,
-    multi_scale_energy_vector,
-    schedule_mid_span_fraction,
-)
+# --- Off-serving (Tier-2) LAZY exports — serve quarantine (ADR-0241/0242) --------
+# These are OFF-SERVING extensions: durable memory (holographic_vault) and
+# evidence-gated optimization / research thermodynamics (fibonacci_search,
+# wave_energy_boundary, multi_scale_energy). Eager-importing them here would drag
+# the whole substrate into the serve process (chat.runtime) via this package barrel
+# — the A-04 transitive breach documented in
+# docs/research/adr-0241-0242-adversarial-and-fidelity-findings.md (Finding #2).
+# They stay importable as `from core.physics import X` via PEP 562 __getattr__, but
+# resolve lazily only on explicit off-serving access. Guarded by
+# tests/test_serve_quarantine_transitive.py.
+#
+# NOTE (Joshua ruling 2026-07-15): wave_manifold is Tier-1 sanctioned serve
+# substrate (goldtether/surprise/biography delegate to it) and stays eager above.
+_LAZY_EXPORTS: dict[str, str] = {
+    # holographic_vault — durable memory (L10 / persistence gate)
+    "HolographicVaultError": "core.physics.holographic_vault",
+    "HolographicVaultStore": "core.physics.holographic_vault",
+    "SealedMode": "core.physics.holographic_vault",
+    # wave_energy_boundary — P10 Trace B energy/τ gate (never serve)
+    "CrystallizationDecision": "core.physics.wave_energy_boundary",
+    "assess_wave_trajectory": "core.physics.wave_energy_boundary",
+    "crystallization_for_holographic_seal": "core.physics.wave_energy_boundary",
+    "energy_profile_from_wave": "core.physics.wave_energy_boundary",
+    "fibonacci_tau_schedule": "core.physics.wave_energy_boundary",
+    "recency_band_index": "core.physics.wave_energy_boundary",
+    "wave_unitary_residual": "core.physics.wave_energy_boundary",
+    # fibonacci_search — V1 evidence-gated optimization (never serve)
+    "BASELINE_KAPPA": "core.physics.fibonacci_search",
+    "BoundedUnimodalObjective": "core.physics.fibonacci_search",
+    "FibonacciSearchCertificate": "core.physics.fibonacci_search",
+    "OptimizationFailure": "core.physics.fibonacci_search",
+    "fibonacci_number": "core.physics.fibonacci_search",
+    "fibonacci_section_search": "core.physics.fibonacci_search",
+    "propose_kappa_from_search": "core.physics.fibonacci_search",
+    # multi_scale_energy — V2 research multi-band E_n(t) (never serve)
+    "comparative_residual_separation": "core.physics.multi_scale_energy",
+    "dyadic_tau_schedule": "core.physics.multi_scale_energy",
+    "multi_scale_energy_for_schedule": "core.physics.multi_scale_energy",
+    "multi_scale_energy_vector": "core.physics.multi_scale_energy",
+    "schedule_mid_span_fraction": "core.physics.multi_scale_energy",
+}
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # static-analysis only — never imported at runtime (serve quarantine)
+    from core.physics.holographic_vault import (
+        HolographicVaultError,
+        HolographicVaultStore,
+        SealedMode,
+    )
+    from core.physics.wave_energy_boundary import (
+        CrystallizationDecision,
+        assess_wave_trajectory,
+        crystallization_for_holographic_seal,
+        energy_profile_from_wave,
+        fibonacci_tau_schedule,
+        recency_band_index,
+        wave_unitary_residual,
+    )
+    from core.physics.fibonacci_search import (
+        BASELINE_KAPPA,
+        BoundedUnimodalObjective,
+        FibonacciSearchCertificate,
+        OptimizationFailure,
+        fibonacci_number,
+        fibonacci_section_search,
+        propose_kappa_from_search,
+    )
+    from core.physics.multi_scale_energy import (
+        comparative_residual_separation,
+        dyadic_tau_schedule,
+        multi_scale_energy_for_schedule,
+        multi_scale_energy_vector,
+        schedule_mid_span_fraction,
+    )
 
 __all__ = [
     "SalienceOperator", "SalienceMap", "FieldRegion",
@@ -163,3 +208,16 @@ __all__ = [
     "multi_scale_energy_vector",
     "schedule_mid_span_fraction",
 ]
+
+
+def __getattr__(name: str):  # PEP 562 — lazy off-serving (Tier-2) exports
+    module = _LAZY_EXPORTS.get(name)
+    if module is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    import importlib
+
+    return getattr(importlib.import_module(module), name)
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(_LAZY_EXPORTS))
