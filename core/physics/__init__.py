@@ -33,6 +33,7 @@ from core.physics.goldtether import (
     GoldTetherMonitor,
     OperatingMode,
     coherence_residual,
+    propose_kappa_line_search,
 )
 from core.physics.dynamic_manifold import (
     AxisClassification,
@@ -91,7 +92,15 @@ from core.physics.wave_energy_boundary import (
     recency_band_index,
     wave_unitary_residual,
 )
-from core.physics.fibonacci_search import fibonacci_number
+from core.physics.fibonacci_search import (
+    BASELINE_KAPPA,
+    BoundedUnimodalObjective,
+    FibonacciSearchCertificate,
+    OptimizationFailure,
+    fibonacci_number,
+    fibonacci_section_search,
+    propose_kappa_from_search,
+)
 
 __all__ = [
     "SalienceOperator", "SalienceMap", "FieldRegion",
@@ -134,4 +143,11 @@ __all__ = [
     "recency_band_index",
     "wave_unitary_residual",
     "fibonacci_number",
+    "BASELINE_KAPPA",
+    "BoundedUnimodalObjective",
+    "FibonacciSearchCertificate",
+    "OptimizationFailure",
+    "fibonacci_section_search",
+    "propose_kappa_from_search",
+    "propose_kappa_line_search",
 ]

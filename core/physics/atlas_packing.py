@@ -27,6 +27,9 @@ from core.physics.wave_manifold import WaveManifold
 
 PHI = (1.0 + math.sqrt(5.0)) / 2.0
 DEFAULT_MIN_D = 0.12
+# Reconstruction-over-storage: layout regenerates from identity + ordinal k.
+ALLOCATOR_IDENTITY = "golden_angle"
+ALLOCATOR_VERSION = "golden_angle_v1"
 
 
 class AtlasPackingError(ValueError):
@@ -54,6 +57,9 @@ def golden_angle_pack(
       (x,y) = (r cos θ, r sin θ) → embed_point → null 32-vector
 
     Rejects with :class:`AtlasPackingError` if any pairwise separation < min_d.
+
+    Layout is reconstructible from :data:`ALLOCATOR_VERSION` and ordinals
+    ``0..n-1`` (no opaque mutable coordinate table as truth).
     """
     if n < 1:
         raise AtlasPackingError("n must be >= 1")
@@ -83,6 +89,24 @@ def golden_angle_pack(
     return modes
 
 
+def allocator_layout_descriptor(
+    n: int,
+    alpha: float,
+    *,
+    min_d: float = DEFAULT_MIN_D,
+) -> dict[str, object]:
+    """Content-free reconstruction metadata for packing (no coordinate leak)."""
+    return {
+        "allocator_identity": ALLOCATOR_IDENTITY,
+        "allocator_version": ALLOCATOR_VERSION,
+        "n": int(n),
+        "alpha": float(alpha),
+        "min_d": float(min_d),
+        "metric": "cga_null_point_euclidean_d",
+        "note": "not_full_H2_geodesic",
+    }
+
+
 def register_packed_modes(
     modes: Sequence[np.ndarray],
     manifold: WaveManifold,
@@ -101,8 +125,11 @@ def register_packed_modes(
 __all__ = [
     "PHI",
     "DEFAULT_MIN_D",
+    "ALLOCATOR_IDENTITY",
+    "ALLOCATOR_VERSION",
     "AtlasPackingError",
     "null_point_separation",
     "golden_angle_pack",
+    "allocator_layout_descriptor",
     "register_packed_modes",
 ]

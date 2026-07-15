@@ -521,3 +521,40 @@ class GoldTetherMonitor:
                 for h in self.history[-16:]
             ],
         }
+
+
+# ---------------------------------------------------------------------------
+# ADR-0242 V1 — evidence-gated κ line search (optional, off-serve)
+# ---------------------------------------------------------------------------
+
+
+def propose_kappa_line_search(
+    residual_fn,
+    *,
+    lower: float = 0.1,
+    upper: float = 2.0,
+    evaluation_budget: int = 16,
+    objective_id: str = "goldtether_kappa",
+    objective_version: str = "v1",
+) -> tuple[float, object]:
+    """Optional κ search via Fibonacci section (ADR-0242 Phase 1 seam).
+
+    Returns ``(kappa, cert_or_failure)``. On failure, kappa is baseline 1.0.
+    Does **not** mutate GoldTetherMonitor state, COHERENT standing, or serve
+    autonomy — caller may record the result as telemetry only.
+    """
+    from core.physics.fibonacci_search import (
+        BoundedUnimodalObjective,
+        fibonacci_section_search,
+        propose_kappa_from_search,
+    )
+
+    objective = BoundedUnimodalObjective(
+        lower=float(lower),
+        upper=float(upper),
+        evaluation_budget=int(evaluation_budget),
+        objective_id=str(objective_id),
+        objective_version=str(objective_version),
+    )
+    result = fibonacci_section_search(objective, residual_fn)
+    return propose_kappa_from_search(result)

@@ -299,8 +299,12 @@ PY
 | Serve path not wired to wave / Fibonacci (containment) | 🟢 (AST-pinned in cohesion suite; includes `wave_seam`) |
 | Entity I-01…I-05 cohesion suite | 🟢 progressive pins in `test_third_door_cohesion.py` (I-02 float32-honest) |
 | Vault public `get_versor` ABI | 🟢 |
-| Golden-Angle atlas packing \(d_{\min}=0.12\) | 🟢 ADR-0242 (`atlas_packing`; CGA null-point \(d\)) |
-| Fibonacci κ search | 🟢 ADR-0242 (`fibonacci_search`) |
+| Golden-Angle atlas packing \(d_{\min}=0.12\) (V3) | 🟢 ADR-0242 (`atlas_packing`; CGA null-point \(d\); `golden_angle_v1`) |
+| Fibonacci section search cert/failure (V1) | 🟢 ADR-0242 (`FibonacciSearchCertificate` \| `OptimizationFailure`; dual-run digest) |
+| κ cert gate fail → baseline 1.0 (V1b) | 🟢 `propose_kappa_from_search` / `goldtether.propose_kappa_line_search` |
+| Multi-scale \(\tau_n=F_n\tau_0\) (V2) | 🟡 table only; production multi-band \(E_n(t)\) not default |
+| Fibonacci-word scheduler (V4) | 🔴 staged |
+| Fibonacci anyons (V5) | 🔴 research quarantine |
 | Contemplation Trace A SPECULATIVE holographic seal (P9) | 🟢 `core/contemplation/wave_seam.py` (hypothesis vs COHERENT evidence) |
 | Energy boundary + multi-scale τ (P10 Trace B) | 🟢 `wave_energy_boundary` (wave residual → energy/trajectory; τ_n=F_n·τ_0; E0–E1 crystallization) |
 
@@ -339,7 +343,7 @@ PY
 | Durable holographic vault spectrum — 🟢 HolographicVaultStore | ADR-0241 |
 | Contemplation Trace A SPECULATIVE seal (P9) — 🟢 wave_seam | ADR-0241 P9 |
 | Energy boundary + multi-scale τ (P10) — 🟢 wave_energy_boundary | ADR-0241 P10 |
-| Atlas packing + Fibonacci κ (ADR-0242) — 🟢 packing + search | ADR-0242 |
-| Governance close (P12) — 🟢 contracts + checklist + ready-for-accept | ADR-0241 P12 |
+| Atlas packing + Fibonacci V1 cert (ADR-0242) — 🟢 V1/V3; V2–V5 staged | ADR-0242 Drive five-vector |
+| Governance close (P12) — 🟢 contracts + checklist | ADR-0241 P12 |
 
 Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` (or the ADR-0241 / cohesion suite) to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.
