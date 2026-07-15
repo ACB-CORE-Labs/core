@@ -39,8 +39,8 @@
 | 8 | ADR-DAG conformal embedding | R&D §2.4 | 🟢 Python surface (`core/adr/validator.py`) | #21 |
 | W1 | WaveManifold unitary / sandwich step | ADR-0241 §2 | 🟢 | ADR-0241 |
 | W2 | Spectral leakage surprise | ADR-0241 §2.4B | 🟢 subsumed into `surprise_residual` | ADR-0241 |
-| W3 | Wave polar + multi-pair conjugacy | ADR-0241 §2.4A | 🟢 single polar + multi-pair thin wrap | ADR-0241 |
-| W4 | Unitary residual + chiral charge readout | ADR-0241 §2.4C–D | 🟢 (Q structural 0 in real Cl(4,1); see §12) | ADR-0241 / #18 |
+| W3 | Wave polar + multi-pair conjugacy | ADR-0241 §2.4A | 🟢 sandwich conjugacy (`_field_conjugacy_versor`); analytic multi-grade polar ⚪ RETIRED | ADR-0241 |
+| W4 | Unitary residual + chiral charge readout | ADR-0241 §2.4C–D | 🟢 (Q non-vacuous for odd-capable spinors; structurally 0 for even fields) | ADR-0241 / #18 |
 | W5 | Biography resonant lock-in + durable holographic vault | ADR-0241 + ADR-0240 | 🟢 session registry + `HolographicVaultStore` (VaultStore-backed) | ADR-0241 |
 | W6 | `core_ha` deprecation / absorption | deprecation plan | 🟢 no live tree + hygiene pin | ADR-0241 |
 | — | Biography holonomy | (ADR-0240; not in blueprints) | 🟢 sound (pointwise) | — |
@@ -266,35 +266,41 @@ PY
 
 ---
 
-## 12. Wave-field substrate (ADR-0241) — 🟢 complete on this branch
+## 12. Wave-field substrate (ADR-0241) — 🟢 local operators / 🟡 entity mastery
 
-> **Status (2026-07-14):** ADR-0241 + `core_ha` deprecation plan + `wave_manifold.py`
-> + Slice-2 operator subsumption + Slice-3 multi-pair thin wrap / resonant recall
-> on `feat/third-door-wave-field-substrate`. Suite
-> `tests/test_adr_0241_wave_manifold.py` is **GREEN**. Third-Door operators
-> **delegate into** wave primitives (no parallel residual/projection path).
-> Off-serving containment preserved.
+> **Status (2026-07-14, honesty pass):** Local Slice 1–3 + holographic vault
+> behavioral suites are **GREEN**. Entity cohesion (I-01…I-05, Trace A/B,
+> Golden-Angle packing, true \(\mathcal{C}_{AB}\) polar, non-vacuous chiral,
+> multimodal \(\rho\)) is the remaining mastery surface — see
+> `docs/analysis/core_cohesion_master_plan.md` and
+> `tests/test_third_door_cohesion.py`.
 
 ### Spec (ADR-0241) — contract
 - Continuous multivector wave-field \(\psi \in Cl(4,1)\) (32-coeff) under Cartan/Procrustes, Surprise, GoldTether, Biography.
 - **Transport pin:** multivector fields → sandwich \(R\psi\widetilde{R}\); spinor/chiral → left multiply \(R\psi\). No silent mix.
 - Spectral leakage = metric proj onto resonant modes (definite Euclidean energy after metric-exact proj).
-- Unitary residual \(\|\psi\widetilde{\psi}-1\|_F\) dual-checked. Chiral \(\langle\psi I\widetilde{\psi}\rangle_0\) structurally ~0 in real Cl(4,1) (honest; #19 family).
-- Standing-wave registry + `resonant_recall` (session-local; not vault).
-- `core_ha` standalone atlas: **deprecated** (no live tree; hygiene pin).
+- Unitary residual \(\|\psi\widetilde{\psi}-1\|_F\) dual-checked. Chiral \(\langle\psi I_5\widetilde{\psi}\rangle_0\) is non-vacuous for odd-capable spinors, while remaining structurally ~0 for even field states (honest; #19 family).
+- Standing-wave registry + `resonant_recall` (session-local; durable via `HolographicVaultStore`).
+- `core_ha` standalone atlas: **deprecated** (no live tree; hygiene pin + Phase 0 grep).
 
-### Acceptance (behavioral — GREEN)
+### Acceptance (behavioral)
 | Pin | Status |
 |-----|--------|
 | Unitary / sandwich step residual \(< 10^{-6}\) | 🟢 |
 | Spectral leakage zero on-span / positive off-span / metric-exact | 🟢 |
-| Wave polar recovers known sandwich rotor | 🟢 |
-| Multi-pair `wave_field_conjugacy` + Procrustes sequence path | 🟢 |
-| Chiral conserved under left \(R\); even versor ~0 | 🟢 |
+| Wave polar recovers known sandwich rotor | 🟢 (single-pair conjugacy) |
+| Multi-pair `wave_field_conjugacy` + Procrustes sequence path | 🟢 thin wrap over `_field_conjugacy_versor` (true \(\mathcal{C}_{AB}\) polar proven mathematically ill-posed for multigrade fields) |
+| Chiral non-vacuous on mixed-parity spinors; conserved under left \(R\); even versor ~0 | 🟢 P8 |
 | Resonant recall picks registered mode; empty refused | 🟢 |
+| Superposition reconstruct \(\sum c_k\psi_k\) | 🟢 `resonant_reconstruct` |
+| Phase correlation \(\rho\) (I-04 algebra) | 🟢 `phase_correlation` (sensorium feed still open) |
 | Surprise / GoldTether / biography delegate to wave | 🟢 |
 | No teaching import in `wave_manifold`; no `core_ha` package | 🟢 |
-| Serve path not wired to wave (containment) | 🟢 (by design) |
+| Serve path not wired to wave / Fibonacci (containment) | 🟢 (AST-pinned in cohesion suite) |
+| Entity I-01…I-05 cohesion suite | 🟢 progressive pins in `test_third_door_cohesion.py` (I-02 float32-honest) |
+| Vault public `get_versor` ABI | 🟢 |
+| Golden-Angle atlas packing \(d_{\min}=0.12\) | 🟢 ADR-0242 (`atlas_packing`; CGA null-point \(d\)) |
+| Fibonacci κ search | 🟢 ADR-0242 (`fibonacci_search`) |
 
 ### Subsumption map (Slice 2–3)
 | Operator | Delegation |
@@ -307,8 +313,9 @@ PY
 | `integrate_biography` | unitary lock-in + mode register + resonant_recall; encode `holonomy_encode` |
 
 ### Deferred (explicit, not namesake green)
-- Durable holographic memory **vault store** — 🟢 `core/physics/holographic_vault.py` (VaultStore-backed SPECULATIVE spectrum; restart lock-in).
-- Rust/MLX acceleration of exp-map / cross-spectral (ADR-0235 later).
+- Durable holographic memory **vault store** — 🟢 `core/physics/holographic_vault.py` (VaultStore-backed SPECULATIVE spectrum; restart lock-in; public `get_versor` ABI).
+- Analytic multi-grade Clifford polar — ⚪ RETIRED (P7; conjugacy authority).
+- Rust/MLX acceleration of exp-map (ADR-0235 later).
 - Full ADR-0092 reviewer-service integration (promote remains caller-gated).
 - Optional Rust Ring-1 port of trajectory invariants (Python is authority today).
 
@@ -324,8 +331,10 @@ PY
 | Grade-5 pseudoscalar preservation gate — ⚪ RETIRED (vacuous; see §5) | #19 (closed) |
 | Surprise: metric projection + productivity polarity + DiscoveryCandidate wiring — 🟢 done | #20 (math #26; wiring #31) |
 | Trajectory invariants + ADR-DAG embedding — 🟢 Python surfaces | #21 |
-| Wave-field substrate + operator subsumption (W1–W6) — 🟢 on branch | ADR-0241 |
-| `core_ha` deprecation — 🟢 no live tree + hygiene pin | ADR-0241 / deprecation plan |
+| Wave-field local operators + subsumption (W1–W6) — 🟢 local / 🟡 entity mastery | ADR-0241 |
+| `core_ha` deprecation — 🟢 no live tree + hygiene + Phase 0 grep | ADR-0241 / deprecation plan |
 | Durable holographic vault spectrum — 🟢 HolographicVaultStore | ADR-0241 |
+| Entity cohesion I-01…I-05 + Trace A/B | cohesion master plan |
+| Atlas packing + Fibonacci κ (ADR-0242) — 🟢 packing + search | PR #37 / ADR-0242 |
 
-Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` (or the ADR-0241 suite) to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.
+Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` (or the ADR-0241 / cohesion suite) to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.

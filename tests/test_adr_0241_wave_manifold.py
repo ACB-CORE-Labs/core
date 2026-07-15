@@ -170,13 +170,29 @@ def test_wave_polar_recovers_known_sandwich_rotor():
 # --- W4: chiral spinor charge ----------------------------------------------
 
 
-def test_chiral_charge_conserved_under_left_spinor_step():
-    """Q = ⟨ψ I ~ψ⟩_0 conserved under unitary left multiply (odd-capable ψ)."""
+def test_chiral_charge_nonzero_on_designed_spinor_packet():
+    """Q = ⟨ψ I₅ ~ψ⟩_0 is strictly non-zero for odd-capable mixed-parity spinors (e.g. ψ = v + v I₅)."""
     M = WaveManifold()
-    psi = _e(1) + 0.3 * _e(3) + 0.1 * _unit_rotor(0.2, plane=6)
+    from core.physics.wave_manifold import _I5
+    # Construct a non-vacuous spinor path
+    v = _e(1) + 0.5 * _e(3)
+    psi = v + geometric_product(v, _I5)
+    
+    q = M.chiral_charge(psi)
+    # The non-scalar mass of ψ~ψ correlates with Q. It is exactly non-zero.
+    assert abs(q) > 0.1
+
+def test_chiral_charge_conserved_under_left_spinor_step():
+    """Q = ⟨ψ I₅ ~ψ⟩_0 conserved under unitary left multiply (odd-capable non-vacuous ψ)."""
+    M = WaveManifold()
+    from core.physics.wave_manifold import _I5
+    v = _e(2) - 0.3 * _e(4)
+    psi = v + geometric_product(v, _I5)
     R = _unit_rotor(0.4, plane=7)
 
     q0 = M.chiral_charge(psi)
+    assert abs(q0) > 0.1  # Ensure we are not vacuously testing 0 == 0
+    
     psi_next = M.left_spinor_step(psi, R)
     q1 = M.chiral_charge(psi_next)
     assert abs(q0 - q1) < 1e-9
@@ -311,8 +327,58 @@ def test_resonant_recall_empty_refused():
         M.resonant_recall(_unit_rotor(0.3, plane=6))
 
 
+def test_resonant_reconstruct_interference_weights():
+    """Superposition reconstruct recovers a weighted combo better than pure modes."""
+    M = WaveManifold()
+    a = _unit_rotor(0.2, plane=6)
+    b = _unit_rotor(0.9, plane=10)
+    query = 0.6 * a + 0.4 * b
+    psi_hat, coeffs, _energies = M.resonant_reconstruct(query, modes=[a, b])
+    assert coeffs.shape == (2,)
+    err_hat = float(np.linalg.norm(psi_hat - query))
+    assert err_hat < float(np.linalg.norm(a - query))
+    assert err_hat < float(np.linalg.norm(b - query))
+
+
+def test_phase_correlation_symmetric():
+    """I-04 algebraic resonance: ρ(A,B)=ρ(B,A)."""
+    M = WaveManifold()
+    a = _unit_rotor(0.2, plane=6)
+    b = _unit_rotor(0.55, plane=8)
+    assert abs(M.phase_correlation(a, b) - M.phase_correlation(b, a)) < 1e-12
+
+
 def test_core_ha_package_absent():
     """core_ha deprecation: no live package tree in this repo (W6 hygiene)."""
     import importlib.util
 
     assert importlib.util.find_spec("core_ha") is None
+
+
+def test_true_clifford_polar_fails_on_multigrade_field():
+    """HONESTY CHECK (ADR-0241 P7): The analytical Clifford polar fails on general fields.
+    
+    C_AB = B ~A. If the polar decomposition R = C ( ~C C )^{-1/2} were to work,
+    then ~C C must be a positive scalar. For general multi-grade fields, this is FALSE.
+    This proves that `_field_conjugacy_versor` (SVD + Spin GN) is the only true way
+    to extract a sandwich conjugator for general wave fields, and the ADR-0241 claim
+    of a 'Cross-spectral polar decomposition' is ill-posed for non-vector fields.
+    """
+    psi_A = _e(1) + 0.5 * _e(3) + 0.2 * _unit_rotor(0.3, plane=8) # Mixed grade
+    R_true = _unit_rotor(0.4, plane=6)
+    psi_B = versor_apply(R_true, psi_A)
+    
+    # C_AB = psi_B * reverse(psi_A)
+    C_AB = geometric_product(psi_B, reverse(psi_A))
+    
+    # Check if ~C C is a scalar
+    C_rev_C = geometric_product(reverse(C_AB), C_AB)
+    
+    # Extract non-scalar mass
+    scalar_mass = abs(float(C_rev_C[0]))
+    non_scalar_mass = float(np.linalg.norm(C_rev_C[1:]))
+    
+    # The non-scalar mass is significant, proving it's not a scalar
+    assert non_scalar_mass > 0.01 * scalar_mass
+    
+    # Therefore, ( ~C C )^{-1/2} cannot be taken algebraically to yield a rotor.

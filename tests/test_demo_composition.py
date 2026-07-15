@@ -174,6 +174,47 @@ class TestGlobalStateDetector:
         passed, divergences = verify_no_global_state_mutation(before=before, after=after)
         assert passed is False
         assert any("env_subset" in d for d in divergences)
+        # Key-level delta only — never a full env dump (host paths break pins).
+        assert any(
+            d == "env_subset: +CORE_DETECTOR_TEST_FLAG=1" for d in divergences
+        )
+        assert not any("before=" in d for d in divergences)
+
+    def test_env_delta_stable_across_hermetic_engine_state_paths(self) -> None:
+        """Lane pins must not depend on CORE_ENGINE_STATE_DIR temp paths."""
+        before_a = {
+            "env_subset": (("CORE_ENGINE_STATE_DIR", "/tmp/run_a_path"),),
+        }
+        after_a = {
+            "env_subset": (
+                ("CORE_ENGINE_STATE_DIR", "/tmp/run_a_path"),
+                ("CORE_STATEFUL_FIXTURE_FLAG", "1"),
+            ),
+        }
+        before_b = {
+            "env_subset": (("CORE_ENGINE_STATE_DIR", "/var/folders/xyz/run_b"),),
+        }
+        after_b = {
+            "env_subset": (
+                ("CORE_ENGINE_STATE_DIR", "/var/folders/xyz/run_b"),
+                ("CORE_STATEFUL_FIXTURE_FLAG", "1"),
+            ),
+        }
+        passed_a, div_a = verify_no_global_state_mutation(before=before_a, after=after_a)
+        passed_b, div_b = verify_no_global_state_mutation(before=before_b, after=after_b)
+        assert passed_a is False and passed_b is False
+        assert div_a == div_b
+        assert div_a == ("env_subset: +CORE_STATEFUL_FIXTURE_FLAG=1",)
+
+    def test_path_like_env_change_detected_without_absolute_path(self) -> None:
+        before = {"env_subset": (("CORE_ENGINE_STATE_DIR", "/tmp/old"),)}
+        after = {"env_subset": (("CORE_ENGINE_STATE_DIR", "/tmp/new"),)}
+        passed, divergences = verify_no_global_state_mutation(before=before, after=after)
+        assert passed is False
+        assert divergences == (
+            "env_subset: CORE_ENGINE_STATE_DIR '<path>' -> '<path>'",
+        )
+        assert "/tmp/" not in "".join(divergences)
 
     def test_lazy_import_not_flagged(self) -> None:
         """None → module id transition is benign (lazy import)."""

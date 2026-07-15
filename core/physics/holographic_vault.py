@@ -197,8 +197,8 @@ class HolographicVaultStore:
             status = _parse_entry_status(meta.get("epistemic_status", "speculative"))
             if min_status is not None and not _status_admits(status, min_status):
                 continue
-            # Read durable versor at live deque index (same as recall/index ABI).
-            mode = np.asarray(self._vault._versors[i], dtype=np.float64).copy()
+            # Public read ABI — never reach into VaultStore private deques.
+            mode = np.asarray(self._vault.get_versor(i), dtype=np.float64)
             mid = str(meta.get("mode_id") or f"idx-{i}")
             sealed = SealedMode(
                 mode=mode,

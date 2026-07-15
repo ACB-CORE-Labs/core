@@ -4,7 +4,7 @@
 **Date**: 2026-07-13
 **Authors**: Multi-model R&D + Joshua Shay
 **Traceability**: Notion R&D (Reference Vault Interconnection: `core_HA` Patterns)
-**Related**: ADR-0003, ADR-0238, ADR-0239, ADR-0240, ADR-0241, `core-rs/src/vault.rs`
+**Related**: ADR-0003, ADR-0238, ADR-0239, ADR-0240, ADR-0241, ADR-0242, `core-rs/src/vault.rs`, `docs/analysis/core_cohesion_master_plan.md`
 **Canonical path**: `docs/analysis/core_ha_unification_and_deprecation_plan.md`
 
 ---
@@ -72,5 +72,7 @@ Keeping `core_ha` as a pointwise store would reintroduce thaw decay and non-comm
 ## 6. Validation
 
 - ADR-0241 behavioral suite: `tests/test_adr_0241_wave_manifold.py`
+- Entity cohesion suite: `tests/test_third_door_cohesion.py` (I-01…I-05, Phase 0 grep, serve quarantine)
+- Cohesion master plan: `docs/analysis/core_cohesion_master_plan.md`
 - Fidelity ledger wave section: `docs/research/third-door-blueprint-fidelity.md`
 - Regression: existing Third-Door ADR-0238/0239/0240 tests remain green under subsumption

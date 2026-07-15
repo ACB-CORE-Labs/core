@@ -26,8 +26,9 @@ work (cold RegisterTour alone can exceed 30s on typical dev hardware).
   ``all_claims_supported=True`` and every scene reports
   ``all_claims_supported=True``.
 - ``runtime_under_budget`` — total runtime ≤ 60 seconds on the
-  reference dev hardware (soft case; hard raise is opt-in via
-  ``CORE_SHOWCASE_HARD_BUDGET=1``).
+  reference dev hardware. **Soft by default**: over-budget is recorded as
+  a soft pass for lane-pin stability on cold CI. **Hard fail** only when
+  ``CORE_SHOWCASE_HARD_BUDGET=1``.
 - ``pure_composition_no_new_mechanism`` — grep gate over
   ``core/demos/showcase.py``'s import graph refuses any symbol whose
   module path is not within the existing shipped packages
@@ -63,9 +64,10 @@ This remains a timing signal more than a content regression:
 - Content lanes (`determinism_run_to_run_byte_equality`,
   `all_claims_supported`, `pure_composition_no_new_mechanism`) are the
   correctness gate.
-- `runtime_under_budget` still fails the lane if wall-clock exceeds 60s
-  — that is intentional regression detection for pathological slowdowns.
+- `runtime_under_budget` hard-fails the lane only with
+  ``CORE_SHOWCASE_HARD_BUDGET=1`` (pathological product gates). Soft mode
+  keeps content SHAs stable on cold Act runners (observed 78s+).
 
-**Implication for evaluators:** failures well above 60s warrant
-profiling (RegisterTour is typically the cold cost center). Content
-SHA mismatches are always correctness failures.
+**Implication for evaluators:** hard-budget failures warrant profiling
+(RegisterTour is typically the cold cost center). Content SHA
+mismatches are always correctness failures.

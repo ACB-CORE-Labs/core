@@ -170,6 +170,16 @@ def _run_stateful_fixture_rejected(tmp_root: Path) -> dict[str, Any]:
 
 
 def run() -> dict[str, Any]:
+    import os
+
+    # Hermetic engine state (same pattern as public_demo): lived engine_state/
+    # on the developer's machine or a dirty CI workspace must not leak into
+    # adapter JSON hashes and break the lane pin.
+    os.environ.setdefault(
+        "CORE_ENGINE_STATE_DIR",
+        tempfile.mkdtemp(prefix="demo_composition_engine_state_"),
+    )
+
     tmp_root = Path(tempfile.mkdtemp(prefix="demo_composition_lane_"))
     try:
         cases: list[dict[str, Any]] = []

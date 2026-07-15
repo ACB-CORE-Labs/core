@@ -164,6 +164,58 @@ _TRACKED_MODULES: tuple[str, ...] = (
 )
 
 
+# Env keys whose values are host/isolation paths. Mutation is still
+# detected (key present/absent/changed), but absolute path *values*
+# never enter divergence messages — those would make lane SHA pins
+# depend on tempfile locations and break hermetic CI.
+_PATH_LIKE_ENV_SUFFIXES: tuple[str, ...] = ("_DIR", "_PATH", "_HOME", "_ROOT")
+
+
+def _is_path_like_env_key(key: str) -> bool:
+    if key == "CORE_ENGINE_STATE_DIR":
+        return True
+    return any(key.endswith(suffix) for suffix in _PATH_LIKE_ENV_SUFFIXES)
+
+
+def _format_env_value(key: str, value: str) -> str:
+    """Stable, pin-safe rendering of an env value for divergence text."""
+    if _is_path_like_env_key(key):
+        return "<path>"
+    return value
+
+
+def _env_subset_divergences(
+    before_env: tuple[tuple[str, str], ...] | tuple[()] | Any,
+    after_env: tuple[tuple[str, str], ...] | tuple[()] | Any,
+) -> tuple[str, ...]:
+    """Key-level env delta — not a full before/after dump.
+
+    Full tuple dumps embed every ambient ``CORE_*`` value (including
+    hermetic engine-state temp paths). That is correct for *detection*
+    when compared as raw snapshots, but wrong for *report text*: the
+    lane SHA pin must be host-independent. Only keys that actually
+    changed appear in the message.
+    """
+    before_map = dict(before_env or ())
+    after_map = dict(after_env or ())
+    messages: list[str] = []
+    for key in sorted(set(before_map) | set(after_map)):
+        b = before_map.get(key)
+        a = after_map.get(key)
+        if b == a:
+            continue
+        if b is None:
+            messages.append(f"env_subset: +{key}={_format_env_value(key, a)}")
+        elif a is None:
+            messages.append(f"env_subset: -{key}={_format_env_value(key, b)}")
+        else:
+            messages.append(
+                "env_subset: "
+                f"{key} {_format_env_value(key, b)!r} -> {_format_env_value(key, a)!r}"
+            )
+    return tuple(messages)
+
+
 def _global_state_snapshot() -> dict[str, Any]:
     """Capture a load-bearing subset of process state for diff checking.
 
@@ -206,9 +258,14 @@ def verify_no_global_state_mutation(
     when the adapter does its own deferred imports. Only id → id
     rebindings (the module object was replaced) and value-set
     divergences on env vars are flagged.
+
+    Env divergences are reported as a **key-level delta** (added /
+    removed / changed keys). Full before/after env dumps are forbidden
+    in the divergence text: they embed host-volatile values such as
+    ``CORE_ENGINE_STATE_DIR`` temp paths and make lane SHA pins flaky.
     """
     divergences: list[str] = []
-    for key in set(before.keys()) | set(after.keys()):
+    for key in sorted(set(before.keys()) | set(after.keys())):
         b = before.get(key)
         a = after.get(key)
         if b == a:
@@ -217,9 +274,10 @@ def verify_no_global_state_mutation(
             # Lazy import: a module that wasn't yet loaded is now
             # loaded. Benign and unavoidable.
             continue
-        divergences.append(
-            f"{key}: before={b!r} after={a!r}"
-        )
+        if key == "env_subset":
+            divergences.extend(_env_subset_divergences(b, a))
+            continue
+        divergences.append(f"{key}: before={b!r} after={a!r}")
     return (not divergences, tuple(divergences))
 
 
