@@ -25,6 +25,8 @@ class FindingKind(Enum):
     OOV_GAP = "oov_gap"
     PLANNER_GAP = "planner_gap"
     PACK_MUTATION_CANDIDATE = "pack_mutation_candidate"
+    # ADR-0241 P9 Trace A: speculative standing-wave mode sealed for review.
+    RESONANT_MODE_CANDIDATE = "resonant_mode_candidate"
 
 
 def _canonical_json(payload: dict[str, Any]) -> str:

@@ -849,3 +849,87 @@ migration PR with verifier parity evidence.
 - Frontier baseline: `evals/gsm8k_math/baselines/`
 - Sealed holdout: `evals/gsm8k_math/holdouts/v1/cases.jsonl.age`
 - ADR chain: ADR-0119, ADR-0119.1 through ADR-0119.8
+
+## Wave-field cohesion substrate (ADR-0241 + ADR-0242)
+
+This section freezes the **off-serve** wave / holographic / packing contracts
+landed under the ADR-0241 cohesion plan (packages P0–P10). It prevents drift
+between physics modules, contemplation Trace A, energy Trace B, and serve
+containment.
+
+### Off-serve quarantine (hard)
+
+The following modules **must not** be imported by `chat/runtime.py` or any
+wrong=0 serve entry path (AST-pinned in `tests/test_third_door_cohesion.py`):
+
+| Module | Role |
+|--------|------|
+| `core.physics.wave_manifold` | Cl(4,1) wave field \(\psi\), leakage, polar conjugacy, chiral, \(\rho\) |
+| `core.physics.holographic_vault` | Durable standing-wave spectrum via `VaultStore` |
+| `core.physics.atlas_packing` | Golden-Angle mode packing (ADR-0242 V3) |
+| `core.physics.fibonacci_search` | Cert-gated Fibonacci section search (ADR-0242 V1) |
+| `core.physics.fibonacci_word_schedule` | Fibonacci-word observability choreography (ADR-0242 V4; telemetry only) |
+| `core.physics.multi_scale_energy` | Multi-band \(E_n(t)\) research helpers (ADR-0242 V2; not serve) |
+| `core.physics.sensorium_wave_feed` | Sensorium → \(\psi\) construction feed (I-04) |
+| `core.contemplation.wave_seam` | P9 Trace A SPECULATIVE seal + hypothesis/evidence reconstruct |
+| `core.physics.wave_energy_boundary` | P10 Trace B residual→energy / \(\tau_n\) / crystallization |
+| `algebra.topological_reasoning` | ADR-0242 V5 research quarantine only — never serve/production |
+
+Wiring any of these into serve requires an explicit ADR amendment and a
+failing-to-green containment test change in the same PR.
+
+### Holographic standing-wave epistemic standing
+
+- Default seal path: `HolographicVaultStore.seal_mode` → **SPECULATIVE** only.
+- COHERENT seal: `seal_mode_reviewed(..., authorized=True)` only — never from
+  contemplation / self-authorship / wave_seam.
+- Writes use `VaultStore.store` exclusively (INV-21 allowlist includes
+  `core/physics/holographic_vault.py`). No parallel memory path.
+- Restart reconstruct uses public `VaultStore.get_versor` / `iter_metadata`
+  (no private `_versors`).
+
+### Hypothesis vs evidence reconstruct (Trace A)
+
+| API | Spectrum filter | Standing label |
+|-----|-----------------|----------------|
+| `reconstruct_as_hypothesis` | full (incl. SPECULATIVE) | `hypothesis` |
+| `reconstruct_as_evidence` | `min_status=COHERENT` only | `evidence` |
+
+SPECULATIVE modes **must not** masquerade as reviewed evidence. Empty COHERENT
+spectrum on the evidence path refuses (no confabulation).
+
+### Energy crystallization (Trace B)
+
+- Unitary residual for energy / trajectory gates is measured by
+  `WaveManifold.measure_unitary_residual` (via `wave_energy_boundary`), not a
+  free-floating float.
+- Multi-scale recency table \(\tau_n = F_n \tau_0\) is a **constants schedule**,
+  not a serve-path optimizer.
+- `crystallization_for_holographic_seal`: E0/E1 **and** residual ≤ ε may
+  SPECULATIVE-seal; otherwise refuse. Never self-authorizes COHERENT.
+
+### Entity invariants (suite-pinned, not Tier-2 lane SHAs)
+
+I-01…I-05 and Phase 0 audits are behavioral pins in
+`tests/test_third_door_cohesion.py` (and related ADR-0241 tests). They are **not**
+Tier-2 `CLAIMS.md` lane-SHA rows (those remain eval-lane report digests only).
+Acceptance inventory: `docs/audit/adr_0241_cohesion_acceptance_checklist.md`.
+
+### Field invariant (unchanged)
+
+Every wave transition still obeys `versor_condition(F) < 1e-6`. Residual breach
+is **fail-closed** — no hot-path nearest-versor drift repair.
+
+### Algebra backend / Apple Silicon (P11a hygiene)
+
+Cl(4,1) hot ops in physics (`geometric_product`, `versor_apply`,
+`versor_condition`, `cga_inner`) must import from **`algebra.backend`**, not
+direct pure-algebra modules. Pin: `tests/test_physics_backend_dispatch_hygiene.py`.
+
+| Mode | How |
+|------|-----|
+| Default | Pure Python (semantic source of truth) |
+| Native accel | `CORE_BACKEND=rust` + `core_rs` built (`maturin develop --release -m core-rs/Cargo.toml`) |
+| float64 wave residual pins | Stay on Python product when inputs are f64 (Rust f32 GP not parity-safe for 1e-9 pins yet) |
+| float32 field graphs | Rust f32 GP / residual when enabled |
+| MLX / UMA | Exploratory (ADR-0235); not serving until parity gates |

@@ -1,6 +1,6 @@
 # ADR-0241: Wave-Field Driven Hyperbolic Atlas and Resonant Algebraic Cognition
 
-**Status**: Proposed — substrate + Slice-2/3 subsumption complete on branch (`wave_manifold`, operator delegates, multi-pair conjugacy thin wrap, resonant recall); acceptance path: Joshua review + merge
+**Status**: Proposed — **implementation complete (P0–P10)**; ready for Joshua acceptance review (do not self-Accept). Optional P11 Rust deferred. Checklist: `docs/audit/adr_0241_cohesion_acceptance_checklist.md`.
 **Date**: 2026-07-13
 **Deciders**: Joshua Shay + multi-model R&D
 **Traceability**: Issue #14, parent #10

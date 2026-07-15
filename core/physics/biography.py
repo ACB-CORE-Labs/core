@@ -16,9 +16,10 @@ from typing import Any, Sequence
 
 import numpy as np
 
+from algebra.backend import versor_condition
 from algebra.cl41 import N_COMPONENTS
 from algebra.holonomy import holonomy_encode, holonomy_similarity
-from algebra.versor import unitize_versor, versor_condition
+from algebra.versor import unitize_versor
 from core.physics.wave_manifold import WaveManifold
 
 _CLOSURE_TOL = 1e-6

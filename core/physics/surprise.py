@@ -39,9 +39,8 @@ from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from algebra.cga import cga_inner
+from algebra.backend import cga_inner, versor_condition
 from algebra.cl41 import N_COMPONENTS, grade_project
-from algebra.versor import versor_condition
 from core.physics.dynamic_manifold import conformal_procrustes
 from core.physics.wave_manifold import WaveManifold, WaveSpectralLeakageError
 
