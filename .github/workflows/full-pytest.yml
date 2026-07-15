@@ -1,16 +1,25 @@
 name: full-pytest
 
-# Post-merge validation — runs the full pytest suite on every push to main.
-# PRs are gated by the faster smoke workflow (smoke.yml); this catches
-# anything outside the smoke suite within minutes of merge.
+# Post-merge FAST lane — runs on every push to main.
 #
-# Quarantined tests are excluded via the conftest.py QUARANTINE registry.
-# The intent is a ratchet: once a test is removed from the registry it
-# must keep passing on this gate.
+# Marker: -m "not quarantine and not slow"
+#   ~9.5k unit/integration tests; excludes the slow registry in conftest.py
+#   (soak / bench / proof / register-matrix; ~912 tests including the 16 min
+#   phase2 fixture floor).
+#
+# Why "full-pytest" still names this file:
+#   Keep the workflow id stable for Forgejo required-check / history matching.
+#   The job display name and this comment state the true contract: FAST on main.
+#   The complete non-quarantine suite runs in nightly-full-pytest.yml.
+#
+# PR gate: smoke.yml (small critical subset).
+# Lane pins: lane-shas.yml.
+# Full soak: nightly-full-pytest.yml (schedule + workflow_dispatch).
 #
 # See:
-#   conftest.py — the QUARANTINE registry (one entry per quarantined test)
-#   docs/test-debt-quarantine.md — cluster diagnoses + removal policy
+#   conftest.py — QUARANTINE + SLOW_FILES / SLOW_TESTS registries
+#   docs/testing-lanes.md — lane commands and CI policy (SSoT)
+#   docs/ci-optimization.md — runner bottleneck + capacity notes
 
 on:
   push:
@@ -25,9 +34,10 @@ concurrency:
 
 jobs:
   pytest:
-    name: full pytest (-m "not quarantine" -n 2)
+    name: fast pytest (-m "not quarantine and not slow" -n 2)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Headroom over ~9.5 min parallel on a 10-core host; Act 2-vCPU is slower.
+    timeout-minutes: 30
 
     steps:
       - name: checkout
@@ -45,12 +55,12 @@ jobs:
         run: |
           uv pip install -e ".[dev]" pyyaml
 
-      - name: pytest (parallel, quarantine excluded)
+      - name: pytest (parallel, quarantine and slow excluded)
         env:
           PYTHONPATH: ${{ github.workspace }}
           CORE_SHOWCASE_SKIP_BUDGET: "1"
         run: |
-          uv run pytest -m "not quarantine" -n 2 --tb=short -q --maxfail=10
+          uv run pytest -m "not quarantine and not slow" -n 2 --tb=short -q --maxfail=10
 
       - name: report quarantine size (informational)
         if: always()
