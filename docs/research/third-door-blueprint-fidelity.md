@@ -309,6 +309,7 @@ PY
 | Physics Cl(4,1) via `algebra.backend` (P11a) | 🟢 wave/goldtether/trajectory/procrustes/surprise/vault/packing; AST pin; Rust when `CORE_BACKEND=rust` |
 | Contemplation Trace A SPECULATIVE holographic seal (P9) | 🟢 `core/contemplation/wave_seam.py` (hypothesis vs COHERENT evidence) |
 | Energy boundary + multi-scale τ (P10 Trace B) | 🟢 `wave_energy_boundary` (wave residual → energy/trajectory; τ_n=F_n·τ_0; E0–E1 crystallization) |
+| Chiral orientation sign-gate \(\mathrm{sgn}(Q)=\text{const}\) (§2.4C / core_ha §5.2 mirror-inversion safeguard) | 🟢 `chiral_gate.ChiralOrientationGate` — latch on first non-vacuous \(Q\), fail-closed `ChiralOrientationError` on flip; wired via signed charge in `goldtether_residual` (residual value unchanged; even fields vacuous → serve-inert, no #19 revival). Pins: `test_chiral_orientation_gate.py` |
 
 ### Subsumption map (Slice 2–3)
 | Operator | Delegation |

@@ -32,6 +32,7 @@ from algebra.backend import geometric_product, versor_condition
 from algebra.cl41 import N_COMPONENTS, reverse
 from algebra.rotor import rotor_power, word_transition_rotor
 from algebra.versor import versor_unit_residual
+from core.physics.chiral_gate import ChiralOrientationGate
 from core.physics.wave_manifold import WaveManifold
 
 _CLOSURE_TOL = 1e-6
@@ -152,6 +153,13 @@ class GoldTetherMonitor:
     r_floor: float = 0.1
     r_critical: float = 1.0
     gold_invariants: list = field(default_factory=_primal_gold_invariants, compare=False)
+    # Chiral orientation enforcement (ADR-0241 §2.4C / core_ha §5.2):
+    # sgn(Q) latches on the first non-vacuous spinor reading and a materially
+    # re-emerging flip fails closed. Even serve field-states are vacuous
+    # (Q ≈ 0), so the gate never latches on today's serve path — inert there.
+    chiral_gate: "ChiralOrientationGate" = field(
+        default_factory=lambda: ChiralOrientationGate(), compare=False
+    )
 
     @property
     def supervised_autonomy_level(self) -> float:
@@ -227,7 +235,12 @@ class GoldTetherMonitor:
         # path can move the residual without a second API.
         wave = WaveManifold()
         drift = wave.measure_unitary_residual(F_arr)
-        chiral = abs(float(wave.chiral_charge(F_arr)))
+        # Signed charge feeds the fail-closed orientation gate (sgn(Q)=const,
+        # ADR-0241 §2.4C / core_ha §5.2). The residual term keeps its
+        # magnitude-only semantics unchanged below.
+        q_signed = float(wave.chiral_charge(F_arr))
+        self.chiral_gate.observe_q(q_signed)
+        chiral = abs(q_signed)
         drift_term = (
             (drift + chiral) / self.epsilon_drift
             if self.epsilon_drift > 0.0
