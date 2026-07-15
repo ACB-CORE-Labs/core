@@ -1,6 +1,6 @@
 # ADR-0241 / ADR-0242 Cohesion Acceptance Checklist
 
-**Status:** Implementation packages P0–P10 green; human **Accepted** flip is Joshua review.  
+**Status:** **ACCEPTED** — ratified by Joshua Shay 2026-07-15; ruling record in `docs/audit/adr-0241-0242-acceptance-packet-2026-07-15.md` §8. (Was: P0–P10 green awaiting review.)  
 **Plan authority:** session plan P0–P12 (`feat/adr-0241-0242-implementation` lineage).  
 **This document:** maps cohesion success criteria to **tests**, not prose alone.
 

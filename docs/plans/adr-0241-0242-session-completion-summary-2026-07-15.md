@@ -280,4 +280,16 @@ You are resuming CORE ADR-0241/0242 work. Plan A (cohesion P0–P12) and Plan B 
 
 ---
 
-*Archived from session work on 2026-07-15. Plans A/B copied from session plan artifacts; status tables updated to match branch tip and CI reality at archive time.*
+## 12. LIVING UPDATE — 2026-07-15 evening (supersedes §11)
+
+The §11 brief is stale. Current truth:
+
+- **#38 MERGED** (`9e1455b9`, lane-shas green at `26abdbe7`; debug env-dump reverted at `4853a55c`).
+- **#40 MERGED** (`54228d45`): W1 adversarial pass (executed) — chiral P8 + Fibonacci V1 confirmed solid; **live A-04 transitive serve breach found & fixed** (core/physics barrel → lazy Tier-2 exports + process-level guard test); **T1/T2 serve-boundary reconciliation ruled** (wave_manifold = sanctioned serve substrate; 7 research modules stay off-serving); 4-blueprint integration plan; these plan archives (W2); CLI smoke↔CI parity (175 tests); **local-first CI protocol in AGENTS.md** (GitHub Actions billing-locked — do not chase).
+- **#41 MERGED** (`717aca9b`): chiral orientation sign-gate (sgn(Q)=const fail-closed, ADR-0241 §2.4C / core_ha §5.2 — the audit's one missing safeguard) + **D10 acceptance packet** (`docs/audit/adr-0241-0242-acceptance-packet-2026-07-15.md`) + anyon ledger honesty fix.
+- **#42 OPEN**: CRDT-vs-bit-exact determinism decision dossier (Gemini) — recommends bit-exact single-writer now, CRDT behind a multi-writer gate; found real Delta-CRDT machinery in `core-rs/src/vault.rs`.
+- **ADR-0242 R&D memo slice CLOSED**: read via the Drive connector; no new defects — implementation is stronger than the memo's own reference code. Carry items: cert-telemetry seam (§5-P1) and F₅–F₇ cross-band DiscoveryCandidate gate (§5-P2) unbuilt (staged, non-blocking); impl allows budget≥2 vs memo's ≥3 (kept — stronger validation elsewhere).
+- **RATIFIED (same day):** Joshua Shay ruled "Ratify" on the packet — **ADR-0241 and ADR-0242 → Accepted** (ruling record: packet §8; both ADR status headers flipped). #42 CRDT ruling ratified in the same stroke.
+- **Remaining (post-Accept)**: W5 backlog (D9 Rust parity, sensorium compilers, V2 energy benchmark, progressive field); §7 carry items (cert-telemetry seam, F₅–F₇ cross-band gate); parallel lanes W2 (full-suite reds) / W3 (xdist polluters) briefed in `tmp/`.
+
+*Archived from session work on 2026-07-15. Plans A/B copied from session plan artifacts; §12 added post-merge; earlier status tables reflect archive-time reality.*

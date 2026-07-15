@@ -76,3 +76,28 @@ Keeping `core_ha` as a pointwise store would reintroduce thaw decay and non-comm
 - Cohesion master plan: `docs/analysis/core_cohesion_master_plan.md`
 - Fidelity ledger wave section: `docs/research/third-door-blueprint-fidelity.md`
 - Regression: existing Third-Door ADR-0238/0239/0240 tests remain green under subsumption
+
+---
+
+## 7. Implementation-status correction (2026-07-15, post-ruling — appended, original text above unmodified)
+
+Two claims in this memo are corrected against the landed implementation (adversarial audit
+`docs/research/adr-0241-0242-adversarial-and-fidelity-findings.md`; decision dossier
+`docs/analysis/crdt-vs-bitexact-determinism-decision-2026-07.md`, merged PR #42):
+
+1. **Delta-CRDT sync (§1/§2/§3 tombstone row).** Python `core/sync/` is a journal/object-store —
+   it carries **no** CRDT merge semantics. The commutative/associative/idempotent semilattice DOES
+   exist, but in the Rust vault (`core-rs/src/vault.rs` `SemilatticeDelta`, ADR-0180 §2.2) and the
+   audio ingest lane (`tests/test_audio_crdt_merge.py`), not the general state layer.
+   **Actual exact-recall determinism mechanism today: bit-exact array codec
+   (`core/array_codec.py`) + single-writer `VaultStore` (Shape B+).** Ruling (PR #42): this is
+   sufficient for the single-writer one-continuous-life telos; general Delta-CRDT rollout is
+   deferred behind an explicit **multi-writer/multi-agent gate** (trigger: shared-vault
+   concurrency becomes a baseline requirement).
+
+2. **`ClosureViolationException` (§5.1).** No exception of that name exists. The fail-closed
+   behavior it specifies is implemented by the versor gates (`versor_condition` ≥ 1e-6 →
+   `ValueError` at rotor closure) and typed errors (`WaveSpectralLeakageError`,
+   `ChiralOrientationError`). Equivalent semantics, different names — recorded as an honest
+   naming deviation, not a gap. (§5.2's sign-preservation safeguard, previously readout-only,
+   is now enforced by `core/physics/chiral_gate.py`, merged PR #41.)

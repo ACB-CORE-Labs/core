@@ -1,6 +1,6 @@
 # ADR-0242: Deterministic Fibonacci Operators and Evidence-Gated Optimization
 
-**Status**: Proposed — V1 cert + V3 packing + V2 research helpers + V4 word schedule + V5 quarantine + sensorium feed landed; ready for Joshua review (do not self-accept).
+**Status**: **Accepted** — ratified by Joshua Shay 2026-07-15 (explicit "Ratify" ruling on the D10 acceptance packet, `docs/audit/adr-0241-0242-acceptance-packet-2026-07-15.md`; memo fidelity slice closed §7, no new defects). V1 cert + V3 packing + V2 research helpers + V4 word schedule + sensorium feed landed; V5 anyons NOT built (claim-quarantined per the packet); V2 production promotion stays benchmark-gated per §3.2.
 **Date**: 2026-07-13 (Drive authority); in-repo expansion 2026-07-15  
 **Deciders**: Joshua Shay + multi-model R&D  
 **Traceability**: Drive ADR-0242 (`15_NECCPy-tEWGfYi_BNqawm8GytUTMkz1DsOqGVMXhI`), PR #37/#38, cohesion plan  

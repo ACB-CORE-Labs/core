@@ -268,12 +268,13 @@ PY
 
 ## 12. Wave-field substrate (ADR-0241) — 🟢 local + cohesion packages P0–P10
 
-> **Status (2026-07-15, P12 honesty pass):** Local operators **and** entity
-> cohesion packages P0–P10 are **GREEN** (I-01…I-05 suite, Trace A/B seams,
-> packing, Fibonacci, polar honesty, chiral, ρ algebra). Human **Accepted**
-> flip is Joshua review only — see
-> `docs/audit/adr_0241_cohesion_acceptance_checklist.md`. Still open by design:
-> sensorium feed into ρ, optional P11 Rust/MLX, serve remains quarantined.
+> **Status (2026-07-15, RATIFIED):** ADR-0241 and ADR-0242 are **Accepted**
+> (Joshua Shay ruling; record in
+> `docs/audit/adr-0241-0242-acceptance-packet-2026-07-15.md` §8). Local
+> operators, cohesion packages P0–P10, and the chiral sign-gate (PR #41) are
+> GREEN. Still open by design: sensorium real compilers, optional P11
+> Rust/MLX (D9), V2 energy promotion (benchmark-gated); Tier-2 research
+> substrate remains off-serving (T1/T2 boundary ratified).
 
 ### Spec (ADR-0241) — contract
 - Continuous multivector wave-field \(\psi \in Cl(4,1)\) (32-coeff) under Cartan/Procrustes, Surprise, GoldTether, Biography.

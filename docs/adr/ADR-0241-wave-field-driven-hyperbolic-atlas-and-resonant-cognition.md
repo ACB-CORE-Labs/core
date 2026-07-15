@@ -1,6 +1,6 @@
 # ADR-0241: Wave-Field Driven Hyperbolic Atlas and Resonant Algebraic Cognition
 
-**Status**: Proposed — **implementation complete (P0–P10)**; ready for Joshua acceptance review (do not self-Accept). Optional P11 Rust deferred. Checklist: `docs/audit/adr_0241_cohesion_acceptance_checklist.md`.
+**Status**: **Accepted** — ratified by Joshua Shay 2026-07-15 (explicit "Ratify" ruling on the D10 acceptance packet, `docs/audit/adr-0241-0242-acceptance-packet-2026-07-15.md`; §2 deviations accepted as recommended, incl. P7 demote-with-proof and the T1/T2 serve-boundary reconciliation). Implementation P0–P10 + chiral sign-gate (PR #41). Optional P11 Rust (D9) deferred. Checklist: `docs/audit/adr_0241_cohesion_acceptance_checklist.md`.
 **Date**: 2026-07-13
 **Deciders**: Joshua Shay + multi-model R&D
 **Traceability**: Issue #14, parent #10

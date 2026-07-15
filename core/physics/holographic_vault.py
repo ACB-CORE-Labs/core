@@ -27,6 +27,12 @@ import numpy as np
 from algebra.backend import versor_condition
 from algebra.cl41 import N_COMPONENTS
 from core.physics.wave_manifold import WaveManifold
+# SANCTIONED SEAM (W1 Finding #4): the one physics→teaching import — boundary
+# vocabulary only (SPECULATIVE/COHERENT standing), no teaching logic crosses.
+# Extraction to a shared kernel is deferred until a second physics module
+# needs the vocabulary (32 consumers repo-wide; not a LOW-batch relocation).
+# NOTE: core/epistemic_state.py holds a DIFFERENT concept (turn-level
+# EpistemicState) — do not merge the two.
 from teaching.epistemic import EpistemicStatus
 from vault.store import VaultStore, _parse_entry_status, _status_admits
 
