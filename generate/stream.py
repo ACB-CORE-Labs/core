@@ -204,7 +204,14 @@ def _recall_state(state: FieldState, vault, top_k: int) -> tuple[FieldState, int
             # power on the rotor manifold. ``rotor_power`` stays on the manifold
             # by construction (versor_condition stays < 1e-6), unlike a linear
             # blend ``weight·V + (1-weight)·identity`` which violates closure.
-            V_scaled = rotor_power(V, float(weight))
+            # Mixed-parity transitions (e.g. multi-token even field ↔ grade-1
+            # vault hit) are unit versors but not rotors; fractional power is
+            # undefined for them. Skip the hit rather than crash or silently
+            # apply identity (historical non-simple no-op).
+            try:
+                V_scaled = rotor_power(V, float(weight))
+            except ValueError:
+                continue
             current = propagate_step(current, V_scaled)
             current = FieldState(
                 F=current.F,

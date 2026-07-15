@@ -221,7 +221,13 @@ class SessionContext:
             R = word_transition_rotor(field_state.F, self._anchor_field)
         except ValueError:
             return field_state
-        R_step = rotor_power(R, _ANCHOR_PULL_ALPHA)
+        # rotor_power is defined on closed unit rotors (even grade). Mixed-parity
+        # transitions (field/anchor grade mismatch) are unit versors but not
+        # rotors — skip the pull rather than fail the turn.
+        try:
+            R_step = rotor_power(R, _ANCHOR_PULL_ALPHA)
+        except ValueError:
+            return field_state
         pulled_F = versor_apply(R_step, field_state.F)
         return FieldState(
             F=pulled_F,

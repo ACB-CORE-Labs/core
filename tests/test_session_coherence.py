@@ -122,7 +122,11 @@ def test_session_anchor_pull_output_satisfies_versor_condition() -> None:
     session.ingest(["logos"])
 
     # Build a drifted field well separated from the anchor.
-    drifted = _random_rotor(seed=42)
+    # Use a grade-1 word versor (same parity as inject/anchor field states).
+    # An even-grade random rotor would produce a mixed-parity transition that
+    # is a unit versor but not a rotor — rotor_power correctly refuses it, and
+    # the pull becomes a no-op. This test exercises the real Spin-geodesic path.
+    drifted = _positive_unit_reflector(seed=42)
     drifted_state = FieldState(
         F=drifted,
         node=session.state.node,

@@ -528,6 +528,8 @@ def test_inv21_and_inv29_allowlists_are_unchanged():
         "vault/store.py",
         "generate/proposition.py",
         "generate/realize/realize.py",
+        # ADR-0241 holographic standing-wave spectrum (INV-21 allowlist expansion).
+        "core/physics/holographic_vault.py",
     })
     assert ALLOWED_STATUS_TRANSITION_SITES == frozenset({"vault/store.py"})
 
