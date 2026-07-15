@@ -67,3 +67,16 @@ Rule on §2 deviations (recommendations inline) and, if satisfied, flip **ADR-02
 Sovereignty invariant (§6 of the memo) verified: Fibonacci operators never touch truth status / safety / identity / promotion (T2 quarantine + proposal-only κ). The five-vector staging matches the memo's phase gating exactly, including anyons (Phase 5 pre-research, not built — consistent with the corrected ledger row).
 
 **Carry items (staged, non-blocking):** (a) §5-P1 "certificate written to execution telemetry" seam not verified; (b) §5-P2 cross-band (F₅–F₇) DiscoveryCandidate persistence gate not built; (c) impl accepts `evaluation_budget ≥ 2` where the memo floor is 3 — kept deliberately (n=2 is mathematically valid and the impl validates harder elsewhere), noted for the ruling.
+
+---
+
+## 8. RULING RECORD
+
+**RATIFIED — Joshua Shay, 2026-07-15** (explicit "Ratify", given in-session after review of this packet including the §7 addendum and the two review fixes: chiral gate merged-state confirmation and the CRDT dossier linkage).
+
+Effects:
+- **ADR-0241 → Accepted** (status flipped in `docs/adr/ADR-0241-…md`).
+- **ADR-0242 → Accepted** (status flipped in `docs/adr/ADR-0242-atlas-packing-and-fibonacci.md`).
+- §2 deviations accepted as recommended: P7 demote-with-proof (accept-as-honest, #19 precedent); T1/T2 serve-boundary reconciliation ratified; sensorium staging, progressive integrals, and float32-honest recall acknowledged as-is.
+- CRDT determinism ruling (PR #42) ratified: single-writer bit-exact now; CRDT behind an explicit multi-writer gate.
+- §7 carry items and §5 W5 backlog remain tracked post-Accept work, not conditions.
