@@ -233,12 +233,23 @@ Before branch movement or edits:
 - Prefer a fresh worktree from `origin/main` for non-trivial implementation.
 
 ### Git and Forgejo Setup
-**CRITICAL**: This repository is hosted on a private **Forgejo** server, NOT GitHub. We are explicitly deprecating GitHub usage.
+**CRITICAL**: This repository is hosted on a private **Forgejo** server, NOT GitHub. GitHub is deprecated for core work and CI testing.
 Our sole remote and CI/CD platform is **core-gitquarters.acbcontent.org**.
-- **DO NOT** use the `gh` (GitHub) CLI.
-- **DO NOT** attempt to push, pull, or clone from `github.com`.
+- **DO NOT** use the `gh` (GitHub) CLI for normal work or PR management.
+- **DO NOT** attempt to push, pull, or clone from `github.com` for developer/agent loops.
 - **USE** the provided Forgejo MCP tools if available.
-- If the Forgejo MCP tools are not available or not working, **attempt utilizing the `gitea` / `tea` CLI or `forgejo` CLI** for issues, PRs, and repository management targeting `core-gitquarters.acbcontent.org`.
+- **USE** the `tea` CLI (Gitea/Forgejo CLI) for issues, PRs, and repository management targeting `core-gitquarters.acbcontent.org`.
+
+### Local-First CI Validation Protocol
+To optimize server resources and bypass external CI billing dependencies, all agents and developers must run validation suites locally.
+- **Pre-Push Gate:** Before pushing any branch to Forgejo, you **MUST** run the `smoke` test suite locally using:
+  ```bash
+  uv run core test --suite smoke -q
+  ```
+  Ensure all 108+ tests pass. Pushing broken code is a critical protocol violation.
+- **Pre-Merge Gate:** Before proposing a merge or requesting a review on a PR, you **MUST** run the larger validation suite relevant to your changes (e.g. `uv run core test --suite cognition` or `uv run core test --suite algebra`).
+- **PR Documentation:** When creating a PR on Forgejo (via `tea pr create`), document the local test execution in the PR description, matching this format:
+  `[Verification]: Smoke suite passed locally (<run_duration>s, <test_count> passed)`
 
 ### Pre-Edit Sweep & Versor Coherence Guardian Protocol
 Before modifying any module in `algebra/`, `field/`, `vault/`, or `generate/`:
