@@ -1,19 +1,18 @@
 """Project-root conftest — test classification registries.
 
 The QUARANTINE set is the only allowed registry for known-failing tests.
-It is currently empty. If it ever contains nodeids, the CI gate at
-.github/workflows/full-pytest.yml runs ``pytest -m "not quarantine"``
-so those explicitly tracked failures do not block unrelated PRs. The
-suite is a ratchet: a quarantined test removed from this set must pass
+It is currently empty. If it ever contains nodeids, CI excludes them via
+``-m "not quarantine"`` (smoke, full-pytest fast lane, nightly full).
+The suite is a ratchet: a quarantined test removed from this set must pass
 on its own merits.
 
 See docs/test-debt-quarantine.md for current policy and historical cluster
-diagnoses.
+diagnoses. See docs/testing-lanes.md for CI lane policy (PR / main / nightly).
 
 To remove a test from quarantine:
   1. Land a PR that makes the test pass.
   2. Delete its entry from QUARANTINE in the same PR.
-  3. The full-pytest CI gate will now require it to keep passing.
+  3. The main fast gate and nightly full gate will both require it to pass.
 
 Adding a test to QUARANTINE is strongly discouraged. If a new
 failure surfaces, the right default is to fix it in the PR that
@@ -80,12 +79,14 @@ QUARANTINE: frozenset[str] = frozenset()
 # a developer run a fast lane locally.  Classification adds the ``slow`` marker
 # ONLY — it never skips — so ``-m slow`` SELECTS these tests.  Choose a lane:
 #
-#   fast lane:  pytest -m "not quarantine and not slow"     (make test-fast)
+#   fast lane:  pytest -m "not quarantine and not slow"     (make test-fast;
+#                 also full-pytest.yml on main)
 #   slow lane:  pytest -m "slow and not quarantine"         (make test-slow)
-#   full lane:  pytest -m "not quarantine"                  (make test-full; CI)
+#   full lane:  pytest -m "not quarantine"                  (make test-full;
+#                 also nightly-full-pytest.yml)
 #
-# CI is unchanged: smoke.yml and full-pytest.yml run ``-m "not quarantine"``,
-# which still includes slow tests.  See docs/testing-lanes.md.
+# CI policy: PR = smoke subset; main = fast lane; nightly = full including
+# slow. See docs/testing-lanes.md.
 # ---------------------------------------------------------------------------
 
 # Whole-file: the cost is carried by a module/session-scoped fixture, so marking

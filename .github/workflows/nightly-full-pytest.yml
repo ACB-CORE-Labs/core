@@ -1,0 +1,72 @@
+name: nightly-full-pytest
+
+# Nightly FULL lane — complete non-quarantine suite including the slow registry.
+#
+# Marker: -m "not quarantine"
+#   Includes soak / bench / proof / register-matrix (SLOW_FILES + SLOW_TESTS).
+#   Intentionally off the PR and post-merge critical path so a single 2-vCPU
+#   Act runner is not held for 1–2h after every main push (see docs/ci-optimization.md).
+#
+# Risk owned here: a main merge can break slow tests until the next nightly
+# (or a manual workflow_dispatch). Treat red nightlies as release-blocking
+# debt; re-run via Actions → nightly-full-pytest → Run workflow after fixes.
+#
+# See docs/testing-lanes.md for the full CI policy.
+
+on:
+  schedule:
+    # 02:00 UTC daily — off peak for human PR iteration.
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-full-pytest
+  cancel-in-progress: false
+
+jobs:
+  pytest:
+    name: full pytest (-m "not quarantine" -n 2)
+    runs-on: ubuntu-latest
+    # Full suite parallel floor includes ~16 min phase2 fixture; thrashing on a
+    # 2-vCPU Act host has been observed well past 60 min. Prefer a red timeout
+    # only after a genuine hang, not under normal soak load.
+    timeout-minutes: 120
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: main
+
+      - name: set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.12.13'
+          enable-cache: true
+
+      - name: install dependencies
+        run: |
+          uv pip install -e ".[dev]" pyyaml
+
+      - name: pytest (parallel, full suite, quarantine excluded)
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          CORE_SHOWCASE_SKIP_BUDGET: "1"
+        run: |
+          uv run pytest -m "not quarantine" -n 2 --tb=short -q --maxfail=10
+
+      - name: report quarantine size (informational)
+        if: always()
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          uv run python -c "
+          import sys
+          sys.path.insert(0, '.')
+          from conftest import QUARANTINE
+          print(f'::notice title=Quarantine size::{len(QUARANTINE)} tests currently quarantined. Goal: shrink this number.')
+          "

@@ -2,10 +2,14 @@
 
 The full pytest suite is ~10,600 tests and ~73 min serial.  A small set of
 heavyweight tests dominates that wall-clock, so we classify them and offer a
-**fast lane** for local development.  Classification is empirical
-test-infrastructure metadata, so it lives in one auditable place
+**fast lane** for local development and post-merge CI.  Classification is
+empirical test-infrastructure metadata, so it lives in one auditable place
 (`conftest.py`), beside the `QUARANTINE` registry — not as `@pytest.mark.slow`
 decorators spread across ~24 files.
+
+Runner capacity notes and the single-Act-runner queue story live in
+[ci-optimization.md](./ci-optimization.md). **This file is the SSoT for lane
+commands and which workflow runs which marker.**
 
 ## Lanes
 
@@ -13,15 +17,41 @@ decorators spread across ~24 files.
 |---|---|---|
 | **fast** | `make test-fast` → `pytest -m "not quarantine and not slow"` | everything except the slow registry |
 | **slow** | `make test-slow` → `pytest -m "slow and not quarantine"` | only the heavyweight registry |
-| **full** | `make test-full` → `pytest -m "not quarantine"` | everything (what CI runs) |
+| **full** | `make test-full` → `pytest -m "not quarantine"` | everything non-quarantine (local + nightly CI) |
 
 The marker is **classification only** — it never skips.  `-m slow` *selects* the
 slow tests; you choose a lane with an explicit marker expression.  Plain
 `pytest` (no `-m`) still runs the full suite.
 
-CI is unchanged: `.github/workflows/smoke.yml` and `full-pytest.yml` both run
-`-m "not quarantine"`, which includes the slow tests — so the split costs no CI
-coverage.
+## CI policy
+
+| Surface | Workflow | Marker / scope |
+|---|---|---|
+| **PR** | `smoke.yml` | Fixed critical subset (`not quarantine` within those files) |
+| **PR** | `lane-shas.yml` | Pinned ADR lane SHAs + `CLAIMS.md` check; **skipped green** when the PR does not touch pin-relevant paths |
+| **main push** | `full-pytest.yml` | **Fast lane** (`not quarantine and not slow`); workflow *id* kept as `full-pytest` for check stability |
+| **main push** | `lane-shas.yml` | Always runs (no path skip on push) |
+| **nightly / manual** | `nightly-full-pytest.yml` | **Full lane** (`not quarantine`), includes slow registry |
+
+### Pin-relevant paths (`lane-shas` PR skip)
+
+On `pull_request`, verification runs only when the base…head diff touches any of:
+
+- `*.py`
+- `packs/**`, `evals/**`, `teaching/**`
+- `CLAIMS.md`, `pyproject.toml`, `uv.lock`
+- `.github/workflows/lane-shas.yml`
+
+Otherwise the job still starts and exits **success** (skip notice) so a required
+status check never sits on “Waiting” forever. Do **not** reintroduce workflow-level
+`on.pull_request.paths` for this gate without a always-green companion job.
+
+### Owned risk
+
+Slow/soak/proof tests (including the ~16 min phase2 fixture and the register
+matrix) are **not** on the PR or post-merge critical path. A merge can break them
+until the next nightly (02:00 UTC) or a manual `workflow_dispatch`. Treat a red
+nightly as release-blocking debt.
 
 ## Measured timings (10-core macOS, `CORE_BACKEND=numpy`)
 

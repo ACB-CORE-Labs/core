@@ -1,12 +1,20 @@
 name: lane-shas
 
-# Verify that every ADR-0092..0099 lane produces its pinned SHA-256
+# Verify that every ADR-0092..0104 lane produces its pinned SHA-256
 # report. A failing job means a lane's deterministic output changed
 # without an explicit ADR-tracked pin update via:
 #
 #   python scripts/verify_lane_shas.py --update
 #
 # Single source of truth for the pinned values is scripts/verify_lane_shas.py.
+#
+# PR path policy (job-level, not workflow-level):
+#   Pin bytes can move from Python, packs, eval fixtures/corpora, teaching
+#   corpora, dependency pins, CLAIMS.md, or this workflow. When none of those
+#   paths change on a PR, we skip the multi-minute runners and exit success so
+#   a required check never sits "Waiting" forever (workflow-level `paths:`
+#   would omit the job entirely and hang required status checks).
+#   Main pushes always verify.
 
 on:
   push:
@@ -31,22 +39,52 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          # Need base..head for PR path detection.
+          fetch-depth: 0
+
+      - name: detect pin-relevant paths
+        id: paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Always verify on main pushes.
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Pin-relevant path check: always run on push"
+            exit 0
+          fi
+
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          # Paths that can change pin bytes or CLAIMS generation inputs.
+          # Keep in sync with docs/testing-lanes.md § CI policy.
+          PATTERN='(\.py$|^packs/|^evals/|^teaching/|^CLAIMS\.md$|^pyproject\.toml$|^uv\.lock$|^\.github/workflows/lane-shas\.yml$)'
+          if git diff --name-only "$BASE" "$HEAD" | grep -E "$PATTERN" >/dev/null; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Pin-relevant paths changed; running lane SHA verification"
+            git diff --name-only "$BASE" "$HEAD" | grep -E "$PATTERN" || true
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "No pin-relevant paths changed; skipping lane SHA verification (job still green)"
+          fi
 
       # setup-uv (not actions/setup-python) provisions Python on the aarch64
       # self-hosted runner; actions/setup-python has no arm64 build for the
       # pinned 3.12.13. Matches smoke.yml / full-pytest.yml.
       - name: set up uv
+        if: steps.paths.outputs.run == 'true'
         uses: astral-sh/setup-uv@v5
         with:
           python-version: '3.12.13'
           enable-cache: true
 
       - name: install dependencies
+        if: steps.paths.outputs.run == 'true'
         run: |
           uv pip install -e . pyyaml pytest
 
       - name: verify lane SHAs
+        if: steps.paths.outputs.run == 'true'
         env:
           PYTHONPATH: ${{ github.workspace }}
           # public_demo wall-clock is soft by default (see evals/public_demo/runner.py).
@@ -56,14 +94,20 @@ jobs:
           uv run python scripts/verify_lane_shas.py
 
       - name: verify CLAIMS.md is current
+        if: steps.paths.outputs.run == 'true'
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           uv run python scripts/generate_claims.py --check
 
       - name: emit machine-readable report (on failure)
-        if: failure()
+        if: failure() && steps.paths.outputs.run == 'true'
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           uv run python scripts/verify_lane_shas.py --json || true
+
+      - name: skip notice
+        if: steps.paths.outputs.run != 'true'
+        run: |
+          echo "::notice title=lane-shas skipped::No pin-relevant paths in this PR; verification skipped (success)."

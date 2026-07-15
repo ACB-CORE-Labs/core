@@ -7,9 +7,10 @@ name: smoke
 # — ratified packs diverge directionally; pack-invariant refusal floor; no
 # fabrication).  The falsifiability lane adds ~4 min but blocks-on-regression.
 #
-# Full pytest runs post-merge to main (see full-pytest.yml).
-# Regressions caught here block the PR; anything outside the smoke
-# suite is caught on main within minutes of merge.
+# Post-merge on main: full-pytest.yml runs the FAST lane
+# (-m "not quarantine and not slow"). Soak / proof / register-matrix coverage
+# is nightly-full-pytest.yml (not on the PR critical path).
+# See docs/testing-lanes.md.
 
 on:
   pull_request:
