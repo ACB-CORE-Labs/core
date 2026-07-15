@@ -1,7 +1,7 @@
 # ADR-0241 / ADR-0242 — D10 Acceptance Packet for Joshua
 
 **Date:** 2026-07-15 · **Prepared by:** Claude session (orchestration + adversarial verification) — **prepare-only; nothing here self-Accepts.**
-**State under review:** `main @ 54228d45` (PR #36–#40 merged) + PR #41 pending (chiral sign-gate).
+**State under review:** `main @ ccc42c18` (PR #36–#42 merged — includes the chiral sign-gate, this packet, and the CRDT decision dossier).
 **Companion documents:**
 - `docs/audit/adr_0241_cohesion_acceptance_checklist.md` — the P12 checklist itself
 - `docs/research/third-door-blueprint-fidelity.md` §12 — behavioral acceptance table (every 🟢 row names a failable pin)
@@ -38,18 +38,18 @@
 
 ## 4. Capability additions since the checklist was written
 
-- **Chiral orientation sign-gate** (`sgn(Q)=const`, ADR-0241 §2.4C / core_ha §5.2 mirror-inversion safeguard) — the audit's one missing enforcement, built TDD, **PR #41 pending**: fail-closed `ChiralOrientationError` on materially re-emerging flips; signed charge wired in `goldtether_residual` with residual values pinned byte-identical; vacuous (inert) on today's even serve fields.
+- **Chiral orientation sign-gate** (`sgn(Q)=const`, ADR-0241 §2.4C / core_ha §5.2 mirror-inversion safeguard) — the audit's one missing enforcement, built TDD, **MERGED (PR #41, `717aca9b`)**: fail-closed `ChiralOrientationError` on materially re-emerging flips; signed charge wired in `goldtether_residual` with residual values pinned byte-identical; vacuous (inert) on today's even serve fields. **The state under Accept therefore already enforces the topological safety invariant** — no sequencing caveat remains.
 
 ## 5. Known open items (explicitly NOT completion blockers)
 
-1. **ADR-0242 R&D memo** ("deterministic-fibonacci-operators-and-evidence-gated-optimization") has no local export — its blueprint-fidelity slice is partial (implementation verified against its own contract + committed ADR).
-2. **CRDT-vs-bit-exact determinism** — core_ha memo claims Delta-CRDT in `core/sync/`; actual mechanism is bit-exact codec + single-writer VaultStore. Needs a decision (build CRDT for multi-writer, or correct the doc).
+1. **ADR-0242 R&D memo** — ~~no local export~~ **RESOLVED, see §7 addendum**: memo retrieved in full, fidelity slice closed with no new defects; committed copy at `docs/research/ADR-0242-deterministic-fibonacci-operators-and-evidence-gated-optimization.md`.
+2. **CRDT-vs-bit-exact determinism** — **RESOLVED by decision dossier** (`docs/analysis/crdt-vs-bitexact-determinism-decision-2026-07.md`, **PR #42 merged `ccc42c18`**): Python `core/sync/` is object-store only, but real Delta-CRDT semilattice machinery exists in `core-rs/src/vault.rs` (and `test_audio_crdt_merge.py` exercises genuine CRDT properties). Ruling recommended and adopted: single-writer bit-exact serves the one-continuous-life telos today; CRDT rollout deferred behind an explicit multi-writer/multi-agent gate. Presented here for ratification alongside the §2 deviations.
 3. W5 backlog: Rust f64 GP parity (D9), real sensorium compilers, V2 energy promotion (benchmark-gated), progressive continuous field.
 4. GitHub Actions mirror CI — billing-locked; validation is local-first + Forgejo Act per the AGENTS.md protocol (merged in #40).
 
 ## 6. Requested action
 
-Rule on §2 deviations (recommendations inline) and, if satisfied, flip **ADR-0241 and ADR-0242 → Accepted**. PR #41 (chiral gate) can be folded into the Accept or ruled separately.
+Rule on §2 deviations (recommendations inline) and, if satisfied, flip **ADR-0241 and ADR-0242 → Accepted**. The chiral sign-gate (PR #41) and the CRDT determinism ruling (PR #42) are already merged — the state under Accept enforces the safety invariant and carries the adopted determinism doctrine; no sequencing caveats remain.
 
 ---
 
