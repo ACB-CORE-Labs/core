@@ -52,7 +52,7 @@ The recurring pattern across all four docs: the blueprints were written when the
 ### 🔨 MISSING PIECE — capability the vision specifies but the code does **not** yet enforce; **build anew** so we don't go backwards
 | Missing invariant | Current state | Build |
 |---|---|---|
-| **Chiral SIGN-preservation gate** (ADR-0241 §2.4C + core_ha §5.2: `sgn(∫⟨ψIψ̃⟩₀)=const`, mirror-inversion protection) | `chiral_charge` is a verified non-vacuous **readout**, but its only consumer (`goldtether.py:230`) takes `abs(...)` — **discarding the sign** — and it's ~0 on serve-path even-versors. No fail-closed `sgn(Q)=const` gate exists. | A `chiral_orientation_gate` that latches the initial sign and fails closed on flip during transport; wire the *signed* charge (not `abs`) where a non-vacuous spinor path exists. Preserves the "topologically secure alignment" the blueprint promises. |
+| **Chiral SIGN-preservation gate** (ADR-0241 §2.4C + core_ha §5.2: `sgn(∫⟨ψIψ̃⟩₀)=const`, mirror-inversion protection) | ✅ **BUILT** (`feat/chiral-sign-preservation-gate`, stacked on PR #40): `core/physics/chiral_gate.py` — `ChiralOrientationGate` latches `sgn(Q)` on the first non-vacuous reading, fails closed (`ChiralOrientationError`) on a materially re-emerging flip; wired at the enforcement point (`goldtether_residual` now feeds the *signed* charge to the gate; residual keeps magnitude semantics byte-identical). Even serve fields stay vacuous → inert on today's serve path (no #19 revival). Pins: `tests/test_chiral_orientation_gate.py` (7). | — (was: latch initial sign + fail closed on flip; wire signed charge) |
 | **CRDT delta-sync semilattice** (core_ha §2/§3 tombstone → "commutative/associative/idempotent Delta-CRDT in `core/sync/`") | `core/sync/` is a journal/object-store (no `merge`/idempotent/semilattice semantics found). Determinism today = bit-exact `array_codec` + single-writer `VaultStore` (Shape B+), **not** multi-writer CRDT merge. | Decide: either build the CRDT (needed for genuine multi-agent/multi-writer "one continuous life") **or** correct the doc to state determinism is single-writer bit-exact. Don't leave the claim floating. |
 
 ### ⛔ SCRAP / DO-NOT-BUILD — correctly rejected over-claims
@@ -83,7 +83,7 @@ The recurring pattern across all four docs: the blueprints were written when the
 
 1. **DONE** — Finding #2 serve-boundary reconciliation (de-barrel + transitive guard + A-04/ledger correction). Green.
 2. **Next fix-forward (LOW, batch):** downgrade anyon ledger row; `EpistemicStatus` boundary note (or relocate to shared kernel); Fibonacci `minimizer` docstring; `ClosureViolationException` naming note.
-3. **Build-anew (capability):** chiral **sign-preservation gate** (§5.2) — the one true missing safeguard; TDD a `sgn(Q)=const` fail-closed gate + signed wiring.
+3. **DONE** — chiral **sign-preservation gate** (§5.2) built TDD (RED→GREEN) on `feat/chiral-sign-preservation-gate`: gate primitive + goldtether wiring + 7 pins; 99 goldtether-consumer tests green.
 4. **Decision + build/doc:** CRDT-vs-bit-exact determinism story for `core/sync` (affects multi-agent "one continuous life").
 5. **Get ADR-0242 memo export** → close its fidelity slice (evidence-gated-optimization vs the cert impl; confirm no further deviations).
 6. Staged/gated items (Rust parity D9, sensorium compilers, continuous integrals) remain post-Accept backlog.
