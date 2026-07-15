@@ -77,7 +77,7 @@
       "case_id": "stateful_fixture_rejected",
       "details": {
         "divergences": [
-          "env_subset: before=() after=(('CORE_STATEFUL_FIXTURE_FLAG', '1'),)"
+          "env_subset: +CORE_STATEFUL_FIXTURE_FLAG=1"
         ]
       },
       "divergence": null,
