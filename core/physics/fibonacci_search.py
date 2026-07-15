@@ -41,7 +41,7 @@ class SearchTrace:
     certificate: dict = field(default_factory=dict)
 
 
-def _fibonacci(n: int) -> int:
+def fibonacci_number(n: int) -> int:
     """F_0=0, F_1=1, … standard Fibonacci. n may be 0."""
     if n < 0:
         raise ValueError("fibonacci index must be non-negative")
@@ -49,6 +49,11 @@ def _fibonacci(n: int) -> int:
     for _ in range(n):
         a, b = b, a + b
     return a
+
+
+def _fibonacci(n: int) -> int:
+    """Internal alias — prefer :func:`fibonacci_number` at call sites."""
+    return fibonacci_number(n)
 
 
 def _assert_sampled_unimodality(eval_values: dict[float, float]) -> None:
@@ -168,6 +173,8 @@ def fibonacci_section_search(
 
 
 __all__ = [
+    "fibonacci_number",
+
     "BoundedUnimodalObjective",
     "SearchTrace",
     "fibonacci_section_search",

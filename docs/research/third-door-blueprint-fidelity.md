@@ -302,6 +302,7 @@ PY
 | Golden-Angle atlas packing \(d_{\min}=0.12\) | 🟢 ADR-0242 (`atlas_packing`; CGA null-point \(d\)) |
 | Fibonacci κ search | 🟢 ADR-0242 (`fibonacci_search`) |
 | Contemplation Trace A SPECULATIVE holographic seal (P9) | 🟢 `core/contemplation/wave_seam.py` (hypothesis vs COHERENT evidence) |
+| Energy boundary + multi-scale τ (P10 Trace B) | 🟢 `wave_energy_boundary` (wave residual → energy/trajectory; τ_n=F_n·τ_0; E0–E1 crystallization) |
 
 ### Subsumption map (Slice 2–3)
 | Operator | Delegation |
@@ -337,6 +338,7 @@ PY
 | Durable holographic vault spectrum — 🟢 HolographicVaultStore | ADR-0241 |
 | Entity cohesion I-01…I-05 + Trace A/B | cohesion master plan |
 | Contemplation Trace A SPECULATIVE seal (P9) — 🟢 wave_seam | ADR-0241 P9 |
+| Energy boundary + multi-scale τ (P10) — 🟢 wave_energy_boundary | ADR-0241 P10 |
 | Atlas packing + Fibonacci κ (ADR-0242) — 🟢 packing + search | PR #37 / ADR-0242 |
 
 Closing a gap = flip its `xfail` in `tests/test_third_door_blueprint_fidelity.py` (or the ADR-0241 / cohesion suite) to a passing behavioral test and delete the matching characterization lock. That is the definition of "done right" here.

@@ -62,6 +62,7 @@ def test_phase0_a04_serve_path_quarantines_wave_and_fibonacci():
         "fibonacci_search",
         "atlas_packing",
         "wave_seam",  # P9 Trace A — contemplation only, never serve
+        "wave_energy_boundary",  # P10 Trace B — energy/τ gate, never serve
     }
     banned_substrings = (
         "wave_manifold",
@@ -69,6 +70,7 @@ def test_phase0_a04_serve_path_quarantines_wave_and_fibonacci():
         "fibonacci_search",
         "atlas_packing",
         "wave_seam",
+        "wave_energy_boundary",
     )
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):

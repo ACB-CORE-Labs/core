@@ -82,6 +82,16 @@ from core.physics.holographic_vault import (
     HolographicVaultStore,
     SealedMode,
 )
+from core.physics.wave_energy_boundary import (
+    CrystallizationDecision,
+    assess_wave_trajectory,
+    crystallization_for_holographic_seal,
+    energy_profile_from_wave,
+    fibonacci_tau_schedule,
+    recency_band_index,
+    wave_unitary_residual,
+)
+from core.physics.fibonacci_search import fibonacci_number
 
 __all__ = [
     "SalienceOperator", "SalienceMap", "FieldRegion",
@@ -116,4 +126,12 @@ __all__ = [
     "assess_trajectory", "energy_boundary_ok",
     "relative_holonomy", "trajectory_divergence",
     "HolographicVaultError", "HolographicVaultStore", "SealedMode",
+    "CrystallizationDecision",
+    "assess_wave_trajectory",
+    "crystallization_for_holographic_seal",
+    "energy_profile_from_wave",
+    "fibonacci_tau_schedule",
+    "recency_band_index",
+    "wave_unitary_residual",
+    "fibonacci_number",
 ]
