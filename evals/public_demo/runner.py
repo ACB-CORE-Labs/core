@@ -128,6 +128,7 @@ def _case_runtime_under_budget(payload: dict[str, Any]) -> dict[str, Any]:
     if runtime_ms is None:
         return _fail("runtime_under_budget", "payload missing total_runtime_ms")
     if runtime_ms > budget_ms:
+        print(f"DEBUG ENV: {dict(os.environ)}")
         if os.environ.get("CORE_SHOWCASE_HARD_BUDGET") == "1":
             return _fail(
                 "runtime_under_budget",
