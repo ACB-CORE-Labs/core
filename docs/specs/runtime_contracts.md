@@ -919,3 +919,17 @@ Acceptance inventory: `docs/audit/adr_0241_cohesion_acceptance_checklist.md`.
 
 Every wave transition still obeys `versor_condition(F) < 1e-6`. Residual breach
 is **fail-closed** — no hot-path nearest-versor drift repair.
+
+### Algebra backend / Apple Silicon (P11a hygiene)
+
+Cl(4,1) hot ops in physics (`geometric_product`, `versor_apply`,
+`versor_condition`, `cga_inner`) must import from **`algebra.backend`**, not
+direct pure-algebra modules. Pin: `tests/test_physics_backend_dispatch_hygiene.py`.
+
+| Mode | How |
+|------|-----|
+| Default | Pure Python (semantic source of truth) |
+| Native accel | `CORE_BACKEND=rust` + `core_rs` built (`maturin develop --release -m core-rs/Cargo.toml`) |
+| float64 wave residual pins | Stay on Python product when inputs are f64 (Rust f32 GP not parity-safe for 1e-9 pins yet) |
+| float32 field graphs | Rust f32 GP / residual when enabled |
+| MLX / UMA | Exploratory (ADR-0235); not serving until parity gates |

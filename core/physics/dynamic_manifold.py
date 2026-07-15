@@ -16,8 +16,9 @@ from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
+from algebra.backend import geometric_product, versor_condition
 from algebra.cga import is_null
-from algebra.cl41 import N_COMPONENTS, geometric_product, grade_project, reverse
+from algebra.cl41 import N_COMPONENTS, grade_project, reverse
 from algebra.null_point import (
     NullPointRecoveryError,
     dilator,
@@ -26,7 +27,6 @@ from algebra.null_point import (
     translator,
 )
 from algebra.rotor import rotor_power, word_transition_rotor
-from algebra.versor import versor_condition
 
 _CLOSURE_TOL = 1e-6
 _NEAR_ZERO = 1e-12

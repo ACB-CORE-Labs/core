@@ -24,8 +24,8 @@ from typing import Any, Optional
 
 import numpy as np
 
+from algebra.backend import versor_condition
 from algebra.cl41 import N_COMPONENTS
-from algebra.versor import versor_condition
 from core.physics.wave_manifold import WaveManifold
 from teaching.epistemic import EpistemicStatus
 from vault.store import VaultStore, _parse_entry_status, _status_admits

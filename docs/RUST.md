@@ -1,5 +1,31 @@
 # Rust Extension (core-rs)
 
+## Physics hot-path hygiene (P11a)
+
+Third-Door / ADR-0241 physics modules must import Cl(4,1) multiplies and
+closure residual helpers from **`algebra.backend`**, not directly from
+`algebra.cl41` / `algebra.versor` / `algebra.cga` for:
+
+- `geometric_product`
+- `versor_apply`
+- `versor_condition`
+- `cga_inner`
+
+Pinned by `tests/test_physics_backend_dispatch_hygiene.py`.
+
+```bash
+# Default: pure Python (semantic SOT)
+uv run pytest tests/test_adr_0241_wave_manifold.py -q
+
+# Apple Silicon / native acceleration (after maturin build)
+export CORE_BACKEND=rust
+uv run --with maturin maturin develop --release --manifest-path core-rs/Cargo.toml
+uv run python -c "from algebra.backend import using_rust; assert using_rust()"
+```
+
+MLX remains an **exploratory** UMA lane (ADR-0235); not required for serving.
+
+
 ## Why Rust
 
 The active Rust extension is an opt-in native substrate for parity-gated hot

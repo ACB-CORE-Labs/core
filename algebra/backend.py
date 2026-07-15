@@ -48,9 +48,36 @@ def _build_cga_inner_metric() -> np.ndarray:
 _CGA_INNER_METRIC: np.ndarray = _build_cga_inner_metric()
 
 
+def _f32_1d32(x: np.ndarray) -> np.ndarray:
+    """Contiguous f32 (32,) for core_rs PyReadonlyArray1 bindings."""
+    return np.ascontiguousarray(
+        np.asarray(x, dtype=np.float32).reshape(-1)[:32], dtype=np.float32
+    )
+
+
+def _is_f32_workload(*arrays: np.ndarray) -> bool:
+    """True when all arrays are float32 (Rust f32 kernel is parity-safe).
+
+    float64 wave residual pins require Python SOT (or future f64 Rust GP).
+    Forcing f64→f32 would break 1e-9 chiral / leakage pins (ADR-0241).
+    """
+    return all(np.asarray(a).dtype == np.float32 for a in arrays)
+
+
 def geometric_product(A: np.ndarray, B: np.ndarray) -> np.ndarray:
-    if _RUST:
-        return np.asarray(_rs.geometric_product(A, B), dtype=np.float32)
+    """Cl(4,1) geometric product via Rust f32 when enabled, else Python.
+
+    float64 inputs always use the pure-Python product (semantic SOT for
+    wave-field residual math). float32 field-graph workloads get Rust.
+    """
+    if _RUST and _is_f32_workload(A, B):
+        try:
+            return np.asarray(
+                _rs.geometric_product(_f32_1d32(A), _f32_1d32(B)),
+                dtype=np.float32,
+            )
+        except (AttributeError, TypeError, ValueError, Exception):
+            pass
     from algebra.cl41 import geometric_product as _gp
     return _gp(A, B)
 
@@ -67,25 +94,34 @@ def versor_apply(V: np.ndarray, F: np.ndarray) -> np.ndarray:
     """
     if _RUST:
         try:
-            Vc = np.ascontiguousarray(V, dtype=np.float64)
-            Fc = np.ascontiguousarray(F, dtype=np.float64)
-            return np.asarray(_rs.versor_apply_with_closure_f64(Vc, Fc), dtype=np.float64)
-        except (AttributeError, Exception):
+            Vc = np.ascontiguousarray(V, dtype=np.float64).reshape(-1)[:32]
+            Fc = np.ascontiguousarray(F, dtype=np.float64).reshape(-1)[:32]
+            return np.asarray(
+                _rs.versor_apply_with_closure_f64(Vc, Fc), dtype=np.float64
+            )
+        except (AttributeError, TypeError, ValueError, Exception):
             pass
     from algebra.versor import versor_apply as _va
     return _va(V, F)
 
 
 def versor_condition(F: np.ndarray) -> float:
-    if _RUST:
-        return float(_rs.versor_condition(F))
+    """Versor residual. Rust f32 path only for float32 inputs (see GP note)."""
+    if _RUST and _is_f32_workload(F):
+        try:
+            return float(_rs.versor_condition(_f32_1d32(F)))
+        except (AttributeError, TypeError, ValueError, Exception):
+            pass
     from algebra.versor import versor_condition as _vc
     return _vc(F)
 
 
 def cga_inner(X: np.ndarray, Y: np.ndarray) -> float:
-    if _RUST:
-        return float(_rs.cga_inner(X, Y))
+    if _RUST and _is_f32_workload(X, Y):
+        try:
+            return float(_rs.cga_inner(_f32_1d32(X), _f32_1d32(Y)))
+        except (AttributeError, TypeError, ValueError, Exception):
+            pass
     from algebra.cga import cga_inner as _ci
     return _ci(X, Y)
 

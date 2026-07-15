@@ -22,8 +22,9 @@ from typing import Sequence
 
 import numpy as np
 
-from algebra.cl41 import N_COMPONENTS, geometric_product, reverse
-from algebra.versor import versor_condition, versor_unit_residual
+from algebra.backend import geometric_product, versor_condition
+from algebra.cl41 import N_COMPONENTS, reverse
+from algebra.versor import versor_unit_residual
 
 _CLOSURE_TOL = 1e-6
 _DEFAULT_EPS_TRAJECTORY = 1e-5

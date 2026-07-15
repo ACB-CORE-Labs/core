@@ -306,6 +306,7 @@ PY
 | Fibonacci-word scheduler (V4) | 🟢 `fibonacci_word_schedule` (telemetry only) |
 | Fibonacci anyons (V5) | 🟢 quarantine package only; zero production imports |
 | Sensorium → ψ feed (I-04) | 🟢 `sensorium_wave_feed` (fake packets + real \(\rho\)) |
+| Physics Cl(4,1) via `algebra.backend` (P11a) | 🟢 wave/goldtether/trajectory/procrustes/surprise/vault/packing; AST pin; Rust when `CORE_BACKEND=rust` |
 | Contemplation Trace A SPECULATIVE holographic seal (P9) | 🟢 `core/contemplation/wave_seam.py` (hypothesis vs COHERENT evidence) |
 | Energy boundary + multi-scale τ (P10 Trace B) | 🟢 `wave_energy_boundary` (wave residual → energy/trajectory; τ_n=F_n·τ_0; E0–E1 crystallization) |
 

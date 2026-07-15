@@ -12,6 +12,12 @@ Continuous multivector wave fields ψ ∈ ℝ³² under:
 
 Algebra-native only (algebra/*). No scipy-as-truth. No teaching/vault imports.
 Off-serving until explicit gates; dual-checked unitary residual.
+
+**Backend dispatch (P11a / ADR-0235):** Cl(4,1) hot ops go through
+``algebra.backend`` so ``CORE_BACKEND=rust`` can accelerate them when
+``core_rs`` is built. Python remains semantic source of truth when Rust
+is unset. Helpers without a Rust path (``reverse``, ``scalar_part``,
+``versor_unit_residual``) stay on pure algebra modules.
 """
 
 from __future__ import annotations
@@ -20,9 +26,14 @@ from typing import Any, Sequence, Tuple
 
 import numpy as np
 
-from algebra.cga import cga_inner
-from algebra.cl41 import N_COMPONENTS, geometric_product, reverse, scalar_part
-from algebra.versor import versor_apply, versor_condition, versor_unit_residual
+from algebra.backend import (
+    cga_inner,
+    geometric_product,
+    versor_apply,
+    versor_condition,
+)
+from algebra.cl41 import N_COMPONENTS, reverse, scalar_part
+from algebra.versor import versor_unit_residual
 
 _CLOSURE_TOL = 1e-6
 _NEAR_ZERO = 1e-12

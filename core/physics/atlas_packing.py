@@ -22,7 +22,8 @@ from typing import Sequence
 
 import numpy as np
 
-from algebra.cga import cga_inner, embed_point
+from algebra.backend import cga_inner
+from algebra.cga import embed_point
 from core.physics.wave_manifold import WaveManifold
 
 PHI = (1.0 + math.sqrt(5.0)) / 2.0

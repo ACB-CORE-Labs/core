@@ -9,8 +9,8 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 
+from algebra.backend import versor_condition
 from algebra.cl41 import N_COMPONENTS
-from algebra.versor import versor_condition
 from core.physics.dynamic_manifold import conformal_procrustes
 from core.physics.goldtether import GoldTetherMonitor, coherence_residual
 from core.physics.surprise import dual_procrustes_surprise, surprise_residual
