@@ -10,7 +10,7 @@
 | ADR-0241 wave-field hyperbolic atlas + resonant cognition | ✅ full | audited deep |
 | core_ha unification & deprecation plan | ✅ full | audited |
 | fibonacci_applications_in_core_substrate | ✅ full | audited |
-| ADR-0242 deterministic-fibonacci-operators + evidence-gated-optimization | ❌ **no local export** | **BLOCKED — needs export**; cert impl verified against its own contract |
+| ADR-0242 deterministic-fibonacci-operators + evidence-gated-optimization | ✅ full (read 2026-07-15 via Drive connector; committed copy at `docs/research/ADR-0242-deterministic-fibonacci-operators-and-evidence-gated-optimization.md`) | **slice CLOSED** — no new defects; see acceptance-packet addendum |
 
 ---
 
@@ -53,7 +53,7 @@ The recurring pattern across all four docs: the blueprints were written when the
 | Missing invariant | Current state | Build |
 |---|---|---|
 | **Chiral SIGN-preservation gate** (ADR-0241 §2.4C + core_ha §5.2: `sgn(∫⟨ψIψ̃⟩₀)=const`, mirror-inversion protection) | ✅ **BUILT** (`feat/chiral-sign-preservation-gate`, stacked on PR #40): `core/physics/chiral_gate.py` — `ChiralOrientationGate` latches `sgn(Q)` on the first non-vacuous reading, fails closed (`ChiralOrientationError`) on a materially re-emerging flip; wired at the enforcement point (`goldtether_residual` now feeds the *signed* charge to the gate; residual keeps magnitude semantics byte-identical). Even serve fields stay vacuous → inert on today's serve path (no #19 revival). Pins: `tests/test_chiral_orientation_gate.py` (7). | — (was: latch initial sign + fail closed on flip; wire signed charge) |
-| **CRDT delta-sync semilattice** (core_ha §2/§3 tombstone → "commutative/associative/idempotent Delta-CRDT in `core/sync/`") | `core/sync/` is a journal/object-store (no `merge`/idempotent/semilattice semantics found). Determinism today = bit-exact `array_codec` + single-writer `VaultStore` (Shape B+), **not** multi-writer CRDT merge. | Decide: either build the CRDT (needed for genuine multi-agent/multi-writer "one continuous life") **or** correct the doc to state determinism is single-writer bit-exact. Don't leave the claim floating. |
+| **CRDT delta-sync semilattice** (core_ha §2/§3 tombstone → "commutative/associative/idempotent Delta-CRDT in `core/sync/`") | ✅ **RESOLVED by decision dossier** (`docs/analysis/crdt-vs-bitexact-determinism-decision-2026-07.md`, PR #42 merged `ccc42c18`): Python `core/sync/` is object-store only, but real Delta-CRDT semilattice machinery exists in `core-rs/src/vault.rs`, and `test_audio_crdt_merge.py` exercises genuine CRDT properties in that sub-domain. Ruling: single-writer bit-exact (`array_codec` + VaultStore) serves the one-continuous-life telos today; **CRDT rollout deferred behind an explicit multi-writer/multi-agent gate**. | — (Joshua ratification rides the acceptance packet) |
 
 ### ⛔ SCRAP / DO-NOT-BUILD — correctly rejected over-claims
 | Blueprint clause | Disposition |

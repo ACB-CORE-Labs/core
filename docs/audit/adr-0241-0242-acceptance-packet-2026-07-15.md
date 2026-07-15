@@ -50,3 +50,20 @@
 ## 6. Requested action
 
 Rule on §2 deviations (recommendations inline) and, if satisfied, flip **ADR-0241 and ADR-0242 → Accepted**. PR #41 (chiral gate) can be folded into the Accept or ruled separately.
+
+---
+
+## 7. Addendum (same day, post-merge) — ADR-0242 memo fidelity slice CLOSED
+
+§5 item 1 is resolved: the "deterministic-fibonacci-operators-and-evidence-gated-optimization" memo was retrieved in full (Drive connector; committed copy now at `docs/research/ADR-0242-deterministic-fibonacci-operators-and-evidence-gated-optimization.md`). Audit against the implementation: **no new defects — the implementation is stronger than the memo's own reference code** on four counts:
+
+| Memo | Implementation | Direction |
+|---|---|---|
+| Prose demands a "content-addressed, cryptographic" certificate; the memo's own dataclass **omits** the digest field | `cert_id` sha256 present, dual-run byte-stable | impl > spec code |
+| Reference unimodality check counts extrema (would **pass a pure local maximum**) | shape check (decrease-to-min-then-increase) fails it | impl > spec code |
+| No nonfinite / bounds-violation guards; code non-executable as written (`np.argsort` without numpy import) | fail-closed on nonfinite, bounds, budget, eval error | impl > spec code |
+| `minimizer` = bracket midpoint always | best sampled point when inside the final bracket (deviation documented at the code comment) | impl > spec, noise-robust |
+
+Sovereignty invariant (§6 of the memo) verified: Fibonacci operators never touch truth status / safety / identity / promotion (T2 quarantine + proposal-only κ). The five-vector staging matches the memo's phase gating exactly, including anyons (Phase 5 pre-research, not built — consistent with the corrected ledger row).
+
+**Carry items (staged, non-blocking):** (a) §5-P1 "certificate written to execution telemetry" seam not verified; (b) §5-P2 cross-band (F₅–F₇) DiscoveryCandidate persistence gate not built; (c) impl accepts `evaluation_budget ≥ 2` where the memo floor is 3 — kept deliberately (n=2 is mathematically valid and the impl validates harder elsewhere), noted for the ruling.
