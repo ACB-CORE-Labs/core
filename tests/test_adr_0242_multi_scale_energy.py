@@ -15,7 +15,10 @@ import pytest
 from core.physics.fibonacci_search import fibonacci_number
 from core.physics.multi_scale_energy import (
     comparative_residual_separation,
+    comparative_three_way,
     dyadic_tau_schedule,
+    fixed_replay_compare_artifact,
+    log_tau_schedule,
     multi_scale_energy_for_schedule,
     multi_scale_energy_vector,
     schedule_mid_span_fraction,
@@ -164,4 +167,72 @@ def test_field_energy_operator_untouched_by_multi_scale_module():
     """Production energy operator must not import the research multi-scale path."""
     energy_src = (_ROOT / "core/physics/energy.py").read_text(encoding="utf-8")
     assert "multi_scale_energy" not in energy_src
+    assert "fibonacci_tau_schedule" not in energy_src
+
+
+# --- V2 three-way fixed-replay (fib / dyadic / log) — no production promotion -
+
+
+def test_log_tau_schedule_positive_monotone():
+    from math import log
+
+    taus = log_tau_schedule(tau0=1.0, levels=5)
+    assert len(taus) == 5
+    assert all(t > 0.0 for t in taus)
+    assert taus == tuple(float(log(i + 1)) for i in range(1, 6))
+    assert taus[0] < taus[-1]
+
+
+def test_comparative_three_way_shape_and_gate_flags():
+    report = comparative_three_way(1.0, age=3.0, tau0=1.0, levels=5)
+    assert report["levels"] == 5
+    assert report["schedules"] == ("fibonacci", "dyadic", "log")
+    assert report["promotion_status"] == "research_only"
+    assert report["joshua_gate_required"] is True
+    assert len(report["log_taus"]) == 5
+    assert len(report["log_energies"]) == 5
+    assert len(report["energy_gap_fib_minus_log"]) == 5
+    # age=0 → unit energies on all three schedules
+    zero = comparative_three_way(1.0, age=0.0, tau0=1.0, levels=4)
+    assert zero["fibonacci_energies"] == (1.0, 1.0, 1.0, 1.0)
+    assert zero["dyadic_energies"] == (1.0, 1.0, 1.0, 1.0)
+    assert zero["log_energies"] == (1.0, 1.0, 1.0, 1.0)
+
+
+def test_fixed_replay_compare_artifact_deterministic():
+    a = fixed_replay_compare_artifact(e0=1.0, ages=(0.0, 1.0, 3.0), levels=6)
+    b = fixed_replay_compare_artifact(e0=1.0, ages=(0.0, 1.0, 3.0), levels=6)
+    assert a == b
+    assert a["artifact"] == "adr_0242_v2_energy_compare"
+    assert a["joshua_gate_required"] is True
+    assert a["production_default_unchanged"] is True
+    assert len(a["rows"]) == 3
+    for row in a["rows"]:
+        assert set(row["schedules"]) == {"fibonacci", "dyadic", "log"}
+
+
+def test_eval_entry_matches_physics_helper():
+    from evals.adr_0242_v2_energy_compare import run_fixed_replay
+
+    via_eval = run_fixed_replay(e0=1.0, ages=(0.0, 2.0), tau0=1.0, levels=5)
+    via_phys = fixed_replay_compare_artifact(
+        e0=1.0, ages=(0.0, 2.0), tau0=1.0, levels=5
+    )
+    assert via_eval == via_phys
+
+
+def test_no_joshua_gate_artifact_means_no_production_promotion():
+    """Without an explicit Joshua gate record, production energy stays default.
+
+    Structural: energy.py does not reference multi_scale schedules; research
+    artifact itself declares promotion blocked.
+    """
+    art = fixed_replay_compare_artifact()
+    assert art["joshua_gate_required"] is True
+    gate_docs = list((_ROOT / "docs").rglob("*joshua*gate*v2*energy*"))
+    # No silent gate file invented by this arc
+    assert not any("promote" in p.name.lower() and "v2" in p.name.lower() for p in gate_docs)
+    energy_src = (_ROOT / "core/physics/energy.py").read_text(encoding="utf-8")
+    assert "multi_scale_energy" not in energy_src
+    assert "log_tau_schedule" not in energy_src
     assert "fibonacci_tau_schedule" not in energy_src

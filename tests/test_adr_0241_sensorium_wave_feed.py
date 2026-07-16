@@ -22,6 +22,8 @@ from core.physics.sensorium_wave_feed import (
     ModalityPacket,
     compile_packet_to_psi,
     fake_deterministic_packet,
+    packet_from_compilation_unit,
+    packet_from_compiler_versor,
     phase_correlate,
     superpose_packets,
 )
@@ -220,3 +222,60 @@ def test_phase_correlate_source_only_calls_phase_correlation():
     }
     for attr in call_attrs:
         assert attr not in forbidden, f"phase_correlate must not call .{attr}"
+
+
+# --- Real modality compilers → ψ → ρ (I-04 close) ----------------------------
+
+
+def test_real_audio_and_vision_compilers_feed_phase_correlate():
+    """I-04: live audio + vision compilers → ModalityPacket → ψ → algebraic ρ.
+
+    Not fake_deterministic_packet: exercises real sensorium/* compilers.
+    """
+    from sensorium.audio.compiler import AudioCompiler
+    from sensorium.vision import VisionCompiler, canonicalize_image
+    from sensorium.vision.grid import iter_tile_signals
+
+    sr = 24_000
+    n = int(sr * 0.35)
+    t = np.arange(n, dtype=np.float64) / sr
+    tone = (0.5 * np.sin(2 * np.pi * 160.0 * t)).astype(np.float32)
+    audio_unit = AudioCompiler().compile(tone, sr)
+    assert audio_unit.versor.shape == (N_COMPONENTS,)
+    assert audio_unit.versor_condition < _CLOSURE
+
+    # Vision tile from a deterministic synthetic image (same pattern as vision tests).
+    x = np.linspace(0.0, 1.0, 32, dtype=np.float32)
+    y = np.linspace(0.0, 1.0, 32, dtype=np.float32)
+    xx, yy = np.meshgrid(x, y)
+    image = np.stack([xx, yy, 1.0 - xx], axis=2).astype(np.float32)
+    tile = iter_tile_signals(canonicalize_image(image))[0]
+    vision_unit = VisionCompiler().compile_tile(tile)
+    assert vision_unit.versor.shape == (N_COMPONENTS,)
+    assert vision_unit.versor_condition < _CLOSURE
+
+    audio_pkt = packet_from_compilation_unit("audio", audio_unit)
+    vision_pkt = packet_from_compiler_versor("vision", vision_unit.versor)
+    psi_a = compile_packet_to_psi(audio_pkt)
+    psi_v = compile_packet_to_psi(vision_pkt)
+    assert psi_a.dtype == np.float64
+    assert psi_v.dtype == np.float64
+    assert versor_condition(psi_a) < _CLOSURE
+    assert versor_condition(psi_v) < _CLOSURE
+
+    total = superpose_packets([audio_pkt, vision_pkt])
+    assert total.shape == (N_COMPONENTS,)
+    assert float(np.linalg.norm(total - (psi_a + psi_v))) < 1e-12
+
+    rho = phase_correlate(psi_a, psi_v)
+    assert isinstance(rho, float)
+    # Algebraic ρ = ⟨ψ_A ~ψ_B + ψ_B ~ψ_A⟩_0 (not cosine): unit rotors self-correlate ≈ 2.
+    assert phase_correlate(psi_a, psi_a) > 1.5
+    assert phase_correlate(psi_v, psi_v) > 1.5
+    # Cross-modal path must run and return a finite float (no cosine/ANN).
+    assert np.isfinite(rho)
+
+
+def test_packet_from_compilation_unit_rejects_non_units():
+    with pytest.raises(TypeError, match="versor"):
+        packet_from_compilation_unit("audio", object())

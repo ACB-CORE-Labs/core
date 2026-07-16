@@ -241,21 +241,23 @@ Our sole remote and CI/CD platform is **core-gitquarters.acbcontent.org**.
 - **USE** the Gitea/Forgejo MCP tools for issues, PRs, and repository management targeting `core-gitquarters.acbcontent.org`.
 
 ### Local-First CI Validation Protocol
-To optimize server resources and bypass external CI billing dependencies, all agents and developers must run validation suites locally.
+To optimize server resources and bypass external CI billing dependencies, all agents and developers must run validation suites **locally in the worktree**. That local run is the merge bar. Remote Actions (including any Docker-based job) are **not** required to merge and must not block merge when local gates are green.
 - **Pre-Push Gate:** Before pushing any branch to Forgejo, you **MUST** run the `smoke` test suite locally using:
   ```bash
   uv run core test --suite smoke -q
   ```
-  Ensure all 175 tests pass (parity with the CI smoke gate is pinned by `test_cli_smoke_suite_covers_ci_smoke_gate`). Pushing broken code is a critical protocol violation.
+  Ensure all smoke tests pass (parity with the smoke gate is pinned by `test_cli_smoke_suite_covers_ci_smoke_gate`). Pushing broken code is a critical protocol violation.
 - **Pre-Merge Gate:** Before proposing a merge or requesting a review on a PR, you **MUST** run the larger validation suite relevant to your changes (e.g. `uv run core test --suite cognition` or `uv run core test --suite algebra`).
+- **No Docker CI for merge:** Do not run, wait on, or re-provision Docker-container CI to green a merge. Fix and prove in-worktree; merge on local evidence.
 - **PR Documentation:** When creating a PR on Forgejo (via the Forgejo MCP tools), document the local test execution in the PR description, matching this format:
   `[Verification]: Smoke suite passed locally (<run_duration>s, <test_count> passed)`
 
 ### CI/CD Runner Architecture (2026-07-16 doctrine)
+**CRITICAL**: The real CI is **local-first**. Run validation in the worktree (`uv run core test --suite smoke -q` before push; larger suites before merge), document `[Verification]:` on the PR, then merge. Do **not** treat remote Actions / Docker job containers as the merge gate.
 **CRITICAL**: Do NOT attempt to run CI jobs on the central Forgejo server (`core-gitquarters`) — the `e2-micro` instance (1GB RAM) cannot handle test workflows without OOM thrashing. The server-side Act runner was deliberately removed on 2026-07-16.
-- The `.github/workflows/*.yml` files are canonical and actively used; they install the **locked dependency universe** (`uv sync --locked` against the committed `uv.lock`) so lane pins can only move when code moves.
-- CI jobs are dispatched to a **local Act runner on the primary developer's Mac** (registered label `ubuntu-latest:host`): jobs requesting `ubuntu-latest` run natively on the macOS host — the `ubuntu-latest` environment name is a fiction here; do not add Linux-only steps.
-- **Availability tradeoff is intentional**: when the Mac is asleep or away, the CI queue simply waits. The real discipline is the pre-push local gates above. Do NOT "fix" a waiting queue by re-provisioning a runner on the GCP server, and do not modify server-side runner configuration.
+- The `.github/workflows/*.yml` files install the **locked dependency universe** (`uv sync --locked` against the committed `uv.lock`) so lane pins can only move when code moves. They are secondary observability only — never a substitute for local gates, and never an excuse to wait on Docker.
+- Optional secondary runner: a **local Act runner on the primary developer's Mac**, registered label **`ubuntu-latest:host`** = **native macOS host execution** (no Docker job containers). The `ubuntu-latest` environment name is a fiction; do not add Linux-only steps. If a runner config maps `ubuntu-latest` to `docker://…`, that config is **wrong** and must be fixed to `:host` — do **not** rewrite doctrine to bless Docker CI.
+- **Availability tradeoff is intentional**: when the Mac is asleep or away, the Actions queue waits. That is fine: local-first already cleared the merge bar. Do NOT "fix" a waiting queue by re-provisioning a runner on the GCP server, and do not modify server-side runner configuration.
 - GitHub (`AssetOverflow/core`) is a **mirror only**; its Actions are billing-locked and produce dead signals — never chase them.
 
 ### Pre-Edit Sweep & Versor Coherence Guardian Protocol

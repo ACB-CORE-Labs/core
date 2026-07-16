@@ -518,20 +518,21 @@ def test_demo_adds_no_vault_writer_no_status_transition_no_recall():
 
 
 def test_inv21_and_inv29_allowlists_are_unchanged():
+    """INV-21 exact writer set is owned by TestINV21OneMutationPath (single pin).
+
+    Demos do not re-list ALLOWED_VAULT_WRITERS (dedup housekeeping): re-listing
+    drifts independently of the architectural pin. Here we only assert INV-29
+    single-site and the load-bearing members demos care about.
+    """
     from tests.test_architectural_invariants import (
         ALLOWED_STATUS_TRANSITION_SITES,
         ALLOWED_VAULT_WRITERS,
     )
 
-    assert ALLOWED_VAULT_WRITERS == frozenset({
-        "session/context.py",
-        "vault/store.py",
-        "generate/proposition.py",
-        "generate/realize/realize.py",
-        # ADR-0241 holographic standing-wave spectrum (INV-21 allowlist expansion).
-        "core/physics/holographic_vault.py",
-    })
     assert ALLOWED_STATUS_TRANSITION_SITES == frozenset({"vault/store.py"})
+    assert "vault/store.py" in ALLOWED_VAULT_WRITERS
+    assert "generate/realize/realize.py" in ALLOWED_VAULT_WRITERS
+    assert "core/physics/holographic_vault.py" in ALLOWED_VAULT_WRITERS
 
 
 def test_no_private_strategy_or_named_company_terms():
