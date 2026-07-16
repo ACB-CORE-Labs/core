@@ -10,7 +10,7 @@ Base: `forgejo/main` @ `54228d45`
 |------|---------|--------|
 | Fast | `pytest -m "not quarantine and not slow" -n auto -q` | **5 failed**, 11660 passed, 106 skipped (pre-fix) |
 | Fast recheck | same after fix | (see verification below) |
-| Slow | `pytest -m "slow and not quarantine" -n auto -q` | running / recorded at PR time |
+| Slow | `pytest -m "slow and not quarantine" -n auto -q` | **1 failed, 909 passed, 1 skipped, 1 xfailed** (37m06s, 2026-07-15 sweep @ `8f67590d`+#47). The 1 red = `test_public_showcase.py::TestRuntimeBudget` — stale constant pin (30) vs the deliberate 640dbe8f re-budget (60); fixed alongside this row. Slow lane is otherwise clean → the historical "~31 reds" figure is fully retired. |
 | Full | `pytest -m "not quarantine"` | union of fast + slow |
 
 The brief’s “~31 reds” appears to reflect an older main tip. On current `forgejo/main`, the **non-quarantine fast lane** surfaces **exactly 5** dedicated failures. Smoke/pack/lane gates stay green because they never execute these nodes.
