@@ -21,15 +21,24 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+# Per-lane subprocess wall-clock budget. Overridable so CI can raise it under
+# known cold/contended-runner conditions without a code change — same knob
+# shape as CORE_SHOWCASE_HARD_BUDGET / CORE_SHOWCASE_SKIP_BUDGET elsewhere in
+# this repo. The job-level workflow timeout (lane-shas.yml) is a separate,
+# larger ceiling; this is what actually fires first when one lane hangs.
+LANE_TIMEOUT_S = int(os.environ.get("CORE_LANE_VERIFY_TIMEOUT_S", "900"))
 
 
 PINNED_SHAS: dict[str, str] = {
@@ -125,8 +134,6 @@ LANE_SPECS: tuple[LaneSpec, ...] = (
 
 
 def _invoke_runner(spec: LaneSpec, *, target_path: Path | None = None) -> Path:
-    import os
-
     env = {"PYTHONPATH": str(REPO_ROOT), **os.environ}
     # Force hermetic engine_state for every lane so local lived state and CI
     # workspaces cannot change demo / showcase report bytes.
@@ -147,7 +154,7 @@ def _invoke_runner(spec: LaneSpec, *, target_path: Path | None = None) -> Path:
         env=env,
         capture_output=True,
         text=True,
-        timeout=900,
+        timeout=LANE_TIMEOUT_S,
     )
     if result.returncode != 0:
         raise RuntimeError(
@@ -178,6 +185,7 @@ class LaneVerification:
     matched: bool
     report_path: str
     error: str | None = None
+    timed_out: bool = False
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -187,13 +195,17 @@ class LaneVerification:
             "matched": self.matched,
             "report_path": self.report_path,
             "error": self.error,
+            "timed_out": self.timed_out,
         }
 
 
-def verify_all(*, ephemeral: bool = True) -> list[LaneVerification]:
+def verify_all(*, ephemeral: bool = True, stream: bool = False) -> list[LaneVerification]:
     results: list[LaneVerification] = []
     for spec in LANE_SPECS:
         pinned = PINNED_SHAS.get(spec.lane_id, "")
+        if stream:
+            print(f"  -> {spec.lane_id} ...", end="", flush=True)
+        started = time.monotonic()
         try:
             if ephemeral:
                 with tempfile.TemporaryDirectory(prefix=f"lane_{spec.lane_id}_") as d:
@@ -203,7 +215,30 @@ def verify_all(*, ephemeral: bool = True) -> list[LaneVerification]:
             else:
                 report_path = _invoke_runner(spec)
                 actual = _sha_of(report_path)
+        except subprocess.TimeoutExpired as exc:
+            elapsed = time.monotonic() - started
+            if stream:
+                print(f" TIMEOUT after {elapsed:.0f}s (budget {LANE_TIMEOUT_S}s)", flush=True)
+            results.append(
+                LaneVerification(
+                    lane_id=spec.lane_id,
+                    pinned_sha=pinned,
+                    actual_sha="",
+                    matched=False,
+                    report_path=str(spec.canonical_report),
+                    error=(
+                        f"TimeoutExpired: lane exceeded {LANE_TIMEOUT_S}s "
+                        f"(CORE_LANE_VERIFY_TIMEOUT_S) — likely runner "
+                        f"contention/cold-start, not a content change: {exc}"
+                    ),
+                    timed_out=True,
+                )
+            )
+            continue
         except Exception as exc:
+            elapsed = time.monotonic() - started
+            if stream:
+                print(f" ERROR after {elapsed:.0f}s", flush=True)
             results.append(
                 LaneVerification(
                     lane_id=spec.lane_id,
@@ -215,6 +250,9 @@ def verify_all(*, ephemeral: bool = True) -> list[LaneVerification]:
                 )
             )
             continue
+        if stream:
+            elapsed = time.monotonic() - started
+            print(f" done ({elapsed:.0f}s)", flush=True)
         results.append(
             LaneVerification(
                 lane_id=spec.lane_id,
@@ -251,7 +289,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.update:
-        results = verify_all(ephemeral=False)
+        results = verify_all(ephemeral=False, stream=not args.json)
         new_pins = {r.lane_id: r.actual_sha for r in results if not r.error}
         _rewrite_pins(new_pins)
         if args.json:
@@ -262,7 +300,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  {lane_id:>32}: {sha}")
         return 0
 
-    results = verify_all()
+    results = verify_all(stream=not args.json)
     if args.json:
         payload = {
             "total": len(results),
@@ -285,10 +323,21 @@ def main(argv: list[str] | None = None) -> int:
                 print()
         total = len(results)
         matched = sum(1 for r in results if r.matched)
+        timed_out = [r.lane_id for r in results if r.timed_out]
         print(f"\nlanes: {matched}/{total} match pinned SHAs")
-        if matched < total:
+        if timed_out:
             print(
-                "\nremediation:\n"
+                "\nremediation (timeout, not a content mismatch):\n"
+                f"  lane(s) {', '.join(timed_out)} exceeded the "
+                f"{LANE_TIMEOUT_S}s per-lane budget (CORE_LANE_VERIFY_TIMEOUT_S).\n"
+                "  Do NOT re-pin on a timeout alone — that only masks runner\n"
+                "  contention/cold-start under load. Re-run first; if it recurs, raise\n"
+                "  CORE_LANE_VERIFY_TIMEOUT_S for this job or investigate Act runner load\n"
+                "  (see docs/ci-optimization.md)."
+            )
+        if matched < total and len(timed_out) < (total - matched):
+            print(
+                "\nremediation (content drift):\n"
                 "  if the drift is intentional (e.g. you touched core/cognition/result.py,\n"
                 "  chat/runtime.py, generate/realizer.py, capability registries, or other\n"
                 "  lane-affecting code), re-pin with:\n"
