@@ -251,6 +251,13 @@ To optimize server resources and bypass external CI billing dependencies, all ag
 - **PR Documentation:** When creating a PR on Forgejo (via `tea pr create`), document the local test execution in the PR description, matching this format:
   `[Verification]: Smoke suite passed locally (<run_duration>s, <test_count> passed)`
 
+### CI/CD Runner Architecture (2026-07-16 doctrine)
+**CRITICAL**: Do NOT attempt to run CI jobs on the central Forgejo server (`core-gitquarters`) — the `e2-micro` instance (1GB RAM) cannot handle test workflows without OOM thrashing. The server-side Act runner was deliberately removed on 2026-07-16.
+- The `.github/workflows/*.yml` files are canonical and actively used; they install the **locked dependency universe** (`uv sync --locked` against the committed `uv.lock`) so lane pins can only move when code moves.
+- CI jobs are dispatched to a **local Act runner on the primary developer's Mac** (registered label `ubuntu-latest:host`): jobs requesting `ubuntu-latest` run natively on the macOS host — the `ubuntu-latest` environment name is a fiction here; do not add Linux-only steps.
+- **Availability tradeoff is intentional**: when the Mac is asleep or away, the CI queue simply waits. The real discipline is the pre-push local gates above. Do NOT "fix" a waiting queue by re-provisioning a runner on the GCP server, and do not modify server-side runner configuration.
+- GitHub (`AssetOverflow/core`) is a **mirror only**; its Actions are billing-locked and produce dead signals — never chase them.
+
 ### Pre-Edit Sweep & Versor Coherence Guardian Protocol
 Before modifying any module in `algebra/`, `field/`, `vault/`, or `generate/`:
 - Trace every import of the target module and identify all callers.
