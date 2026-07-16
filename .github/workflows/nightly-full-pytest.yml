@@ -50,7 +50,7 @@ jobs:
 
       - name: install dependencies
         run: |
-          uv pip install -e ".[dev]" pyyaml
+          uv sync --locked --extra dev
 
       - name: pytest (parallel, full suite, quarantine excluded)
         env:
