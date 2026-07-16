@@ -114,19 +114,19 @@ def test_canonical_pack_admits_cross_sentence_composition_when_seeded():
         )
 
 
-def test_wrong_zero_preserved_on_train_sample():
+def test_wrong_zero_preserved_on_train_sample(tmp_path):
     """The full train_sample eval must preserve wrong == 0 after RAT-1."""
+    import os
     import subprocess
     import sys
 
+    report_path = tmp_path / "report.json"
     result = subprocess.run(
         [sys.executable, "-m", "evals.gsm8k_math.train_sample.v1.runner"],
         cwd=_repo_root(),
         capture_output=True,
         text=True,
-    )
-    report_path = (
-        _repo_root() / "evals" / "gsm8k_math" / "train_sample" / "v1" / "report.json"
+        env={**os.environ, "CORE_GSM8K_TRAIN_SAMPLE_REPORT_PATH": str(report_path)},
     )
     assert report_path.exists(), "train_sample runner must emit report.json"
     report = json.loads(report_path.read_text())
@@ -134,18 +134,18 @@ def test_wrong_zero_preserved_on_train_sample():
     assert counts["wrong"] == 0, f"wrong-zero invariant violated: {counts}"
 
 
-def test_case_0050_remains_refused_after_rat1():
+def test_case_0050_remains_refused_after_rat1(tmp_path):
     """Hazard pin: case 0050 must not admit after any RAT-1 wiring."""
+    import os
     import subprocess
     import sys
 
+    report_path = tmp_path / "report.json"
     subprocess.run(
         [sys.executable, "-m", "evals.gsm8k_math.train_sample.v1.runner"],
         cwd=_repo_root(),
         capture_output=True,
-    )
-    report_path = (
-        _repo_root() / "evals" / "gsm8k_math" / "train_sample" / "v1" / "report.json"
+        env={**os.environ, "CORE_GSM8K_TRAIN_SAMPLE_REPORT_PATH": str(report_path)},
     )
     report = json.loads(report_path.read_text())
     case = next(
