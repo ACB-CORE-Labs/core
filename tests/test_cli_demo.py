@@ -10,6 +10,24 @@ import pytest
 from core import cli
 
 
+@pytest.fixture(autouse=True)
+def _isolate_demo_results_dir(tmp_path, monkeypatch):
+    """Redirect the demo results dir to an isolated per-test tmp dir.
+
+    ``core.cli._DEMO_RESULTS_DIR`` is a module-level constant pointing at the
+    shared repo dir ``evals/forward_semantic_control/results/`` that every
+    ``core demo`` subcommand reads, writes, and glob-scans (including the
+    ``index.json`` rebuild in ``_write_results_index``). Multiple tests below
+    invoke ``cli.main(["demo", ...])``; left unpatched they race on that one
+    shared directory under ``-n auto`` (concurrent report writes plus a
+    scan-then-rewrite of ``index.json``). Follows the same monkeypatch-the-
+    module-attribute isolation idiom as the root-conftest engine-state fixture
+    (#782). ``TestResultsReadme`` reads the real checked-in README by a
+    hardcoded path, so it is unaffected by this redirection.
+    """
+    monkeypatch.setattr(cli, "_DEMO_RESULTS_DIR", tmp_path / "results")
+
+
 class TestADR0024SuiteAliases:
     """Layer 1: pin the new suite aliases so they don't drift."""
 
@@ -93,7 +111,7 @@ class TestDemoSubcommand:
         assert "ALL THREE CONDITIONS" in captured.out
         assert "PASS" in captured.out
         # Report file present and well-formed.
-        report = Path("evals/forward_semantic_control/results/phase6_demo_report.json")
+        report = cli._DEMO_RESULTS_DIR / "phase6_demo_report.json"
         assert report.exists()
         data = json.loads(report.read_text())
         assert data["metrics"]["all_three_conditions_pass"] is True
@@ -109,6 +127,12 @@ class TestDemoSubcommand:
         assert "all_three_conditions_pass" in payload["metrics"]
 
     def test_demo_list_results_indexes_reports(self, capsys) -> None:
+        # Self-contained: write a report before indexing rather than relying
+        # on a sibling test's shared-directory side effect (that implicit
+        # ordering coupling only "worked" by accident of file-declaration
+        # order and would break under `-n auto` reordering).
+        cli.main(["demo", "phase6"])
+        capsys.readouterr()
         rc = cli.main(["demo", "list-results"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -116,6 +140,10 @@ class TestDemoSubcommand:
         assert "phase6_demo_report.json" in captured.out
 
     def test_demo_list_results_json_well_formed(self, capsys) -> None:
+        # Self-contained for the same reason as
+        # test_demo_list_results_indexes_reports above.
+        cli.main(["demo", "phase6"])
+        capsys.readouterr()
         rc = cli.main(["demo", "list-results", "--json"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -127,7 +155,7 @@ class TestDemoSubcommand:
 
     def test_demo_index_file_refreshed_after_run(self) -> None:
         cli.main(["demo", "phase6"])
-        index_path = Path("evals/forward_semantic_control/results/index.json")
+        index_path = cli._DEMO_RESULTS_DIR / "index.json"
         assert index_path.exists()
         data = json.loads(index_path.read_text())
         names = [e["file"] for e in data["reports"]]

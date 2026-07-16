@@ -25,6 +25,7 @@ single scoring path.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -33,7 +34,13 @@ from evals.gsm8k_math.runner import _score_one_candidate_graph
 
 _HERE = Path(__file__).resolve().parent
 _CASES_PATH = _HERE / "cases.jsonl"
-_REPORT_PATH = _HERE / "report.json"
+# Overridable so concurrent test invocations (xdist workers) can each point
+# the CLI entrypoint at an isolated tmp path instead of racing on the shared
+# committed report.json. Unset (the default) preserves the real operator
+# contract: `python -m ...runner` writes the tracked repo file.
+_REPORT_PATH = Path(
+    os.environ.get("CORE_GSM8K_TRAIN_SAMPLE_REPORT_PATH", str(_HERE / "report.json"))
+)
 _SAMPLE_REL = "evals/gsm8k_math/train_sample/v1/cases.jsonl"
 _EXPECTED_COUNT = 50
 _CORRECT_MIN = 10

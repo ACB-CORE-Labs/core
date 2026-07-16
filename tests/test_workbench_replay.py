@@ -12,13 +12,12 @@ from pathlib import Path
 
 import pytest
 
+import engine_state
 from chat.runtime import ChatRuntime
 from workbench import api as workbench_api
 from workbench.api import WorkbenchApi, _run_sealed_chat_turn, _with_turn_cost_and_id
 from workbench.journal import TurnJournal, TurnJournalEntry
 from workbench.replay import CRITICAL_FIELDS, INFORMATIONAL_FIELDS, replay_turn
-
-_ENGINE_STATE_DIR = Path("engine_state")
 
 
 def _snapshot(root: Path) -> dict[str, bytes]:
@@ -150,19 +149,26 @@ def test_hashless_legacy_turn_is_not_replayable(tmp_path, recorded, monkeypatch)
 
 
 def test_replay_leaves_no_trace(tmp_path, recorded) -> None:
-    """Obligation 4: GET /replay writes nothing — journal and engine state."""
+    """Obligation 4: GET /replay writes nothing — journal and engine state.
+
+    ``engine_state._DEFAULT_DIR`` is read fresh (not a module-level constant)
+    because the root-conftest ``_isolate_engine_state_default`` autouse
+    fixture repoints it at a per-test tmp dir; a hardcoded ``Path("engine_state")``
+    would instead snapshot the real shared repo dir and false-fail under
+    ``-n auto`` whenever an unrelated concurrent worker wrote to it.
+    """
     entry, _ = recorded
     journal = TurnJournal(journal_dir=tmp_path / "workbench_data")
     journal.append(entry)
     api = WorkbenchApi(journal=journal)
     journal_before = _snapshot(tmp_path / "workbench_data")
-    engine_state_before = _snapshot(_ENGINE_STATE_DIR)
+    engine_state_before = _snapshot(Path(engine_state._DEFAULT_DIR))
 
     response = api.handle("GET", "/replay/1", b"")
 
     assert response.status == 200
     assert _snapshot(tmp_path / "workbench_data") == journal_before
-    assert _snapshot(_ENGINE_STATE_DIR) == engine_state_before
+    assert _snapshot(Path(engine_state._DEFAULT_DIR)) == engine_state_before
 
 
 def test_wall_clock_divergence_does_not_break_equivalence(tmp_path, recorded) -> None:

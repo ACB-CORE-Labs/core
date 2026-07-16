@@ -4,7 +4,8 @@ Does not re-execute the full physics suite. Asserts the load-bearing
 governance surfaces for ADR-0241/0242 cohesion remain present and honest:
   * runtime_contracts documents off-serve quarantine + epistemic standing
   * acceptance checklist maps C0–C8 to tests
-  * ADRs stay Proposed (ready for Joshua) — not self-Accepted
+  * ADR statuses carry recorded ruling provenance (ratified 2026-07-15;
+    a silent status flip in either direction fails)
   * cohesion suite still names I-01…I-05 pins
 """
 
@@ -82,21 +83,37 @@ def test_cohesion_suite_names_entity_invariants():
         assert name in text, f"missing entity pin {name}"
 
 
-def test_adrs_ready_for_acceptance_not_self_accepted():
-    """P12: implementation complete → Proposed + ready; Joshua alone Accepts."""
+def test_adrs_accepted_with_recorded_ruling_provenance():
+    """P12 (post-ratification): status flips are valid ONLY with provenance.
+
+    Joshua Shay ruled "Ratify" on 2026-07-15 (D10 acceptance packet §8), so
+    the anti-self-Accept guard evolves rather than dies: each ADR must say
+    Accepted WITH the ratification provenance inline, and the packet must
+    carry the ruling record. A silent status flip in either direction — an
+    Accept without provenance, or a quiet demotion — fails here.
+    """
+    packet = (
+        _ROOT / "docs/audit/adr-0241-0242-acceptance-packet-2026-07-15.md"
+    ).read_text(encoding="utf-8")
+    assert "## 8. RULING RECORD" in packet, "ruling record section missing"
+    assert "RATIFIED — Joshua Shay, 2026-07-15" in packet, "ruling attribution missing"
+
     for rel in (
         "docs/adr/ADR-0241-wave-field-driven-hyperbolic-atlas-and-resonant-cognition.md",
         "docs/adr/ADR-0242-atlas-packing-and-fibonacci.md",
     ):
         text = (_ROOT / rel).read_text(encoding="utf-8")
-        # First status line must remain Proposed until human Accept.
         status_line = next(
             (ln for ln in text.splitlines() if ln.startswith("**Status**")),
             "",
         )
-        assert "Proposed" in status_line, f"{rel} lost Proposed status"
-        assert "Accepted" not in status_line, f"{rel} must not self-Accept"
-        assert "Joshua" in status_line or "ready" in status_line.lower()
+        assert "Accepted" in status_line, f"{rel} lost Accepted status"
+        assert "ratified by Joshua Shay" in status_line, (
+            f"{rel} status lacks ratification provenance"
+        )
+        assert "acceptance-packet" in status_line, (
+            f"{rel} status must cite the ruling packet"
+        )
 
 
 def test_serve_quarantine_list_matches_cohesion_ast_pin():

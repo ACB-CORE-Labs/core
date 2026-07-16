@@ -162,5 +162,11 @@ class TestPureCompositionGate:
 
 
 class TestRuntimeBudget:
-    def test_budget_is_thirty_seconds(self) -> None:
-        assert MAX_RUNTIME_SECONDS == 30
+    def test_budget_is_sixty_seconds(self) -> None:
+        # 30 → 60 was a deliberate re-budget (commit 640dbe8f: post-CGA
+        # substrate work makes a cold RegisterTour alone ~30s+; see
+        # evals/public_demo/contract.md "Known Environment Caveat"). This slow
+        # pin was missed then because the slow lane hadn't been run since
+        # (nightly lives on the billing-locked GitHub side) — caught by the
+        # 2026-07 slow-lane sweep. Pin the deliberate value.
+        assert MAX_RUNTIME_SECONDS == 60

@@ -171,41 +171,43 @@ def _has_wave_a_seed() -> bool:
     )
 
 
-def test_wrong_zero_preserved():
+def test_wrong_zero_preserved(tmp_path):
     """The full train_sample eval keeps wrong == 0 after WAVE-A."""
+    import os
     import subprocess
     import sys
 
     here = Path(__file__).resolve()
     while here.parent != here and not (here / "pyproject.toml").exists():
         here = here.parent
+    report_path = tmp_path / "report.json"
     subprocess.run(
         [sys.executable, "-m", "evals.gsm8k_math.train_sample.v1.runner"],
         cwd=here,
         capture_output=True,
+        env={**os.environ, "CORE_GSM8K_TRAIN_SAMPLE_REPORT_PATH": str(report_path)},
     )
-    report = json.loads(
-        (here / "evals" / "gsm8k_math" / "train_sample" / "v1" / "report.json").read_text()
-    )
+    report = json.loads(report_path.read_text())
     assert report["counts"]["wrong"] == 0
 
 
-def test_case_0050_remains_refused():
+def test_case_0050_remains_refused(tmp_path):
     """Hazard pin."""
+    import os
     import subprocess
     import sys
 
     here = Path(__file__).resolve()
     while here.parent != here and not (here / "pyproject.toml").exists():
         here = here.parent
+    report_path = tmp_path / "report.json"
     subprocess.run(
         [sys.executable, "-m", "evals.gsm8k_math.train_sample.v1.runner"],
         cwd=here,
         capture_output=True,
+        env={**os.environ, "CORE_GSM8K_TRAIN_SAMPLE_REPORT_PATH": str(report_path)},
     )
-    report = json.loads(
-        (here / "evals" / "gsm8k_math" / "train_sample" / "v1" / "report.json").read_text()
-    )
+    report = json.loads(report_path.read_text())
     case_0050 = next(
         (c for c in report["per_case"] if c["case_id"].endswith("-0050")),
         None,
