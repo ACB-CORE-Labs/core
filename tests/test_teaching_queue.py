@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
+import engine_state
 from core.cli import main
 from teaching.discovery import DiscoveryCandidate, EvidencePointer
 from teaching.proposals import ProposalLog, ReplayEvidence, build_proposal
@@ -515,11 +516,21 @@ def snapshot_dir(directory: Path) -> dict[Path, bytes]:
 
 
 def test_read_only_invariant():
+    """Directories the hitl-queue commands must not mutate.
+
+    ``engine_state`` is read via ``engine_state._DEFAULT_DIR`` (not a
+    hardcoded ``project_root / "engine_state"``) because the root-conftest
+    ``_isolate_engine_state_default`` autouse fixture repoints it at a
+    per-test tmp dir; a hardcoded real path would instead snapshot the
+    shared repo dir and false-fail under ``-n auto`` whenever an unrelated
+    concurrent worker wrote to it (observed: AssertionError on this exact
+    directory under a full `-n auto` fast-lane run).
+    """
     project_root = Path(__file__).resolve().parent.parent
     dirs = [
         project_root / "teaching" / "proposals",
         project_root / "packs",
-        project_root / "engine_state",
+        Path(engine_state._DEFAULT_DIR),
         project_root / "contemplation" / "runs",
     ]
 

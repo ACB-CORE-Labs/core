@@ -16,6 +16,7 @@ Reuses ``fibonacci_number`` / ``fibonacci_tau_schedule`` — no parallel Fibonac
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from math import exp, isfinite
 from typing import Sequence
 
@@ -169,8 +170,104 @@ def schedule_mid_span_fraction(taus: Sequence[float], *, index: int | None = Non
     return float(vals[i] / peak)
 
 
+# --- ADR-0242 §5-P2: F5–F7 cross-band surprise persistence gate ---------------
+#
+# "Emits a DiscoveryCandidate in the contemplation loop *only* when the
+# surprise signal persists across multiple Fibonacci-scaled temporal bands
+# (F5 to F7), preventing transient noise from triggering ungrounded updates."
+#
+# Pure verdict function for the contemplation loop — PROPOSAL-side only.
+# Lives here (Tier-2, serve-quarantined) so the gate can never touch serving.
+
+_DISCOVERY_BANDS: tuple[int, int, int] = (5, 8, 13)  # F_5, F_6, F_7
+
+
+@dataclass(frozen=True, slots=True)
+class CrossBandVerdict:
+    """Typed persistence verdict; never emits or promotes anything itself."""
+
+    eligible: bool
+    bands: tuple[int, int, int]
+    band_energies: tuple[float, float, float]
+    gamma: float
+    reason: str  # "eligible" | "insufficient_span" | "band_below_gamma"
+
+
+def cross_band_discovery_gate(
+    events: Sequence[tuple[float, float]],
+    *,
+    now: float,
+    tau0: float = _DEFAULT_TAU0,
+    gamma: float,
+) -> CrossBandVerdict:
+    """Persistence gate over a surprise-event history.
+
+    ``events`` are ``(t, energy)`` samples with ``t <= now`` and
+    ``energy >= 0``. Each band accumulates decay-weighted surprise
+
+        E_band(now) = Σ_i energy_i · exp(-(now - t_i) / (F_band · τ0))
+
+    Eligible ⇔ the history spans at least the shortest band (F_5·τ0 —
+    a single fresh spike carries full weight in every band but has zero
+    temporal persistence) AND every band's accumulation ≥ ``gamma``.
+    Deterministic and pure; the caller (contemplation loop) decides whether
+    to emit a DiscoveryCandidate.
+    """
+    if not events:
+        raise ValueError("cross_band_discovery_gate: empty event history")
+    tau0 = _validate_tau0(tau0)
+    if not isfinite(gamma) or gamma <= 0.0:
+        raise ValueError("gamma must be finite and > 0")
+    times = []
+    for t, e in events:
+        t = float(t)
+        e = float(e)
+        if not (isfinite(t) and isfinite(e)):
+            raise ValueError("event times/energies must be finite")
+        if e < 0.0:
+            raise ValueError(f"negative surprise energy {e} at t={t}")
+        if t > float(now):
+            raise ValueError(f"event at t={t} is after now={now}")
+        times.append(t)
+
+    band_energies = tuple(
+        sum(
+            float(e) * exp(-(float(now) - float(t)) / (band * tau0))
+            for t, e in events
+        )
+        for band in _DISCOVERY_BANDS
+    )
+
+    span = max(times) - min(times)
+    if span < _DISCOVERY_BANDS[0] * tau0:
+        return CrossBandVerdict(
+            eligible=False,
+            bands=_DISCOVERY_BANDS,
+            band_energies=band_energies,  # type: ignore[arg-type]
+            gamma=float(gamma),
+            reason="insufficient_span",
+        )
+    if any(e < gamma for e in band_energies):
+        return CrossBandVerdict(
+            eligible=False,
+            bands=_DISCOVERY_BANDS,
+            band_energies=band_energies,  # type: ignore[arg-type]
+            gamma=float(gamma),
+            reason="band_below_gamma",
+        )
+    return CrossBandVerdict(
+        eligible=True,
+        bands=_DISCOVERY_BANDS,
+        band_energies=band_energies,  # type: ignore[arg-type]
+        gamma=float(gamma),
+        reason="eligible",
+    )
+
+
 __all__ = [
+    "CrossBandVerdict",
     "comparative_residual_separation",
+    "cross_band_discovery_gate",
     "dyadic_tau_schedule",
     "multi_scale_energy_for_schedule",
     "multi_scale_energy_vector",
