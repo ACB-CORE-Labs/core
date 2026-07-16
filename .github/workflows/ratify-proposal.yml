@@ -70,7 +70,7 @@ jobs:
           enable-cache: true
 
       - name: install dependencies
-        run: uv pip install -e ".[dev]"
+        run: uv sync --locked --extra dev
 
       - name: resolve review date
         id: date

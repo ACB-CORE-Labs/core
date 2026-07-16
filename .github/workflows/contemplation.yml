@@ -44,7 +44,7 @@ jobs:
           enable-cache: true
 
       - name: install dependencies
-        run: uv pip install -e ".[dev]" pyyaml
+        run: uv sync --locked --extra dev
 
       - name: run contemplation cycle
         id: run
