@@ -81,7 +81,7 @@ jobs:
       - name: install dependencies
         if: steps.paths.outputs.run == 'true'
         run: |
-          uv pip install -e . pyyaml pytest
+          uv sync --locked
 
       - name: verify lane SHAs
         if: steps.paths.outputs.run == 'true'
