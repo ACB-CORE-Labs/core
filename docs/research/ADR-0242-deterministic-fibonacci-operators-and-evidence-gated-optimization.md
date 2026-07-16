@@ -116,6 +116,14 @@ This track will explore if the category data of **Fibonacci anyons** (including 
 > digest added; shape-based unimodality check; nonfinite/bounds fail-closed;
 > best-sample minimizer). The reference code below is non-executable as
 > written (uses `np.argsort` without importing numpy).
+>
+> Addendum (2026-07-16): two further concrete defects in this sketch, pinned
+> by an independent re-implementation attempt (see
+> `docs/analysis/rejected-draft-reimplementation-assessment-2026-07-16.md`):
+> (1) `_precompute_fibonacci` yields `n+2` elements but the loop indexes
+> `fib[n+2]` — IndexError; (2) the in-loop ratio `fib[n-k+1]/fib[n-k+2]`
+> regenerates the just-evaluated point, collapsing the bracket. Do NOT
+> re-implement this sketch; the landed module is the authority.
 
 To guarantee exactness and absolute reproducibility, we define the strict, frozen Python interface for the unimodal objective, the search certificate, and the deterministic Fibonacci-section search algorithm.
 
