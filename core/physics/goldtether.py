@@ -542,6 +542,28 @@ class GoldTetherMonitor:
 # ---------------------------------------------------------------------------
 
 
+def kappa_search_event(kappa: float, result: object) -> dict[str, Any]:
+    """ADR-0242 §5-P1: JSONL-ready execution-telemetry event for a κ search.
+
+    The memo requires the certificate be "written to the execution telemetry"
+    (audit trail) with failures falling back to baseline κ. Both typed results
+    carry ``as_dict()``; this wraps them in a stable event envelope. Pure
+    serialization — no state, no COHERENT standing, no truth status (§6
+    sovereignty invariant).
+    """
+    from core.physics.fibonacci_search import FibonacciSearchCertificate
+
+    outcome = (
+        "certificate" if isinstance(result, FibonacciSearchCertificate) else "failure"
+    )
+    return {
+        "kind": "fibonacci_kappa_search",
+        "outcome": outcome,
+        "kappa": float(kappa),
+        "result": result.as_dict(),  # type: ignore[attr-defined]
+    }
+
+
 def propose_kappa_line_search(
     residual_fn,
     *,
@@ -550,13 +572,18 @@ def propose_kappa_line_search(
     evaluation_budget: int = 16,
     objective_id: str = "goldtether_kappa",
     objective_version: str = "v1",
+    sink: Any = None,
 ) -> tuple[float, object]:
     """Optional κ search via Fibonacci section (ADR-0242 Phase 1 seam).
 
     Returns ``(kappa, cert_or_failure)``. On failure, kappa is baseline 1.0.
     Does **not** mutate GoldTetherMonitor state, COHERENT standing, or serve
-    autonomy — caller may record the result as telemetry only.
+    autonomy. When ``sink`` (any object with ``emit(line: str)``, e.g. a
+    :class:`chat.telemetry.TurnEventSink`) is provided, the §5-P1 execution-
+    telemetry event is emitted as one deterministic JSONL line.
     """
+    import json
+
     from core.physics.fibonacci_search import (
         BoundedUnimodalObjective,
         fibonacci_section_search,
@@ -571,4 +598,9 @@ def propose_kappa_line_search(
         objective_version=str(objective_version),
     )
     result = fibonacci_section_search(objective, residual_fn)
-    return propose_kappa_from_search(result)
+    kappa, outcome = propose_kappa_from_search(result)
+    if sink is not None:
+        sink.emit(
+            json.dumps(kappa_search_event(kappa, outcome), sort_keys=True)
+        )
+    return kappa, outcome
