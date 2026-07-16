@@ -64,7 +64,9 @@ Combined (split + parallel) = **73 → 9.5 min (7.7×)**.  The parallel fast lan
 scales ~5.7× because it excludes the 975s parallel-floor monster (see below);
 the full suite only reaches 2.9× because that one test pins a worker for 16 min.
 
-`-n auto` is **not** wired into the `make` targets yet — see *Follow-up: xdist*.
+`-n auto` **is** the default for `make test-fast` / `make test-full` (post-#46
+polluter isolation). Serial escape hatches: `make test-fast-serial` /
+`make test-full-serial`.
 
 ## The slow registry (`conftest.py`)
 
@@ -103,14 +105,9 @@ it is deferred, not done here.
 
 ## Follow-ups (separate PRs)
 
-1. **xdist by default.**  The fast/full lanes are *not* xdist-hermetic yet:
-   fresh-env-dict subprocess tests (`tests/formation/*`, `test_identity_packs`)
-   write to the repo `engine_state/` dir, and other tests write
-   `evals/.../report.json` and `teaching/proposals/` — these **race** under
-   parallel workers (e.g. `test_workbench_replay::test_replay_leaves_no_trace`
-   fails under `-n auto`, passes serially).  Isolate those writers, then wire
-   `-n auto` into `make test-fast` / `test-full`.  This is the same hermeticity
-   theme as `docs/issues/default-engine-state-test-hygiene.md`.
+1. **xdist by default — DONE (#46 + this arc).**  Polluter writers
+   (`engine_state/`, `report.json`, proposal sinks) were isolated; `make test-fast`
+   / `test-full` now default to `-n auto`. Serial targets remain for debugging.
 2. **Warm-runtime fixture.**  The fast lane's remaining ~9.5 min (parallel) is a
    long tail of 1–15s `ChatRuntime` constructions, not outliers.  A
    shared/session-scoped warm-runtime fixture for read-only tests would cut this

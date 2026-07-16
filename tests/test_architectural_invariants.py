@@ -639,7 +639,10 @@ class TestINV11ConvergentEvidence:
 import ast
 from pathlib import Path
 
-ALLOWED_VAULT_WRITERS: frozenset[str] = frozenset({
+# Single ordered pin for INV-21 writers. Tuple-first so accidental duplicates
+# fail at import (frozenset would silently collapse them). Demos import
+# ALLOWED_VAULT_WRITERS; they must not re-list this set (dedup housekeeping).
+_ALLOWED_VAULT_WRITER_ENTRIES: tuple[str, ...] = (
     "session/context.py",
     "vault/store.py",
     "generate/proposition.py",
@@ -652,7 +655,12 @@ ALLOWED_VAULT_WRITERS: frozenset[str] = frozenset({
     # same VaultStore.store path (no parallel memory). Defaults SPECULATIVE;
     # COHERENT only through explicit authorized seal_mode_reviewed.
     "core/physics/holographic_vault.py",
-})
+)
+if len(_ALLOWED_VAULT_WRITER_ENTRIES) != len(set(_ALLOWED_VAULT_WRITER_ENTRIES)):
+    raise RuntimeError(
+        "ALLOWED_VAULT_WRITERS pin has duplicate paths — dedup before freezing"
+    )
+ALLOWED_VAULT_WRITERS: frozenset[str] = frozenset(_ALLOWED_VAULT_WRITER_ENTRIES)
 
 PROJECT_ROOT_FOR_INV21 = Path(__file__).resolve().parent.parent
 
@@ -765,6 +773,12 @@ class TestINV21OneMutationPath:
             f"Allowlisted writer(s) no longer call vault.store(): {sorted(unused)}\n"
             "Remove from ALLOWED_VAULT_WRITERS to keep the trust surface tight."
         )
+
+    def test_allowlist_entries_are_unique_and_nonempty(self):
+        """INV-21 dedup: pin has no duplicate paths; trust surface is non-vacuous."""
+        assert len(_ALLOWED_VAULT_WRITER_ENTRIES) == len(ALLOWED_VAULT_WRITERS)
+        assert len(ALLOWED_VAULT_WRITERS) >= 4
+        assert "vault/store.py" in ALLOWED_VAULT_WRITERS
 
 
 # ===========================================================================

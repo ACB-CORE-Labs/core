@@ -49,7 +49,7 @@ Complete the wave-field substrate program (ADR-0241/0242 + core_ha deprecation +
 
 ### W5 — Post-Accept backlog — **PARTIALLY SUPERSEDED, see below**
 **Plan (as originally written):** D9 Rust f64 parity; runner capacity (second Act runner / larger VM, later superseded by a GitHub-Actions-mirror idea); sensorium real compilers; V2 energy promotion (Fibonacci vs dyadic vs log, benchmark-gated); progressive continuous field.
-**Outcome:** none of the W5 items above have been started. Instead, the CI-infra item under-forecast how bad the CI situation would get — see "Unplanned: CI collapse and local-first pivot" below, which consumed the entire post-ratification session. The five W5 items are **still the real backlog**, now joined by items surfaced during the CI pivot (below).
+**Outcome (as of mid-arc):** none of the W5 items had been started then; CI-infra under-forecast how bad the situation would get — see "Unplanned: CI collapse and local-first pivot" below. **Post-Accept follow-through (2026-07-16, this arc):** D9 f64 GP parity (Python SOT), sensorium real-compiler → ψ feed, V2 fib/dyadic/log fixed-replay evidence (no production promotion), `-n auto` fast-lane default, INV-21 allowlist dedup, and runner doctrine (local-first + `ubuntu-latest:host`, no Docker CI for merge) are closed. Progressive continuous field remains deferred research. See **Remaining backlog** below.
 
 ---
 
@@ -71,7 +71,7 @@ GitHub Actions became billing-locked (~$6, account-level) mid-arc, forcing a piv
 - #51 (`207d9c6a`) — this CI doctrine committed to the repo (`AGENTS.md`, `CLAUDE.md`) — also the new Mac runner's first live dispatch test.
 - #52 (`18d3c70d`) — assessment note on a rejected parallel-session re-implementation submission (its "three critical bugs" claim did not survive verification; one had a literal Python syntax error).
 
-**Open technical note, not yet actioned:** job logs pulled during #50/#51's CI triage show the Act runner still spinning up Docker containers (`docker pull node:20-bookworm`) rather than the native "no Docker" host execution the `ubuntu-latest:host` label's doctrine describes. Worth checking whenever CI infra is revisited; not currently blocking anything since local-first is the actual gate.
+**Open technical note (infra, not doctrine):** some Act runner configs under `~/infra/runner-m1` still map `ubuntu-latest` → `docker://node:20-bookworm` and pull containers. That is a **runner misconfiguration**, not the merge gate. Doctrine: local-first in the worktree; optional secondary runner is `ubuntu-latest:host` (native, no Docker). Fix the label/platform map on the Mac runner when infra is next touched — do not re-author doctrine around Docker.
 
 ---
 
@@ -81,12 +81,14 @@ GitHub Actions became billing-locked (~$6, account-level) mid-arc, forcing a piv
 - `main` @ `18d3c70d`. Zero open PRs. Arc branches and worktrees deleted.
 - CI: local-first is the real gate; `uv.lock` committed and locked installs enforced in all workflows; local Mac Act runner is live and has completed its first dispatch tests (#51, #52).
 
-## Remaining backlog (none are completion blockers)
+## Remaining backlog (post-Accept follow-through; 2026-07-16 mastery close)
 
-1. **D9** — Rust f64 GP parity, only if the UMA path must match f64 wave residuals; freeze the Python parity suite first.
-2. **Sensorium real compilers** — replace staged packets, closes I-04 feed fully.
-3. **V2 energy promotion** — Fibonacci vs. dyadic vs. log under fixed replay, benchmark-gated, explicit Joshua gate required before promotion.
-4. **Progressive continuous field** — research track, non-blocking.
-5. **Runner Docker-vs-host discrepancy** — confirm whether `ubuntu-latest:host` jobs should truly run without Docker, and if so why the observed runs used containers.
-6. **`-n auto` fast-lane default flip** — pending, xdist polluters now isolated (#46) so this is unblocked whenever it's prioritized.
-7. **INV-21 allowlist dedup** — minor housekeeping surfaced during the xdist isolation work.
+Status of items that were open after ratification / CI pivot:
+
+1. **D9** — ✅ **DONE (this arc):** frozen Python f64 Cl(4,1) GP parity suite (`tests/test_geometric_product_f64_parity.py`) is authority; backend proves f64 never silent-f32-truncates under `CORE_BACKEND=rust` (Rust f32 GP only; f64 stays Python SOT until a future `geometric_product_f64` PyO3 export is parity-gated). No scipy-as-truth.
+2. **Sensorium real compilers → ψ (I-04)** — ✅ **DONE (this arc):** `packet_from_compiler_versor` / `packet_from_compilation_unit` lift live audio/vision compiler units into `ModalityPacket`; tests exercise compile→ψ→superpose→algebraic `phase_correlation` (not only `fake_deterministic_packet`). Cosine/ANN still banned; A-04 quarantine holds.
+3. **V2 energy comparative evidence** — ✅ **DONE without production promotion (this arc):** Fibonacci vs dyadic vs log under fixed replay via `comparative_three_way` / `fixed_replay_compare_artifact` + `python -m evals.adr_0242_v2_energy_compare`. Artifact flags `joshua_gate_required=True`; `FieldEnergyOperator` / `energy.py` unchanged. **Promotion remains blocked** until Joshua’s explicit gate.
+4. **Progressive continuous field** — ⏸ **deferred** — research track, non-blocking (out of scope for this close).
+5. **Runner Docker-vs-host discrepancy** — ✅ **DONE (this arc, doctrine restored):** Global + repo doctrine is **local-first** (run locally, then merge). Optional Mac Act runner must be **`ubuntu-latest:host`** = native host execution — **not Docker job containers**. A misconfigured `~/infra/runner-m1` that mapped `ubuntu-latest` → `docker://node:20-bookworm` was the bug; doctrine was never “bless Docker.” `AGENTS.md` re-states host-native + local-first as the gate.
+6. **`-n auto` fast-lane default flip** — ✅ **DONE (this arc):** `make test-fast` / `test-full` default to `-n auto`; serial escape hatches `test-fast-serial` / `test-full-serial`; `docs/testing-lanes.md` updated. #46 polluter isolation is the prerequisite.
+7. **INV-21 allowlist dedup** — ✅ **DONE (this arc):** tuple-first pin with import-time uniqueness check; demos no longer re-list the full frozenset (single ownership in `TestINV21OneMutationPath`).

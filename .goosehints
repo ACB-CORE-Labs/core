@@ -1,6 +1,7 @@
 # CORE + builder-II local agent hints
 - temperature 0 everywhere
-- Read AGENTS.md, GROK.md, docs/runtime_contracts.md before edits
+- Read AGENTS.md, docs/specs/runtime_contracts.md before edits (AGENTS.md wins)
+- CI: local-first in-worktree then merge; no Docker CI; optional ubuntu-latest:host only
 - Proposals are SPECULATIVE until `builder verify` passes
 - Use skills: core-governed-coding, core-verify-loop, core-pre-edit-sweep, core-handoff
 - Slash: /explore /implement /review /verify /handoff /plan

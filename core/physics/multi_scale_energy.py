@@ -17,7 +17,7 @@ Reuses ``fibonacci_number`` / ``fibonacci_tau_schedule`` — no parallel Fibonac
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import exp, isfinite
+from math import exp, isfinite, log
 from typing import Sequence
 
 from core.physics.fibonacci_search import fibonacci_number
@@ -66,6 +66,22 @@ def dyadic_tau_schedule(
     t0 = _validate_tau0(tau0)
     n = _validate_levels(levels)
     return tuple(float(t0 * (2 ** (i - 1))) for i in range(1, n + 1))
+
+
+def log_tau_schedule(
+    tau0: float = _DEFAULT_TAU0,
+    *,
+    levels: int = 8,
+) -> tuple[float, ...]:
+    """Logarithmic comparison baseline τ_n = τ_0 · ln(n + 1) for n = 1..levels.
+
+    ADR-0242 V2 third comparative baseline (with Fibonacci and dyadic).
+    Research-only — not a production default. ln(n+1) is strictly positive
+    and monotone for n ≥ 1.
+    """
+    t0 = _validate_tau0(tau0)
+    n = _validate_levels(levels)
+    return tuple(float(t0 * log(i + 1)) for i in range(1, n + 1))
 
 
 def multi_scale_energy_for_schedule(
@@ -148,6 +164,70 @@ def comparative_residual_separation(
         "fibonacci_energies": fib_e,
         "dyadic_energies": dyad_e,
         "energy_gap_fib_minus_dyadic": gaps,
+    }
+
+
+def comparative_three_way(
+    e0: float,
+    age: float,
+    *,
+    tau0: float = _DEFAULT_TAU0,
+    levels: int = 8,
+) -> dict[str, object]:
+    """Fixed-replay Fibonacci vs dyadic vs log multi-scale comparison.
+
+    Pure research helper — no I/O, no production promotion. Extends the
+    two-way residual separation with the logarithmic baseline. Joshua gate
+    required before any of these schedules becomes a FieldEnergyOperator default.
+    """
+    t0 = _validate_tau0(tau0)
+    n = _validate_levels(levels)
+    two = comparative_residual_separation(e0, age, tau0=t0, levels=n)
+    log_taus = log_tau_schedule(t0, levels=n)
+    log_e = multi_scale_energy_for_schedule(e0, age, log_taus)
+    fib_e = two["fibonacci_energies"]
+    assert isinstance(fib_e, tuple)
+    return {
+        **two,
+        "log_taus": log_taus,
+        "log_energies": log_e,
+        "energy_gap_fib_minus_log": tuple(
+            float(f - lg) for f, lg in zip(fib_e, log_e, strict=True)
+        ),
+        "schedules": ("fibonacci", "dyadic", "log"),
+        "promotion_status": "research_only",
+        "joshua_gate_required": True,
+    }
+
+
+def fixed_replay_compare_artifact(
+    *,
+    e0: float = 1.0,
+    ages: Sequence[float] = (0.0, 1.0, 3.0, 8.0),
+    tau0: float = _DEFAULT_TAU0,
+    levels: int = 8,
+) -> dict[str, object]:
+    """Deterministic multi-age comparative artifact for V2 evidence records.
+
+    Pure: returns a JSON-serializable dict. Callers may write it to disk for
+    audit; this function itself performs no I/O and does not touch production
+    energy operators.
+    """
+    rows = [
+        comparative_three_way(e0, float(age), tau0=tau0, levels=levels)
+        for age in ages
+    ]
+    return {
+        "artifact": "adr_0242_v2_energy_compare",
+        "schema_version": 1,
+        "e0": float(e0),
+        "tau0": float(tau0),
+        "levels": int(levels),
+        "ages": tuple(float(a) for a in ages),
+        "rows": rows,
+        "promotion_status": "research_only",
+        "joshua_gate_required": True,
+        "production_default_unchanged": True,
     }
 
 
@@ -267,8 +347,11 @@ def cross_band_discovery_gate(
 __all__ = [
     "CrossBandVerdict",
     "comparative_residual_separation",
+    "comparative_three_way",
     "cross_band_discovery_gate",
     "dyadic_tau_schedule",
+    "fixed_replay_compare_artifact",
+    "log_tau_schedule",
     "multi_scale_energy_for_schedule",
     "multi_scale_energy_vector",
     "schedule_mid_span_fraction",

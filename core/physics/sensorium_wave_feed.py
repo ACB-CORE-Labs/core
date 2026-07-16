@@ -131,6 +131,40 @@ def fake_deterministic_packet(
     return ModalityPacket(modality_id=modality_id, coefficients=coeffs)
 
 
+def packet_from_compiler_versor(
+    modality_id: str,
+    versor: np.ndarray,
+) -> ModalityPacket:
+    """Lift a real modality-compiler projection (32-float versor) into a packet.
+
+    Accepts the ``.versor`` field of ``AudioCompilationUnit`` /
+    ``VisionCompilationUnit`` (or any Cl(4,1) projection of shape ``(32,)``).
+    This is the construction-boundary seam for I-04 with live compilers —
+    compilers stay in ``sensorium/*``; this module only standardizes the feed.
+    """
+    return ModalityPacket(
+        modality_id=modality_id,
+        coefficients=np.asarray(versor, dtype=np.float64),
+    )
+
+
+def packet_from_compilation_unit(
+    modality_id: str,
+    unit: Any,
+) -> ModalityPacket:
+    """Lift a compilation unit with a ``.versor`` attribute into a packet.
+
+    Thin duck-typed adapter for audio/vision/sensorimotor units. Refuses if
+    ``versor`` is missing so callers cannot pass unrelated objects silently.
+    """
+    if not hasattr(unit, "versor"):
+        raise TypeError(
+            "compilation unit must expose .versor (audio/vision unit); "
+            f"got {type(unit).__name__}"
+        )
+    return packet_from_compiler_versor(modality_id, unit.versor)
+
+
 __all__ = [
     "ModalityPacket",
     "PacketLike",
@@ -138,4 +172,6 @@ __all__ = [
     "superpose_packets",
     "phase_correlate",
     "fake_deterministic_packet",
+    "packet_from_compiler_versor",
+    "packet_from_compilation_unit",
 ]
