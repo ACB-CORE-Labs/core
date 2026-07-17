@@ -71,6 +71,7 @@ def test_phase0_a04_serve_path_quarantines_wave_and_fibonacci():
         "multi_scale_energy",  # ADR-0242 V2 research multi-band E_n(t), never serve
         "sensorium_wave_feed",  # D7 I-04 sensorium→ψ feed, never serve
         "cognitive_lifecycle",  # ADR-0243 ingress→relaxation→egress, never serve
+        "biography_wiring",  # ADR-0243 §2.5 PASS→biography wiring, never serve
     }
     banned_substrings = (
         "holographic_vault",
@@ -82,6 +83,7 @@ def test_phase0_a04_serve_path_quarantines_wave_and_fibonacci():
         "multi_scale_energy",
         "sensorium_wave_feed",
         "cognitive_lifecycle",
+        "biography_wiring",
     )
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):

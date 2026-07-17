@@ -29,6 +29,7 @@ _BANNED = (
     "core.physics.multi_scale_energy",
     "core.physics.sensorium_wave_feed",
     "core.physics.cognitive_lifecycle",  # ADR-0243 lifecycle — never serve
+    "core.physics.biography_wiring",  # ADR-0243 §2.5 PASS→biography wiring — never serve
     # NOTE: core.physics.wave_manifold is intentionally excluded pending the
     # Joshua design ruling (goldtether delegates to it). Add it here if the
     # ruling is "quarantine wave_manifold for real".

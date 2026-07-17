@@ -144,6 +144,11 @@ _LAZY_EXPORTS: dict[str, str] = {
     "propositional_entails": "core.physics.cognitive_lifecycle",
     "relax_to_ground": "core.physics.cognitive_lifecycle",
     "uniform_assignment_state": "core.physics.cognitive_lifecycle",
+    # biography_wiring — ADR-0243 §2.5 validated-PASS → biography integration (never serve)
+    "BiographyIntegrationError": "core.physics.biography_wiring",
+    "BiographyProvenanceRecord": "core.physics.biography_wiring",
+    "biography_provenance_record": "core.physics.biography_wiring",
+    "integrate_validated_biography": "core.physics.biography_wiring",
 }
 
 from typing import TYPE_CHECKING
@@ -205,6 +210,12 @@ if TYPE_CHECKING:  # static-analysis only — never imported at runtime (serve q
         propositional_entails,
         relax_to_ground,
         uniform_assignment_state,
+    )
+    from core.physics.biography_wiring import (
+        BiographyIntegrationError,
+        BiographyProvenanceRecord,
+        biography_provenance_record,
+        integrate_validated_biography,
     )
 
 __all__ = [
@@ -285,6 +296,10 @@ __all__ = [
     "propositional_entails",
     "relax_to_ground",
     "uniform_assignment_state",
+    "BiographyIntegrationError",
+    "BiographyProvenanceRecord",
+    "biography_provenance_record",
+    "integrate_validated_biography",
 ]
 
 
