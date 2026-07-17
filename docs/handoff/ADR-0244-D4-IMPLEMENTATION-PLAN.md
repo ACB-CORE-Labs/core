@@ -125,8 +125,8 @@ Dependencies: `0 → {1, 4}` · `1 → 2 → 3` · `5 after 0` · `6 last`. Each
 - `axis_response(R, axes, Ginv) → (leakage[], self_align[])`: per axis `rot=sandwich(R,aᵢ)`, `leakage_i=euclidean_norm(rot − P_I(rot))` (subspace departure), `self_align_i=⟨aᵢ, rot⟩₀` (**signed** orientation). Both required, non-redundant.
 **Acceptance (falsifiable, all empirically pre-verified):** orthonormal default pack ⇒ `G=I`; `subspace_project` idempotent (`P_I∘P_I = P_I` to 1e-12); identity versor ⇒ all `leakage≈0`, all `self_align≈+1`; rotor **within** value plane (e12) ⇒ `leakage≈0`; rotor tilting a value axis toward e4/e5 ⇒ `leakage>0` (e.g. e14 θ=0.5 → 0.28, boost e15 θ=0.5 → 0.29); π-rotor inverting a value axis (e1→−e1) ⇒ `leakage≈0` **but** `self_align≈−1`; near-parallel synthetic axes ⇒ `ManifoldConditioningError`. Deterministic (f64).
 **Gate:** smoke + fast lane + new tests.
-**Status:** ◐ IN PROGRESS
-**Resume notes:** ADR-0244 §4a already carries the full operator-preservation spec + rationale; implement `core/physics/identity_manifold.py` directly against it. All acceptance numbers pre-verified via scratch probes (see progress log 2026-07-17 operator-preservation entry).
+**Status:** ✅ DONE — landed `3c3d2c29`
+**Resume notes:** Shipped `core/physics/identity_manifold.py` (`lift_axis`, `gram_matrix`+`ManifoldConditioningError`, `subspace_project`, `sandwich`, `euclidean_norm`, frozen `IdentityManifoldGeometry` with `.project`/`.axis_response`/`.leakage_rms`) + `tests/test_adr_0244_identity_manifold.py` (24 tests). Pure `algebra.cl41`, f64, deterministic; off-serve (serve-quarantine test confirms). Gate: 24 new + smoke 176 + fast lane 11863 passed/109 skipped. NOT yet wired into `identity.py` or the barrel — that's Phase 2.
 
 ### Phase 2 — §2.2 fail-closed gate + `C_id` + `boundary_ids` + telemetry + eval — TDD
 **Objective:** convert advisory → fail-closed egress gate on `final_state.F`; wire in-path behind a flag.
@@ -221,7 +221,8 @@ Forward-looking mechanical-sympathy items from the critique — a separate optim
 
 - **2026-07-17** — Arc kicked off. Plan doc authored + committed to `main`. Worktree `core-adr0244d4` created off `ee38c976`. Both sign-offs recorded (§2). Next: Phase 0.
 - **2026-07-17** — **Phase 0 landed `ad37d03b`.** ADR-0244 reconciled (11-item governance annotation + new §4a superseding §4); ADR-0245 committed as a real companion ADR (Proposed) with its own status map; audit doc updated. Gate green (smoke 176 + provenance/ADR pins 30). Pushed to `forgejo/main`, local `main` fast-forwarded, worktree in sync. Next: Phase 1.
-- **2026-07-17** — **Phase 1 core-mechanism correction (ratified).** Discovered before implementing: `final_state.F` is a versor/operator (grade-1 energy exactly 0), so §2.1/§2.2's literal grade-1 projection is vacuous (flags everything). Ratified switch to **operator-preservation** (sandwich `F aᵢ F̃`): subspace-rejection leakage (catches e4/e5 tilt) + signed self-alignment (catches in-subspace inversion). Both empirically verified necessary + discriminating (identity→0 leak/+1 align; e14/e15 tilt→0.28/0.29 leak; π-invert→0 leak/−1 align). ADR-0244 governance annotation item 12 + §4a rewritten; plan §3 Fact C + §5 Phase 1 updated. Amendment commit lands before the Phase 1 code commit.
+- **2026-07-17** — **Phase 1 core-mechanism correction (ratified), amendment `459280e3`.** Discovered before implementing: `final_state.F` is a versor/operator (grade-1 energy exactly 0), so §2.1/§2.2's literal grade-1 projection is vacuous (flags everything). Ratified switch to **operator-preservation** (sandwich `F aᵢ F̃`): subspace-rejection leakage (catches e4/e5 tilt) + signed self-alignment (catches in-subspace inversion). Both empirically verified necessary + discriminating (identity→0 leak/+1 align; e14/e15 tilt→0.28/0.29 leak; π-invert→0 leak/−1 align). ADR-0244 governance annotation item 12 + §4a rewritten; plan §3 Fact C + §5 Phase 1 updated.
+- **2026-07-17** — **Phase 1 landed `3c3d2c29`.** `core/physics/identity_manifold.py` (operator-preservation primitive) + `tests/test_adr_0244_identity_manifold.py` (24 tests). Pure/f64/deterministic, off-serve (quarantine test green). Gate: 24 new + smoke 176 + fast lane **11863 passed, 109 skipped** (9:01). Not yet wired into serve — Phase 2. Next: Phase 2.
 
 ---
 
@@ -229,12 +230,12 @@ Forward-looking mechanical-sympathy items from the critique — a separate optim
 
 | Phase | Objective | Status | Landed at |
 |---|---|---|---|
-| 0 | Governance reconciliation (ADR-0244 edits + commit ADR-0245) | ✅ DONE | `ad37d03b` |
-| 1 | §2.1 Gram identity manifold primitive | ⬜ NOT STARTED | — |
+| 0 | Governance reconciliation (ADR-0244 edits + commit ADR-0245) | ✅ DONE | `ad37d03b` (+ `459280e3` §4a amend) |
+| 1 | §2.1 identity manifold primitive (operator-preservation) | ✅ DONE | `3c3d2c29` |
 | 2 | §2.2 fail-closed gate + boundary_ids + C_id + telemetry + eval | ⬜ NOT STARTED | — |
 | 3 | §2.4 γ_id calibration | ⬜ NOT STARTED | — |
 | 4 | §2.5 / 0245 §2.2 serving-boundary cast | ⬜ NOT STARTED | — |
 | 5 | §2.7 residual + §2.9 wiring + §2.10 audit + 0245 §3 gate | ⬜ NOT STARTED | — |
 | 6 | Close-out (2 acceptance packets + 2 ratified flips) | ⬜ NOT STARTED | — |
 
-**▶ NEXT: Phase 1 — §2.1 Gram identity manifold primitive.**
+**▶ NEXT: Phase 2 — §2.2 fail-closed gate + boundary_ids + C_id + telemetry + eval.**
