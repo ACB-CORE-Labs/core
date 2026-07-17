@@ -139,8 +139,10 @@ Dependencies: `0 → {1, 4}` · `1 → 2 → 3` · `5 after 0` · `6 last`. Each
 - Wire `runtime.py:2679` as fail-closed **behind a config flag defaulting to current advisory behavior** until Phase 3 calibrates. Add `TurnEvent.psi_leakage_norm`, `wave_mode_active`.
 **Acceptance:** all three identity eval suites still pass; the gate demonstrably catches the injections; ablation shows wave path adds detection value over legacy; fail-closed tests (NaN/dim/nonfinite/missing-cert/stale-manifold) never fall through permissively; `C_id` bounded + abstains on unrecoverable; byte-identity of non-identity turns preserved (flag default off).
 **Gate:** smoke + fast lane + eval suites + new tests.
-**Status:** ⬜ NOT STARTED
-**Resume notes:** —
+**Decomposition (sub-commits for clean checkpoints):** **2a** pure `identity.py` capability (dual-mode wave path + `IdentityGateRefusal` + boundary predicate + C_id) — no runtime change; **2b** runtime wiring behind `identity_wave_gate` flag + telemetry; **2c** eval suite (ablation / fail-closed / injection-catching).
+**Key facts locked from recon:** `final_state.F` is the wave field (versor); `boundary_ids` = union of identity+safety(`no_identity_override`,…)+ethics IDs, so boundary activation is an intersection with the turn's `SafetyVerdict.violated_boundaries` ∪ `EthicsVerdict.violated_commitments` (available only AFTER the verdicts, ~`runtime.py:2740`, not at the `2679` identity call); `compute_trace_hash` excludes telemetry fields (replay-safe); the JSONL serializer is explicit `getattr` per field, so wave telemetry lives on `IdentityScore` and is emitted only when `wave_mode_active` (byte-identical when off); C_id v1 = admit-or-abstain (no silent correction). Deviation from the reviewer's `TurnEvent.psi_leakage_norm` suggestion: telemetry lives on `IdentityScore` instead (serializer already reads it; cleaner + byte-identity-preserving).
+**Status:** ◐ IN PROGRESS — 2a landed `1c7ea26e`; 2b (runtime wiring) next.
+**Resume notes:** 2a shipped in `core/physics/identity.py` (additive): dual-mode `check(..., *, wave_field=None, violated_boundary_ids=frozenset())`, `_validate_wave_field` (fail-closed), `_wave_field_score` (operator-preservation via `IdentityManifoldGeometry`), extended `IdentityScore`, `IdentityGateRefusal`, `conjugate_correct` (admit-or-abstain), `would_violate` extended. `tests/test_adr_0244_identity_gate_wave.py` (16 tests). identity_manifold now imported by identity.py (serve-safe; quarantine tests green). Legacy path byte-identical (no wave_field + empty boundary set). Gate: 16 new + smoke 176 + fast lane 11879/109. **2b next:** add `identity_wave_gate: bool = False` to `core/config.py` RuntimeConfig; at `chat/runtime.py:2679` pass `wave_field=result.final_state.F if flag`; after verdicts (~2740) supplement `boundary_violations` via `replace` + fold geometric `IdentityGateRefusal` into `refusal_surface` (use `TYPED_REFUSAL_PREFIX`); emit wave telemetry keys in `chat/telemetry.py:serialize_turn_event` only when `identity_score.wave_mode_active`.
 
 ### Phase 3 — §2.4 `γ_id` calibration
 **Objective:** replace the hardcoded threshold with a certifiable, calibrated bound.
@@ -223,6 +225,7 @@ Forward-looking mechanical-sympathy items from the critique — a separate optim
 - **2026-07-17** — **Phase 0 landed `ad37d03b`.** ADR-0244 reconciled (11-item governance annotation + new §4a superseding §4); ADR-0245 committed as a real companion ADR (Proposed) with its own status map; audit doc updated. Gate green (smoke 176 + provenance/ADR pins 30). Pushed to `forgejo/main`, local `main` fast-forwarded, worktree in sync. Next: Phase 1.
 - **2026-07-17** — **Phase 1 core-mechanism correction (ratified), amendment `459280e3`.** Discovered before implementing: `final_state.F` is a versor/operator (grade-1 energy exactly 0), so §2.1/§2.2's literal grade-1 projection is vacuous (flags everything). Ratified switch to **operator-preservation** (sandwich `F aᵢ F̃`): subspace-rejection leakage (catches e4/e5 tilt) + signed self-alignment (catches in-subspace inversion). Both empirically verified necessary + discriminating (identity→0 leak/+1 align; e14/e15 tilt→0.28/0.29 leak; π-invert→0 leak/−1 align). ADR-0244 governance annotation item 12 + §4a rewritten; plan §3 Fact C + §5 Phase 1 updated.
 - **2026-07-17** — **Phase 1 landed `3c3d2c29`.** `core/physics/identity_manifold.py` (operator-preservation primitive) + `tests/test_adr_0244_identity_manifold.py` (24 tests). Pure/f64/deterministic, off-serve (quarantine test green). Gate: 24 new + smoke 176 + fast lane **11863 passed, 109 skipped** (9:01). Not yet wired into serve — Phase 2. Next: Phase 2.
+- **2026-07-17** — **Phase 2a landed `1c7ea26e`.** Pure `identity.py` capability: dual-mode wave gate + `IdentityGateRefusal` + boundary predicate + admit-or-abstain `C_id` + extended `IdentityScore` + 16 tests. No runtime behavior change (legacy path byte-identical). Gate: 16 new + smoke 176 + fast lane **11879 passed, 109 skipped** (8:39). Next: 2b (runtime wiring behind `identity_wave_gate` flag).
 
 ---
 
@@ -232,7 +235,7 @@ Forward-looking mechanical-sympathy items from the critique — a separate optim
 |---|---|---|---|
 | 0 | Governance reconciliation (ADR-0244 edits + commit ADR-0245) | ✅ DONE | `ad37d03b` (+ `459280e3` §4a amend) |
 | 1 | §2.1 identity manifold primitive (operator-preservation) | ✅ DONE | `3c3d2c29` |
-| 2 | §2.2 fail-closed gate + boundary_ids + C_id + telemetry + eval | ⬜ NOT STARTED | — |
+| 2 | §2.2 fail-closed gate + boundary_ids + C_id + telemetry + eval | ◐ IN PROGRESS (2a ✅ `1c7ea26e`; 2b/2c pending) | — |
 | 3 | §2.4 γ_id calibration | ⬜ NOT STARTED | — |
 | 4 | §2.5 / 0245 §2.2 serving-boundary cast | ⬜ NOT STARTED | — |
 | 5 | §2.7 residual + §2.9 wiring + §2.10 audit + 0245 §3 gate | ⬜ NOT STARTED | — |
