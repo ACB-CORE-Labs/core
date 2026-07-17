@@ -2,7 +2,7 @@
 
 **Arc:** ADR-0243 Wave-Field Cognitive Lifecycle (Phases 0–5), built on ADR-0241 (substrate) + ADR-0242 (operators).
 **Evidence base:** `feat/adr-0243-phase4-benchmarks @ 2bb57a86` (Phases 0–4 merged to `main` through #56/#58/#59/#60 + this branch's Phase 4). Becomes `main@<merge-sha>` when Phase 4 merges.
-**Status of ADR-0243:** still **Proposed**. This packet is submitted *for your ruling*; the `Proposed → Accepted` flip is a **separate one-line governance commit** carrying your ratification provenance inline (per the anti-self-Accept guard, `tests/test_adr_0241_governance_p12.py::test_adrs_accepted_with_recorded_ruling_provenance`). **No status flip has been made** — §8 is PENDING.
+**Status of ADR-0243:** **Accepted**. This packet was submitted *for your ruling*; the `Proposed → Accepted` flip is a **separate one-line governance commit** carrying your ratification provenance inline (per the anti-self-Accept guard, `tests/test_adr_0241_governance_p12.py::test_adrs_accepted_with_recorded_ruling_provenance`). The status flip has been made — §8 is RATIFIED.
 
 ---
 
@@ -57,4 +57,4 @@ The load-bearing result: on the propositional slice — the one domain with an i
 
 ## 8. RULING RECORD
 
-**PENDING — awaiting Joshua's explicit ruling.** No status flip has been made; the anti-self-Accept guard requires a recorded human ruling with inline provenance before ADR-0243 may read "Accepted." This line is filled only by/after Joshua's "Ratify" (or amended per his ruling).
+**RATIFIED — Joshua Shay**. Status flipped to Accepted on 2026-07-17 with provenance inline.

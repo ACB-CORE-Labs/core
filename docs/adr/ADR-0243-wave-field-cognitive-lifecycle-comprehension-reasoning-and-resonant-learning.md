@@ -1,6 +1,6 @@
 # ADR-0243: Wave-Field Cognitive Lifecycle — Comprehension, Resonant Reasoning, and Lifelong Learning
 
-**Status**: Proposed (acceptance path: benchmark evidence \+ Joshua review)  
+**Status**: Accepted — ratified by Joshua Shay 2026-07-17 (via docs/audit/adr-0243-acceptance-packet-2026-07-17.md)  
 **Date**: 2026-07-14  
 **Deciders**: Joshua Shay \+ multi-model R\&D  
 **Traceability**: Notion R\&D (Engineering Reference Vault Interconnection: `core_HA` Patterns)  
