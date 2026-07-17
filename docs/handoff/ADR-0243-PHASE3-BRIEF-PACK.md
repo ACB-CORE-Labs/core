@@ -2,10 +2,9 @@
 
 **Status**: ready for dispatch (Shay's call — see [[feedback-no-self-dispatch-of-subagents]])
 **Plan of record**: `docs/plans/adr-0243-implementation-plan.md` §5 Phase 3
-**Phase 2 status at time of writing**: pushed, unmerged. Branch `feat/adr-0243-phase2-lifecycle`
-@ `c3b4d045`, stacked on `feat/adr-0243-phase0-governance` @ `904380e9`, on top of
-`forgejo/main` @ `19819194`. Compare URL:
-`https://core-gitquarters.acbcontent.org/core-labs/core/compare/main...feat/adr-0243-phase2-lifecycle`
+**Phase 2 status**: merged to `main` (PR #56, merge commit `8624ea9a`) — `cognitive_lifecycle.py`
+is on `main` now. The feature branch was deleted post-merge; do not branch off it. **All three
+lanes below branch directly off current `forgejo/main`.**
 
 Each lane's research below was run fresh against the worktree on 2026-07-17 (three
 read-only Explore passes, not assumed from the plan text) — one correction to the
@@ -15,24 +14,24 @@ ratchet W-006).
 
 ## Dependency DAG — corrected from the plan's "all wait on Phase 2" framing
 
-The plan text implies all three lanes start "after Phase 2 API lands." That's only
-true for one of them:
+The plan text implies all three lanes start "after Phase 2 API lands." That was only
+ever true for one of them, and Phase 2 has since merged (#56) — so as of now, **all
+three are unblocked and start from the same place**:
 
 - **Lane A** (discovery wiring) and **Lane C** (biography wiring) touch zero Phase-2
-  code — every symbol they wire is already on `forgejo/main` today (`core/physics/surprise.py`,
+  code — every symbol they wire predates this arc (`core/physics/surprise.py`,
   `core/physics/multi_scale_energy.py`, `core/physics/goldtether.py`,
   `core/contemplation/runner.py`, `teaching/discovery.py`, `evals/analogical_transfer/harness.py`,
-  `core/physics/biography.py` all predate this arc). **They can branch off
-  `forgejo/main` right now, in parallel with Phase 2's own review.**
+  `core/physics/biography.py`).
 - **Lane B** (sensorium corridor eval) is the only lane that imports
   `core.physics.cognitive_lifecycle` (`CognitiveLifecycleEngine`, `ingest_context`,
-  `egress_gate`). It must branch off `feat/adr-0243-phase2-lifecycle` (or wait for
-  Phase 2 to merge and branch off `forgejo/main` at that point).
+  `egress_gate`) — it needed Phase 2 merged first. It now is.
 
 ```
-Wave 1 (parallel, off forgejo/main now):        Wave 1b (off feat/adr-0243-phase2-lifecycle):
-  Lane A — discovery wiring                        Lane B — sensorium corridor eval
-  Lane C — biography wiring                        (rebase onto forgejo/main once Phase 2 merges)
+Wave 1 (parallel, all off forgejo/main now):
+  Lane A — discovery wiring
+  Lane B — sensorium corridor eval
+  Lane C — biography wiring
 ```
 
 All three are independent PRs — no lane blocks another.
@@ -131,9 +130,9 @@ Real open design question (surprise-signal sourcing) — strong-reasoning tier s
 
 ## Brief B — Sensorium corridor eval (first live I-04 consumer)
 
-**Base**: `feat/adr-0243-phase2-lifecycle` @ `c3b4d045` (rebase onto `forgejo/main`
-once Phase 2 merges). **Branch**: `feat/adr-0243-phase3-lane-b-corridor`.
-**Worktree**: `git worktree add ../core-adr0243-lane-b feat/adr-0243-phase3-lane-b-corridor`.
+**Base**: `forgejo/main` (Phase 2 merged as of #56 — `cognitive_lifecycle.py` is on `main`).
+**Branch**: `feat/adr-0243-phase3-lane-b-corridor`.
+**Worktree**: `git worktree add ../core-adr0243-lane-b -b feat/adr-0243-phase3-lane-b-corridor forgejo/main`.
 
 ### Outcome
 
@@ -292,7 +291,7 @@ tier, and confirm the mutation-vs-proposal call with Shay before committing to i
 
 **Lane B:**
 > Read `docs/handoff/ADR-0243-PHASE3-BRIEF-PACK.md` §Brief B. Worktree:
-> `git worktree add ../core-adr0243-lane-b -b feat/adr-0243-phase3-lane-b-corridor feat/adr-0243-phase2-lifecycle`.
+> `git worktree add ../core-adr0243-lane-b -b feat/adr-0243-phase3-lane-b-corridor forgejo/main`.
 > Deliverable: `evals/adr_0243_cognitive_lifecycle/` corridor eval (compiler → ingest →
 > relax → egress → readback → GoldTether). Run this lane's tests + the in-worktree
 > smoke gate before flagging ready.
