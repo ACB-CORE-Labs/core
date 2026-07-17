@@ -36,6 +36,52 @@ _BANNED = (
 )
 
 
+def test_idle_tick_contemplation_import_does_not_load_offserving_substrate():
+    """The stated invariant is PROCESS-level, and the serve process executes
+    more than ``import chat.runtime``: the optional idle-tick frontier pass
+    lazily runs ``from core.contemplation.runner import run_contemplation,
+    write_contemplation_run`` inside the same always-on process that serves
+    turns (chat/runtime.py idle_tick, ``contemplate_frontier_during_idle``;
+    enabled by ``core/cli.py`` for the daemon).  That import edge must stay
+    banned-module-clean too.
+
+    Pre-ADR-0243-Lane-A this leaked ``core.physics.holographic_vault`` via the
+    package ``__init__``'s eager ``wave_seam`` import; Lane A made the
+    wave-seam re-exports lazy (PEP 562) and keeps the discovery-gate import
+    (``core.physics.multi_scale_energy``) function-local.  The lazy re-export
+    must still resolve when actually referenced (checked last, in the same
+    probe, AFTER the leak assertion's snapshot).
+    """
+    probe = (
+        "import importlib, sys, json;"
+        "importlib.import_module('chat.runtime');"
+        # Mirror of chat/runtime.py idle_tick's lazy import, verbatim edge.
+        "from core.contemplation.runner import run_contemplation, write_contemplation_run;"
+        f"banned={list(_BANNED)!r};"
+        "leaked=sorted(m for m in sys.modules for b in banned if m==b or m.startswith(b+'.'));"
+        # Lazy re-export still works off-serve (loads wave_seam on demand).
+        "import core.contemplation as c;"
+        "assert c.WaveModeHypothesis is not None;"
+        "print(json.dumps(leaked))"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", probe],
+        cwd=str(_ROOT),
+        capture_output=True,
+        text=True,
+        env={"PYTHONPATH": str(_ROOT), "PATH": ""},
+    )
+    assert result.returncode == 0, f"probe failed: {result.stderr[-2000:]}"
+    leaked = result.stdout.strip().splitlines()[-1]
+    import json as _json
+
+    leaked_list = _json.loads(leaked)
+    assert not leaked_list, (
+        "serve-process idle_tick contemplation import loaded off-serving "
+        f"modules (A-04 breach): {leaked_list}"
+    )
+
+
 def test_import_chat_runtime_does_not_load_offserving_substrate():
     probe = (
         "import importlib, sys, json;"
