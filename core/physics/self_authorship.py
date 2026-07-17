@@ -39,8 +39,10 @@ class AuthorshipProposal:
 
 
 def _content_id(payload: Mapping[str, Any]) -> str:
-    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
+    # Full 256-bit digest (64 hex); no ``default=str`` — non-serializable
+    # payload elements fail closed with a typed ``TypeError`` (ADR-0244 §2.7).
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
 class SelfAuthorshipMiner:

@@ -124,13 +124,33 @@ class EgressValidationError(CognitiveLifecycleError):
 # --- Content addressing ----------------------------------------------------------
 
 
+def _le_f64_bytes(arr: np.ndarray) -> bytes:
+    """Canonical little-endian float64 bytes for cross-platform-stable digests.
+
+    ADR-0244 §2.7 byte-order guard: coerce to little-endian float64 before
+    hashing so the digest is identical on every little-endian platform and
+    deterministic on big-endian ones. Byte-wise a no-op on the M1/x86 targets,
+    but an explicit contract rather than an implicit platform assumption — and a
+    coercion, not an ``assert`` (the assert form is stripped under ``-O``).
+    """
+    contiguous = np.ascontiguousarray(arr, dtype=np.float64)
+    return contiguous.astype(np.dtype("<f8"), copy=False).tobytes()
+
+
 def _content_id(payload: Mapping[str, Any]) -> str:
-    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
+    # Full 256-bit digest (64 hex). No ``default=str``: a non-serializable
+    # payload element fails closed with a typed ``TypeError`` at the
+    # serialization boundary rather than silently collapsing distinct objects
+    # onto identical string forms (ADR-0244 §2.7).
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
 def _psi_digest(psi: np.ndarray) -> str:
-    return hashlib.sha256(np.ascontiguousarray(psi, dtype=np.float64).tobytes()).hexdigest()[:24]
+    # Full 256-bit digest over canonical little-endian float64 bytes — no
+    # 96-bit truncation (birthday-collision floor at 2^48), no platform
+    # byte-order ambiguity (ADR-0244 §2.7).
+    return hashlib.sha256(_le_f64_bytes(psi)).hexdigest()
 
 
 def _as_psi(x: np.ndarray, name: str, *, error: type[CognitiveLifecycleError]) -> np.ndarray:
@@ -271,7 +291,7 @@ class ProblemHamiltonian:
             _content_id(
                 {
                     "domain": str(self.domain),
-                    "matrix_sha": hashlib.sha256(arr.tobytes()).hexdigest(),
+                    "matrix_sha": hashlib.sha256(_le_f64_bytes(arr)).hexdigest(),
                     "metadata": {k: str(v) for k, v in sorted(meta.items())},
                 }
             ),

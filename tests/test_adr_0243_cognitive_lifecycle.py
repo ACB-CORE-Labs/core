@@ -569,8 +569,8 @@ def test_egress_refuses_certificate_not_bound_to_state():
     cert = outcome.relaxation.certificate
     # Independent gold for the binding: byte digest of the certified state.
     gold_digest = hashlib.sha256(
-        np.ascontiguousarray(psi, dtype=np.float64).tobytes()
-    ).hexdigest()[:24]
+        np.ascontiguousarray(psi, dtype=np.float64).astype(np.dtype("<f8"), copy=False).tobytes()
+    ).hexdigest()
     assert cert.psi_digest == gold_digest
     assert cert.as_dict()["psi_digest"] == gold_digest
 
