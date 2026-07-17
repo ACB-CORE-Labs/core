@@ -110,8 +110,8 @@ Dependencies: `0 → {1, 4}` · `1 → 2 → 3` · `5 after 0` · `6 last`. Each
 - Update audit doc: mark Q4 (Q_top) + the §4-vs-§2 blocker RESOLVED; map 0245 status.
 **Acceptance:** both ADRs internally consistent; no `ΔQ_top` egress conjunct; no phantom refs; no bare `assert` in normative code blocks; provenance-guard test still green (docs-only, status stays **Proposed** — flips happen in Phase 6).
 **Gate:** smoke 176 (docs-only, but run it) + provenance/ADR pins.
-**Status:** ⬜ NOT STARTED
-**Resume notes:** —
+**Status:** ✅ DONE — landed `ad37d03b`
+**Resume notes:** ADR-0244 governance annotation expanded to 11 items (§4a added, supersedes §4, verbatim R&D body preserved). ADR-0245 committed Proposed at `docs/adr/ADR-0245-cga-unification-mechanical-sympathy-and-semantic-rigor.md` with its own governance annotation + status map. Audit doc wrinkles 1–2 + Q5 line updated to resolved. Gate: smoke 176 passed + provenance/ADR pins (governance_p12, topological_quarantine, third_door_cohesion) 30 passed. Both ADR status lines confirmed still `Proposed` (no flip). Phase 1's `lift_axis` spec confirmed against the real `algebra.cl41.basis_vector` helper (grade-1 lives at component indices 1–5; e1/e2/e3 = `basis_vector(0..2)`) — no further verification needed before Phase 1 starts.
 
 ### Phase 1 — §2.1 Gram identity manifold (pure primitive, off-path) — TDD
 **Objective:** the metric-exact projection primitive, no runtime wiring.
@@ -218,6 +218,7 @@ Forward-looking mechanical-sympathy items from the critique — a separate optim
 ## 9. Progress log (append-only)
 
 - **2026-07-17** — Arc kicked off. Plan doc authored + committed to `main`. Worktree `core-adr0244d4` created off `ee38c976`. Both sign-offs recorded (§2). Next: Phase 0.
+- **2026-07-17** — **Phase 0 landed `ad37d03b`.** ADR-0244 reconciled (11-item governance annotation + new §4a superseding §4); ADR-0245 committed as a real companion ADR (Proposed) with its own status map; audit doc updated. Gate green (smoke 176 + provenance/ADR pins 30). Pushed to `forgejo/main`, local `main` fast-forwarded, worktree in sync. Next: Phase 1.
 
 ---
 
@@ -225,7 +226,7 @@ Forward-looking mechanical-sympathy items from the critique — a separate optim
 
 | Phase | Objective | Status | Landed at |
 |---|---|---|---|
-| 0 | Governance reconciliation (ADR-0244 edits + commit ADR-0245) | ⬜ NOT STARTED | — |
+| 0 | Governance reconciliation (ADR-0244 edits + commit ADR-0245) | ✅ DONE | `ad37d03b` |
 | 1 | §2.1 Gram identity manifold primitive | ⬜ NOT STARTED | — |
 | 2 | §2.2 fail-closed gate + boundary_ids + C_id + telemetry + eval | ⬜ NOT STARTED | — |
 | 3 | §2.4 γ_id calibration | ⬜ NOT STARTED | — |
@@ -233,4 +234,4 @@ Forward-looking mechanical-sympathy items from the critique — a separate optim
 | 5 | §2.7 residual + §2.9 wiring + §2.10 audit + 0245 §3 gate | ⬜ NOT STARTED | — |
 | 6 | Close-out (2 acceptance packets + 2 ratified flips) | ⬜ NOT STARTED | — |
 
-**▶ NEXT: Phase 0 — Governance reconciliation.**
+**▶ NEXT: Phase 1 — §2.1 Gram identity manifold primitive.**
