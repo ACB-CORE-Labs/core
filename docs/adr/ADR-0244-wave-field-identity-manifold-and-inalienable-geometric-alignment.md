@@ -21,6 +21,7 @@
 > 9. **Filename correction.** ADR-0245 (item 10) and its R&D commentary reference `core/physics/multimodal_lifecycle.py`; that file does not exist. The real module is `core/physics/cognitive_lifecycle.py` (ADR-0243).
 > 10. **ADR-0245 is real.** `docs/adr/ADR-0245-cga-unification-mechanical-sympathy-and-semantic-rigor.md`, committed **Proposed** as a companion ADR at D4 Phase 0. It is the mechanical-sympathy + semantic-rigor foundation this ADR's identity gate sits on: Rust `geometric_product` fast-path (its §2.1 ≡ this ADR's §2.6), the f64→f32 serving-boundary cast (its §2.2 ≡ this ADR's §2.5 — one contract, two ADRs), content-addressing rigor (its §2.3 ≡ this ADR's §2.7), and `eigh` memoization (its §2.4 ≡ this ADR's §2.8).
 > 11. **Theological citation.** The quoted John 1:1–2 text matches the **ESV** (English Standard Version). It is cited as an engineering analogy that makes the architecture legible to humans, not as a scientific or theological proof of the geometric claims in §2.
+> 12. **Operator-preservation reframe (§2.1/§2.2 core mechanism corrected; ratified by Joshua Shay 2026-07-17).** The live identity trajectory `final_state.F` carries the invariant `versor_condition(F) < 1e-6` (`field/state.py`) — it is a **versor: an even-grade operator (grades 0,2,4) with exactly zero grade-1 content** (verified empirically). §2.1/§2.2's literal "project ψ_traj onto the grade-1 value subspace" is therefore *vacuous* on the real runtime object: `P_id(F) = 0` identically, flagging every trajectory — a fail-closed brick. Root cause: a versor is an *operator*, not a state vector; "project the operator into a subspace of states" is a category error. **Resolution:** measure whether the versor *preserves* the value subspace, via its action on the axes `F aᵢ F̃` (sandwich). Leakage = the out-of-subspace component of each rotated axis (Euclidean norm, catches tilt toward e4/e5); a second **signed self-alignment** `⟨aᵢ, F aᵢ F̃⟩₀` catches in-subspace inversion (`e1 → −e1`: leakage 0 but self-alignment −1) — both verified necessary and non-redundant. This keeps the grade-1 pack axes unchanged (no pack migration) and sharpens the inalienability semantics: identity is invariant *under transformation* (the versor leaves the value subspace fixed), not a frozen state. §4a is the governing spec; §2.1/§2.2's "project ψ_traj" prose is superseded by this operator-preservation formulation.
 >
 > **Governance anchors (ADR-0225).** *Safety/identity boundary:* this ADR defines the identity trust boundary itself — items 4, 7, 8 above are exactly that boundary's shape. *Versor closure:* axis eigenmodes and `ψ_traj` are validated for shape (`N_COMPONENTS`,) and finiteness before projection (§4a); the manifold does not assume `ψ_traj` is itself a unit versor (item 6 — it may be a superposition). *Reconstruction-over-storage:* the manifold stores only axis directions + calibration certificates; `ψ_traj` is read from `final_state.F` per-turn, never duplicated into the manifold. *Replay-equivalence:* the identity gate's fail-closed path must preserve byte-identical output for non-flagged turns (D4 Phase 2 acceptance criterion — the gate is flag-gated off by default until calibrated). *Mutation standing:* the identity manifold is frozen (item 8), never mutated in-path; `C_id`'s corrective displacement acts on the trajectory, never on the manifold.
 >
@@ -410,7 +411,9 @@ class IdentityCheck:
 
 ## 4a. D4 Phase 0 — Reconciled Implementation Specification (supersedes §4)
 
-§4 above is preserved verbatim as the original R&D sketch. Per governance annotation item 2, it contradicts the governing §2.1–2.2 decision and is **not** the specification implementers build against. This section is that specification. It is normative *shape* — the literal shipped code is produced under TDD in D4 Phase 1 (`core/physics/identity_manifold.py`) and Phase 2 (`core/physics/identity.py`); this block is not the final diff.
+§4 above is preserved verbatim as the original R&D sketch. Per governance annotation items 2 and 12, it contradicts the governing decision and is **not** the specification implementers build against. This section is that specification. It is normative *shape* — the literal shipped code is produced under TDD in D4 Phase 1 (`core/physics/identity_manifold.py`) and Phase 2 (`core/physics/identity.py`); this block is not the final diff.
+
+**The operator-preservation correction (governance annotation item 12).** The live identity trajectory is `final_state.F`, whose class invariant (`field/state.py`) is `versor_condition(F) < 1e-6` — i.e. **F is a versor: an even-grade operator (grades 0,2,4), with zero grade-1 content.** §2.1/§2.2's literal "project ψ_traj onto the grade-1 value subspace" applied to F is therefore vacuous (`P_id(F) = 0` identically ⇒ every trajectory maximally flagged ⇒ a fail-closed brick). This was verified empirically before implementation. The geometrically correct question for an *operator* against a *subspace* is not "is the operator in the subspace" but "does the operator **preserve** the subspace" — evaluated by its action on the subspace's basis via the sandwich product `F aᵢ F̃`. This keeps the grade-1 pack axes unchanged and matches inalienability precisely: a legitimate cognitive versor leaves the value axes invariant; a jailbreak versor twists a value axis out of the value subspace (leakage) or inverts it (anti-alignment). **Ratified by Joshua Shay, 2026-07-17.**
 
 **Phase 1 primitive — `core/physics/identity_manifold.py` (§2.1):**
 
@@ -418,19 +421,22 @@ class IdentityCheck:
 class ManifoldConditioningError(ValueError):
     """Gram matrix condition number exceeds the mode-aliasing bound (10**5)."""
 
-def lift_axis(direction3: tuple[float, float, float]) -> np.ndarray:
+def lift_axis(direction3: Sequence[float]) -> np.ndarray:
     """Grade-1 lift: R^3 -> Cl(4,1) at the e1/e2/e3 slots.
 
     Uses algebra.cl41.basis_vector(0..2) — NOT algebra.cga.embed_point, which
     maps to null-cone points and would make the Gram matrix a distance table
-    rather than a metric inner product. Precomputed once at manifold load:
-    f64 precision domain (the f64->f32 serving-boundary cast, Sec 2.5 /
-    ADR-0245 Sec 2.2, applies only to the live per-turn psi_traj, not to this
-    offline axis construction).
+    rather than a metric inner product. The value subspace I = span(lifted
+    axes) therefore lives in the spatial grade-1 block (e1,e2,e3), where the
+    Cl(4,1) inner product <.,.>_0 coincides with the Euclidean coefficient
+    inner product (each e_i^2 = +1), so the Gram matrix is positive-definite.
+    Precomputed once at manifold load in the f64 precision domain (the
+    f64->f32 serving cast, Sec 2.5 / ADR-0245 Sec 2.2, applies only to the
+    live per-turn versor F, not to this offline axis construction).
     """
     psi = np.zeros(N_COMPONENTS, dtype=np.float64)
     for k, component in enumerate(direction3):
-        psi = psi + component * basis_vector(k).astype(np.float64)
+        psi = psi + float(component) * basis_vector(k).astype(np.float64)
     return psi
 
 def gram_matrix(axes_psi: Sequence[np.ndarray]) -> np.ndarray:
@@ -444,58 +450,94 @@ def gram_matrix(axes_psi: Sequence[np.ndarray]) -> np.ndarray:
         raise ManifoldConditioningError(f"Gram condition number {cond:.3e} exceeds 1e5")
     return G
 
-def project(psi: np.ndarray, axes_psi: Sequence[np.ndarray], g_inv: np.ndarray) -> np.ndarray:
-    """P_id(psi) = sum_ij psi_axis_i * (G^-1)_ij * <psi_axis_j, psi>_0 — signed."""
-    c = np.array([scalar_part(geometric_product(reverse(a), psi)) for a in axes_psi])
+def subspace_project(x: np.ndarray, axes_psi, g_inv) -> np.ndarray:
+    """Metric-orthogonal projection of x onto I = span(axes_psi).
+    P_I(x) = sum_ij axis_i * (G^-1)_ij * <axis_j, x>_0. Coefficients are SIGNED
+    (never abs()'d) so orientation is preserved (governance annotation item 4)."""
+    c = np.array([scalar_part(geometric_product(reverse(a), x)) for a in axes_psi])
     coeffs = g_inv @ c
-    return sum(w * a for w, a in zip(coeffs, axes_psi))
+    out = np.zeros(N_COMPONENTS, dtype=np.float64)
+    for w, a in zip(coeffs, axes_psi):
+        out = out + w * a
+    return out
 
-def leakage_norm(s_id: np.ndarray) -> float:
+def sandwich(R: np.ndarray, x: np.ndarray) -> np.ndarray:
+    """Versor action R x R~. For a versor R this preserves grade and norm, so a
+    grade-1 axis maps to a grade-1 unit vector."""
+    return geometric_product(geometric_product(R, x), reverse(R))
+
+def euclidean_norm(s: np.ndarray) -> float:
     """Positive-definite coefficient-Euclidean norm — NOT the indefinite Cl(4,1)
-    inner product <S, S~>_0, which signature (+,+,+,+,-) permits to vanish for
-    nonzero leakage, silently hiding a breach (governance annotation item 4)."""
-    return float(np.linalg.norm(s_id, ord=2))
+    <S,S~>_0, which signature (+,+,+,+,-) permits to vanish (or go negative, e.g.
+    for an e5/boost leakage component) for nonzero leakage, silently hiding a
+    breach (governance annotation item 4)."""
+    return float(np.linalg.norm(np.asarray(s, dtype=np.float64), ord=2))
+
+def axis_response(R, axes_psi, g_inv):
+    """Per-axis operator-preservation measures for versor R. For each value
+    axis a_i:
+      rotated_i    = sandwich(R, a_i)                # grade-1 unit vector
+      rejection_i  = rotated_i - subspace_project(rotated_i)   # out-of-I component
+      leakage_i    = euclidean_norm(rejection_i)     # subspace departure (Sec 2.2)
+      self_align_i = <a_i, rotated_i>_0              # SIGNED orientation (item 4)
+    Returns (leakage[], self_align[]). Both are needed and non-redundant:
+    rejection catches tilt toward alien dimensions (e4/e5); self_align catches
+    in-subspace inversion (e1 -> -e1: leakage 0 but self_align -1)."""
+    leak, align = [], []
+    for a in axes_psi:
+        rot = sandwich(R, a)
+        rej = rot - subspace_project(rot, axes_psi, g_inv)
+        leak.append(euclidean_norm(rej))
+        align.append(scalar_part(geometric_product(a, reverse(rot))))
+    return leak, align
 ```
 
 **Phase 2 gate — `core/physics/identity.py` (§2.2; dual-mode, fail-closed):**
 
 ```python
 class IdentityGateRefusal(Exception):
-    """Fail-closed refusal: leakage or boundary check failed and C_id could not
-    recover alignment within its bound. Live parameters are unchanged."""
+    """Fail-closed refusal: leakage/orientation or boundary check failed and
+    C_id could not recover alignment within its bound. Params unchanged."""
 
-def _axis_projection(axis, psi_traj, axis_psi) -> float:
-    psi_arr = np.ascontiguousarray(psi_traj, dtype=np.float32)
-    if psi_arr.dtype.byteorder not in ("<", "="):
+def _wave_field_check(F_traj, axes_psi, g_inv) -> tuple[float, list, list]:
+    F = np.ascontiguousarray(F_traj, dtype=np.float32)
+    if F.dtype.byteorder not in ("<", "="):
         raise ValueError("Identity gate requires little-endian float32")
-    if not np.all(np.isfinite(psi_arr)):
-        raise ValueError("Identity gate encountered nonfinite values in psi_traj")
-    if psi_arr.shape != (N_COMPONENTS,):
-        raise ValueError(f"psi_traj must be shape ({N_COMPONENTS},), got {psi_arr.shape}")
-    # Signed overlap — do NOT abs(): a large negative value is anti-alignment
-    # (opposition), a materially worse condition than orthogonality, and must
-    # stay distinguishable from it (governance annotation item 4).
-    return float(scalar_part(geometric_product(psi_arr, reverse(axis_psi))))
+    if not np.all(np.isfinite(F)):
+        raise ValueError("Identity gate encountered nonfinite values in F_traj")
+    if F.shape != (N_COMPONENTS,):
+        raise ValueError(f"F_traj must be shape ({N_COMPONENTS},), got {F.shape}")
+    leak, align = axis_response(F.astype(np.float64), axes_psi, g_inv)
+    # subspace-preservation score (RMS leakage over axes; each rotated axis is
+    # unit-norm, so the denominator is sqrt(n)); orientation carried separately.
+    score = 1.0 - (sum(l * l for l in leak) / len(leak)) ** 0.5
+    return score, leak, align
 
-# Malformed psi_traj (NaN / wrong shape / wrong byte-order) raises — it never
+# Malformed F_traj (NaN / wrong shape / wrong byte-order) raises — it never
 # falls through to the legacy scalar-L2 path (Sec 3's dual-mode fallback is
-# for ABSENT psi_traj only, not malformed psi_traj).
+# for ABSENT F_traj only, not malformed F_traj).
 ```
 
-Egress condition (replaces §2.2 item 2's formula — `∧ ΔQ_top = 0` dropped per governance annotation item 1):
+Egress condition (replaces §2.2 item 2's formula — `∧ ΔQ_top = 0` dropped per governance annotation item 1; operator-preservation per item 12):
 
 ```
-psi_minus = F_cognitive(psi_t, u_t)
-r_id      = psi_minus - P_id(psi_minus)              # leakage
-psi_plus  = C_id(psi_minus, r_id)                     # bounded, abstaining corrector
-admit  <=>  leakage_norm(psi_plus - P_id(psi_plus)) <= gamma_id
+F_minus  = versor from F_cognitive(psi_t, u_t)      # a versor (grades 0,2,4)
+leak, align = axis_response(F_minus, axes_psi, g_inv)
+F_plus   = C_id(F_minus, leak, align)                # bounded, abstaining corrector
+admit  <=>  rms(leak(F_plus)) <= gamma_id            # subspace preserved
+       AND  min(align(F_plus)) >= gamma_orient       # no value axis inverted
+       AND  no boundary_id violated                  # hard boundaries (item 7)
 ```
 
-`C_id` is a **bounded, abstaining** corrector: it may apply a bounded corrective displacement toward the manifold; if it cannot recover alignment within that bound, it **abstains** — raises `IdentityGateRefusal`, live parameters are kept unchanged. `C_id` must **not** rewrite reasoning arbitrarily to force a low leakage score — a corrector that can do that creates a "good-metric, bad-cognition" failure mode, which is a new defect, not a fix.
+Two per-axis measures, both required and non-redundant (empirically verified):
+- **Subspace leakage** `euclidean_norm(rotated_i − P_I(rotated_i))` — catches a versor tilting a value axis toward an alien dimension (e4/e5). Euclidean norm per item 4/6.
+- **Signed self-alignment** `<a_i, rotated_i>_0` — catches a versor *inverting* a value axis within the subspace (`e1 -> -e1`: subspace leakage is 0, but self-alignment is −1). This is the concrete realization of the "signed overlap, never abs()" ratified decision.
 
-`boundary_ids` (governance annotation item 7) is evaluated as a hard-boundary check alongside the axis-leakage score; a boundary violation is refused independent of the leakage score (its predicate is designed in D4 Phase 2, not prescribed here).
+`C_id` is a **bounded, abstaining** corrector: it may apply a bounded corrective displacement toward the manifold; if it cannot recover alignment within that bound, it **abstains** — raises `IdentityGateRefusal`, live parameters kept unchanged. `C_id` must **not** rewrite reasoning arbitrarily to force a low leakage score — a corrector that can do that creates a "good-metric, bad-cognition" failure mode, which is a new defect, not a fix.
 
-**Identity-continuity (governance annotation item 8):** `axes_psi` above is computed once at manifold/pack load and frozen for the session. ADR-0243 biography holonomy accumulation is a separate, non-mutating process with respect to this subspace.
+`boundary_ids` (governance annotation item 7) is evaluated as a hard-boundary check alongside the leakage/orientation scores; a boundary violation is refused independent of them (its predicate is designed in D4 Phase 2, not prescribed here).
+
+**Identity-continuity (governance annotation item 8):** `axes_psi` and `g_inv` above are computed once at manifold/pack load and frozen for the session. ADR-0243 biography holonomy accumulation is a separate, non-mutating process with respect to this subspace.
 
 ---
 

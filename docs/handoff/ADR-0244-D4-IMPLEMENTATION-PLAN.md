@@ -72,6 +72,7 @@ Verified by reading the tree, **not** the relays (which contain at least one hal
 
 - **Fact A — axes are R³ 3-vectors.** `packs/identity/default_general_v1.json` ships `direction` = dim-3 unit vectors; loader enforces `_DIRECTION_LEN`. §2.1 assumes 32-vector eigenmodes → requires the grade-1 lift (decision #4).
 - **Fact B — two field surfaces, not one.** §2.2 gate runs on `result.final_state.F` (cognition-pipeline field, `chat/runtime.py:2679`). §2.5 `ψ_steady` cast lives in `core/physics/cognitive_lifecycle.py` (ADR-0243 lifecycle), which `chat/` + `core/cognition/` **do not import** (A-04 off-serve). The ADR conflates them; they are separate contracts in separate files.
+- **Fact C — `final_state.F` is a VERSOR (operator), not a state vector** (`field/state.py` invariant `versor_condition(F) < 1e-6`). It is even-grade (grades 0,2,4) with **exactly zero grade-1 content** (verified). This makes §2.1/§2.2's literal "project ψ onto the grade-1 subspace" vacuous (`P_id(F)=0`, flags everything). Resolution (ratified 2026-07-17): **operator-preservation** — measure whether the versor preserves the value subspace via `F aᵢ F̃`. See ADR-0244 governance annotation item 12 + §4a. This is the D4 core-mechanism correction.
 - **Advisory, not a gate.** Current identity_score feeds `_build_surface_context` (hedge/claim-strength, `runtime.py:2705`) + telemetry. `would_violate` is never called in runtime. §2.2 converts advisory → fail-closed = a **live-serving behavior change** (highest risk).
 - **`psi_traj` is never populated.** `_make_trajectory_from_result` (`runtime.py:385`) builds from `result.trajectory or (result.final_state,)`; no `psi_traj` attr. The wave-field 32-vector *is* available as `final_state.F` (used by `versor_condition(result.final_state.F)`). Phase 2 must thread it.
 - **`boundary_ids` dormant** — stored on the manifold, never evaluated (decision #7).
@@ -113,18 +114,19 @@ Dependencies: `0 → {1, 4}` · `1 → 2 → 3` · `5 after 0` · `6 last`. Each
 **Status:** ✅ DONE — landed `ad37d03b`
 **Resume notes:** ADR-0244 governance annotation expanded to 11 items (§4a added, supersedes §4, verbatim R&D body preserved). ADR-0245 committed Proposed at `docs/adr/ADR-0245-cga-unification-mechanical-sympathy-and-semantic-rigor.md` with its own governance annotation + status map. Audit doc wrinkles 1–2 + Q5 line updated to resolved. Gate: smoke 176 passed + provenance/ADR pins (governance_p12, topological_quarantine, third_door_cohesion) 30 passed. Both ADR status lines confirmed still `Proposed` (no flip). Phase 1's `lift_axis` spec confirmed against the real `algebra.cl41.basis_vector` helper (grade-1 lives at component indices 1–5; e1/e2/e3 = `basis_vector(0..2)`) — no further verification needed before Phase 1 starts.
 
-### Phase 1 — §2.1 Gram identity manifold (pure primitive, off-path) — TDD
-**Objective:** the metric-exact projection primitive, no runtime wiring.
-**Files:** new `core/physics/identity_manifold.py` (keep `identity.py` as compat shell + dual-mode host); `tests/test_adr_0244_identity_manifold.py`.
-**Steps:**
-- `lift_axis(direction3) → ψ_axis(32)`: grade-1 embedding via `algebra.cl41.basis_vector(0..2)` = e1/e2/e3 at component indices 1/2/3 (verified at Phase 0 against `cl41.py`'s grade-lexicographic blade ordering: grade-1 occupies indices 1–5; `basis_vector(i)` sets `v[1+i]=1.0`). Full §4a spec already drafted in ADR-0244 — implement directly against it.
-- `gram(axes) → G` (`G_ij = scalar_part(gp(ψ_i, reverse(ψ_j)))`), symmetric; `cond(G) > 1e5 → ManifoldConditioningError` (typed).
-- `project(ψ, axes, Ginv) → P_id(ψ) = Σ ψ_i (G⁻¹)_ij c_j`, `c_j = ⟨ψ_j, ψ⟩₀` (**signed**).
-- `leakage(ψ) = ψ − P_id(ψ)`; `leakage_norm = ‖·‖₂` (Euclidean coeff norm).
-**Acceptance (falsifiable):** orthonormal default pack ⇒ `G=I`; projection idempotent (`P_id∘P_id = P_id` to 1e-12); in-subspace ψ ⇒ leakage_norm ≈ 0; orthogonal ψ ⇒ leakage_norm ≈ ‖ψ‖; anti-aligned ψ ⇒ negative signed overlap detected; near-degenerate synthetic axes ⇒ `ManifoldConditioningError`. Deterministic.
+### Phase 1 — §2.1 identity manifold primitive (OPERATOR-PRESERVATION, pure, off-path) — TDD
+**Objective:** the metric-exact **operator-preservation** primitive, no runtime wiring. (§2.1/§2.2's literal "project ψ onto I" is vacuous — the trajectory `final_state.F` is a **versor/operator** (grades 0,2,4, zero grade-1); see ADR-0244 governance annotation item 12 + §4a. We measure whether the versor *preserves* the value subspace via `F aᵢ F̃`.)
+**Files:** new `core/physics/identity_manifold.py` (keep `identity.py` as compat shell + dual-mode host, wired in Phase 2); `tests/test_adr_0244_identity_manifold.py`.
+**Steps (implement §4a verbatim shape):**
+- `lift_axis(direction3) → ψ_axis(32)`: grade-1 embedding via `algebra.cl41.basis_vector(0..2)` (e1/e2/e3, component indices 1/2/3). Value subspace `I` lives in spatial grade-1 where `⟨·,·⟩₀ = ` Euclidean ⇒ `G` positive-definite.
+- `gram_matrix(axes) → G` (`G_ij = scalar_part(gp(ψ_i, reverse(ψ_j)))`), symmetric PD; `cond(G) > 1e5 → ManifoldConditioningError`.
+- `subspace_project(x, axes, Ginv) → P_I(x) = Σ ψ_i (G⁻¹)_ij ⟨ψ_j, x⟩₀` (**signed** coeffs).
+- `sandwich(R, x) = gp(gp(R,x), reverse(R))`; `euclidean_norm(s) = ‖s‖₂`.
+- `axis_response(R, axes, Ginv) → (leakage[], self_align[])`: per axis `rot=sandwich(R,aᵢ)`, `leakage_i=euclidean_norm(rot − P_I(rot))` (subspace departure), `self_align_i=⟨aᵢ, rot⟩₀` (**signed** orientation). Both required, non-redundant.
+**Acceptance (falsifiable, all empirically pre-verified):** orthonormal default pack ⇒ `G=I`; `subspace_project` idempotent (`P_I∘P_I = P_I` to 1e-12); identity versor ⇒ all `leakage≈0`, all `self_align≈+1`; rotor **within** value plane (e12) ⇒ `leakage≈0`; rotor tilting a value axis toward e4/e5 ⇒ `leakage>0` (e.g. e14 θ=0.5 → 0.28, boost e15 θ=0.5 → 0.29); π-rotor inverting a value axis (e1→−e1) ⇒ `leakage≈0` **but** `self_align≈−1`; near-parallel synthetic axes ⇒ `ManifoldConditioningError`. Deterministic (f64).
 **Gate:** smoke + fast lane + new tests.
-**Status:** ⬜ NOT STARTED
-**Resume notes:** —
+**Status:** ◐ IN PROGRESS
+**Resume notes:** ADR-0244 §4a already carries the full operator-preservation spec + rationale; implement `core/physics/identity_manifold.py` directly against it. All acceptance numbers pre-verified via scratch probes (see progress log 2026-07-17 operator-preservation entry).
 
 ### Phase 2 — §2.2 fail-closed gate + `C_id` + `boundary_ids` + telemetry + eval — TDD
 **Objective:** convert advisory → fail-closed egress gate on `final_state.F`; wire in-path behind a flag.
@@ -219,6 +221,7 @@ Forward-looking mechanical-sympathy items from the critique — a separate optim
 
 - **2026-07-17** — Arc kicked off. Plan doc authored + committed to `main`. Worktree `core-adr0244d4` created off `ee38c976`. Both sign-offs recorded (§2). Next: Phase 0.
 - **2026-07-17** — **Phase 0 landed `ad37d03b`.** ADR-0244 reconciled (11-item governance annotation + new §4a superseding §4); ADR-0245 committed as a real companion ADR (Proposed) with its own status map; audit doc updated. Gate green (smoke 176 + provenance/ADR pins 30). Pushed to `forgejo/main`, local `main` fast-forwarded, worktree in sync. Next: Phase 1.
+- **2026-07-17** — **Phase 1 core-mechanism correction (ratified).** Discovered before implementing: `final_state.F` is a versor/operator (grade-1 energy exactly 0), so §2.1/§2.2's literal grade-1 projection is vacuous (flags everything). Ratified switch to **operator-preservation** (sandwich `F aᵢ F̃`): subspace-rejection leakage (catches e4/e5 tilt) + signed self-alignment (catches in-subspace inversion). Both empirically verified necessary + discriminating (identity→0 leak/+1 align; e14/e15 tilt→0.28/0.29 leak; π-invert→0 leak/−1 align). ADR-0244 governance annotation item 12 + §4a rewritten; plan §3 Fact C + §5 Phase 1 updated. Amendment commit lands before the Phase 1 code commit.
 
 ---
 
