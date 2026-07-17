@@ -33,7 +33,7 @@ Already landed (verified on `main` @ `19819194`):
 | §2.1 ingress superposition | `core/physics/sensorium_wave_feed.py` (`ModalityPacket`, `compile_packet_to_psi`, `superpose_packets`, `phase_correlate`) |
 | §2.1 resonant projection R_k | `WaveManifold.phase_correlation` / `resonant_recall` / `resonant_reconstruct` |
 | §2.3 energy classes E0–E4 | `core/physics/energy.py` (`EnergyClass`, `FieldEnergyOperator`; ADR-0006) |
-| §2.3 readback rules | `packs/en/readback_rules.py` (ADR-0145 energy-modulated readback) |
+| §2.3 readback rules | `generate/realizer.py` (`energy_modulated_surface`, ADR-0145 energy-modulated readback) — **correction (Phase 3 Lane B research, 2026-07-17):** this line previously named `packs/en/readback_rules.py`; that file was deleted under audit ratchet W-006 (`docs/audit/substrate-liveness-ratchet.md:113-130`) and `readback_from_intent`/`SurfaceRealization` were removed with it. `energy_modulated_surface` is the live substitute (E0–E2 get hedge prefixes; E3/E4 → `""`, matching ADR-0006). |
 | §2.3 GoldTether residual | `core/physics/goldtether.py` (`coherence_residual`, `GoldTetherMonitor`) + `WaveManifold.measure_unitary_residual` |
 | §2.4 surprise + γ check | `core/physics/surprise.py` (`surprise_residual`, `is_discovery_eligible`, `dual_operator`; ADR-0239) |
 | §2.4 discovery plumbing | `core/contemplation/runner.py` already accepts a `DiscoveryCandidateSink`; `teaching/discovery.py` `DiscoveryCandidate` (ADR-0055 Phase B) |
