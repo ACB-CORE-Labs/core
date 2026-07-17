@@ -104,6 +104,20 @@ prototype must **never** be ported verbatim (precedent: PR #52 sketch-defect pin
   D-5; E3/E4 → readback-eligible). Ingress delegates to `sensorium_wave_feed` /
   `WaveManifold` — no duplication. TDD; ground-state property test vs. direct
   eigensolve; determinism digests.
+  - *Phase 2 verification record:* adversarial finder/verifier workflow over
+    the module (most verify agents were lost to a session limit; every
+    surviving finding was reproduced in-tree before acting). Two hardenings
+    landed beyond the plan text: (1) `RelaxationCertificate.psi_digest` binds
+    convergence evidence to the exact certified state and `egress_gate`
+    refuses borrowed certificates (`certificate_state_mismatch`) — closes a
+    false-provenance `CrystallizationProposal`; (2) certification additionally
+    requires the spectral gap be resolvable at the requested tolerance
+    (excited weight ≤ (E−λ0)/gap ≤ tol, refusal
+    `spectral_gap_below_tolerance`), and the degeneracy cluster is capped at
+    the acceptance window so the certificate reports the honest rate-limiting
+    gap — closes a zero-ground-overlap mis-certification reachable at loose
+    `tol`. Dense-branch refusals, the E2 hold route, iterate-collapse, and
+    hardcoded canonical entailment verdicts are pinned in tests.
 - **Phase 3 — wiring lanes** (three independent PRs after Phase 2 API lands):
   - **Lane A (§2.4; closes caveat 2):** wire `is_discovery_eligible` +
     `cross_band_discovery_gate` into the contemplation runner's existing sink;
