@@ -4,16 +4,27 @@
 **Date**: 2026-07-17  
 **Authors**: Joshua Shay \+ Multi-model R\&D  
 **Traceability**: Notion R\&D (CORE Engineering Reference hub: Live-Entity Design Decisions, `core_HA` Patterns)  
-**Related**: ADR-0003, ADR-0006, ADR-0010, ADR-0021, ADR-0028, ADR-0031, ADR-0035, ADR-0039, ADR-0238, ADR-0239, ADR-0241, ADR-0242, ADR-0243, `core/physics/identity.py`, `algebra/cl41.py`
+**Related**: ADR-0003, ADR-0006, ADR-0010, ADR-0021, ADR-0028, ADR-0031, ADR-0035, ADR-0039, ADR-0238, ADR-0239, ADR-0241, ADR-0242, ADR-0243, **ADR-0245** (companion — mechanical-sympathy + semantic-rigor foundation), `core/physics/identity.py`, `algebra/cl41.py`
 
 ---
 
-> **Governance annotation (D0 landing, 2026-07-17).** Committed **Proposed**, verbatim from the R&D export, so the record exists — but two load-bearing items are held open for the D4 implementation plan and must be resolved *in this ADR* before any of §2.1–2.3 becomes an in-path egress gate. This annotation is editorial (added at landing); the body below is unchanged.
+> **Governance annotation (D0 landing 2026-07-17; reconciled at D4 Phase 0, 2026-07-17).** Committed **Proposed**, verbatim from the R&D export, so the record exists. **§1–§4 below are preserved unchanged as the original R&D proposal** — including §4's code sketch, which item 2 below identifies as contradicting the governing decision. This annotation, and the new **§4a** inserted after §4, carry the authoritative engineering reconciliation. Where this annotation disagrees with the body, **this annotation governs**.
 >
-> 1. **§2.3 topological charge `Q_top` is PROVEN vacuous (hollow gate) — retire from egress.** In odd Cl(4,1) the pseudoscalar `I₅` is central, so `ψ I₅ ψ̃ = I₅·(ψψ̃)`; for any unit versor `ψψ̃ = 1` (no grade-5 part), hence `Q_top = ⟨I₅⟩₀ = 0` identically. Empirically confirmed (`evals/adr_0244_qtop_vacuity`, pinned by `tests/test_adr_0244_qtop_vacuity.py`): `Q_top = 0.000e+00` exactly across every rotor and boost tested; off the versor manifold `Q_top = −grade₅(ψψ̃)`, nonzero only where the I-05 closure residual already fires; it is a conserved Spin(4,1) invariant but identically 0 on the valid manifold; and the decisive test shows an aligned identity and an adversarially-rotated one (overlap 0.963, a valid versor) **both** read `Q_top = 0`, so `ΔQ_top = 0` passes the attack the spectral-leakage / closure check actually catches. This is the exact failure mode that retired the PR #19 pseudoscalar gate. `Q_top` must **not** be an egress admit condition; keep it, if at all, as a diagnostic derived from the closure check.
-> 2. **§4 "conformed implementation" contradicts §2.1–2.2.** The §4 code computes a per-axis `|⟨ψ · reverse(axis)⟩₀|` resonance, not the metric-exact **Gram-matrix subspace projection**, the **identity spectral leakage** norm, or the `ManifoldConditioningError` the decision section specifies. It also references a dangling "ADR-0245" and uses a bare `assert` for the byte-order guard (stripped under `-O`; violates this ADR's own typed-failure doctrine). §4 is illustrative only; §2.1–2.2 is the governing decision. The two must be reconciled before implementation.
+> 1. **§2.3 topological charge `Q_top` is PROVEN vacuous (hollow gate) — retired from egress.** In odd Cl(4,1) the pseudoscalar `I₅` is central, so `ψ I₅ ψ̃ = I₅·(ψψ̃)`; for any unit versor `ψψ̃ = 1` (no grade-5 part), hence `Q_top = ⟨I₅⟩₀ = 0` identically. Empirically confirmed (`evals/adr_0244_qtop_vacuity`, pinned by `tests/test_adr_0244_qtop_vacuity.py`): `Q_top = 0.000e+00` exactly across every rotor and boost tested; off the versor manifold `Q_top = −grade₅(ψψ̃)`, nonzero only where the I-05 closure residual already fires; it is a conserved Spin(4,1) invariant but identically 0 on the valid manifold; and the decisive test shows an aligned identity and an adversarially-rotated one (overlap 0.963, a valid versor) **both** read `Q_top = 0`, so `ΔQ_top = 0` passes the attack the spectral-leakage / closure check actually catches. This is the exact failure mode that retired the PR #19 pseudoscalar gate. `Q_top` must **not** be an egress admit condition; keep it, if at all, as a diagnostic derived from the closure check. **The §2.2 egress condition's `∧ ΔQ_top = 0` conjunct is dropped** (see item 4).
+> 2. **§4 "conformed implementation" contradicted §2.1–2.2 — RESOLVED, see §4a.** The §4 code computed a per-axis `|⟨ψ · reverse(axis)⟩₀|` resonance, not the metric-exact **Gram-matrix subspace projection**, the **identity spectral leakage** norm, or the `ManifoldConditioningError` the decision section specifies. It also referenced a then-dangling "ADR-0245" (now real, see item 10) and used a bare `assert` for the byte-order guard (stripped under `-O`; violated this ADR's own typed-failure doctrine). §4 remains illustrative-only, kept verbatim for provenance; **§4a is the governing specification**.
+> 3. **§2.1 axis eigenmode construction, previously underspecified, is a grade-1 lift.** `IdentityManifold` value axes ship as **dim-3** unit vectors in every existing pack (verified: `packs/identity/default_general_v1.json`); §2.1 assumes each axis is already a 32-component `ψ_axis ∈ Cl(4,1)` and is silent on how. Resolution: lift `direction ∈ R^3` to Cl(4,1) by placing the 3 components at the grade-1 `e1/e2/e3` slots (`algebra.cl41.basis_vector(0..2)`), **not** `algebra.cga.embed_point` (which sends points to the null cone, turning the Gram matrix into a distance table rather than a metric inner product). Orthonormal axes ⇒ `G = I`. See §4a.
+> 4. **§2.2 egress condition amended.** The `∧ ΔQ_top = 0` conjunct is dropped (item 1 — it is always true, hence vacuous as a discriminator). The per-axis inner product is a **signed** overlap `⟨ψ_axis, ψ⟩₀` — never `abs()`'d; a large negative value is *anti-alignment* (opposition), a materially different and worse condition than orthogonality, and must remain distinguishable from it. The leakage norm `‖S_id‖` is the **positive-definite coefficient-Euclidean norm** `sqrt(Σ_k S_id[k]²)` — explicitly **not** the indefinite Cl(4,1) inner product `⟨S_id, S̃_id⟩₀`, which the (+,+,+,+,−) signature permits to be zero (or negative) for nonzero leakage, silently hiding a breach. Operative score: `score = 1 − ‖S_id‖ / ‖ψ_traj‖`; egress ⟺ `score ≥ manifold.alignment_threshold` (equivalently `‖S_id‖ ≤ γ_id`). See §4a.
+> 5. **Inalienability is layered, not monolithic.** Only one of the following is a mathematical guarantee; the rest are engineering/governance properties this ADR's *implementation* must make visible, not properties the *algebra alone* confers: **(a) algebraic** — specified rotor/versor transformations provably preserve the chosen invariant (this is what §2.3's conservation argument actually establishes, scoped per item 6); **(b) runtime** — no public/tool/memory/retrieval/generation API can directly overwrite the authoritative identity state; **(c) pipeline** — all cognitive state entering action selection passes through the identity manifold and its gate (D4 Phase 2's wiring target); **(d) operational** — identity definitions, calibration data, and axis bases are versioned, content-addressed, and reviewable (§2.7, D1); **(e) semantic** — adversarial paraphrases and indirect attacks are empirically shown to produce detectable leakage (item 7, D4 Phase 2 eval suite). "Inalienable" in §2's framing means all five hold together, not that (a) alone suffices.
+> 6. **Paraphrase-invariance reworded.** §2.2 item 1's claim ("completely paraphrase-invariant... as long as the upstream encoder maps semantic equivalents into proximal field states") states its own precondition as a caveat, which is correct but easy to misread as unconditional. Operative claim: *"The identity gate is invariant under transformations that preserve the trajectory's identity-relevant field geometry. Paraphrase robustness is an empirical property of the encoder + propagation pipeline, measured by the D4 Phase 2 eval suite — not a property of the projection operator alone."* Similarly, §2.3's conservation claim holds **only for pure versors** (`R ∈ Spin(4,1)`, `R̃R = 1`); `relax_to_ground` (ADR-0243) can converge to a ground eigenstate that is a multi-grade superposition, not a versor, and the conservation argument does not directly apply there — this is the same subtlety that forced ADR-0243's sketch-defect pin SD-A. §2.3's charge-conservation claim is scoped to the crystallization/vault path where versor closure is already required (ADR-0243 I-05), not asserted of every state the lifecycle produces.
+> 7. **`boundary_ids` activated.** `IdentityManifold.boundary_ids` is stored but never evaluated by the live `check()` (verified: `core/physics/identity.py`, current `check()` iterates `value_axes` only). D4 Phase 2 activates it as a hard-boundary evaluation alongside the axis-leakage check; the violation predicate is designed in-phase (Phase 2 is the first place boundary semantics are specified in code, not merely stored).
+> 8. **Identity-continuity: the manifold is FROZEN.** Axis eigenmodes are computed once at manifold/pack load and never mutated within a session. ADR-0243's biography holonomy accumulation (`H_bio ← H_bio · R`) is a separate process and does **not** rewrite the identity subspace. This is what makes "inalienable" true by construction — the subspace a trajectory is checked against cannot itself drift as a side effect of the trajectory being checked.
+> 9. **Filename correction.** ADR-0245 (item 10) and its R&D commentary reference `core/physics/multimodal_lifecycle.py`; that file does not exist. The real module is `core/physics/cognitive_lifecycle.py` (ADR-0243).
+> 10. **ADR-0245 is real.** `docs/adr/ADR-0245-cga-unification-mechanical-sympathy-and-semantic-rigor.md`, committed **Proposed** as a companion ADR at D4 Phase 0. It is the mechanical-sympathy + semantic-rigor foundation this ADR's identity gate sits on: Rust `geometric_product` fast-path (its §2.1 ≡ this ADR's §2.6), the f64→f32 serving-boundary cast (its §2.2 ≡ this ADR's §2.5 — one contract, two ADRs), content-addressing rigor (its §2.3 ≡ this ADR's §2.7), and `eigh` memoization (its §2.4 ≡ this ADR's §2.8).
+> 11. **Theological citation.** The quoted John 1:1–2 text matches the **ESV** (English Standard Version). It is cited as an engineering analogy that makes the architecture legible to humans, not as a scientific or theological proof of the geometric claims in §2.
 >
-> Full mandate audit + these decisions: `docs/analysis/adr-0244-cohesion-directive-audit-2026-07-17.md`.
+> **Governance anchors (ADR-0225).** *Safety/identity boundary:* this ADR defines the identity trust boundary itself — items 4, 7, 8 above are exactly that boundary's shape. *Versor closure:* axis eigenmodes and `ψ_traj` are validated for shape (`N_COMPONENTS`,) and finiteness before projection (§4a); the manifold does not assume `ψ_traj` is itself a unit versor (item 6 — it may be a superposition). *Reconstruction-over-storage:* the manifold stores only axis directions + calibration certificates; `ψ_traj` is read from `final_state.F` per-turn, never duplicated into the manifold. *Replay-equivalence:* the identity gate's fail-closed path must preserve byte-identical output for non-flagged turns (D4 Phase 2 acceptance criterion — the gate is flag-gated off by default until calibrated). *Mutation standing:* the identity manifold is frozen (item 8), never mutated in-path; `C_id`'s corrective displacement acts on the trajectory, never on the manifold.
+>
+> Full mandate audit: `docs/analysis/adr-0244-cohesion-directive-audit-2026-07-17.md`. D4 implementation plan + live progress tracker: `docs/handoff/ADR-0244-D4-IMPLEMENTATION-PLAN.md`.
 
 ---
 
@@ -397,10 +408,103 @@ class IdentityCheck:
 
 ---
 
+## 4a. D4 Phase 0 — Reconciled Implementation Specification (supersedes §4)
+
+§4 above is preserved verbatim as the original R&D sketch. Per governance annotation item 2, it contradicts the governing §2.1–2.2 decision and is **not** the specification implementers build against. This section is that specification. It is normative *shape* — the literal shipped code is produced under TDD in D4 Phase 1 (`core/physics/identity_manifold.py`) and Phase 2 (`core/physics/identity.py`); this block is not the final diff.
+
+**Phase 1 primitive — `core/physics/identity_manifold.py` (§2.1):**
+
+```python
+class ManifoldConditioningError(ValueError):
+    """Gram matrix condition number exceeds the mode-aliasing bound (10**5)."""
+
+def lift_axis(direction3: tuple[float, float, float]) -> np.ndarray:
+    """Grade-1 lift: R^3 -> Cl(4,1) at the e1/e2/e3 slots.
+
+    Uses algebra.cl41.basis_vector(0..2) — NOT algebra.cga.embed_point, which
+    maps to null-cone points and would make the Gram matrix a distance table
+    rather than a metric inner product. Precomputed once at manifold load:
+    f64 precision domain (the f64->f32 serving-boundary cast, Sec 2.5 /
+    ADR-0245 Sec 2.2, applies only to the live per-turn psi_traj, not to this
+    offline axis construction).
+    """
+    psi = np.zeros(N_COMPONENTS, dtype=np.float64)
+    for k, component in enumerate(direction3):
+        psi = psi + component * basis_vector(k).astype(np.float64)
+    return psi
+
+def gram_matrix(axes_psi: Sequence[np.ndarray]) -> np.ndarray:
+    n = len(axes_psi)
+    G = np.empty((n, n), dtype=np.float64)
+    for i in range(n):
+        for j in range(n):
+            G[i, j] = scalar_part(geometric_product(axes_psi[i], reverse(axes_psi[j])))
+    cond = float(np.linalg.cond(G))
+    if cond > 1e5:
+        raise ManifoldConditioningError(f"Gram condition number {cond:.3e} exceeds 1e5")
+    return G
+
+def project(psi: np.ndarray, axes_psi: Sequence[np.ndarray], g_inv: np.ndarray) -> np.ndarray:
+    """P_id(psi) = sum_ij psi_axis_i * (G^-1)_ij * <psi_axis_j, psi>_0 — signed."""
+    c = np.array([scalar_part(geometric_product(reverse(a), psi)) for a in axes_psi])
+    coeffs = g_inv @ c
+    return sum(w * a for w, a in zip(coeffs, axes_psi))
+
+def leakage_norm(s_id: np.ndarray) -> float:
+    """Positive-definite coefficient-Euclidean norm — NOT the indefinite Cl(4,1)
+    inner product <S, S~>_0, which signature (+,+,+,+,-) permits to vanish for
+    nonzero leakage, silently hiding a breach (governance annotation item 4)."""
+    return float(np.linalg.norm(s_id, ord=2))
+```
+
+**Phase 2 gate — `core/physics/identity.py` (§2.2; dual-mode, fail-closed):**
+
+```python
+class IdentityGateRefusal(Exception):
+    """Fail-closed refusal: leakage or boundary check failed and C_id could not
+    recover alignment within its bound. Live parameters are unchanged."""
+
+def _axis_projection(axis, psi_traj, axis_psi) -> float:
+    psi_arr = np.ascontiguousarray(psi_traj, dtype=np.float32)
+    if psi_arr.dtype.byteorder not in ("<", "="):
+        raise ValueError("Identity gate requires little-endian float32")
+    if not np.all(np.isfinite(psi_arr)):
+        raise ValueError("Identity gate encountered nonfinite values in psi_traj")
+    if psi_arr.shape != (N_COMPONENTS,):
+        raise ValueError(f"psi_traj must be shape ({N_COMPONENTS},), got {psi_arr.shape}")
+    # Signed overlap — do NOT abs(): a large negative value is anti-alignment
+    # (opposition), a materially worse condition than orthogonality, and must
+    # stay distinguishable from it (governance annotation item 4).
+    return float(scalar_part(geometric_product(psi_arr, reverse(axis_psi))))
+
+# Malformed psi_traj (NaN / wrong shape / wrong byte-order) raises — it never
+# falls through to the legacy scalar-L2 path (Sec 3's dual-mode fallback is
+# for ABSENT psi_traj only, not malformed psi_traj).
+```
+
+Egress condition (replaces §2.2 item 2's formula — `∧ ΔQ_top = 0` dropped per governance annotation item 1):
+
+```
+psi_minus = F_cognitive(psi_t, u_t)
+r_id      = psi_minus - P_id(psi_minus)              # leakage
+psi_plus  = C_id(psi_minus, r_id)                     # bounded, abstaining corrector
+admit  <=>  leakage_norm(psi_plus - P_id(psi_plus)) <= gamma_id
+```
+
+`C_id` is a **bounded, abstaining** corrector: it may apply a bounded corrective displacement toward the manifold; if it cannot recover alignment within that bound, it **abstains** — raises `IdentityGateRefusal`, live parameters are kept unchanged. `C_id` must **not** rewrite reasoning arbitrarily to force a low leakage score — a corrector that can do that creates a "good-metric, bad-cognition" failure mode, which is a new defect, not a fix.
+
+`boundary_ids` (governance annotation item 7) is evaluated as a hard-boundary check alongside the axis-leakage score; a boundary violation is refused independent of the leakage score (its predicate is designed in D4 Phase 2, not prescribed here).
+
+**Identity-continuity (governance annotation item 8):** `axes_psi` above is computed once at manifold/pack load and frozen for the session. ADR-0243 biography holonomy accumulation is a separate, non-mutating process with respect to this subspace.
+
+---
+
 ## 5\. References
 
 1. `algebra/cl41.py` — Precomputed geometric product table.  
 2. `core/physics/wave_manifold.py` — Continuous wave-field substrate.  
 3. `core/physics/goldtether.py` — GoldTether residual monitoring.  
 4. `core/physics/fibonacci_search.py` — Fibonacci search contract.
+5. `docs/adr/ADR-0245-cga-unification-mechanical-sympathy-and-semantic-rigor.md` — companion mechanical-sympathy + semantic-rigor foundation ADR.
+6. `docs/handoff/ADR-0244-D4-IMPLEMENTATION-PLAN.md` — D4 implementation plan + live progress tracker.
 

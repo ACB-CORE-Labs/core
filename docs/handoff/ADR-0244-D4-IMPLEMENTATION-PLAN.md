@@ -117,7 +117,7 @@ Dependencies: `0 → {1, 4}` · `1 → 2 → 3` · `5 after 0` · `6 last`. Each
 **Objective:** the metric-exact projection primitive, no runtime wiring.
 **Files:** new `core/physics/identity_manifold.py` (keep `identity.py` as compat shell + dual-mode host); `tests/test_adr_0244_identity_manifold.py`.
 **Steps:**
-- `lift_axis(direction3) → ψ_axis(32)`: grade-1 embedding at `e1/e2/e3` blade indices (VERIFY indices against `algebra.cl41` basis ordering first).
+- `lift_axis(direction3) → ψ_axis(32)`: grade-1 embedding via `algebra.cl41.basis_vector(0..2)` = e1/e2/e3 at component indices 1/2/3 (verified at Phase 0 against `cl41.py`'s grade-lexicographic blade ordering: grade-1 occupies indices 1–5; `basis_vector(i)` sets `v[1+i]=1.0`). Full §4a spec already drafted in ADR-0244 — implement directly against it.
 - `gram(axes) → G` (`G_ij = scalar_part(gp(ψ_i, reverse(ψ_j)))`), symmetric; `cond(G) > 1e5 → ManifoldConditioningError` (typed).
 - `project(ψ, axes, Ginv) → P_id(ψ) = Σ ψ_i (G⁻¹)_ij c_j`, `c_j = ⟨ψ_j, ψ⟩₀` (**signed**).
 - `leakage(ψ) = ψ − P_id(ψ)`; `leakage_norm = ‖·‖₂` (Euclidean coeff norm).
