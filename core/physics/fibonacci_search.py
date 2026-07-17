@@ -3,14 +3,23 @@
 Deterministic 1D unimodal minimization for construction / calibration /
 GoldTether κ-style scalar brackets. Not a serve-path operator (A-04 quarantine).
 
+A strictly **Bracketed Local** refinement operator (ADR-0244 §2.4): the caller
+must supply a pre-bracketed interval around a known minimum. Unimodality cannot
+be proven from a finite sample, so the check is honestly named a *sampled*
+unimodality violation — an observation on the evaluated points, not a global
+guarantee on the unsampled portions of ``[a, b]``.
+
 Public result is always a typed ``FibonacciSearchCertificate`` or
-``OptimizationFailure`` — never a bare float (Drive evidence discipline).
+``OptimizationFailure`` — never a bare float (Drive evidence discipline). On any
+fail-closed condition the operator returns a typed failure; it never silently
+substitutes a fallback parameter in-path (that policy belongs to the caller).
 
 Fail-closed on:
   * nonfinite objective values
   * invalid bounds / budget
-  * sampled unimodality violation (values must decrease to the observed
-    minimum then increase when sorted by coordinate)
+  * sampled unimodality violation — reason ``sampled_unimodality_violation_observed``
+    (values must decrease to the observed minimum then increase when sorted by
+    coordinate)
 """
 
 from __future__ import annotations
@@ -303,9 +312,14 @@ def fibonacci_section_search(
         k += 1
 
     if not _unimodality_ok(eval_values):
+        # A finite sample cannot prove global unimodality on the unsampled
+        # portions of [a, b]; it can only *observe* a violation on the sampled
+        # points. Honest name (ADR-0244 §2.4 / directive M6): the operator is a
+        # Bracketed Local refiner and fails closed here rather than silently
+        # defaulting parameters in-path.
         return _failure(
             objective,
-            reason="unimodality_violation_multiple_extrema_detected",
+            reason="sampled_unimodality_violation_observed",
             a=a,
             b=b,
             evaluations=len(points),
@@ -333,7 +347,16 @@ def propose_kappa_from_search(
     *,
     baseline: float = BASELINE_KAPPA,
 ) -> tuple[float, SearchResult]:
-    """Evidence-gated κ: cert → minimizer; failure → baseline (default 1.0).
+    """Evidence-gated κ from a search result. Proposal-only telemetry.
+
+    On a certificate, returns the certified minimizer. On an
+    ``OptimizationFailure``, returns ``baseline`` — which is an **explicit
+    caller-side policy**, not a search-internal default: κ = 1.0 is the identity
+    no-op (``thr = productive_threshold / 1.0`` leaves the active threshold
+    unchanged), so a failed search never moves live parameters (ADR-0244 §2.4 /
+    directive M6). The typed ``OptimizationFailure`` is always returned as the
+    second element, so a caller can distinguish "search proposed κ = 1.0" from
+    "search failed → holding the κ = 1.0 no-op" instead of reading a bare float.
 
     Never promotes COHERENT standing or mutates identity — caller telemetry only.
     """
