@@ -57,6 +57,7 @@ lazily via the ``core.physics`` barrel; enforced by
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 from dataclasses import dataclass, field
@@ -505,6 +506,27 @@ def _spectral_gap(evals: np.ndarray, tol: float) -> tuple[float, float, float]:
     return lam0, gap, energy_tol
 
 
+@functools.lru_cache(maxsize=128)
+def _cached_eigh(hamiltonian_id: str, matrix_bytes: bytes) -> tuple[np.ndarray, np.ndarray]:
+    """Memoized symmetric eigendecomposition (ADR-0244 §2.8 / directive M2).
+
+    ``ProblemHamiltonian`` is frozen and content-addressed, so a fresh LAPACK
+    ``eigh`` on an identical matrix (repeated active-turn / biography checks) is
+    wasted AMX compute. Keyed on the immutable ``hamiltonian_id`` *and* the raw
+    matrix bytes (collision-resistant: the id already content-addresses the
+    matrix; the bytes make a same-id/different-bytes hit impossible). The
+    returned arrays are frozen read-only so a cache hit cannot be mutated by a
+    caller — every hit yields bit-identical ``(evals, evecs)``.
+    """
+    matrix = np.frombuffer(matrix_bytes, dtype=np.float64).reshape(N_COMPONENTS, N_COMPONENTS)
+    evals, evecs = np.linalg.eigh(matrix)
+    evals = np.ascontiguousarray(evals)
+    evecs = np.ascontiguousarray(evecs)
+    evals.setflags(write=False)
+    evecs.setflags(write=False)
+    return evals, evecs
+
+
 def relax_to_ground(
     psi0: np.ndarray,
     hamiltonian: ProblemHamiltonian,
@@ -563,7 +585,7 @@ def relax_to_ground(
             return diag * v
 
     else:
-        evals_full, evecs_full = np.linalg.eigh(H_mat)
+        evals_full, evecs_full = _cached_eigh(hamiltonian.hamiltonian_id, H_mat.tobytes())
         lam0, gap, energy_tol = _spectral_gap(evals_full, tol_f)
         propagator = evecs_full @ np.diag(np.exp(-(evals_full - lam0) * dt_f)) @ evecs_full.T
 

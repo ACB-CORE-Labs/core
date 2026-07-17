@@ -187,11 +187,13 @@ def test_f64_backend_matches_python_sot_in_subprocess(seed: int) -> None:
 
 @pytest.mark.skipif(not _RUST_AVAILABLE, reason="core_rs extension not built")
 @pytest.mark.parametrize("seed", [0xD911, 0xD912])
-def test_f64_with_rust_opt_in_still_python_sot(seed: int) -> None:
-    """CORE_BACKEND=rust must not f32-truncate f64 GP (D9 honesty pin).
+def test_f64_with_rust_opt_in_matches_python_sot_bit_for_bit(seed: int) -> None:
+    """CORE_BACKEND=rust routes f64 GP to the Rust f64 kernel (ADR-0244 §2.6),
+    which is bit-identical to Python SOT — so the hex still matches exactly.
 
-    Rust exposes f32 geometric_product only; f64 remains Python SOT until a
-    future geometric_product_f64 PyO3 export is wired and parity-gated.
+    This is the D9 honesty pin, now stronger: not only no f32-truncation, but
+    no 1-ULP f64 divergence either. On an older ``core_rs`` build without the
+    export, backend falls through to Python and the hex still matches.
     """
     rs = _run_f64_backend("rust", seed)
     assert rs["using_rust"] is True
@@ -199,10 +201,31 @@ def test_f64_with_rust_opt_in_still_python_sot(seed: int) -> None:
     assert rs["dtype"] == "float64"
 
 
-def test_backend_source_documents_f64_python_sot() -> None:
-    """Structural pin: dispatch comments + _is_f32_workload gate remain."""
+@pytest.mark.skipif(not _RUST_AVAILABLE, reason="core_rs extension not built")
+def test_rust_f64_gp_is_bit_identical_to_python_n10000() -> None:
+    """Acceptance criterion 1 (ADR-0244 §2.6 / directive M1): the Rust f64
+    ``geometric_product`` equals the pure-Python f64 kernel **bit-for-bit** over
+    a large random panel — not tol-matched. A single ULP divergence would move
+    the f64 wave-field residual bytes and break I-02 replay under
+    ``CORE_BACKEND=rust``; this fails closed on the first mismatch.
+    """
+    if not hasattr(core_rs, "geometric_product_f64"):
+        pytest.skip("core_rs build predates geometric_product_f64 export")
+    rng = _rng(0xB17DE)
+    for _ in range(10_000):
+        a = np.ascontiguousarray(rng.standard_normal(N_COMPONENTS), dtype=np.float64)
+        b = np.ascontiguousarray(rng.standard_normal(N_COMPONENTS), dtype=np.float64)
+        rust = np.asarray(core_rs.geometric_product_f64(a, b), dtype=np.float64)
+        py = gp_py(a, b)
+        assert rust.tobytes() == py.tobytes()
+
+
+def test_backend_source_documents_f64_rust_bit_identical() -> None:
+    """Structural pin: both dtype gates exist and the f64 Rust path is
+    documented bit-identical (a speed swap, not a numeric one)."""
     src = (REPO / "algebra" / "backend.py").read_text(encoding="utf-8")
     assert "_is_f32_workload" in src
-    assert "float64 wave residual" in src or "float64" in src
-    # geometric_product only calls Rust under f32 workload gate
+    assert "_is_f64_workload" in src
     assert "if _RUST and _is_f32_workload(A, B):" in src
+    assert "if _RUST and _is_f64_workload(A, B):" in src
+    assert "bit-identical" in src

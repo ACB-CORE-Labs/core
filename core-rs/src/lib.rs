@@ -20,6 +20,7 @@ pub mod vault;
 pub mod versor;
 
 use cga::cga_inner_raw;
+use cl41::geometric_product_f64 as cl41_geometric_product_f64;
 use cl41::geometric_product_raw;
 use diffusion::{graph_diffusion_step, unitize_f32};
 use versor::{
@@ -43,6 +44,23 @@ fn geometric_product(
     let result = geometric_product_raw(a_slice, b_slice)
         .map_err(|e| PyValueError::new_err(e.to_string()))?;
     f32_array_to_numpy(py, &result)
+}
+
+/// Full geometric product in Cl(4,1), f64.  Bit-identical to the pure-Python
+/// f64 kernel: the Rust scalar path (`cl41::geometric_product_f64`) mirrors it
+/// term-for-term — same i-major/j-minor scatter order, same left-associative
+/// `sign * ai * bj`, no FMA contraction — so enabling it never perturbs the
+/// f64 wave-field residual math (ADR-0244 §2.6; parity gated by the D9 suite).
+#[pyfunction]
+fn geometric_product_f64(
+    py: Python<'_>,
+    a: numpy::PyReadonlyArray1<'_, f64>,
+    b: numpy::PyReadonlyArray1<'_, f64>,
+) -> PyResult<PyObject> {
+    let a_slice = read_f64_cl41_mv(&a)?;
+    let b_slice = read_f64_cl41_mv(&b)?;
+    let result = cl41_geometric_product_f64(a_slice, b_slice);
+    f64_array_to_numpy(py, &result)
 }
 
 /// Sandwich product V*F*reverse(V).
@@ -360,6 +378,7 @@ fn f64_array_to_numpy(py: Python<'_>, data: &[f64; 32]) -> PyResult<PyObject> {
 #[pymodule]
 fn core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(geometric_product, m)?)?;
+    m.add_function(wrap_pyfunction!(geometric_product_f64, m)?)?;
     m.add_function(wrap_pyfunction!(versor_apply, m)?)?;
     m.add_function(wrap_pyfunction!(versor_apply_with_closure, m)?)?;
     m.add_function(wrap_pyfunction!(versor_apply_with_closure_f64, m)?)?;

@@ -55,26 +55,53 @@ def _f32_1d32(x: np.ndarray) -> np.ndarray:
     )
 
 
-def _is_f32_workload(*arrays: np.ndarray) -> bool:
-    """True when all arrays are float32 (Rust f32 kernel is parity-safe).
+def _f64_1d32(x: np.ndarray) -> np.ndarray:
+    """Contiguous f64 (32,) for core_rs PyReadonlyArray1<f64> bindings."""
+    return np.ascontiguousarray(
+        np.asarray(x, dtype=np.float64).reshape(-1)[:32], dtype=np.float64
+    )
 
-    float64 wave residual pins require Python SOT (or future f64 Rust GP).
-    Forcing f64→f32 would break 1e-9 chiral / leakage pins (ADR-0241).
-    """
+
+def _is_f32_workload(*arrays: np.ndarray) -> bool:
+    """True when all arrays are float32 (Rust f32 kernel is parity-safe)."""
     return all(np.asarray(a).dtype == np.float32 for a in arrays)
 
 
-def geometric_product(A: np.ndarray, B: np.ndarray) -> np.ndarray:
-    """Cl(4,1) geometric product via Rust f32 when enabled, else Python.
+def _is_f64_workload(*arrays: np.ndarray) -> bool:
+    """True when all arrays are float64.
 
-    float64 inputs always use the pure-Python product (semantic SOT for
-    wave-field residual math). float32 field-graph workloads get Rust.
+    The Rust f64 kernel (``core_rs.geometric_product_f64``) is a term-for-term
+    mirror of the pure-Python f64 kernel — same scatter order, no FMA — so it is
+    **bit-identical**, not merely close. That is what lets f64 workloads take the
+    Rust path without moving the 1e-9 chiral / leakage residual pins (ADR-0241);
+    the D9 parity suite gates that bit-identity. An older ``core_rs`` build
+    without the function raises ``AttributeError`` and falls through to Python.
+    """
+    return all(np.asarray(a).dtype == np.float64 for a in arrays)
+
+
+def geometric_product(A: np.ndarray, B: np.ndarray) -> np.ndarray:
+    """Cl(4,1) geometric product via Rust when enabled, else pure Python.
+
+    float32 field-graph workloads and float64 wave-field workloads both get the
+    Rust kernel when ``CORE_BACKEND=rust`` and ``core_rs`` is present — the f64
+    path is bit-identical to Python (see :func:`_is_f64_workload`), so it never
+    perturbs residual math; it is a speed swap, not a numeric one. Any other
+    dtype, or an older/absent ``core_rs``, uses the pure-Python product.
     """
     if _RUST and _is_f32_workload(A, B):
         try:
             return np.asarray(
                 _rs.geometric_product(_f32_1d32(A), _f32_1d32(B)),
                 dtype=np.float32,
+            )
+        except (AttributeError, TypeError, ValueError, Exception):
+            pass
+    if _RUST and _is_f64_workload(A, B):
+        try:
+            return np.asarray(
+                _rs.geometric_product_f64(_f64_1d32(A), _f64_1d32(B)),
+                dtype=np.float64,
             )
         except (AttributeError, TypeError, ValueError, Exception):
             pass
