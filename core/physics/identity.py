@@ -12,10 +12,57 @@ CORE's identity is not a description of CORE. It is CORE, expressed geometricall
 """
 
 from __future__ import annotations
+import functools
 import math
 import warnings
 from dataclasses import dataclass
 from typing import Dict, FrozenSet, List, Optional, Tuple
+
+import numpy as np
+
+from algebra.cl41 import N_COMPONENTS
+from core.physics.identity_manifold import IdentityManifoldGeometry
+
+# ADR-0244 §2.2 / §4a — provisional wave-gate thresholds. The leakage bound
+# reuses ``IdentityManifold.alignment_threshold``; the orientation floor flags a
+# value axis the versor has rotated *past orthogonal* (toward inversion). Both
+# are calibrated against reference traces in D4 Phase 3 (γ_id); until then the
+# wave gate is flag-gated off in the runtime so these provisional values never
+# change live behavior.
+_WAVE_SELF_ALIGNMENT_FLOOR: float = 0.0
+
+
+class IdentityGateRefusal(Exception):
+    """Fail-closed identity-gate refusal (ADR-0244 §2.2 / §4a).
+
+    Raised when the operator-preservation gate cannot admit a trajectory —
+    subspace leakage over bound, a value axis inverted, or a committed
+    ``boundary_id`` violated — and the conjugate corrector ``C_id`` cannot
+    recover alignment within its bound. The live parameters are kept unchanged
+    (no silent correction — this honors the safety-pack ``no_silent_correction``
+    boundary).
+    """
+
+
+@functools.lru_cache(maxsize=32)
+def _geometry_for_axis_directions(
+    directions: Tuple[Tuple[float, ...], ...]
+) -> IdentityManifoldGeometry:
+    """Cached operator-preservation geometry for a set of value-axis directions.
+
+    The identity subspace is frozen at pack load (ADR-0244 governance annotation
+    item 8), so the Gram matrix + inverse are computed once and memoized on the
+    canonical (hashable) axis-direction key.
+    """
+    return IdentityManifoldGeometry.from_directions(directions)
+
+
+def _geometry_for_manifold(manifold: "IdentityManifold") -> IdentityManifoldGeometry:
+    directions = tuple(
+        tuple(float(x) for x in getattr(axis, "direction", ()) or ())
+        for axis in manifold.value_axes
+    )
+    return _geometry_for_axis_directions(directions)
 
 
 @dataclass(frozen=True)
@@ -44,6 +91,19 @@ class IdentityScore:
     flagged: bool         # True if any axis projection fell below alignment threshold
     deviation_axes: FrozenSet[str]  # ValueAxis IDs where deviation was detected
     trajectory_id: str
+    # ADR-0244 §2.2 / §4a — operator-preservation wave-field measures. Populated
+    # only on the wave path (``wave_mode_active=True``); legacy defaults preserve
+    # the pre-ADR-0244 IdentityScore shape and all downstream serialization
+    # (the telemetry serializer emits these keys only when the wave path ran).
+    wave_mode_active: bool = False
+    # RMS subspace-leakage over the value axes (0.0 = every axis preserved).
+    leakage_norm: float = 0.0
+    # Minimum signed self-alignment ⟨aᵢ, F aᵢ F̃⟩₀ across axes (+1 preserved,
+    # −1 inverted); 1.0 in legacy mode.
+    min_self_alignment: float = 1.0
+    # Committed boundary_ids the turn violated (intersection with the manifold's
+    # boundary set); a non-empty set is a hard identity-boundary breach.
+    boundary_violations: FrozenSet[str] = frozenset()
 
     @property
     def value(self) -> float:
@@ -170,17 +230,110 @@ class IdentityCheck:
             (0.75 * scalar_score) + (0.25 * directional_weight * coherence_term)
         )
 
-    def check(self, trajectory, manifold: IdentityManifold | None = None) -> IdentityScore:
+    @staticmethod
+    def _validate_wave_field(wave_field) -> np.ndarray:
+        """Coerce + fail-closed-validate the live versor (ADR-0244 §4a).
+
+        A malformed wave field (wrong shape, non-finite, wrong byte-order) is a
+        typed ``ValueError`` — it never silently falls back to the legacy
+        scalar-L2 path. The dual-mode fallback (see :meth:`check`) is for an
+        ABSENT wave field only, not a malformed one.
+        """
+        F = np.ascontiguousarray(wave_field, dtype=np.float32)
+        if F.dtype.byteorder not in ("<", "="):
+            raise ValueError("identity gate requires little-endian float32")
+        if not np.all(np.isfinite(F)):
+            raise ValueError("identity gate encountered non-finite values in wave field")
+        if F.shape != (N_COMPONENTS,):
+            raise ValueError(
+                f"identity gate wave field must have shape ({N_COMPONENTS},), got {F.shape}"
+            )
+        return F
+
+    def _wave_field_score(
+        self,
+        wave_field,
+        manifold: IdentityManifold,
+        trajectory_id: str,
+        boundary_violations: FrozenSet[str],
+    ) -> IdentityScore:
+        """Operator-preservation identity score for a live versor (ADR-0244 §2.2/§4a).
+
+        The trajectory is a versor (an operator); we measure whether it PRESERVES
+        the value subspace via its action on the axes ``F aᵢ F̃`` — subspace
+        leakage (tilt toward alien dimensions) plus signed self-alignment
+        (in-subspace inversion). See :mod:`core.physics.identity_manifold`.
+        """
+        F = self._validate_wave_field(wave_field)
+        geometry = _geometry_for_manifold(manifold)
+        leakage, self_align = geometry.axis_response(F.astype(np.float64))
+        leakage_rms = float((sum(l * l for l in leakage) / len(leakage)) ** 0.5)
+        min_align = float(min(self_align)) if self_align else 1.0
+        score = self._clamp01(1.0 - leakage_rms)
+        threshold = float(manifold.alignment_threshold)
+        # Per-axis attribution consistent with the aggregate: an axis deviates
+        # when its own leakage exceeds the aggregate bound OR the versor has
+        # rotated it past orthogonal (toward inversion).
+        deviations = frozenset(
+            str(getattr(axis, "axis_id", getattr(axis, "name", "axis")))
+            for axis, leak, align in zip(manifold.value_axes, leakage, self_align)
+            if leak > (1.0 - threshold) or align < _WAVE_SELF_ALIGNMENT_FLOOR
+        )
+        flagged = (
+            score < threshold
+            or min_align < _WAVE_SELF_ALIGNMENT_FLOOR
+            or bool(deviations)
+            or bool(boundary_violations)
+        )
+        return IdentityScore(
+            score=score,
+            flagged=flagged,
+            deviation_axes=deviations,
+            trajectory_id=trajectory_id,
+            wave_mode_active=True,
+            leakage_norm=leakage_rms,
+            min_self_alignment=min_align,
+            boundary_violations=boundary_violations,
+        )
+
+    def check(
+        self,
+        trajectory,
+        manifold: IdentityManifold | None = None,
+        *,
+        wave_field=None,
+        violated_boundary_ids: FrozenSet[str] = frozenset(),
+    ) -> IdentityScore:
+        """Check a trajectory against the IdentityManifold (ADR-0010 / ADR-0244).
+
+        Dual-mode (ADR-0244 §3): when a ``wave_field`` (the live versor
+        ``final_state.F``) is supplied, run the metric-exact operator-preservation
+        gate; otherwise fall back to the legacy scalar-L2 heuristic. A *malformed*
+        wave field raises (fail-closed) — only an ABSENT one falls back.
+
+        ``violated_boundary_ids`` (the turn's safety/ethics violated boundaries)
+        is intersected with the manifold's committed ``boundary_ids``; a non-empty
+        intersection is a hard identity-boundary breach (governance annotation
+        item 7). Defaults empty so pre-ADR-0244 callers are byte-identical.
+        """
         resolved_manifold = manifold or self._manifold
         if resolved_manifold is None:
             raise TypeError("IdentityCheck.check() requires an IdentityManifold")
         trajectory_id = str(getattr(trajectory, "trajectory_id", "legacy_trajectory"))
+        boundary_violations = (
+            frozenset(violated_boundary_ids) & resolved_manifold.boundary_ids
+        )
         if not resolved_manifold.value_axes:
             return IdentityScore(
                 score=1.0,
-                flagged=False,
+                flagged=bool(boundary_violations),
                 deviation_axes=frozenset(),
                 trajectory_id=trajectory_id,
+                boundary_violations=boundary_violations,
+            )
+        if wave_field is not None:
+            return self._wave_field_score(
+                wave_field, resolved_manifold, trajectory_id, boundary_violations
             )
         confidence = float(getattr(trajectory, "total_coherence_delta", 0.0))
         confidence += self._mean_frame_coherence(trajectory)
@@ -192,10 +345,36 @@ class IdentityCheck:
         )
         return IdentityScore(
             score=score,
-            flagged=bool(deviations),
+            flagged=bool(deviations) or bool(boundary_violations),
             deviation_axes=deviations,
             trajectory_id=trajectory_id,
+            boundary_violations=boundary_violations,
         )
+
+    @staticmethod
+    def conjugate_correct(
+        score: IdentityScore, *, refuse: bool = False
+    ) -> IdentityScore:
+        """Conjugate corrector ``C_id`` + fail-closed egress (ADR-0244 §2.2/§4a).
+
+        v1 policy is **admit-or-abstain**: it applies *no* corrective
+        displacement to the versor (a corrector that could rewrite reasoning to
+        force a low leakage score would be a "good-metric / bad-cognition"
+        defect, and silently mutating the field would violate the safety-pack
+        ``no_silent_correction`` boundary). When ``refuse=True`` and the score
+        is a violation, it abstains — raises :class:`IdentityGateRefusal`,
+        leaving the live parameters unchanged. Otherwise the score passes
+        through unmodified. A bounded geometric corrective displacement is a
+        future enhancement; v1 is the conservative bound (zero displacement).
+        """
+        if refuse and IdentityCheck.would_violate(score):
+            raise IdentityGateRefusal(
+                f"identity gate refused trajectory {score.trajectory_id!r}: "
+                f"leakage={score.leakage_norm:.3f} min_self_align="
+                f"{score.min_self_alignment:.3f} "
+                f"boundary_violations={sorted(score.boundary_violations)}"
+            )
+        return score
 
     @staticmethod
     def would_violate(
@@ -216,6 +395,13 @@ class IdentityCheck:
         if score is None:
             return False
         if score.flagged:
+            return True
+        # ADR-0244 §2.2 — a committed boundary breach or an inverted value axis
+        # is a violation independent of the aggregate score. Legacy defaults
+        # (empty boundary_violations, min_self_alignment=1.0) never trigger these.
+        if score.boundary_violations:
+            return True
+        if score.min_self_alignment < _WAVE_SELF_ALIGNMENT_FLOOR:
             return True
         if manifold is not None and score.score < manifold.alignment_threshold:
             return True
