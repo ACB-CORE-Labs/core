@@ -87,3 +87,7 @@ engine_state/_life_backup_*/
 
 # Local MCP configuration (contains local tokens)
 .mcp.json
+
+# Google Drive sync pointer stubs (JSON pointers to Drive docs, not content).
+# The canonical committed copy of any R&D doc lives under docs/ as real markdown.
+*.gdoc

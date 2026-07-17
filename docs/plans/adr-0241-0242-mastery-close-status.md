@@ -78,7 +78,7 @@ GitHub Actions became billing-locked (~$6, account-level) mid-arc, forcing a piv
 ## Current state (2026-07-16)
 
 - Both ADRs: **Accepted**, ratified, full audit trail.
-- `main` was @ `18d3c70d` at arc close; post-Accept backlog follow-through is on `feat/adr-0241-0242-implementation` (tip includes `d388fc9e` feature commit + status notes; local-first validation; merge when ready).
+- Post-Accept backlog **merged**: PR #55 (`d388fc9e` feature commit + status notes) landed on `main` @ `19819194`; all `[Verification]` numbers were independently reproduced by the 2026-07-16 audit (smoke 176; fast lane 11709 passed / 108 skipped; f64 parity 21/21 incl. Rust-path; invariants+demos+A-04 140). Three seam-vs-integration caveats carried into the ADR-0243 arc — see `docs/plans/adr-0243-implementation-plan.md` §1.
 - CI: **local-first is the real merge gate** (no Docker CI for merge); `uv.lock` committed and locked installs enforced in workflows; optional Mac Act runner must be `ubuntu-latest:host` (native), not `docker://…`.
 
 ## Remaining backlog (post-Accept follow-through; 2026-07-16 mastery close)
