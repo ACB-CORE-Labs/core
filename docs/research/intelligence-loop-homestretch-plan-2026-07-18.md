@@ -35,14 +35,14 @@ Close the comprehend → reason → articulate → contemplate → learn loop an
 
 ## 3. Phases
 
-### Phase 0 — Worktree + record (small) — PARTIALLY DONE
+### Phase 0 — Worktree + record (small) — DONE
 - [x] Spark PDFs copied to `docs/research/`.
 - [x] Adjudication doc written (`spark-audit-adjudication-2026-07-18.md`).
 - [x] This plan doc written.
-- [ ] Create worktree off `forgejo/main`; run smoke + fast lanes → green baseline recorded.
-- [ ] Commit the three docs + PDFs as the arc's opening record.
+- [x] Worktree `feat/intelligence-loop-arc` off `forgejo/main`; baseline smoke 176 passed (133s).
+- [x] Opening record committed (`fcea2d3a`).
 
-### Phase 1 — Close the articulation seam, S1 (medium)
+### Phase 1 — Close the articulation seam, S1 (medium) — DONE (`19d5731a`)
 Wire a `readback` stage into the lifecycle corridor (eval-tier, off-serving):
 - `egress` `route="readback_eligible"` → `VocabManifold.nearest()` token selection
   (`cognitive_lifecycle.py` gains a vocab consumer; today it imports no `vocab`, `:68-76`).
@@ -53,7 +53,7 @@ Wire a `readback` stage into the lifecycle corridor (eval-tier, off-serving):
 - TDD anchors: `tests/test_adr_0243_cognitive_lifecycle.py`, `tests/test_vocab_manifold_invariants.py`.
 - Scope guard: within Accepted ADR-0243 §2.3 (readback rules); if design exceeds it → ADR amendment, not silent drift.
 
-### Phase 2 — Activate the learning write-path, S2 (medium)
+### Phase 2 — Activate the learning write-path, S2 (medium) — DONE (`f16b4a60`)
 - Compose the chiral Q_top latch (`chiral_gate.py`) into `integrate_validated_biography`
   (`biography_wiring.py:174`): charge conservation becomes a precondition of biography updates.
 - First real caller: harness-driven — after ADR-0240 validation PASS, integrate holonomy; prove
@@ -62,7 +62,7 @@ Wire a `readback` stage into the lifecycle corridor (eval-tier, off-serving):
 - Cleanup-as-you-find: `biography.py:62` bare `.tobytes()` → explicit `<f8` coercion.
 - TDD anchors: `tests/test_adr_0240_biography_holonomy.py`, `tests/test_adr_0243_biography_wiring.py`.
 
-### Phase 3 — Unify the autonomy floor, S3 (small)
+### Phase 3 — Unify the autonomy floor, S3 (small) — DONE (`d672c712`)
 - Route the lifecycle's residual check (`cognitive_lifecycle.py:831`) through `GoldTetherMonitor`
   so autonomy-level modulation + chiral latching govern corridor runs — one guard, not two half-guards.
 - Layering direction: lifecycle → goldtether → WaveManifold (the audit's "integrate Monitor into
@@ -80,7 +80,7 @@ Instrument before consumption (ADR-0190 lesson: build the measurement first):
 - Honest-NULL protocol: if the corridor adds no eval delta, record NULL (as ADR-0246 §11 did).
   Truth test is eval delta, not artifact append.
 
-### Phase 5 — Handoff evidence for ruling (medium)
+### Phase 5 — Handoff evidence for ruling (medium) — DONE (evals/lift_evidence_handoff.py: proceed vs typed abstain, chains verified)
 - Run the Phase 4 instrument through ADR-0247 ports + ADR-0248 handoff machinery (flags on in
   evals only) and assemble acceptance-packet evidence for ADR-0246/0247/0248.
 - Deliverable: packets ready for Shay's §8 rulings. No self-Accept, no flag flips.
