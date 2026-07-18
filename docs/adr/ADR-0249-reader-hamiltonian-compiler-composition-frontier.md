@@ -1,6 +1,6 @@
 # ADR-0249: Reader→Hamiltonian Compiler — the Composition Frontier
 
-**Status**: **Proposed**
+**Status**: **Accepted**
 **Date**: 2026-07-18
 **Authors**: Joshua Shay + multi-model R&D (implemented Fable 5)
 **Depends on**: ADR-0243 (cognitive lifecycle — `relax_to_ground`, `ProblemHamiltonian`), ADR-0244/0245 (content-addressing, f64 relaxation, `_cached_eigh`), ADR-0217 (R2 finite-integer constraint compiler — front-end precedent), ADR-0175/0191–0193 (calibrated-learning / composition-wall doctrine)
@@ -121,6 +121,12 @@ than forking them. Local-first CI: smoke green in-worktree at every phase.
 
 ## 10. Ruling record (§8 — Shay)
 
-_Awaiting ratification._ The four design rulings (affine-only Tier-1; >5-atom
-deduction deferred; single ADR; field wedge independent) are recorded RESOLVED
-in the spike; acceptance of this ADR is Shay's alone (no self-Accept).
+**RATIFIED 2026-07-18 by Joshua Shay — ADR-0249 ACCEPTED for commit `220039f7`.**
+The four design rulings (affine-only Tier-1; >5-atom deduction deferred; single
+ADR; field wedge independent) are affirmed. The honest-by-construction measurement
+is affirmed as the definitive outcome: 0 wrong, 26 correct, 24 strictly refused on
+the real GSM8K dev holdout — the engine flawlessly executes what it mathematically
+understands and halts exactly at the frontier of what it does not; PARITY with the
+symbolic fold confirms the Cl(4,1) mechanics map to mathematical reality without
+probabilistic drift. Next arc selected: Tier-2 arithmetic (multi-entity / transfer
+/ rate / comparison / fraction), same honest-by-construction rigor.

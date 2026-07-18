@@ -1,6 +1,6 @@
 # ADR-0249 — Acceptance Evidence
 
-**Status**: Evidence pack for Shay's ruling (no self-Accept)
+**Status**: RATIFIED — ADR-0249 Accepted 2026-07-18 by Joshua Shay for commit `220039f7`
 **Date**: 2026-07-18
 **ADR**: `docs/adr/ADR-0249-reader-hamiltonian-compiler-composition-frontier.md`
 **Design record**: `docs/research/reader-hamiltonian-compiler-spike-2026-07-18.md`
