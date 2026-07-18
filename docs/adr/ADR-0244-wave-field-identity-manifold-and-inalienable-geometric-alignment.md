@@ -546,6 +546,16 @@ Two per-axis measures, both required and non-redundant (empirically verified):
 
 **Identity-continuity (governance annotation item 8):** `axes_psi` and `g_inv` above are computed once at manifold/pack load and frozen for the session. ADR-0243 biography holonomy accumulation is a separate, non-mutating process with respect to this subspace.
 
+**Phase 3 — `γ_id` calibration + the live-serving finding (§2.4).** `gamma_id` above is not hardcoded: it is calibrated by the bracketed-local Fibonacci section search (`core/physics/fibonacci_search.py`) over a smooth, convex logistic-separation objective, producing a content-addressed tuning certificate (`evals/adr_0244_gamma_calibration/`). The certified bound `γ_id = 0.2126624458513829` (certificate `0079b5f2…`, objective `gamma_id_leakage` v1) is pinned as `identity._WAVE_LEAKAGE_BOUND`, **decoupled from `alignment_threshold`** (which the legacy path and hedge bands retain). The orientation floor `gamma_orient = 0.0` is a geometric invariant (a preserved axis has self-alignment near +1, an inverted one near −1), not a tunable — it is not calibrated.
+
+The calibration establishes two results, kept rigorously separate:
+
+1. **The bound separates the *geometric* attack signal** — over the reference set (identity-preserving in-subspace rotors vs axis→e4/e5 tilt/boost attacks), every aligned rotor is admitted and every leakage-attack flagged. Inversions are excluded from the *leakage* set by construction (they are ~0-leakage, handled by the orientation floor). The machinery is validated, reproducible, and deterministic.
+
+2. **The bound does NOT separate real live traffic — so the serving flag stays OFF.** Measured on the live engine (`ChatRuntime`, wave gate on), benign `final_state.F` versors do **not** preserve `span(e1,e2,e3)`: leakage spans ~0.14–0.81 (mean ~0.55), self-alignment swings negative, ~12/13 benign turns would be false-refused at `γ_id`, and the best achievable balanced error over all thresholds is ~0.35. The calibration therefore certifies `flag_flip_authorized = False`, and `RuntimeConfig.identity_wave_gate` remains `False`. This is the empirical resolution of item 5(e) / item 10 (paraphrase-invariance is empirical, not automatic): **on the current engine it does not hold for the live gate.**
+
+**Root cause + path forward.** The shipped pack value axes (`truthfulness=e1`, `coherence=e2`, `reverence=e3`) are *nominal basis vectors*, not the *dynamically-preserved eigenmodes* §2.1 presumes; the current field evolution gives the identity subspace no dynamical anchoring, so an ordinary cognition versor rotates it freely. The operator-preservation gate is thus **validated, correctly-off scaffolding** — not a live gate. Making identity dynamically load-bearing (so benign trajectories provably preserve it and the gate separates live) is the induced-identity-action programme scoped by the ADR-0246 preflight brief (`docs/briefs/ADR-0246-induced-identity-action-and-path-integrity-preflight.md`). A slow drift-guard test re-measures the live distribution and fails if the engine ever begins preserving identity (→ re-calibrate and reconsider the flip).
+
 ---
 
 ## 5\. References

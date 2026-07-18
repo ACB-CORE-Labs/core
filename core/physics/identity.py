@@ -23,12 +23,31 @@ import numpy as np
 from algebra.cl41 import N_COMPONENTS
 from core.physics.identity_manifold import IdentityManifoldGeometry
 
-# ADR-0244 §2.2 / §4a — provisional wave-gate thresholds. The leakage bound
-# reuses ``IdentityManifold.alignment_threshold``; the orientation floor flags a
-# value axis the versor has rotated *past orthogonal* (toward inversion). Both
-# are calibrated against reference traces in D4 Phase 3 (γ_id); until then the
-# wave gate is flag-gated off in the runtime so these provisional values never
-# change live behavior.
+# ADR-0244 §2.2 / §4a / §2.4 — wave-gate thresholds.
+#
+# ``_WAVE_LEAKAGE_BOUND`` is the calibrated subspace-leakage bound γ_id: a versor
+# whose RMS leakage out of the value subspace exceeds it is flagged. It was
+# calibrated in D4 Phase 3 by a bracketed-local Fibonacci section search over a
+# geometric reference set (identity-preserving in-subspace rotors vs axis→e4/e5
+# tilt/boost attacks) — reproduce with ``evals.adr_0244_gamma_calibration``.
+#   objective_id=gamma_id_leakage v1, budget=24, interval=[0,1], sharpness=10
+#   certificate 0079b5f201fbf616a274f5776a16ebb682fb431384efe81c114edc68c3fbd80b
+# It replaces the earlier provisional reuse of ``alignment_threshold`` so the
+# wave path no longer borrows the legacy-path / hedge-band threshold.
+#
+# HONEST SCOPE (Phase 3 finding): this bound separates the *geometric* attack
+# signal, NOT real benign traffic — live ``final_state.F`` versors do not preserve
+# span(e1,e2,e3) (the shipped axes are nominal basis vectors, not dynamically
+# preserved eigenmodes), so benign leakage overlaps the attack range and the
+# calibration certifies ``flag_flip_authorized=False``. The wave gate therefore
+# stays flag-gated OFF in the runtime (``identity_wave_gate=False``); this bound
+# governs only the off-serve research/eval path until identity is made
+# dynamically load-bearing (ADR-0246 induced action).
+_WAVE_LEAKAGE_BOUND: float = 0.2126624458513829
+# The orientation floor flags a value axis the versor has rotated *past
+# orthogonal* (toward inversion). It is a geometric invariant (a preserved axis
+# has self-alignment near +1; an inverted one near −1), not a tunable, so it is
+# fixed at 0.0 rather than calibrated.
 _WAVE_SELF_ALIGNMENT_FLOOR: float = 0.0
 
 
@@ -270,17 +289,18 @@ class IdentityCheck:
         leakage_rms = float((sum(l * l for l in leakage) / len(leakage)) ** 0.5)
         min_align = float(min(self_align)) if self_align else 1.0
         score = self._clamp01(1.0 - leakage_rms)
-        threshold = float(manifold.alignment_threshold)
-        # Per-axis attribution consistent with the aggregate: an axis deviates
-        # when its own leakage exceeds the aggregate bound OR the versor has
-        # rotated it past orthogonal (toward inversion).
+        # The wave path uses the calibrated leakage bound γ_id (§2.4), decoupled
+        # from the legacy-path / hedge-band ``alignment_threshold``. A versor is
+        # flagged when its RMS subspace leakage exceeds γ_id, when any axis is
+        # rotated past orthogonal (inversion, via the orientation floor), or when
+        # a committed boundary_id fell. Per-axis attribution mirrors the aggregate.
         deviations = frozenset(
             str(getattr(axis, "axis_id", getattr(axis, "name", "axis")))
             for axis, leak, align in zip(manifold.value_axes, leakage, self_align)
-            if leak > (1.0 - threshold) or align < _WAVE_SELF_ALIGNMENT_FLOOR
+            if leak > _WAVE_LEAKAGE_BOUND or align < _WAVE_SELF_ALIGNMENT_FLOOR
         )
         flagged = (
-            score < threshold
+            leakage_rms > _WAVE_LEAKAGE_BOUND
             or min_align < _WAVE_SELF_ALIGNMENT_FLOOR
             or bool(deviations)
             or bool(boundary_violations)
