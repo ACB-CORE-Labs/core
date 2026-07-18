@@ -1,0 +1,11 @@
+Ring 2 + Ring 3 — verification run log
+branch: feat/ring2-residual-protocol (off main @ f49b391d)
+
+=== pytest: Ring 2/3 + ADR-0246 suites + D4 gate surfaces ===
+........................................................................ [ 57%]
+.....................................................                    [100%]
+125 passed in 8.70s
+
+=== uv run core test --suite smoke -q ===
+................................                                         [100%]
+176 passed in 129.93s (0:02:09)
