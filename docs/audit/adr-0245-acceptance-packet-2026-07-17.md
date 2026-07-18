@@ -2,7 +2,7 @@
 
 **Arc:** ADR-0245 CGA Unification: Mechanical Sympathy & Semantic Rigor — the foundation ADR-0244's identity gate sits on. Committed as a real companion ADR in D4 Phase 0; its D4 scope (§2.2 cast, §2.3 residual, §3 gate) closed across Phases 4–5.
 **Evidence base:** `feat/adr-0244-d4 @ 8ef80daa` (Phases 0–5 on `main`).
-**Status of ADR-0245:** **Proposed — submitted for your ruling.** The `Proposed → Accepted` flip is a **separate one-line governance commit** with your ratification provenance inline (anti-self-Accept guard). **I have NOT flipped it** — §8 is PENDING.
+**Status of ADR-0245:** **Accepted** — ratified by Joshua Shay on 2026-07-17. All four §3 legs green; no live-serving caveat. §8 is RATIFIED.
 
 ---
 
@@ -48,4 +48,4 @@ Landed across D4 Phases 0 (commit), 4 (§2.2), 5a (§2.3), 5d (§3). Phase 5 gat
 
 ## 8. RULING RECORD
 
-**PENDING — awaiting Joshua Shay's ruling.** No status flip has been made; ADR-0245 remains **Proposed**.
+**RATIFIED — Joshua Shay, 2026-07-17.** ADR-0245 accepted on its clean mechanical-sympathy + semantic-rigor evidence — all four §3 legs green (parity, f32 467× speedup, 0-LAPACK-on-repeat, collision-resistance), independent of the ADR-0244 identity gate. Status flipped `Proposed → Accepted` on 2026-07-17 with provenance inline.

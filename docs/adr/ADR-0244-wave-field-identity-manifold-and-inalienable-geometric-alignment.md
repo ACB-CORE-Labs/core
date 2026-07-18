@@ -1,10 +1,26 @@
 # ADR-0244: Wave-Field Identity Manifold and Inalienable Geometric Alignment
 
-**Status**: Proposed (R\&D ratification path: benchmark evidence \+ Joshua review)  
+**Status**: **Accepted** — ratified by Joshua Shay on 2026-07-17 (D4 acceptance-packet `docs/audit/adr-0244-acceptance-packet-2026-07-17.md`). Accepted **as an implemented mechanism**; live gate activation LIMITED — see **Operational status** below.  
 **Date**: 2026-07-17  
 **Authors**: Joshua Shay \+ Multi-model R\&D  
 **Traceability**: Notion R\&D (CORE Engineering Reference hub: Live-Entity Design Decisions, `core_HA` Patterns)  
-**Related**: ADR-0003, ADR-0006, ADR-0010, ADR-0021, ADR-0028, ADR-0031, ADR-0035, ADR-0039, ADR-0238, ADR-0239, ADR-0241, ADR-0242, ADR-0243, **ADR-0245** (companion — mechanical-sympathy + semantic-rigor foundation), `core/physics/identity.py`, `algebra/cl41.py`
+**Related**: ADR-0003, ADR-0006, ADR-0010, ADR-0021, ADR-0028, ADR-0031, ADR-0035, ADR-0039, ADR-0238, ADR-0239, ADR-0241, ADR-0242, ADR-0243, **ADR-0245** (companion — mechanical-sympathy + semantic-rigor foundation), **ADR-0246** (activation prerequisite — induced identity action + path integrity), `core/physics/identity.py`, `algebra/cl41.py`
+
+> **Operational status (ratified limitation, Joshua Shay 2026-07-17).** Acceptance covers the operator-preservation identity manifold, the fail-closed gate *capability*, the `γ_id` calibration record, telemetry, and the lifecycle contracts **as implemented** — it is **not** authorization to enable the live gate. `identity_wave_gate` remains **default-off** and live activation is **expressly NOT authorized**: current benign trajectories do not meet the frozen nominal-frame admission surface at an acceptable refusal rate (Phase-3 measured best balanced error **0.346**; the calibration explicitly did **not** authorize a production flip). Any future activation requires a **separately ratified ADR-0246** decision (induced identity action, lawful stabilizer `H_id`, path integrity, semantic-frame discrimination) **plus** renewed discrimination evidence, an acceptable benign refusal rate, and explicit human ratification. A reader seeing "Accepted" must not infer "safe to activate".
+>
+> ```yaml
+> identity_wave_gate:
+>   implementation: accepted        # ADR-0244, ratified 2026-07-17
+>   live_activation: not_authorized
+>   default: off
+>   blocker:
+>     - benign nominal-frame mismatch   # Phase-3 best balanced error 0.346
+>     - ADR-0246 induced action and path integrity
+>   activation_requires:
+>     - calibrated discrimination evidence
+>     - acceptable benign refusal rate
+>     - explicit human ratification
+> ```
 
 ---
 

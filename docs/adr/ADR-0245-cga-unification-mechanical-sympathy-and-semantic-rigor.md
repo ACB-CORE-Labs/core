@@ -1,6 +1,6 @@
 # ADR-0245: CGA Unification — Mechanical Sympathy, Boundary Rigor, and Eigendecomposition Memoization
 
-**Status**: Proposed (acceptance path: benchmark evidence \+ Joshua review)  
+**Status**: **Accepted** — ratified by Joshua Shay on 2026-07-17 (D4 acceptance-packet `docs/audit/adr-0245-acceptance-packet-2026-07-17.md`; §3 gate green — parity, f32 467× speedup, 0-LAPACK-on-repeat, collision-resistance).  
 **Date**: 2026-07-17  
 **Authors**: Joshua Shay \+ Multi-model R\&D  
 **Traceability**: Notion R\&D (CORE Engineering Reference hub: Live-Entity Design Decisions, `core_HA` Patterns)  

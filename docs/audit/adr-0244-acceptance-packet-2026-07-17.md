@@ -2,7 +2,7 @@
 
 **Arc:** ADR-0244 Wave-Field Identity Manifold & Inalienable Geometric Alignment (D4 Phases 0–6), built on the ADR-0243 lifecycle + the ADR-0245 mechanical-sympathy foundation.
 **Evidence base:** `feat/adr-0244-d4 @ 8ef80daa` (Phases 0–5 pushed direct-to-`main` per your sole-worker authorization; Phase 6 = this packet + the ADR-0245 packet).
-**Status of ADR-0244:** **Proposed — submitted for your ruling.** The `Proposed → Accepted` flip is a **separate one-line governance commit** carrying your ratification provenance inline (anti-self-Accept guard, `tests/test_adr_0241_governance_p12.py::test_adrs_accepted_with_recorded_ruling_provenance`). **I have NOT flipped it** — §8 is PENDING. See §5 for the one caveat that shapes the ruling.
+**Status of ADR-0244:** **Accepted (with a ratified live-activation limitation)** — ratified by Joshua Shay on 2026-07-17. Accepted as an implemented mechanism; `identity_wave_gate` stays **default-off** and live activation is **NOT authorized** pending ADR-0246. §8 is RATIFIED; see §5 for the caveat that shaped the ruling.
 
 ---
 
@@ -63,4 +63,4 @@ So the ruling is on the ADR **as a specification and a validated mechanism**, wi
 
 ## 8. RULING RECORD
 
-**PENDING — awaiting Joshua Shay's ruling.** No status flip has been made; ADR-0244 remains **Proposed**.
+**RATIFIED — Joshua Shay, 2026-07-17.** ADR-0244 accepted **as an implemented mechanism** — the operator-preservation manifold, fail-closed gate capability, `γ_id` calibration record, telemetry, and lifecycle contracts — **not** as authorization to enable live identity enforcement. **The Phase-3 calibration explicitly did NOT authorize a production flip:** it measured that benign traffic is not separable at the frozen nominal frame (best balanced error 0.346). `identity_wave_gate` remains **default-off** and live activation is **NOT authorized**, blocked pending a **separately ratified ADR-0246** (induced identity action, lawful stabilizer `H_id`, path integrity, semantic-frame discrimination) **plus** renewed discrimination evidence, an acceptable benign refusal rate, and explicit human ratification. Status flipped `Proposed → Accepted` on 2026-07-17 with provenance inline (+ machine-readable `identity_wave_gate:` ledger block in the ADR header). "Accepted" here means implemented, **not** safe-to-activate.
