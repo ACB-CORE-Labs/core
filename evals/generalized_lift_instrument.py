@@ -2,11 +2,11 @@
 
 Instrument-first doctrine (ADR-0190 lesson): this module DECIDES the
 "meaningful, generalized lift without overfitting" question instead of
-narrating it. Three deterministic domains, identical compiled problems for
+narrating it. Four deterministic domains, identical compiled problems for
 both paths, independent gold, and an honest-NULL protocol: if the corridor
 adds no delta, the report says so.
 
-Domains (corridor v1's honest ingestible surface):
+Domains (corridor's honest ingestible surface):
 
 * ``propositional`` — entailment on an enumerated case family. Corridor:
   :func:`propositional_entails` (exact ground-energy verdicts). Baseline: the
@@ -22,12 +22,16 @@ Domains (corridor v1's honest ingestible surface):
 * ``multimodal-completion`` — the sensorium corridor pattern (audio partial →
   full audio+vision percept), scored on whether articulation names BOTH
   constituent percepts; baseline articulates the raw partial ingress.
+* ``arithmetic-chain`` — real GSM8K dev-holdout problems routed to the
+  reader→Hamiltonian compiler: Tier-1 single-accumulator (ADR-0249) and Tier-2
+  multi-entity / transfer / certified summation (ADR-0250), each vs a symbolic
+  fold of the SAME compiled program. The full dev holdout solves wrong=0
+  (PARITY — the field matches arithmetic, it does not beat it).
 
-Scope limitations are RECORDED, never silently dropped (no-silent-caps):
-GSM8K and other natural-language arithmetic are NOT ingestible by corridor
-v1 — there is no reader→Hamiltonian compiler beyond the ≤5-atom
-propositional and quadratic-well domains. That compiler is the real
-composition frontier, and this instrument is the harness waiting for it.
+Scope limitations are RECORDED, never silently dropped (no-silent-caps): the
+reader→Hamiltonian compiler now solves the full dev holdout; the remaining
+frontier (derived-operand transfers, non-affine kinds, >5-atom deduction) sits
+at 0 cases on this holdout and is surfaced in the report's ``scope_limitations``.
 """
 
 from __future__ import annotations
@@ -512,19 +516,23 @@ def _symbolic_multi_register(program) -> float:
 
 def _corridor_and_baseline(graph):
     """Route a graph to Tier-1 (single-accumulator) or Tier-2 (multi-register),
-    returning (corridor_answer, baseline_answer) or None if genuinely un-ingestible.
-    Both paths consume the identical compiled program; the corridor relaxes, the
-    baseline folds arithmetically."""
+    returning ``(corridor_answer, baseline_answer)``. Both paths consume the
+    identical compiled program; the corridor relaxes, the baseline folds
+    arithmetically. Raises ``MultiRegisterError`` when neither tier ingests.
+
+    Only the Tier-1 COMPILE is wrapped for the fallthrough: a future typed raise
+    from ``execute_turn_program`` must surface as a Tier-1 execution failure, not
+    be silently rerouted into Tier-2 (which would mask a regression). The tiers
+    differ on non-convergence — Tier-2 fails closed (raises), Tier-1 records the
+    iterate — but the gold comparison binds wrong=0 on both regardless."""
     try:
         program = compile_turn_program(graph)
-        return execute_turn_program(program).answer, _symbolic_fold(program.seed, program.steps)
     except TurnProgramError:
-        pass
-    try:
-        program = compile_multi_register_program(graph)
-    except MultiRegisterError:
-        return None
-    return execute_multi_register_program(program).answer, _symbolic_multi_register(program)
+        program = None
+    if program is not None:
+        return execute_turn_program(program).answer, _symbolic_fold(program.seed, program.steps)
+    mr_program = compile_multi_register_program(graph)  # raises MultiRegisterError if un-ingestible
+    return execute_multi_register_program(mr_program).answer, _symbolic_multi_register(mr_program)
 
 
 def run_arithmetic_chain_domain() -> DomainOutcome:
@@ -550,14 +558,19 @@ def run_arithmetic_chain_domain() -> DomainOutcome:
             graph = graph_from_dict(graph_dict) if graph_dict else None
         except (MathGraphError, KeyError, TypeError, ValueError):
             graph = None
-        answers = _corridor_and_baseline(graph) if graph is not None else None
-        if answers is None:
+        if graph is None:  # reader/graph-parse failure — distinct from a compiler refusal
             corridor_refused += 1
             baseline_refused += 1
-            rows.append({"case_id": case_id, "ingested": False})
+            rows.append({"case_id": case_id, "ingested": False, "refusal": "graph_parse_failed"})
+            continue
+        try:
+            corridor_answer, baseline_answer = _corridor_and_baseline(graph)
+        except MultiRegisterError as refusal:  # neither tier ingests — record the reason
+            corridor_refused += 1
+            baseline_refused += 1
+            rows.append({"case_id": case_id, "ingested": False, "refusal": refusal.reason})
             continue
 
-        corridor_answer, baseline_answer = answers
         gold = None if gold_raw is None else float(gold_raw)
         corridor_ok = gold is not None and abs(corridor_answer - gold) < 1e-4
         baseline_ok = gold is not None and abs(baseline_answer - gold) < 1e-4

@@ -1,6 +1,6 @@
 # ADR-0250: Tier-2 Multi-Entity Arithmetic — the Multi-Register Extension
 
-**Status**: **Proposed**
+**Status**: **Accepted**
 **Date**: 2026-07-18
 **Authors**: Joshua Shay + multi-model R&D (implemented Fable 5)
 **Depends on**: ADR-0249 (reader→Hamiltonian compiler — quantity kernel, relation compiler, turn programs), ADR-0243/0244/0245 (relaxation, content-addressing, f64)
@@ -90,6 +90,11 @@ Local-first CI: smoke green in-worktree at every phase.
 
 ## 10. Ruling record (Shay)
 
-_Awaiting ratification._ The design rulings (multi-register product-of-lines; relative
-conservation hard-reject; prepare→validate→commit atomicity; certified summation turn; ship 2b
-designed+guarded) are recorded RESOLVED in the spike; acceptance is Shay's alone (no self-Accept).
+**RATIFIED 2026-07-18 by Joshua Shay — ADR-0250 ACCEPTED.** The design rulings (multi-register
+product-of-lines; relative conservation hard-reject; prepare→validate→commit atomicity; certified
+summation turn; ship 2b designed+guarded) are affirmed, citing the acceptance evidence pack
+(`docs/handoff/ADR-0250-Acceptance-Evidence.md`) as-is. The full-holdout result — the
+reader→Hamiltonian compiler solving the entire real GSM8K dev holdout 50/50 wrong=0 by chained
+certified relaxation — is affirmed as the definitive outcome. Next arc: re-arm the measurement
+(seal dev-holdout-2, a larger real GSM8K slice where the frontier kinds appear) and let the honest
+coverage table pick the next capability tier; dev-1 stays pinned at 50/50 as a regression floor.
