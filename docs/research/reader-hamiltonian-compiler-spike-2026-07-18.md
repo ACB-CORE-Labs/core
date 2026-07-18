@@ -112,6 +112,37 @@ consumes nothing from this arc. Sealed practice vs serving split per ADR-0175; w
 held on the deductive flagship; honest-NULL protocol on the instrument; proposal-only learning
 (I-03) untouched.
 
+### 4.6 Byte-identity & cross-hardware reproducibility (three tiers, honestly bounded)
+The determinism claim splits into three tiers; only the first two are unconditionally
+achievable, and the design says so rather than promising universal bit-identity.
+
+- **Tier 1 — content address: SOLVED, unconditional.** `hamiltonian_id` = SHA-256 over
+  canonical JSON + explicit `<f8` LE matrix bytes (ADR-0244 §2.7). Endianness — the one real
+  architecture variable in hashing — is already coerced. Same matrix ⇒ same id on any machine.
+- **Tier 2 — matrix construction: ACHIEVABLE, enforced in P1.** `algebra.cl41.geometric_product`
+  (`:108-125`) is a fixed-order scatter-add (`result[idx] += sign·aᵢ·bⱼ`, canonical i,j order),
+  no BLAS / `dot` / reduction ⇒ IEEE-754 correctly-rounded and hardware-deterministic. The
+  translator/dilator identities have integer/half-integer coefficients, so well *centers* are
+  bit-clean (verified §3). **Trap:** `geometric_product` and `reverse` silently fall back to
+  **float32** unless handed f64 arrays (`:110-112`, `:134-135`). P1 constructs every versor and
+  sandwich in explicit f64, and pins the result with **golden-bytes tests** — the frozen
+  SHA-256 of a canonical compiled-Hamiltonian set as literal constants, so any numpy / toolchain
+  / hardware drift in the last bit fails the test loudly (same discipline as the biography
+  `<f8` hash pin and the `_cached_eigh` memoization tests).
+- **Tier 3 — eigensolve → answer: GENUINELY hardware-bounded; do not overclaim.** The affine
+  well `H = c(Id − ψψᵀ)` is dense, so `relax_to_ground` takes the LAPACK branch
+  (`cognitive_lifecycle.py:590-593`). Its excited eigenspace is **31-fold degenerate** (all at
+  energy c), and LAPACK fills that basis arbitrarily per build ⇒ `evecs`/`propagator` **bytes
+  are not cross-hardware identical**. Mitigation, in order:
+  1. **Analytic ground recovery.** The compiler *constructs* the target ψ (versor transport),
+     so the corridor's job is to *confirm* relaxation reaches span(ψ), not to discover it. The
+     converged steady state projects onto the unique 1-D ground space, so the degenerate-basis
+     arbitrariness cancels in the limit; pin the **basis-invariant** `phase_correlation/2`
+     agreement to ψ, never the propagator bytes.
+  2. Where a future non-affine tier yields a genuinely dense non-degenerate H, record
+     cross-hardware eigen-reproducibility as an explicit limitation (no-silent-caps) and pin
+     the **decision** (`_certified` already uses tolerances, not bit-equality), not the bytes.
+
 ## 5. In-tree inventory (survey bindings)
 
 ### 5.1 Hamiltonian construction contract (verified)
@@ -228,15 +259,16 @@ Each phase: own PR, smoke-gated, TDD-first. New machinery ⇒ **ADR-0249** (Prop
 re-verify number at landing), acceptance evidence assembled as in the intelligence-loop arc;
 no self-Accept.
 
-## 8. Open decisions (Shay)
+## 8. Rulings (RESOLVED 2026-07-18)
 
-1. Tier-1 scope ruling: affine-only, or include unknown×unknown via a declared non-versor
-   mechanism (leaning: affine-only; keep the versor story exact).
-2. Confirm >5-atom deduction (ROBDD-partitioned turn programs) is the *next* arc, not this
-   one (leaning: yes — one coherent capability per arc; plan P6 reflects this).
-3. ADR granularity: one ADR (0249) for quantity kernel + relation compiler + turn programs +
-   CNF converter, or split (leaning: one — they are one capability with four organs).
-4. Field-reasoner wedge relationship: wedge continues independently on its 0D+W trajectory
-   while this arc generalizes the same versor mechanism into the corridor (leaning: yes;
-   any merge is a later explicit ADR, and the compiler must not import either wedge arm —
-   INV-27 stays intact).
+All four APPROVED by Shay:
+1. **Tier-1 = affine-only.** Unknown×unknown deferred; keep the versor story exact.
+2. **>5-atom deduction = next arc**, via ROBDD-partitioned turn programs. NOTE the honest
+   reason: this is a *sequencing* choice (one capability per arc), **not** a claim that
+   >5-atom deduction is impossible or needs probabilistic approximation — composition handles
+   it deterministically and exactly. The 32-blade ceiling only forbids doing it *natively in
+   one Hamiltonian*; the certified turn chain crosses it losslessly.
+3. **One ADR (0249)** for quantity kernel + relation compiler + CNF converter + turn programs.
+4. **Field wedge continues independently** (0D+W); this arc generalizes the same versor
+   mechanism into the corridor; compiler imports neither wedge arm (INV-27 intact); any merge
+   is a later explicit ADR.
