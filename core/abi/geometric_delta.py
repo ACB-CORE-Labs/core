@@ -5,6 +5,7 @@ between any modality compiler (like Sopher's Callosum) and the Master substrate 
 """
 
 from dataclasses import dataclass
+import random
 from typing import Any, Dict, List, Optional, Set
 
 from core.epistemic_state import EpistemicState
@@ -27,3 +28,16 @@ class GeometricDelta:
     inverse_ref: Optional[str]   # optional correction link
     provenance: Dict[str, Any]   # source, time, adr_refs, hash
     epistemic: EpistemicState    # CORE truth-seeking state
+
+
+def generate_jittered_parents(base_parents: Set[str], drop_prob: float = 0.1, inject_stale_prob: float = 0.1, stale_pool: List[str] = None) -> Set[str]:
+    """Generates a randomized CRDT causal parent tree to simulate sensory jitter and latency."""
+    jittered = set()
+    for parent in base_parents:
+        if random.random() > drop_prob:
+            jittered.add(parent)
+            
+    if stale_pool and random.random() < inject_stale_prob:
+        jittered.add(random.choice(stale_pool))
+        
+    return jittered

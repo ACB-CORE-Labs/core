@@ -82,3 +82,14 @@ def check_cl41_closure_invariant(versor: list[float], tolerance: float) -> Tuple
     # If the user has set CORE_STRICT_PROJECTOR, we would execute the guarded projector.
     # We return True and a dummy residual of 0.0 for this abstract stub.
     return True, 0.0
+
+def check_cl41_closure_invariant_batch(versors: list[list[float]], tolerance: float) -> Tuple[bool, float]:
+    """Batch verification of Cl(4,1) algebraic closure to stress test high-frequency merges."""
+    max_residual = 0.0
+    for v in versors:
+        is_closed, residual = check_cl41_closure_invariant(v, tolerance)
+        if not is_closed:
+            return False, residual
+        max_residual = max(max_residual, residual)
+    return True, max_residual
+

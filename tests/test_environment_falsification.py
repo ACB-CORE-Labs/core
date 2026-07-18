@@ -299,3 +299,32 @@ def test_comparator_does_not_import_generate_or_call_decode(monkeypatch):
     )
     run = compare_expected_to_observation(expected, actual, actual_refs=refs)
     assert run.verdict == "SUPPORTED"
+
+def test_omni_sandbox_falsification():
+    """Validates GeometricDelta CRDT causal merges under simulated sensory jitter."""
+    from sensorium.adapters.omni_harness import OmniHarness
+    from vault.delta_store import DeltaStore
+    from core.abi.geometric_delta import generate_jittered_parents
+    
+    # Initialize the sandbox
+    harness = OmniHarness(mode="playback")
+    store = DeltaStore()
+    
+    # Simulate adversarial shifts
+    deltas = list(harness.stream_optical_flow(num_frames=3))
+    
+    inserted_ids = set()
+    for delta in deltas:
+        # Simulate simulated jitter by injecting jittered causal parents
+        # Delta object is frozen, so we must recreate it or use object.__setattr__
+        # wait, is GeometricDelta frozen? Yes, @dataclass(frozen=True).
+        # We need to create a new GeometricDelta with the jittered parents.
+        new_parents = generate_jittered_parents(base_parents=delta.parents, drop_prob=0.1)
+        object.__setattr__(delta, "parents", new_parents)
+        success = store.insert(delta, author="omni-adversary")
+        assert success is True, "Failed to insert jittered delta into store."
+        inserted_ids.add(delta.id)
+    
+    # Verify exact convergence of the CRDT frontier
+    # The DeltaStore should successfully resolve the frontier containing all jittered events
+    assert store.resolve_event_frontier(inserted_ids) is True, "Frontier failed to resolve exactly under adversarial jitter."
