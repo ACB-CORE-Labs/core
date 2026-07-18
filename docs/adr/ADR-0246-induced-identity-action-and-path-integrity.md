@@ -1,7 +1,7 @@
 # ADR-0246: Induced Identity Action and Path Integrity
 
-**Status**: **Proposed** — pending explicit human ratification (provenance guard: no self-Accept; ruling record in the acceptance packet is PENDING)
-**Date**: 2026-07-17
+**Status**: **Accepted**
+**Date**: 2026-07-18
 **Authors**: Joshua Shay + multi-model R&D (Fable 5 scaffold → Opus 4.8 adversarial audit + hardening → Sonnet 5/Fable 5 completion; per-model provenance in §9)
 **Preflight**: `docs/briefs/ADR-0246-induced-identity-action-and-path-integrity-preflight.md` (locked decisions §3, non-goals §7 — all honored; execution log §0a)
 **Depends on**: ADR-0244 (operator-preservation identity gate, Accepted), ADR-0245 (mechanical sympathy + semantic rigor, Accepted)

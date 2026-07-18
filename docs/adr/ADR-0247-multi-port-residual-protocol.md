@@ -1,7 +1,7 @@
 # ADR-0247: Multi-Port Residual Protocol — the Ring-2 Shared Control Grammar
 
-**Status**: **Proposed** — pending explicit human ratification (no self-Accept)
-**Date**: 2026-07-17
+**Status**: **Accepted**
+**Date**: 2026-07-18
 **Authors**: Joshua Shay + multi-model R&D (implemented Fable 5)
 **Depends on**: ADR-0244/0245 (Accepted), ADR-0246 (Proposed — first port consumer)
 **Preflight authority**: ADR-0246 preflight brief §9 (Ring 2), §7 non-goal #2

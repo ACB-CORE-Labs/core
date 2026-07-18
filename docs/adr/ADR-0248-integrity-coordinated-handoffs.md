@@ -1,7 +1,7 @@
 # ADR-0248: Integrity-Coordinated Handoffs — the Ring-3 Coordination Seam
 
-**Status**: **Proposed** — pending explicit human ratification (no self-Accept)
-**Date**: 2026-07-17
+**Status**: **Accepted**
+**Date**: 2026-07-18
 **Authors**: Joshua Shay + multi-model R&D (implemented Fable 5)
 **Depends on**: ADR-0247 (Proposed — supplies the port decisions), existing epistemic/normative organs (`core/epistemic_state.py`)
 **Preflight authority**: ADR-0246 preflight brief §9 (Ring 3)
