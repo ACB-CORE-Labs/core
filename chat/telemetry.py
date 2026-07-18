@@ -137,6 +137,20 @@ def serialize_turn_event(
         out["identity_deviation_axes"] = sorted(
             getattr(identity_score, "deviation_axes", ()) or ()
         )
+        # ADR-0244 §2.2 — operator-preservation wave-gate telemetry. Emitted only
+        # when the wave path ran (config.identity_wave_gate on); absent otherwise,
+        # so the pre-ADR-0244 wire format stays byte-identical when the gate is off.
+        if getattr(identity_score, "wave_mode_active", False):
+            out["identity_wave_mode"] = True
+            out["identity_leakage_norm"] = float(
+                getattr(identity_score, "leakage_norm", 0.0)
+            )
+            out["identity_min_self_alignment"] = float(
+                getattr(identity_score, "min_self_alignment", 1.0)
+            )
+            out["identity_boundary_violations"] = sorted(
+                getattr(identity_score, "boundary_violations", ()) or ()
+            )
     if include_content:
         out["input_tokens"] = list(getattr(event, "input_tokens", ()))
         out["surface"] = str(getattr(event, "surface", ""))

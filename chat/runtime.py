@@ -28,6 +28,7 @@ from chat.teaching_grounding import (
     TEACHING_CORPUS_ID as _TEACHING_CORPUS_ID,
 )
 from chat.refusal import (
+    TYPED_REFUSAL_PREFIX,
     build_hedge_prefix,
     build_refusal_surface,
     inject_hedge,
@@ -2676,7 +2677,19 @@ class ChatRuntime:
         # --- end articulation fidelity ---
 
         reasoning_trajectory = _make_trajectory_from_result(result, self._context.turn)
-        identity_score = self._identity_check.check(reasoning_trajectory, self.identity_manifold)
+        # ADR-0244 §2.2 — operator-preservation identity gate (flag-gated). When
+        # on, the check runs the metric-exact wave-field gate on the live versor
+        # final_state.F; when off, wave_field=None selects the legacy scalar-L2
+        # path (byte-identical). The boundary_ids intersection needs the
+        # safety/ethics verdicts, which are computed below — it is supplemented
+        # after those run.
+        identity_score = self._identity_check.check(
+            reasoning_trajectory,
+            self.identity_manifold,
+            wave_field=(
+                result.final_state.F if self.config.identity_wave_gate else None
+            ),
+        )
         flagged = identity_score.flagged
         cycle_cost = CycleCost(
             cycle_index=self._context.turn,
@@ -2738,6 +2751,30 @@ class ChatRuntime:
         refusal_surface = build_refusal_surface(
             safety_verdict, ethics_verdict, self.ethics_pack,
         )
+        # ADR-0244 §2.2 — supplement the identity gate now that the safety/ethics
+        # verdicts exist: intersect the turn's violated boundaries with the
+        # manifold's committed boundary_ids, and fold a fail-closed geometric
+        # IdentityGateRefusal into the typed refusal surface. Flag-gated OFF by
+        # default → skipped → byte-identical to the pre-ADR-0244 path.
+        # ``refusal_emitted`` is derived from ``refusal_surface`` after this
+        # block so the (surface is not None) ⇔ emitted invariant is preserved.
+        if self.config.identity_wave_gate:
+            _violated_boundaries: frozenset[str] = (
+                frozenset(getattr(safety_verdict, "violated_boundaries", ()) or ())
+                | frozenset(getattr(ethics_verdict, "violated_commitments", ()) or ())
+            )
+            _boundary_breach = (
+                _violated_boundaries & self.identity_manifold.boundary_ids
+            )
+            if _boundary_breach:
+                identity_score = replace(
+                    identity_score,
+                    boundary_violations=_boundary_breach,
+                    flagged=True,
+                )
+                flagged = True
+            if refusal_surface is None and IdentityCheck.would_violate(identity_score):
+                refusal_surface = TYPED_REFUSAL_PREFIX + "identity:wave_gate"
         refusal_emitted = refusal_surface is not None
         hedge_injected = False
         warm_grounding_source: str | None = None

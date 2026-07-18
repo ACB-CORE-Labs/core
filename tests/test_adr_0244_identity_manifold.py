@@ -202,6 +202,22 @@ def test_boost_toward_e5_leaks():
     assert leakage[0] > 0.05
 
 
+def test_boost_measures_stay_bounded_despite_non_unit_rotation():
+    # A boost is a unit versor (b·b̃ = 1) but does NOT preserve the Euclidean
+    # coefficient norm — ‖b aᵢ b̃‖₂ > 1. The per-axis normalization keeps the
+    # leakage fraction in [0,1] and the signed alignment in [−1,1]; without it
+    # (the earlier bug) leakage and |self_align| ran well past 1.
+    geom = _geom()
+    for theta in (0.5, 1.5, 2.5):
+        leakage, self_align = geom.axis_response(_boost(_E15, theta))
+        assert all(0.0 <= v <= 1.0 for v in leakage), (theta, leakage)
+        assert all(-1.0 <= v <= 1.0 for v in self_align), (theta, self_align)
+    # larger boost tilts the e1 axis further out of the value subspace
+    small, _ = geom.axis_response(_boost(_E15, 0.5))
+    large, _ = geom.axis_response(_boost(_E15, 1.5))
+    assert large[0] > small[0]
+
+
 def test_larger_tilt_leaks_more():
     geom = _geom()
     small = geom.leakage_rms(_spatial_rotor(_E14, 0.5))

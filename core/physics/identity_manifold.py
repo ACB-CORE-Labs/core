@@ -187,31 +187,48 @@ class IdentityManifoldGeometry:
     ) -> tuple[list[float], list[float]]:
         """Per-axis operator-preservation measures for ``versor``.
 
-        Returns ``(leakage, self_align)`` — parallel lists over the value axes:
+        Returns ``(leakage, self_align)`` — parallel lists over the value axes,
+        both **scale-invariant** (normalized by the rotated axis magnitude):
 
-          * ``leakage[i]`` = ``‖R aᵢ R̃ − P_I(R aᵢ R̃)‖₂`` (subspace departure;
-            catches tilt toward alien dimensions e4/e5).
-          * ``self_align[i]`` = ``⟨aᵢ, R aᵢ R̃⟩₀`` (signed orientation; catches
-            in-subspace inversion — ``e1 → −e1`` gives leakage 0 but −1 here).
+          * ``leakage[i]`` = ``‖R aᵢ R̃ − P_I(R aᵢ R̃)‖₂ / ‖R aᵢ R̃‖₂`` — the
+            *fraction* of the rotated axis outside the value subspace, in
+            ``[0, 1]``; catches tilt toward alien dimensions e4/e5.
+          * ``self_align[i]`` = ``⟨aᵢ, R aᵢ R̃⟩₀ / (‖aᵢ‖₂ ‖R aᵢ R̃‖₂)`` — a signed
+            cosine in ``[−1, 1]``; catches in-subspace inversion (``e1 → −e1``
+            gives leakage 0 but −1 here).
+
+        Normalization is load-bearing: a versor with a boost (e5) component does
+        NOT preserve the Euclidean coefficient norm (``‖R aᵢ R̃‖₂`` can exceed 1
+        even though ``R R̃ = 1`` in the Minkowski sense), so an un-normalized
+        magnitude would be unbounded. For a norm-preserving spatial rotor the
+        rotated axis is unit and normalization is a no-op.
         """
         versor = np.asarray(versor, dtype=np.float64)
         leakage: list[float] = []
         self_align: list[float] = []
         for axis in self.axes_psi:
+            axis_norm = euclidean_norm(axis)
             rotated = sandwich(versor, axis)
+            rot_norm = euclidean_norm(rotated)
+            if rot_norm <= 0.0 or axis_norm <= 0.0:
+                # Degenerate: the versor annihilated the axis — treat as full
+                # leakage / zero alignment (fail-closed).
+                leakage.append(1.0)
+                self_align.append(0.0)
+                continue
             rejection = rotated - subspace_project(
                 rotated, self.axes_psi, self.gram_inv
             )
-            leakage.append(euclidean_norm(rejection))
-            self_align.append(_inner0(axis, rotated))
+            leakage.append(euclidean_norm(rejection) / rot_norm)
+            self_align.append(_inner0(axis, rotated) / (axis_norm * rot_norm))
         return leakage, self_align
 
     def leakage_rms(self, versor: np.ndarray) -> float:
-        """Root-mean-square subspace leakage over all axes.
+        """Root-mean-square per-axis subspace-leakage fraction over all axes.
 
-        Each rotated axis is unit-norm (a versor preserves norm), so this is the
-        aggregate subspace-departure fraction in ``[0, 1]``; the Phase-2 gate's
-        ``score`` is ``1 − leakage_rms``.
+        Each per-axis leakage is a fraction in ``[0, 1]`` (see
+        :meth:`axis_response`), so this aggregate is also in ``[0, 1]``; the
+        Phase-2 gate's ``score`` is ``1 − leakage_rms``.
         """
         leakage, _ = self.axis_response(versor)
         return float((sum(value * value for value in leakage) / len(leakage)) ** 0.5)

@@ -475,14 +475,21 @@ def euclidean_norm(s: np.ndarray) -> float:
 
 def axis_response(R, axes_psi, g_inv):
     """Per-axis operator-preservation measures for versor R. For each value
-    axis a_i:
-      rotated_i    = sandwich(R, a_i)                # grade-1 unit vector
+    axis a_i (both measures NORMALIZED by the rotated-axis magnitude, so they
+    are scale-invariant):
+      rotated_i    = sandwich(R, a_i)                # grade-1 vector
+      rot_norm_i   = euclidean_norm(rotated_i)
       rejection_i  = rotated_i - subspace_project(rotated_i)   # out-of-I component
-      leakage_i    = euclidean_norm(rejection_i)     # subspace departure (Sec 2.2)
-      self_align_i = <a_i, rotated_i>_0              # SIGNED orientation (item 4)
+      leakage_i    = euclidean_norm(rejection_i) / rot_norm_i  # fraction in [0,1]
+      self_align_i = <a_i, rotated_i>_0 / (norm(a_i)*rot_norm_i)  # signed cosine [-1,1]
     Returns (leakage[], self_align[]). Both are needed and non-redundant:
     rejection catches tilt toward alien dimensions (e4/e5); self_align catches
-    in-subspace inversion (e1 -> -e1: leakage 0 but self_align -1)."""
+    in-subspace inversion (e1 -> -e1: leakage 0 but self_align -1).
+    NORMALIZATION IS LOAD-BEARING: the live versor carries boost (e5)
+    components, and a boost is a unit versor (R R~ = 1) that does NOT preserve
+    the Euclidean coefficient norm (‖R a_i R~‖ > 1), so an un-normalized
+    magnitude would be unbounded. For a norm-preserving spatial rotor the
+    rotated axis is unit and normalization is a no-op."""
     leak, align = [], []
     for a in axes_psi:
         rot = sandwich(R, a)
