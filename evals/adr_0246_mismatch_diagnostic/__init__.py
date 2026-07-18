@@ -50,8 +50,12 @@ from algebra.cl41 import N_COMPONENTS, grade_project
 from core.physics.identity_manifold import (
     IdentityManifoldGeometry,
     euclidean_norm,
-    sandwich,
+    orthogonality_defect_of_action,
     _inner0,
+)
+from core.physics.identity_action import (
+    IdentityStabilizer,
+    stabilizer_defect,
 )
 from evals.adr_0244_gamma_calibration import (
     LEAKAGE_ATTACKS,
@@ -90,93 +94,34 @@ def default_geometry() -> IdentityManifoldGeometry:
     return IdentityManifoldGeometry.from_directions(DEFAULT_DIRECTIONS)
 
 
-# --- brief §3.1: induced action matrix ----------------------------------------
+# --- ADR-0246 §3 primitives — thin wrappers over the canonical implementations -
+# The substantive definitions now live in ``core.physics.identity_manifold`` /
+# ``identity_action`` (promoted from this slice-0 prototype). These wrappers keep
+# the diagnostic's call sites and its merged test API stable while delegating to
+# the single source of truth.
 
 
 def induced_action(geometry: IdentityManifoldGeometry, versor: np.ndarray) -> np.ndarray:
-    """``A_ij(F) = (G⁻¹)_ik ⟨a_k, F a_j F̃⟩₀`` — the full in-subspace action.
-
-    Column ``j`` is the image of axis ``j`` expressed in the axis basis. Captures
-    in-span permutations/rotations/inversions that per-axis leakage misses. Raw
-    (unnormalized): a boost that stretches an axis shows up as a column norm > 1
-    and hence in ``d_orth``, deliberately not hidden by normalization.
-    """
-    versor = np.asarray(versor, dtype=np.float64)
-    n = len(geometry.axes_psi)
-    m = np.empty((n, n), dtype=np.float64)
-    for j, axis_j in enumerate(geometry.axes_psi):
-        image = sandwich(versor, axis_j)
-        for k, axis_k in enumerate(geometry.axes_psi):
-            m[k, j] = _inner0(axis_k, image)
-    return geometry.gram_inv @ m
+    """Induced action ``A(F)`` (delegates to the geometry primitive)."""
+    return geometry.induced_action(versor)
 
 
 def d_orth(geometry: IdentityManifoldGeometry, action: np.ndarray) -> float:
-    """``‖AᵀGA − G‖_F`` — 0 iff the induced action is a G-isometry of the span.
-
-    Detects numerical corruption and non-isometric (e.g. boost-stretched) action;
-    must never be read as a semantic authorization policy (brief §3.2).
-    """
-    G = geometry.gram
-    return float(np.linalg.norm(action.T @ G @ action - G, ord="fro"))
+    """``‖AᵀGA − G‖_F`` for a precomputed action (delegates to canonical)."""
+    return orthogonality_defect_of_action(action, geometry.gram)
 
 
 def d_stab(geometry: IdentityManifoldGeometry, action: np.ndarray) -> float:
-    """``min_{H∈H_id} ‖A − H‖_G`` under the LOCKED singleton ``H_id = {I}``.
-
-    For the default pack the axis Gram is exactly the identity matrix, so the
-    G-weighted norm coincides with the Frobenius norm; pinning ‖·‖_G for general
-    packs is ADR-0246-proper work, not this slice's.
-    """
-    eye = np.eye(action.shape[0], dtype=np.float64)
-    return float(np.linalg.norm(action - eye, ord="fro"))
-
-
-# --- brief §3.6: typed residual channels --------------------------------------
+    """``d_stab`` under the locked singleton ``H_id = {I}`` (delegates to canonical)."""
+    stabilizer = IdentityStabilizer.singleton(action.shape[0])
+    return stabilizer_defect(action, geometry.gram, stabilizer)
 
 
 def typed_residual_channels(
     geometry: IdentityManifoldGeometry, versor: np.ndarray
 ) -> dict[str, float]:
-    """Energy split of the out-of-span rejection, summed over axes, as fractions
-    of total rotated-axis energy.
-
-    Channels (pinned blade indices; default pack support = e1/e2/e3 so the
-    spatial-foreign channel is structurally empty and reported as 0):
-
-      * ``null_or_conformal`` — e4 grade-1 residual energy (index 4)
-      * ``boost_like``        — e5 grade-1 residual energy (index 5)
-      * ``spatial_foreign``   — grade-1 spatial residual outside the axis
-                                support (empty for the default pack)
-      * ``unclassified``      — everything else (higher-grade contamination
-                                after the sandwich, numerical junk); fail-closed,
-                                no correction policy ever attaches to it
-    """
-    versor = np.asarray(versor, dtype=np.float64)
-    e4_energy = e5_energy = unclassified = total = 0.0
-    for axis in geometry.axes_psi:
-        rotated = sandwich(versor, axis)
-        rejection = rotated - geometry.project(rotated)
-        total += euclidean_norm(rotated) ** 2
-        e4_energy += float(rejection[IDX_E4] ** 2)
-        e5_energy += float(rejection[IDX_E5] ** 2)
-        accounted = rejection.copy()
-        accounted[IDX_E4] = 0.0
-        accounted[IDX_E5] = 0.0
-        unclassified += euclidean_norm(accounted) ** 2
-    if total <= 0.0:
-        return {
-            "null_or_conformal": 1.0,
-            "boost_like": 0.0,
-            "spatial_foreign": 0.0,
-            "unclassified": 1.0,
-        }
-    return {
-        "null_or_conformal": e4_energy / total,
-        "boost_like": e5_energy / total,
-        "spatial_foreign": 0.0,
-        "unclassified": unclassified / total,
-    }
+    """Typed residual channel split (delegates to the geometry primitive)."""
+    return geometry.typed_residual_energy(versor)
 
 
 def versor_plane_occupancy(versor: np.ndarray) -> dict[str, float]:

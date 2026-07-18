@@ -39,6 +39,33 @@ Do **not** insert Rings 1–3 into active D4 commits.
 
 ---
 
+## 0a. Post-D4 execution sequencing (actual — 2026-07-17)
+
+D4 closed and was ratified; this brief is now the live plan. The R&D assessment's
+one-shot "build the whole Ring-1 gate machinery" is being executed as small,
+verified units, and the brief's own **§11 semantic-grounding question was promoted
+to run as a consumer of the §3 apparatus** (not a re-sequenced blocker), because
+D4 Phase 3 + slice 0 proved no fixed spatial frame is dynamically stabilized —
+building a lawfulness gate on the declared frame before knowing whether *any*
+structure is stabilized would instrument lawfulness on a frame the dynamics ignore
+(the "instruments ≠ meaning" trap, §2 / §11).
+
+| Unit | Scope | Status |
+|------|-------|--------|
+| **Slice 0** — mismatch diagnostic | evidence-only classification of the benign mismatch (foreign leakage vs in-span-unlawful vs numerical vs path vs semantic-coupling-absent) | **merged** `main` (quarantined diagnostic artifact); found: structural e4/e5 foreign leakage, declared frame dynamically unspecial |
+| **§3 primitives** (this unit) | pure `A(F)`, `d_orth`, `d_stab` vs locked `H_id={I}`, typed residual channels in `core/physics/identity_manifold.py` + `identity_action.py`; slice-0 eval rewired to consume them (single source of truth) | in progress — RED→GREEN, off-serving, flag untouched |
+| §3.4/§3.5 path ledger | lawful-only composition + hard breaks | next unit |
+| §3.7 gate admit surface | wire d_orth/d_stab/typed channels into `IdentityScore` (flag default-off) | after ledger |
+| §6 eval matrix + §11 feasibility | synthetic + path suites + discrimination report; the invariant/semantic-grounding feasibility study runs here as the **first consumer** of the §3 primitives (fixed cohort splits, synthetic recovery controls, typed e4/e5 generator analysis, precision pairs, adversarial discrimination) | after gate surface |
+| ADR-0246 body + acceptance packet | §10 criteria; no self-Accept | last |
+
+Nothing in the reordering relaxes a §7 non-goal: no `C_id` corrector, no `H_id`
+enlargement, no pack/axis redesign, no gate activation. The §11 grounding study
+remains *feasibility only* until it produces a held-out-stable, safety-relevant
+candidate (per the D4 ratification's activation prerequisites).
+
+---
+
 ## 1. Authority documents
 
 | Doc | Role |

@@ -56,6 +56,15 @@ from algebra.cl41 import (
 # to resolve without mode-aliasing (ADR-0244 §2.1).
 CONDITION_BOUND: float = 1e5
 
+# Grade-1 basis-vector slots in the 32-component Cl(4,1) layout. The spatial block
+# is e1/e2/e3 (indices 1/2/3) — the default value-axis support; e4/e5 (indices 4/5)
+# are the extra grade-1 directions a versor tilts (e4, null/conformal) or boosts
+# (e5) a value axis toward. Pinned against ``algebra.cl41.basis_vector`` in tests
+# (ADR-0246 §3.6 fixed blade map).
+SPATIAL_GRADE1_INDICES: tuple[int, int, int] = (1, 2, 3)
+E4_GRADE1_INDEX: int = 4
+E5_GRADE1_INDEX: int = 5
+
 
 class ManifoldConditioningError(ValueError):
     """Raised when the value-axis Gram matrix is too ill-conditioned.
@@ -151,6 +160,18 @@ def euclidean_norm(s: np.ndarray) -> float:
     return float(np.linalg.norm(np.asarray(s, dtype=np.float64), ord=2))
 
 
+def orthogonality_defect_of_action(action: np.ndarray, gram: np.ndarray) -> float:
+    """``‖AᵀGA − G‖_F`` for a precomputed induced action ``A`` (ADR-0246 §3.2).
+
+    Zero iff ``A`` is a ``G``-isometry of the value subspace. The single home for
+    the d_orth definition, shared by :meth:`IdentityManifoldGeometry.orthogonality_defect`
+    and the off-serving diagnostics.
+    """
+    action = np.asarray(action, dtype=np.float64)
+    gram = np.asarray(gram, dtype=np.float64)
+    return float(np.linalg.norm(action.T @ gram @ action - gram, ord="fro"))
+
+
 @dataclass(frozen=True)
 class IdentityManifoldGeometry:
     """Frozen operator-preservation geometry for a set of value axes.
@@ -232,3 +253,94 @@ class IdentityManifoldGeometry:
         """
         leakage, _ = self.axis_response(versor)
         return float((sum(value * value for value in leakage) / len(leakage)) ** 0.5)
+
+    # -- ADR-0246 §3 induced-action primitives (pure, off-serving) --------------
+
+    def induced_action(self, versor: np.ndarray) -> np.ndarray:
+        """The induced action matrix ``A(F)`` of a versor on the value frame.
+
+        ``A_kj = (G⁻¹)_{km} ⟨a_m, F a_j F̃⟩₀`` (ADR-0246 §3.1). Column ``j`` is the
+        image of axis ``j`` (``F a_j F̃``) re-expressed in the axis basis. This
+        captures ALL in-subspace action — including the permutations and rotations
+        that per-axis leakage is blind to (a rotor rotating e1→e2 has zero leakage
+        but a non-identity ``A``). It is RAW (unnormalized): a boost that stretches
+        an axis shows up as a column norm > 1 and hence in :meth:`orthogonality_defect`,
+        deliberately not hidden by normalization.
+
+        When ``F`` preserves the subspace isometrically, ``A`` is ``G``-orthogonal
+        (``AᵀGA = G``). Built only from existing primitives (Gram, signed inner
+        product, sandwich); no new algebra.
+        """
+        versor = np.asarray(versor, dtype=np.float64)
+        n = len(self.axes_psi)
+        overlaps = np.empty((n, n), dtype=np.float64)
+        for j, axis_j in enumerate(self.axes_psi):
+            image = sandwich(versor, axis_j)
+            for k, axis_k in enumerate(self.axes_psi):
+                overlaps[k, j] = _inner0(axis_k, image)
+        return self.gram_inv @ overlaps
+
+    def orthogonality_defect(self, versor: np.ndarray) -> float:
+        """``d_orth(F) = ‖A(F)ᵀ G A(F) − G‖_F`` (ADR-0246 §3.2).
+
+        Zero iff the induced action is a ``G``-isometry of the value subspace.
+        Non-zero flags numerical failure or genuinely non-isometric action (a
+        boost stretches the frame). It detects a DIFFERENT failure than
+        :func:`~core.physics.identity_action.stabilizer_defect` and must never be
+        read as a semantic authorization policy — it is a conditioning / isometry
+        check only.
+        """
+        return orthogonality_defect_of_action(self.induced_action(versor), self.gram)
+
+    def typed_residual_energy(self, versor: np.ndarray) -> dict[str, float]:
+        """Typed decomposition of the out-of-subspace leakage (ADR-0246 §3.6).
+
+        For each axis the rejection ``r = F a F̃ − P_I(F a F̃)`` is split by which
+        grade-1 direction it leaks into, summed over axes, and returned as
+        fractions of the total rotated-axis energy:
+
+          * ``null_or_conformal`` — energy on e4 (index 4): conformal/null tilt.
+          * ``boost_like``        — energy on e5 (index 5): noncompact/boost class.
+          * ``spatial_foreign``   — energy on spatial grade-1 slots (e1/e2/e3) not
+            in the value-axis span; structurally 0 for the default full-span pack.
+          * ``unclassified``      — the remainder (higher-grade contamination after
+            the sandwich, numerical junk). Fail-closed: no correction policy ever
+            attaches to this channel. For a clean versor (grade-preserving sandwich)
+            it is ~0.
+
+        Retains the positive-definite Euclidean coefficient norm (never the
+        indefinite ``⟨·,·⟩₀``) so a boost/e5 component cannot silently vanish.
+        """
+        versor = np.asarray(versor, dtype=np.float64)
+        e4_energy = e5_energy = spatial_foreign = unclassified = total = 0.0
+        for axis in self.axes_psi:
+            rotated = sandwich(versor, axis)
+            rejection = rotated - self.project(rotated)
+            total += euclidean_norm(rotated) ** 2
+            e4_energy += float(rejection[E4_GRADE1_INDEX] ** 2)
+            e5_energy += float(rejection[E5_GRADE1_INDEX] ** 2)
+            spatial_foreign += float(
+                sum(rejection[i] ** 2 for i in SPATIAL_GRADE1_INDICES)
+            )
+            rejection_energy = euclidean_norm(rejection) ** 2
+            unclassified += max(
+                0.0,
+                rejection_energy
+                - float(rejection[E4_GRADE1_INDEX] ** 2)
+                - float(rejection[E5_GRADE1_INDEX] ** 2)
+                - float(sum(rejection[i] ** 2 for i in SPATIAL_GRADE1_INDICES)),
+            )
+        if total <= 0.0:
+            # Versor annihilated every axis — fail-closed as fully unaccounted.
+            return {
+                "null_or_conformal": 0.0,
+                "boost_like": 0.0,
+                "spatial_foreign": 0.0,
+                "unclassified": 1.0,
+            }
+        return {
+            "null_or_conformal": e4_energy / total,
+            "boost_like": e5_energy / total,
+            "spatial_foreign": spatial_foreign / total,
+            "unclassified": unclassified / total,
+        }
