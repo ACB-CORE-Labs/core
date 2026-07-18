@@ -81,6 +81,19 @@ def _digest(payload: dict) -> str:
     ).hexdigest()
 
 
+# Pseudo-entity for certified-summation accumulator records.
+_TOTAL = "__total__"
+
+
+def _state_digest(psi: np.ndarray) -> str:
+    """Byte digest of a state (explicit ``<f8`` LE) — the same convention as
+    ``RelaxationCertificate.psi_digest``, so a summation operand binds to the
+    exact certified state it was decoded from."""
+    return hashlib.sha256(
+        np.ascontiguousarray(np.asarray(psi, dtype=np.dtype("<f8"))).tobytes()
+    ).hexdigest()
+
+
 @dataclass(frozen=True, slots=True)
 class RegisterTurn:
     """One program step: a per-register affine op or a coupled transfer."""
@@ -97,7 +110,7 @@ class RegisterTurn:
 class MultiRegisterProgram:
     seeds: tuple[tuple[str, float], ...]  # (entity, seed) in graph order
     turns: tuple[RegisterTurn, ...]
-    answer_entity: str
+    answer_entity: str | None  # None ⇒ certified summation over all registers
     answer_unit: str
 
 
@@ -111,9 +124,10 @@ class MultiRegisterRecord:
     converged: bool
     step: tuple[str, float, float]  # (kind, scale, offset)
     prev_record_digest: str
+    operand_source_digest: str = ""  # summation only: binds the operand to its source state
 
     def _payload(self) -> dict:
-        return {
+        payload = {
             "sequence_index": int(self.sequence_index),
             "entity": self.entity,
             "certificate_id": self.certificate_id,
@@ -121,6 +135,10 @@ class MultiRegisterRecord:
             "step": [self.step[0], repr(float(self.step[1])), repr(float(self.step[2]))],
             "prev_record_digest": self.prev_record_digest,
         }
+        # Present only for summation turns, so non-summation record digests are unchanged.
+        if self.operand_source_digest:
+            payload["operand_source_digest"] = self.operand_source_digest
+        return payload
 
     def record_digest(self) -> str:
         return _digest(self._payload())
@@ -160,10 +178,10 @@ def compile_multi_register_program(graph: MathProblemGraph) -> MultiRegisterProg
         units[entity] = possession.quantity.unit
         seeds.append((entity, float(possession.quantity.value)))
 
+    # A concrete unknown decodes that register; a None unknown ("altogether") is
+    # the explicit signal for a certified summation over all registers.
     answer_entity = graph.unknown.entity
-    if answer_entity is None:
-        raise MultiRegisterError("total_unknown_requires_summation")
-    if answer_entity not in units:
+    if answer_entity is not None and answer_entity not in units:
         raise MultiRegisterError("unknown_entity_not_a_register", entity=answer_entity)
 
     turns: list[RegisterTurn] = []
@@ -284,7 +302,33 @@ def execute_multi_register_program(program: MultiRegisterProgram) -> MultiRegist
             records.append(record)
             index += 1
 
-    answer = decode_quantity(registers[program.answer_entity])
+    if program.answer_entity is None:
+        # Certified summation over all registers (ruling #1: summation stays in
+        # the substrate). Each addition is a certified turn; the operand is the
+        # decode of a certified register state, bound by ``operand_source_digest``
+        # (= that state's psi_digest) — deterministic re-execution reproduces it,
+        # so the Python layer cannot tamper with the intermediate value.
+        order = [entity for entity, _ in program.seeds]
+        accumulator = registers[order[0]]
+        for entity in order[1:]:
+            source_state = registers[entity]
+            operand = decode_quantity(source_state)
+            target = _unit(translate_quantity(accumulator, operand))
+            accumulator, cert = _relax_to(accumulator, target)
+            if not cert.converged:
+                raise MultiRegisterError("summation_nonconverged", entity=entity)
+            record = MultiRegisterRecord(
+                index, _TOTAL, cert.certificate_id, cert.converged,
+                ("sum_add", 1.0, operand), prev,
+                operand_source_digest=_state_digest(source_state),
+            )
+            prev = record.record_digest()
+            records.append(record)
+            index += 1
+        answer = decode_quantity(accumulator)
+    else:
+        answer = decode_quantity(registers[program.answer_entity])
+
     chain = tuple(records)
     return MultiRegisterOutcome(
         answer=answer,

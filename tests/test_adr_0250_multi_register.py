@@ -145,8 +145,8 @@ def test_deterministic() -> None:
 # --- Fail-closed refusals (Tier-2a scope) -----------------------------------
 
 
-def test_refuses_total_unknown_pending_summation() -> None:
-    # "how many altogether" needs the certified summation turn (2b), not T2a.
+def test_total_unknown_compiles_to_summation() -> None:
+    # "how many altogether" (None unknown) is no longer refused — 2b sums it.
     graph = MathProblemGraph(
         entities=("Ann", "Bob"),
         initial_state=(
@@ -156,8 +156,9 @@ def test_refuses_total_unknown_pending_summation() -> None:
         operations=(),
         unknown=Unknown(None, "apples"),
     )
-    with pytest.raises(MultiRegisterError):
-        compile_multi_register_program(graph)
+    program = compile_multi_register_program(graph)
+    assert program.answer_entity is None  # the summation signal
+    assert abs(execute_multi_register_program(program).answer - 8.0) < 1e-4
 
 
 def test_refuses_derived_operand() -> None:
