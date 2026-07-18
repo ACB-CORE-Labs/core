@@ -27,7 +27,8 @@ def test_domain_solves_real_gsm8k_wrong_zero(domain) -> None:
     assert domain.domain_id == "arithmetic-chain"
     assert domain.corridor_wrong == 0  # wrong=0 on real GSM8K, not just templates
     assert domain.corridor_correct > 0  # the corridor ingests and solves real problems
-    assert domain.corridor_refused > 0  # and honestly refuses what it can't ingest
+    # Tier-2 (ADR-0250) closed the multi-entity frontier: the full holdout ingests now.
+    assert domain.corridor_refused == 0
 
 
 def test_every_ingested_case_is_correct(domain) -> None:
@@ -50,10 +51,10 @@ def test_coverage_is_recorded_not_dropped(domain) -> None:
     ingested = domain.corridor_correct + domain.corridor_wrong
     assert ingested + domain.corridor_refused == domain.n_cases
     assert domain.n_cases > 0
-    # A coverage tracker against the sealed dev holdout (50 cases, 26 Tier-1).
-    assert domain.corridor_correct == 26
-    assert domain.corridor_refused == 24
-    assert any("Tier-1" in note for note in domain.notes)
+    # Coverage tracker against the sealed dev holdout: Tier-1 (26) + Tier-2 (24) = 50/50.
+    assert domain.corridor_correct == 50
+    assert domain.corridor_refused == 0
+    assert any("Tier-2" in note for note in domain.notes)
 
 
 def test_domain_joins_full_report_and_scope_corrected() -> None:
@@ -61,8 +62,8 @@ def test_domain_joins_full_report_and_scope_corrected() -> None:
     ids = [o.domain_id for o in report.outcomes]
     assert "arithmetic-chain" in ids
     assert report.wrong_zero_guard_held  # deductive + arithmetic both wrong=0
-    # The stale "no compiler exists" scope note must be gone; the compiler exists now.
+    # The scope note reflects the full-holdout closure; the stale "no compiler" line is gone.
     joined = " ".join(report.scope_limitations)
-    assert "now exists" in joined
+    assert "FULL real GSM8K dev holdout" in joined
     assert "no reader-to-Hamiltonian compiler exists" not in joined
     json.dumps(report.as_dict())  # JSON-safe artifact
