@@ -89,7 +89,7 @@ def test_live_harness_pass_drives_integration():
     assert versor_condition(blade.blade) < _CLOSURE
 
     assert record.record_id.startswith("bioprov-")
-    assert record.schema_version == "biography_provenance_v1"
+    assert record.schema_version == "biography_provenance_v2"
     assert record.wrong == 0
     assert record.n_cases == 1
     assert record.counts["correct"] == 1
@@ -99,8 +99,12 @@ def test_live_harness_pass_drives_integration():
     # Record binds the report to the exact trajectory that was integrated
     assert record.trajectory_hash == integrate_biography(traj).trajectory_hash
     assert record.n_steps == blade.n_steps
-    assert record.adr_refs == ("ADR-0240", "ADR-0243")
+    assert record.adr_refs == ("ADR-0240", "ADR-0241", "ADR-0243")
     assert record.closure_proof["blade_closure"] == blade.closure
+    # §S2 chiral composition: disclosed, and vacuous-by-theorem on closed versors
+    assert record.chiral_proof["latched_sign"] == 0
+    assert set(record.chiral_proof["trajectory_verdicts"]) == {"vacuous"}
+    assert record.chiral_proof["blade_verdict"] == "vacuous"
 
 
 def test_provenance_record_deterministic():
@@ -205,3 +209,61 @@ def test_wiring_imports_no_vault_store_and_no_evals():
     assert result.returncode == 0, f"probe failed: {result.stderr[-2000:]}"
     leaked = json.loads(result.stdout.strip().splitlines()[-1])
     assert leaked == [], f"biography_wiring loaded banned modules: {leaked}"
+
+
+# --- §S2 chiral composition (ADR-0241 §2.4C) ----------------------------------
+
+
+def test_chiral_charge_vanishes_on_closed_versors_theorem():
+    """Honesty theorem pin: I₅ is central in odd-dimensional Cl(4,1), so every
+    closed versor has Q = ⟨ψ I₅ ψ̃⟩₀ = ±⟨I₅⟩₀ = 0 — the biography chiral
+    precondition is vacuous BY THEOREM on admissible trajectories (observed
+    exactly 0.0 in-tree). If this pin breaks, the inertness contract in
+    chiral_conservation_precondition's docstring must be re-derived."""
+    from algebra.null_point import dilator, translator
+    from algebra.versor import unitize_versor
+    from algebra.cl41 import geometric_product
+    from core.physics.wave_manifold import WaveManifold
+
+    wave = WaveManifold()
+    versors = [
+        make_rotor_from_angle(0.7, bivector_idx=6),
+        translator(np.array([0.3, -0.2, 0.5])),
+        dilator(1.4),
+        unitize_versor(
+            geometric_product(
+                translator(np.array([0.1, 0.2, 0.3])),
+                geometric_product(dilator(1.2), make_rotor_from_angle(0.9, bivector_idx=8)),
+            )
+        ),
+    ]
+    for v in versors:
+        assert abs(wave.chiral_charge(np.asarray(v, dtype=np.float64))) < 1e-12
+
+
+def test_chiral_flip_refuses_before_blade_computation():
+    """The precondition is LIVE against raw non-versor trajectories: a material
+    sgn(Q_top) flip refuses (typed) before versor validation or any blade math."""
+    report = _report([_result()])
+    plus = np.zeros(32, dtype=np.float64)
+    plus[0], plus[31] = 0.8, 0.6  # material Q < 0 for this orientation
+    minus = plus.copy()
+    minus[31] = -0.6  # mirror image: opposite material Q
+    with pytest.raises(BiographyIntegrationError) as exc_info:
+        integrate_validated_biography(report, [plus, minus])
+    assert exc_info.value.reason == "chiral_orientation_violation"
+    assert exc_info.value.disclosure["stage"] == "trajectory[1]"
+
+
+def test_trajectory_hash_uses_little_endian_f64_bytes():
+    """ADR-0245 §2.3 pin: the biography trajectory digest is computed over
+    explicit '<f8' bytes (platform-independent replay determinism)."""
+    import hashlib
+
+    from core.physics.biography import _trajectory_hash
+
+    traj = _trajectory()
+    h = hashlib.sha256()
+    for v in traj:
+        h.update(np.asarray(v, dtype=np.dtype("<f8")).tobytes())
+    assert _trajectory_hash(traj) == h.hexdigest()

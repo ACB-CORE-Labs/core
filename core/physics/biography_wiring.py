@@ -37,10 +37,11 @@ import numpy as np
 
 from algebra.backend import versor_condition
 from core.physics.biography import BiographyHolonomyBlade, integrate_biography
+from core.physics.chiral_gate import ChiralOrientationError, ChiralOrientationGate
 
 _CLOSURE = 1e-6
-_PROVENANCE_SCHEMA = "biography_provenance_v1"
-_ADR_REFS = ("ADR-0240", "ADR-0243")
+_PROVENANCE_SCHEMA = "biography_provenance_v2"
+_ADR_REFS = ("ADR-0240", "ADR-0241", "ADR-0243")
 
 
 class BiographyIntegrationError(ValueError):
@@ -102,6 +103,7 @@ class BiographyProvenanceRecord:
     n_steps: int
     alpha: float
     closure_proof: Mapping[str, float]
+    chiral_proof: Mapping[str, Any]
     adr_refs: tuple[str, ...]
 
     def as_dict(self) -> dict[str, Any]:
@@ -117,6 +119,10 @@ class BiographyProvenanceRecord:
             "n_steps": self.n_steps,
             "alpha": self.alpha,
             "closure_proof": dict(self.closure_proof),
+            "chiral_proof": {
+                k: (list(v) if isinstance(v, tuple) else v)
+                for k, v in self.chiral_proof.items()
+            },
             "adr_refs": list(self.adr_refs),
         }
 
@@ -128,11 +134,45 @@ def _content_id(payload: Mapping[str, Any]) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
+def chiral_conservation_precondition(
+    trajectory: Sequence[np.ndarray],
+) -> tuple[ChiralOrientationGate, tuple[str, ...]]:
+    """§S2 composition (ADR-0241 §2.4C): sgn(Q_top) conservation over the trajectory.
+
+    Runs BEFORE versor validation, so the gate is live against raw non-versor
+    trajectories carrying material pseudoscalar charge — a mirror-flipped
+    sequence refuses here, before any blade is computed.
+
+    Honesty theorem (pinned in tests/test_adr_0243_biography_wiring.py): I₅ is
+    central in odd-dimensional Cl(4,1), so every CLOSED versor has
+    Q = ⟨ψ I₅ ψ̃⟩₀ = ±⟨I₅⟩₀ = 0 exactly. On admissible trajectories (closed
+    versors, enforced downstream by ``integrate_biography``) every observation
+    is therefore ``vacuous`` and the latch never arms — the same documented
+    inertness contract as chiral_gate's GoldTetherMonitor wiring. The
+    provenance record discloses the verdicts rather than implying enforcement.
+    """
+    gate = ChiralOrientationGate()
+    verdicts: list[str] = []
+    for i, v in enumerate(trajectory):
+        try:
+            verdicts.append(gate.observe(np.asarray(v, dtype=np.float64)).verdict)
+        except ChiralOrientationError as exc:
+            raise BiographyIntegrationError(
+                "chiral_orientation_violation", stage=f"trajectory[{i}]", **exc.disclosure
+            ) from exc
+        except ValueError as exc:
+            raise BiographyIntegrationError(
+                "trajectory_rejected", detail=str(exc), stage=f"trajectory[{i}]"
+            ) from exc
+    return gate, tuple(verdicts)
+
+
 def biography_provenance_record(
     report: ValidationReportLike,
     blade: BiographyHolonomyBlade,
     *,
     alpha: float,
+    chiral_proof: Mapping[str, Any],
 ) -> BiographyProvenanceRecord:
     """Build the append-only provenance record for one validated integration."""
     counts = {k: int(v) for k, v in sorted(report.counts.items())}
@@ -141,6 +181,9 @@ def biography_provenance_record(
         "blade_closure": float(blade.closure),
         "blade_versor_condition": float(versor_condition(blade.blade)),
         "closure_tol": _CLOSURE,
+    }
+    chiral_body = {
+        k: (list(v) if isinstance(v, tuple) else v) for k, v in sorted(chiral_proof.items())
     }
     body = {
         "schema_version": _PROVENANCE_SCHEMA,
@@ -153,6 +196,7 @@ def biography_provenance_record(
         "n_steps": int(blade.n_steps),
         "alpha": float(alpha),
         "closure_proof": closure_proof,
+        "chiral_proof": chiral_body,
         "adr_refs": list(_ADR_REFS),
     }
     return BiographyProvenanceRecord(
@@ -167,6 +211,7 @@ def biography_provenance_record(
         n_steps=int(blade.n_steps),
         alpha=float(alpha),
         closure_proof=closure_proof,
+        chiral_proof=dict(chiral_proof),
         adr_refs=_ADR_REFS,
     )
 
@@ -203,6 +248,12 @@ def integrate_validated_biography(
             refused=sum(1 for r in report.results if r.refused),
         )
 
+    # §S2 strict precondition (ADR-0241 §2.4C): sgn(Q_top) conservation over the
+    # raw trajectory, before any blade computation. See
+    # chiral_conservation_precondition for the honesty theorem (vacuous on
+    # closed versors by I₅ centrality; live against raw non-versor input).
+    gate, trajectory_verdicts = chiral_conservation_precondition(trajectory)
+
     try:
         blade = integrate_biography(trajectory, alpha=alpha)
     except ValueError as exc:
@@ -217,5 +268,19 @@ def integrate_validated_biography(
             closure_tol=_CLOSURE,
         )
 
-    record = biography_provenance_record(report, blade, alpha=alpha)
+    # Post-condition: the integrated blade must hold the same orientation latch.
+    try:
+        blade_verdict = gate.observe(blade.blade).verdict
+    except ChiralOrientationError as exc:
+        raise BiographyIntegrationError(
+            "chiral_orientation_violation", stage="blade", **exc.disclosure
+        ) from exc
+    chiral_proof: dict[str, Any] = {
+        "latched_sign": int(gate.latched_sign),
+        "q_floor": float(gate.q_floor),
+        "trajectory_verdicts": trajectory_verdicts,
+        "blade_verdict": blade_verdict,
+    }
+
+    record = biography_provenance_record(report, blade, alpha=alpha, chiral_proof=chiral_proof)
     return blade, record
