@@ -25,14 +25,19 @@ lawful action: ``d_stab`` is a pass/fail distance, and callers must NOT soft-pro
 Enlarging ``H_id`` is a future, explicit, reviewed pack/policy change — never an
 implicit convenience here.
 
-Pure (numpy + identity_manifold only), deterministic, float64, off-serving. The
-lawful-only path composition and hard-break ledger (§3.4/§3.5) are a separate,
-later unit; this module provides only the per-turn stabilizer defect.
+Pure (numpy + identity_manifold only), deterministic, float64, off-serving. This
+module owns both the per-turn stabilizer defect (``d_stab``) and the lawful-only
+path ledger (§3.4/§3.5): the identity path composes ONLY the induced actions of
+turns certified lawful, refused turns insert break markers (never a soft-projected
+``I``), and a scope change forces a hard break onto a new chain.
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -129,3 +134,199 @@ def stabilizer_defect_for_versor(
     if stabilizer is None:
         stabilizer = IdentityStabilizer.singleton(action.shape[0])
     return stabilizer_defect(action, geometry.gram, stabilizer)
+
+
+# -- ADR-0246 §3.4/§3.5 lawful-only identity-path ledger -----------------------
+
+
+@dataclass(frozen=True)
+class PathBudget:
+    """Two-level lawfulness budget (ADR-0246 §3.4).
+
+    ``epsilon_turn`` bounds a single turn's ``d_stab`` (a large one-turn departure
+    refuses immediately); ``epsilon_session`` bounds the composed lawful path's
+    ``d_stab`` (slow accumulation of individually-lawful turns eventually refuses).
+    """
+
+    epsilon_turn: float
+    epsilon_session: float
+
+
+@dataclass(frozen=True)
+class IdentityChainScope:
+    """The scope that keys an identity-action chain (ADR-0246 §3.5).
+
+    Any change to these forces a **hard break** — a new chain that does NOT
+    continue the previous composed path. The frame, its geometry, the lawfulness
+    policy, the session, and (when explicit) the biography epoch each redefine
+    what "the path" means, so a path may only compose within a single scope.
+    """
+
+    pack_content_digest: str
+    geometry_version: str
+    policy_version: str
+    session_id: str
+    biography_epoch: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "pack_content_digest": self.pack_content_digest,
+            "geometry_version": self.geometry_version,
+            "policy_version": self.policy_version,
+            "session_id": self.session_id,
+            "biography_epoch": self.biography_epoch,
+        }
+
+
+def _chain_id(scope: IdentityChainScope, chain_index: int) -> str:
+    """Deterministic full-SHA-256 chain id (ADR-0245 §2.3 — no truncation).
+
+    Includes ``chain_index`` so a scope that recurs later in a session (e.g. a
+    pack A → B → A cycle) still yields a distinct chain id.
+    """
+    payload = json.dumps(
+        {**scope.as_dict(), "chain_index": int(chain_index)},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+@dataclass(frozen=True)
+class IdentityPathLedger:
+    """Immutable snapshot of the lawful-only identity path (ADR-0246 §4.2).
+
+    ``a_path_lawful`` is the time-forward product of the induced actions of the
+    turns certified lawful within this chain (``I`` for an empty chain). Refused
+    turns are counted in ``break_count`` and excluded from the product — never
+    composed as ``I`` (that would be the soft-projection §3.4 forbids).
+    """
+
+    chain_id: str
+    scope: IdentityChainScope
+    chain_index: int
+    dimension: int
+    a_path_lawful: np.ndarray
+    d_stab_path: float
+    composed_turn_count: int
+    break_count: int
+    session_admit: bool
+
+    def ledger_digest(self) -> str:
+        """Full-SHA-256 content id over the path state (LE f64 byte-order)."""
+        digest = hashlib.sha256()
+        digest.update(self.chain_id.encode("utf-8"))
+        digest.update(
+            np.ascontiguousarray(self.a_path_lawful, dtype=np.dtype("<f8")).tobytes()
+        )
+        digest.update(
+            json.dumps(
+                [self.chain_index, self.composed_turn_count, self.break_count],
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        )
+        return digest.hexdigest()
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": "identity_path_v1",
+            "chain_id": self.chain_id,
+            "scope": self.scope.as_dict(),
+            "chain_index": self.chain_index,
+            "dimension": self.dimension,
+            "a_path_lawful": [
+                [float(x) for x in row] for row in self.a_path_lawful
+            ],
+            "d_stab_path": float(self.d_stab_path),
+            "composed_turn_count": self.composed_turn_count,
+            "break_count": self.break_count,
+            "session_admit": self.session_admit,
+            "ledger_digest": self.ledger_digest(),
+        }
+
+
+def advance_identity_path(
+    ledger: IdentityPathLedger | None,
+    scope: IdentityChainScope,
+    action: np.ndarray,
+    gram: np.ndarray,
+    budget: PathBudget,
+) -> tuple[IdentityPathLedger, dict[str, Any]]:
+    """Fold one turn's raw induced action into the lawful-only path (§3.4/§3.5).
+
+    Returns ``(new_ledger, turn_record)``. ``turn_record`` reports this turn's
+    ``lawful`` / ``d_stab_turn`` / ``path_break`` / ``hard_break``. A turn is
+    lawful iff ``d_stab(action) ≤ epsilon_turn`` under the locked singleton
+    ``H_id={I}``; only lawful turns compose. A scope change (or an absent prior
+    ledger) is a hard break that starts a fresh chain — the previous path is NOT
+    continued. Immutable: ``ledger`` is never mutated.
+    """
+    action = np.asarray(action, dtype=np.float64)
+    if action.ndim != 2 or action.shape[0] != action.shape[1]:
+        raise ValueError(
+            f"induced action must be a square matrix, got shape {action.shape}"
+        )
+    dimension = action.shape[0]
+    stabilizer = IdentityStabilizer.singleton(dimension)
+    d_stab_turn = stabilizer_defect(action, gram, stabilizer)
+    lawful = d_stab_turn <= budget.epsilon_turn
+
+    hard_break = ledger is None or ledger.scope != scope
+    if hard_break:
+        chain_index = 0 if ledger is None else ledger.chain_index + 1
+        a_path = np.eye(dimension, dtype=np.float64)
+        composed = 0
+        breaks = 0
+    else:
+        assert ledger is not None  # not a hard break ⇒ prior ledger exists
+        chain_index = ledger.chain_index
+        a_path = ledger.a_path_lawful
+        composed = ledger.composed_turn_count
+        breaks = ledger.break_count
+
+    if lawful:
+        # time-forward: later turns act on the left of the accumulated frame action
+        a_path = action @ a_path
+        composed += 1
+        path_break = False
+    else:
+        # break marker — excluded from the product; NOT composed as identity
+        breaks += 1
+        path_break = True
+
+    d_stab_path = stabilizer_defect(a_path, gram, stabilizer)
+    new_ledger = IdentityPathLedger(
+        chain_id=_chain_id(scope, chain_index),
+        scope=scope,
+        chain_index=chain_index,
+        dimension=dimension,
+        a_path_lawful=a_path,
+        d_stab_path=d_stab_path,
+        composed_turn_count=composed,
+        break_count=breaks,
+        session_admit=(d_stab_path <= budget.epsilon_session),
+    )
+    turn_record = {
+        "lawful": lawful,
+        "d_stab_turn": d_stab_turn,
+        "path_break": path_break,
+        "hard_break": hard_break,
+    }
+    return new_ledger, turn_record
+
+
+def raw_path_product(actions: Sequence[np.ndarray]) -> np.ndarray:
+    """Time-forward product of ALL actions, lawful or not — **forensic only**.
+
+    This is the category error §3.4 forbids for the live path (it mixes refused,
+    ill-conditioned, and leaked actions into a fake "holonomy"). It exists solely
+    so tests and forensics can demonstrate that the lawful-only product differs
+    from the naive raw product. Never use it to admit a turn.
+    """
+    if not actions:
+        raise ValueError("raw_path_product requires at least one action")
+    result = np.eye(np.asarray(actions[0]).shape[0], dtype=np.float64)
+    for action in actions:
+        result = np.asarray(action, dtype=np.float64) @ result
+    return result

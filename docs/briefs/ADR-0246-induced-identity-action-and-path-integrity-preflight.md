@@ -53,8 +53,8 @@ structure is stabilized would instrument lawfulness on a frame the dynamics igno
 | Unit | Scope | Status |
 |------|-------|--------|
 | **Slice 0** — mismatch diagnostic | evidence-only classification of the benign mismatch (foreign leakage vs in-span-unlawful vs numerical vs path vs semantic-coupling-absent) | **merged** `main` (quarantined diagnostic artifact); found: structural e4/e5 foreign leakage, declared frame dynamically unspecial |
-| **§3 primitives** (this unit) | pure `A(F)`, `d_orth`, `d_stab` vs locked `H_id={I}`, typed residual channels in `core/physics/identity_manifold.py` + `identity_action.py`; slice-0 eval rewired to consume them (single source of truth) | in progress — RED→GREEN, off-serving, flag untouched |
-| §3.4/§3.5 path ledger | lawful-only composition + hard breaks | next unit |
+| **§3 primitives** | pure `A(F)`, `d_orth`, `d_stab` vs locked `H_id={I}`, typed residual channels in `core/physics/identity_manifold.py` + `identity_action.py`; slice-0 eval rewired to consume them (single source of truth) | **committed** `feat/adr-0246-induced-action-primitives` (RED→GREEN, off-serving, flag untouched) — awaiting review |
+| **§3.4/§3.5 path ledger** (this unit) | lawful-only composition + hard breaks: `PathBudget`, `IdentityChainScope`, `IdentityPathLedger`, `advance_identity_path` in `identity_action.py`; refused turns = break markers (never soft-projected `I`); scope change = hard break onto new chain | in progress — RED→GREEN, off-serving; stacked on the primitives branch |
 | §3.7 gate admit surface | wire d_orth/d_stab/typed channels into `IdentityScore` (flag default-off) | after ledger |
 | §6 eval matrix + §11 feasibility | synthetic + path suites + discrimination report; the invariant/semantic-grounding feasibility study runs here as the **first consumer** of the §3 primitives (fixed cohort splits, synthetic recovery controls, typed e4/e5 generator analysis, precision pairs, adversarial discrimination) | after gate surface |
 | ADR-0246 body + acceptance packet | §10 criteria; no self-Accept | last |
