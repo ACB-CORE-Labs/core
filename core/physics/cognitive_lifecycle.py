@@ -61,7 +61,10 @@ import functools
 import hashlib
 import json
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Mapping, Sequence
+
+if TYPE_CHECKING:  # annotation-only: the monitor instance is caller-supplied
+    from core.physics.goldtether import GoldTetherMonitor
 
 import numpy as np
 
@@ -990,6 +993,77 @@ def serving_cast(
     )
 
 
+# --- Unified autonomy floor (seam S3, ADR-0238 / spark-audit adjudication §4) ----------
+
+
+@dataclass(frozen=True, slots=True)
+class TetherReading:
+    """Per-turn GoldTether autonomy-floor reading for one corridor turn.
+
+    ``updated`` discloses whether the monitor's floor/autonomy state advanced
+    (see :func:`tether_reading` for the control law) or the residual was
+    measured without a state update (admitted open superpositions).
+    """
+
+    residual: float
+    autonomy: float
+    chiral_verdict: str
+    updated: bool
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "residual": float(self.residual),
+            "autonomy": float(self.autonomy),
+            "chiral_verdict": self.chiral_verdict,
+            "updated": bool(self.updated),
+        }
+
+
+def tether_reading(
+    monitor: "GoldTetherMonitor",
+    psi_steady: np.ndarray,
+    *,
+    admitted: bool,
+    versor_closed: bool,
+) -> TetherReading:
+    """Feed one corridor turn to the unified autonomy floor (seam S3).
+
+    Control law, composed with pin SD-A (the residual KERNEL was already
+    unified — ``goldtether.coherence_residual`` delegates to
+    :meth:`WaveManifold.measure_unitary_residual`; what was missing is the
+    MONITOR state seeing corridor turns):
+
+    * **not admitted** → ``monitor.update`` — the non-unit/uncertified state
+      drives residual > ε and autonomy hard to 0 (fail-closed).
+    * **admitted + versor_closed** → ``monitor.update`` — a certified closed
+      state may elevate autonomy toward the floor.
+    * **admitted + open** → measure only, no state update: a legitimate
+      interference state neither elevates nor decays the floor. Punishing
+      open superpositions here would encode the exact SD-A defect the egress
+      gate refuses to (versor closure routes, it does not gate).
+
+    Chiral orientation is observed on EVERY reading — Q_top is material only
+    on non-versor states, which is precisely the open route — and a material
+    sign flip raises :class:`~core.physics.chiral_gate.ChiralOrientationError`
+    (fail-closed, never averaged).
+    """
+    arr = np.asarray(psi_steady, dtype=np.float64)
+    if admitted and not versor_closed:
+        residual = float(monitor.residual(arr))
+        autonomy = float(monitor.autonomy)
+        updated = False
+    else:
+        residual, autonomy = monitor.update(arr)
+        updated = True
+    chiral_verdict = monitor.chiral_gate.observe(arr).verdict
+    return TetherReading(
+        residual=float(residual),
+        autonomy=float(autonomy),
+        chiral_verdict=chiral_verdict,
+        updated=updated,
+    )
+
+
 # --- Composed lifecycle ---------------------------------------------------------------
 
 
@@ -998,6 +1072,10 @@ class LifecycleOutcome:
     ingress: IngressWavePacket
     relaxation: RelaxationResult
     verdict: EgressVerdict
+    # Monitoring metadata, deliberately OUTSIDE outcome_id: the outcome's
+    # identity is its cognitive content (ingress/certificate/route/ψ), not the
+    # observer's floor state at the time it was watched.
+    tether: TetherReading | None = None
     outcome_id: str = ""
 
     def __post_init__(self) -> None:
@@ -1022,9 +1100,19 @@ class CognitiveLifecycleEngine:
     the corrected one (pins SD-A/SD-B/SD-C; deviations D-1…D-5).
     """
 
-    def __init__(self, *, epsilon_drift: float = _EPSILON_DRIFT) -> None:
+    def __init__(
+        self,
+        *,
+        epsilon_drift: float = _EPSILON_DRIFT,
+        monitor: "GoldTetherMonitor | None" = None,
+    ) -> None:
         self.epsilon_drift = float(epsilon_drift)
         self.manifold = WaveManifold(epsilon_drift=self.epsilon_drift)
+        # Seam S3: optional unified autonomy floor. solve() feeds it one
+        # reading per turn; stage-level drivers (e.g. the sensorium corridor
+        # eval) own their monitor calls explicitly and should not also pass
+        # one here (double-counting a turn).
+        self.monitor = monitor
 
     def ingest_context(self, packets: Sequence[PacketLike], domain_id: str) -> IngressWavePacket:
         return ingest_context(packets, domain_id)
@@ -1062,13 +1150,25 @@ class CognitiveLifecycleEngine:
         tol: float = 1e-10,
         energy_inputs: Mapping[str, object] | None = None,
     ) -> LifecycleOutcome:
-        """Ingress → relax → egress. Fail-closed at every stage (typed errors)."""
+        """Ingress → relax → egress (→ tether). Fail-closed at every stage (typed errors)."""
         ingress = self.ingest_context(packets, domain_id)
         result = relax_to_ground(ingress.psi, hamiltonian, dt=dt, max_steps=max_steps, tol=tol)
         verdict = self.egress(
             result.psi_steady, result.certificate, **dict(energy_inputs or {})
         )
-        return LifecycleOutcome(ingress=ingress, relaxation=result, verdict=verdict)
+        tether = (
+            tether_reading(
+                self.monitor,
+                result.psi_steady,
+                admitted=verdict.admitted,
+                versor_closed=verdict.versor_closed,
+            )
+            if self.monitor is not None
+            else None
+        )
+        return LifecycleOutcome(
+            ingress=ingress, relaxation=result, verdict=verdict, tether=tether
+        )
 
 
 __all__ = [
@@ -1091,6 +1191,8 @@ __all__ = [
     "RelaxationResult",
     "ServingCastError",
     "ServingState",
+    "TetherReading",
+    "tether_reading",
     "assignment_component_index",
     "compile_propositional",
     "compile_quadratic_well",
