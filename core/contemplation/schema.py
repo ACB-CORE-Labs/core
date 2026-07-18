@@ -38,8 +38,13 @@ def _canonical_json(payload: dict[str, Any]) -> str:
     )
 
 
-def _sha256_16(payload: dict[str, Any]) -> str:
-    return hashlib.sha256(_canonical_json(payload).encode("utf-8")).hexdigest()[:16]
+def _content_digest(payload: dict[str, Any]) -> str:
+    # Full 256-bit digest (64 hex) over canonical JSON — no 16-hex truncation
+    # (which floored birthday-collision resistance at 2^32). ADR-0244 §2.7 /
+    # ADR-0245 §2.3 semantic rigor: a content-address must not collide two
+    # distinct findings into the same id. ``_canonical_json`` already forbids
+    # ``default=str``, so a non-serializable payload fails closed here.
+    return hashlib.sha256(_canonical_json(payload).encode("utf-8")).hexdigest()
 
 
 # BOUNDARY (vs teaching/discovery.py:EvidencePointer)
@@ -134,7 +139,7 @@ class ContemplationFinding:
         if not self.evidence_refs:
             raise ValueError("ContemplationFinding requires at least one evidence ref")
         if not self.finding_id:
-            object.__setattr__(self, "finding_id", _sha256_16(self._identity_dict()))
+            object.__setattr__(self, "finding_id", _content_digest(self._identity_dict()))
 
     def _identity_dict(self) -> dict[str, Any]:
         return {
@@ -194,7 +199,7 @@ class ContemplationRun:
             if finding.epistemic_status is not EpistemicStatus.SPECULATIVE:
                 raise ValueError("ContemplationRun cannot contain non-SPECULATIVE findings")
         if not self.run_id:
-            object.__setattr__(self, "run_id", _sha256_16(self._identity_dict()))
+            object.__setattr__(self, "run_id", _content_digest(self._identity_dict()))
 
     def _identity_dict(self) -> dict[str, Any]:
         return {

@@ -73,13 +73,15 @@ twice for two domain memberships).  Three or more turns mechanical.
 
 
 def _plan_substrate_hash(plan: DiscoursePlan) -> str:
-    """SHA-256-16 of the plan's canonical JSON.
+    """Full SHA-256 (64 hex) of the plan's canonical JSON.
 
     Used as the ``substrate_hash`` on every emitted finding so two
     contemplation passes over byte-equal plans produce byte-equal
-    finding IDs.
+    finding IDs. Full digest — no 16-hex truncation (ADR-0244 §2.7 /
+    ADR-0245 §2.3): the substrate hash content-addresses the finding, so a
+    truncated digest would floor collision resistance.
     """
-    return hashlib.sha256(plan.to_json().encode("utf-8")).hexdigest()[:16]
+    return hashlib.sha256(plan.to_json().encode("utf-8")).hexdigest()
 
 
 def _evidence_ref_for_plan(plan: DiscoursePlan) -> ContemplationEvidenceRef:

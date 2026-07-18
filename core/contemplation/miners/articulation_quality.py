@@ -297,13 +297,16 @@ def _substrate_hash_for_observations(
 ) -> str:
     """Deterministic hash over the canonical concatenation of each
     observation's JSONL serialisation."""
+    # No ``default=str``: ``ArticulationObservation.as_dict()`` is JSON-native
+    # (ints, str, python-float ratios, None), so a non-serializable field fails
+    # closed rather than silently str()-collapsing distinct objects onto one id.
+    # Full 256-bit digest — no 16-hex truncation (ADR-0244 §2.7 / ADR-0245 §2.3).
     payload = json.dumps(
         [obs.as_dict() for obs in observations],
         sort_keys=True,
         separators=(",", ":"),
-        default=str,
     )
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def mine_articulation_observations(

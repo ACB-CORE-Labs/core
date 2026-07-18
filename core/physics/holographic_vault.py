@@ -71,8 +71,13 @@ def _as_mv(psi: np.ndarray, name: str = "ψ") -> np.ndarray:
 
 
 def _default_mode_id(psi: np.ndarray) -> str:
-    digest = hashlib.sha256(np.asarray(psi, dtype=np.float64).tobytes()).hexdigest()
-    return f"mode-{digest[:16]}"
+    # Full 256-bit digest over canonical little-endian float64 bytes (ADR-0244
+    # §2.7 / ADR-0245 §2.3): no 16-hex truncation (which floored the durable
+    # mode-id's collision resistance at 2^32) and an explicit LE byte-order
+    # coercion so the id is platform-stable, not an implicit host-endianness
+    # assumption via bare ``.tobytes()``.
+    le_bytes = np.ascontiguousarray(psi, dtype=np.dtype("<f8")).tobytes()
+    return f"mode-{hashlib.sha256(le_bytes).hexdigest()}"
 
 
 class HolographicVaultStore:
