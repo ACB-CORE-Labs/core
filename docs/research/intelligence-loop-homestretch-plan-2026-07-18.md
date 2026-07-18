@@ -1,6 +1,8 @@
 # Intelligence-Loop Homestretch Plan
 
-**Status**: Proposed plan — awaiting Shay's go before any implementation
+**Status**: EXECUTED — Phases 0–5 merged to `main @ 31f1a824` (PR #64, 2026-07-18); ADR-0246/0247/0248
+**Accepted** (Shay's §8 rulings ratified same day). Phase 6 remains open; see §"what's next" in
+`docs/handoff/ADR-0246-Acceptance-Evidence.md`. §2's "stay Proposed" constraint is historical.
 **Date**: 2026-07-18
 **Base**: `main @ 54659b76` (Rings 2+3 merged; ADR-0243/0244/0245 Accepted; ADR-0246/0247/0248 Proposed, flags off)
 **Foundation**: `docs/research/spark-audit-adjudication-2026-07-18.md` — every work item below survived
@@ -69,7 +71,7 @@ Wire a `readback` stage into the lifecycle corridor (eval-tier, off-serving):
   WaveManifold" is rejected; see adjudication §2).
 - Not wired into serve (A-04). Parallelizable with Phases 1–2.
 
-### Phase 4 — Generalized-lift instrument (medium-large, the crux)
+### Phase 4 — Generalized-lift instrument (medium-large, the crux) — DONE (`62a72deb`; PARITY/LIFT+9/PARITY, wrong=0 guard HELD)
 Instrument before consumption (ADR-0190 lesson: build the measurement first):
 - Corridor-vs-symbolic-baseline evaluation harness: problem Hamiltonians compiled from the same
   readers both paths use; measure solve success + refusal honesty.
