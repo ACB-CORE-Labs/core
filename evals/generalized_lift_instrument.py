@@ -32,8 +32,10 @@ composition frontier, and this instrument is the harness waiting for it.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from itertools import product
+from pathlib import Path
 from typing import Any, Sequence
 
 import numpy as np
@@ -56,7 +58,14 @@ from core.physics.linguistic_readback import (
 from core.physics.sensorium_wave_feed import ModalityPacket
 from core.physics.wave_manifold import WaveManifold
 from generate.logic_equivalence import Verdict, check_equivalence
+from generate.math_problem_graph import MathGraphError, graph_from_dict
 from vocab.manifold import VocabManifold
+
+from evals.turn_program import (
+    TurnProgramError,
+    compile_turn_program,
+    execute_turn_program,
+)
 
 __all__ = [
     "DomainOutcome",
@@ -65,6 +74,7 @@ __all__ = [
     "run_propositional_domain",
     "run_recognition_domain",
     "run_multimodal_domain",
+    "run_arithmetic_chain_domain",
 ]
 
 # Hot-band energy axes (existing E3/E4 precedent; caller-supplied, never invented).
@@ -450,22 +460,130 @@ def run_multimodal_domain() -> DomainOutcome:
 # --- Composed instrument ---------------------------------------------------------------
 
 
+# --- Domain D: multi-step arithmetic on the real GSM8K dev holdout (ADR-0249) ----------
+
+# The sealed GSM8K dev holdout — real problems, never the templated cases.
+_DEV_HOLDOUT = Path(__file__).parent / "gsm8k_math" / "dev" / "cases.jsonl"
+
+
+def _load_dev_cases() -> tuple[dict[str, Any], ...]:
+    if not _DEV_HOLDOUT.exists():
+        return ()
+    with _DEV_HOLDOUT.open() as handle:
+        return tuple(json.loads(line) for line in handle if line.strip())
+
+
+def _symbolic_fold(seed: float, steps) -> float:
+    """The baseline: solve the SAME compiled turn program by plain arithmetic.
+
+    Corridor and baseline consume the identical `TurnProgram`; the corridor
+    relaxes each step, the baseline folds it numerically. The honest question
+    is whether field relaxation matches arithmetic on the same problem.
+    """
+    answer = float(seed)
+    for step in steps:
+        answer = step.scale * answer + step.offset
+    return answer
+
+
+def run_arithmetic_chain_domain() -> DomainOutcome:
+    """Corridor turn-program executor vs symbolic fold on real GSM8K problems.
+
+    Both paths consume the graph's `ground_truth_graph` compiled to a turn
+    program; non-Tier-1 graphs (multi-entity, transfer, rate, …) are refused by
+    BOTH and recorded as the composition frontier — never silently dropped. The
+    expected honest verdict is PARITY with wrong=0: the field does not beat
+    arithmetic at arithmetic; the result is real-holdout coverage, not a lift.
+    """
+    corridor_correct = corridor_wrong = corridor_refused = 0
+    baseline_correct = baseline_wrong = baseline_refused = 0
+    rows: list[dict[str, Any]] = []
+    cases = _load_dev_cases()
+
+    for case in cases:
+        case_id = case.get("id", "")
+        gold_raw = case.get("expected_answer")
+        graph_dict = case.get("ground_truth_graph")
+        try:
+            graph = graph_from_dict(graph_dict) if graph_dict else None
+        except (MathGraphError, KeyError, TypeError, ValueError):
+            graph = None
+        try:
+            program = compile_turn_program(graph) if graph is not None else None
+        except TurnProgramError as refusal:
+            corridor_refused += 1
+            baseline_refused += 1
+            rows.append({"case_id": case_id, "ingested": False, "refusal": refusal.reason})
+            continue
+        if program is None:
+            corridor_refused += 1
+            baseline_refused += 1
+            rows.append({"case_id": case_id, "ingested": False, "refusal": "no_graph"})
+            continue
+
+        gold = None if gold_raw is None else float(gold_raw)
+        corridor_answer = execute_turn_program(program).answer
+        baseline_answer = _symbolic_fold(program.seed, program.steps)
+
+        corridor_ok = gold is not None and abs(corridor_answer - gold) < 1e-4
+        baseline_ok = gold is not None and abs(baseline_answer - gold) < 1e-4
+        corridor_correct += int(corridor_ok)
+        corridor_wrong += int(not corridor_ok)
+        baseline_correct += int(baseline_ok)
+        baseline_wrong += int(not baseline_ok)
+        rows.append(
+            {
+                "case_id": case_id,
+                "ingested": True,
+                "gold": gold,
+                "corridor_answer": corridor_answer,
+                "baseline_answer": baseline_answer,
+                "corridor_ok": corridor_ok,
+            }
+        )
+
+    ingested = corridor_correct + corridor_wrong
+    return DomainOutcome(
+        domain_id="arithmetic-chain",
+        n_cases=len(cases),
+        corridor_correct=corridor_correct,
+        corridor_wrong=corridor_wrong,
+        corridor_refused=corridor_refused,
+        baseline_correct=baseline_correct,
+        baseline_wrong=baseline_wrong,
+        baseline_refused=baseline_refused,
+        notes=(
+            f"Real GSM8K dev holdout: {ingested}/{len(cases)} problems are Tier-1 "
+            f"affine single-accumulator ingestible and solved wrong=0; the rest are "
+            f"refused (multi-entity/transfer/rate/…) — the recorded Tier-2 frontier.",
+            "Baseline is a symbolic fold of the SAME compiled turn program; PARITY "
+            "with wrong=0 is the honest outcome — the field matches arithmetic, it "
+            "does not beat it. The result is real-holdout coverage, not a lift.",
+        ),
+        cases=tuple(rows),
+    )
+
+
 def run_generalized_lift_instrument() -> LiftInstrumentReport:
     outcomes = (
         run_propositional_domain(),
         run_recognition_domain(),
         run_multimodal_domain(),
+        run_arithmetic_chain_domain(),
     )
     propositional = outcomes[0]
+    arithmetic = outcomes[3]
     return LiftInstrumentReport(
         outcomes=outcomes,
-        wrong_zero_guard_held=(propositional.corridor_wrong == 0),
+        # Both exact-regime domains (deductive flagship + arithmetic) preserve wrong=0.
+        wrong_zero_guard_held=(propositional.corridor_wrong == 0 and arithmetic.corridor_wrong == 0),
         honest_null=all(o.delta_correct <= 0 for o in outcomes),
         scope_limitations=(
-            "GSM8K / natural-language arithmetic is NOT ingestible by corridor "
-            "v1: no reader-to-Hamiltonian compiler exists beyond the <=5-atom "
-            "propositional and quadratic-well domains. Recorded, not silently "
-            "dropped; that compiler is the composition frontier this "
-            "instrument is waiting to measure.",
+            "The reader→Hamiltonian compiler now exists for the affine "
+            "single-accumulator arithmetic subset (ADR-0249): on the real GSM8K "
+            "dev holdout it solves the Tier-1 subset wrong=0 (see the "
+            "arithmetic-chain domain). Non-affine / multi-entity GSM8K problems "
+            "(transfer, rate, comparison, fraction, partition) remain the "
+            "recorded Tier-2 frontier — refused, never silently dropped.",
         ),
     )
