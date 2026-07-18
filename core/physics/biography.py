@@ -59,7 +59,9 @@ def _trajectory_hash(versors: Sequence[np.ndarray]) -> str:
 
     h = hashlib.sha256()
     for v in versors:
-        h.update(np.asarray(v, dtype=np.float64).tobytes())
+        # Explicit little-endian f64 bytes (ADR-0245 §2.3): platform-independent
+        # digest. Byte-identical to the prior bare tobytes() on LE targets.
+        h.update(np.ascontiguousarray(np.asarray(v, dtype=np.dtype("<f8"))).tobytes())
     return h.hexdigest()
 
 

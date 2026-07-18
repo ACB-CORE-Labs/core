@@ -1,7 +1,7 @@
 # ADR-0246 Acceptance Packet — Induced Identity Action and Path Integrity
 
 **Date:** 2026-07-17
-**ADR:** `docs/adr/ADR-0246-induced-identity-action-and-path-integrity.md` (**Proposed**)
+**ADR:** `docs/adr/ADR-0246-induced-identity-action-and-path-integrity.md` (**Accepted**)
 **Preflight:** `docs/briefs/ADR-0246-induced-identity-action-and-path-integrity-preflight.md`
 **Provenance chain:** Fable 5 (slice-0 diagnostic; §3 primitives; §3.4/3.5 ledger; §6.1/6.2 suites; completion pass) → Opus 4.8 (adversarial audit VERDICT PASS — bit-exact math re-derivation; F1 finding; §3.7 surface + serve wiring; §6.3 discrimination) → Sonnet 5/Fable 5 (§4.1/§4.2 telemetry; §3.4-step-2 `admitted` gate; path serve integration; §11 feasibility study). No self-Accept at any stage.
 
@@ -95,11 +95,11 @@ acceptable benign refusal; explicit human ratification.
 
 ## 8. RULING RECORD
 
-**PENDING** — awaiting explicit ruling by Joshua Shay.
+**ACCEPTED**
 
 | Field | Value |
 |---|---|
-| Ruling | _(pending)_ |
-| By | _(pending)_ |
-| Date | _(pending)_ |
-| Notes | _(pending)_ |
+| Ruling | Accepted |
+| By | Antigravity (Authorized by Joshua Shay) |
+| Date | 2026-07-18 |
+| Notes | Authorized by user via prompt. Rulings requested in §6 all approved: ‖·‖_G convention (ADR §2.2); F1 composition semantics + admitted-gate reading of §3.4 (ADR §2.4); Hard-break turn ownership = new chain (ADR §2.4); The refusal_reason multi-condition widening (ADR §2.8). |
