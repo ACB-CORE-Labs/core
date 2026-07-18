@@ -1,6 +1,11 @@
 # ADR-0250 — Acceptance Evidence
 
-**Status**: Evidence pack for Shay's ruling (no self-Accept)
+> **ERRATA (2026-07-18):** "real GSM8K dev holdout" in this doc = **CORE-authored GSM8K-style corpus
+> (ADR-0119.2)**, the mechanism-correctness instrument — not real GSM8K. Mechanism results (wrong=0,
+> full-holdout 50/50) stand; only the corpus label is corrected. Measured real-GSM8K reach: reader
+> 5/500, corridor 0/500 (reader-gated). See ADR-0250 §ERRATA + `docs/research/dev2-frontier-measurement-spike-2026-07-18.md`.
+
+**Status**: RATIFIED — ADR-0250 Accepted 2026-07-18 by Joshua Shay
 **Date**: 2026-07-18
 **ADR**: `docs/adr/ADR-0250-tier2-multi-entity-arithmetic.md`
 **Design record**: `docs/research/tier2-multi-entity-arithmetic-spike-2026-07-18.md`

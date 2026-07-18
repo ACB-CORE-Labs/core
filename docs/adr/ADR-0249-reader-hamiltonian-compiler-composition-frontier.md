@@ -9,6 +9,24 @@
 
 ---
 
+## ERRATA (2026-07-18) — corpus mislabel corrected; status stays Accepted
+
+This ADR and its evidence repeatedly call `evals/gsm8k_math/dev` the **"real GSM8K dev holdout."**
+That label is wrong: per ADR-0119.2, `dev` (and `public`) are **CORE-authored, GSM8K-*style*** problems
+in CORE's own grammar — **not** real GSM8K. Real GSM8K lives in `train_sample`, `holdout_dev/v1`, and
+the sealed test. Wherever this ADR says "real GSM8K dev holdout," read **"CORE-authored GSM8K-style
+corpus (ADR-0119.2)."**
+
+**Nothing about the mechanism is retracted.** Certified relaxation, conservation, atomicity,
+chain-of-custody, `wrong=0`, and PARITY against a symbolic fold of the *same* compiled program all
+stand — the authored corpus is the **mechanism-correctness instrument**, and the compiler's 200/200 on
+it is exactly that evidence. What falls is only the corpus label. Measured real-GSM8K reach (spike
+`docs/research/dev2-frontier-measurement-spike-2026-07-18.md`): reader parses 5/500, corridor solves
+0/500 — reader-gated. This erratum records that we caught our own mislabel via measurement; that is the
+honest-measurement doctrine working, not a defect hidden.
+
+---
+
 ## 1. What this ADR is — and the thesis
 
 The generalized-lift instrument (ADR-0246 seam S4) recorded a single blocking

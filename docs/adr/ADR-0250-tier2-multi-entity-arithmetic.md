@@ -9,6 +9,22 @@
 
 ---
 
+## ERRATA (2026-07-18) — corpus mislabel corrected; status stays Accepted
+
+This ADR calls the authored corpus the **"entire real GSM8K dev holdout."** That label is wrong: per
+ADR-0119.2, `dev` (50) and `public` (150) are **CORE-authored, GSM8K-*style*** problems, **not** real
+GSM8K. Read every "real GSM8K" reference here as **"CORE-authored GSM8K-style corpus (ADR-0119.2)."**
+
+**Nothing about the Tier-2 mechanism is retracted** — the multi-register model, coupled-translator
+transfers, the relative conservation hard-reject, prepare→validate→commit atomicity, the certified
+summation turn, and the chain-of-custody all stand; the authored corpus is the mechanism-correctness
+instrument and the 50/50 (200/200 across both ADRs) is exactly that evidence. Only the corpus label
+falls. Measured real-GSM8K reach (spike `docs/research/dev2-frontier-measurement-spike-2026-07-18.md`):
+reader parses 5/500, corridor 0/500 — reader-gated. Recorded here as the honest-measurement doctrine
+catching its own mislabel.
+
+---
+
 ## 1. What this ADR is
 
 ADR-0249 closed Tier-1 (single-accumulator affine arithmetic) and recorded the 24 multi-entity
