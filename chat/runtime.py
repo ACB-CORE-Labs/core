@@ -80,6 +80,7 @@ from core.physics.identity import (
     IdentityScore,
     TurnEvent,
 )
+from core.physics.identity import advance_session_identity_path
 from core.physics.identity_action import AdmissionPolicy
 from packs.ethics.check import EthicsCheck, EthicsContext
 from packs.ethics.loader import (
@@ -706,6 +707,11 @@ class ChatRuntime:
             self.identity_manifold,
         )
         self._last_refusal_was_typed: bool = True
+        # ADR-0246 §3.4/§3.5 — lawful-only session identity-path ledger
+        # (observe-only; advanced per-turn only when identity_action_surface +
+        # identity_wave_gate are both on). Instance lifetime IS the §3.5
+        # session boundary: a fresh runtime starts from None → hard break.
+        self._identity_path_ledger = None
         self.turn_log: List[TurnEvent] = []
         from chat.thread_context import ThreadContext
         self.thread_context = ThreadContext()
@@ -2684,21 +2690,38 @@ class ChatRuntime:
         # path (byte-identical). The boundary_ids intersection needs the
         # safety/ethics verdicts, which are computed below — it is supplemented
         # after those run.
+        # ADR-0246 §3.7 — fuller admit surface, flag-gated + default-off. The
+        # policy is placeholder/uncalibrated (calibrated=False); it only acts
+        # when identity_wave_gate is also on (a wave_field exists).
+        _admission_policy = (
+            AdmissionPolicy.placeholder_default()
+            if self.config.identity_action_surface
+            else None
+        )
         identity_score = self._identity_check.check(
             reasoning_trajectory,
             self.identity_manifold,
             wave_field=(
                 result.final_state.F if self.config.identity_wave_gate else None
             ),
-            # ADR-0246 §3.7 — fuller admit surface, flag-gated + default-off. The
-            # policy is placeholder/uncalibrated (calibrated=False); it only acts
-            # when identity_wave_gate is also on (a wave_field exists).
-            admission_policy=(
-                AdmissionPolicy.placeholder_default()
-                if self.config.identity_action_surface
-                else None
-            ),
+            admission_policy=_admission_policy,
+            turn_id=self._context.turn,
+            pack_id=self.identity_pack_id,
         )
+        # ADR-0246 §3.4/§3.5 — lawful-only session identity path (OBSERVE-ONLY,
+        # same flags). Refused turns break; scope changes hard-break; the
+        # ledger's session_admit is telemetry, never an egress decision
+        # (epsilon_session is an uncertified placeholder; live activation
+        # remains unauthorized).
+        identity_path_ledger = None
+        if _admission_policy is not None and identity_score.wave_mode_active:
+            self._identity_path_ledger, _path_turn = advance_session_identity_path(
+                self._identity_path_ledger,
+                self.identity_manifold,
+                result.final_state.F,
+                _admission_policy,
+            )
+            identity_path_ledger = self._identity_path_ledger
         flagged = identity_score.flagged
         cycle_cost = CycleCost(
             cycle_index=self._context.turn,
@@ -3022,6 +3045,7 @@ class ChatRuntime:
             normative_clearance=main_normative_clearance,
             normative_detail=main_normative_detail,
             reach_level=main_reach_level,
+            identity_path=identity_path_ledger,
         )
         self.turn_log.append(turn_event)
         self._emit_turn_event(turn_event)

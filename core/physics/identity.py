@@ -13,16 +13,28 @@ CORE's identity is not a description of CORE. It is CORE, expressed geometricall
 
 from __future__ import annotations
 import functools
+import hashlib
+import json
 import math
 import warnings
 from dataclasses import dataclass
-from typing import Dict, FrozenSet, List, Optional, Tuple
+from typing import Any, Dict, FrozenSet, List, Optional, Tuple
 
 import numpy as np
 
 from algebra.cl41 import N_COMPONENTS
 from core.physics.identity_manifold import IdentityManifoldGeometry
-from core.physics.identity_action import AdmissionPolicy, evaluate_admission
+from core.physics.identity_action import (
+    AdmissionPolicy,
+    IdentityActionRecord,
+    IdentityChainScope,
+    IdentityPathLedger,
+    PathBudget,
+    PLACEHOLDER_EPSILON_SESSION,
+    advance_identity_path,
+    build_identity_action_record,
+    evaluate_admission,
+)
 
 # ADR-0244 §2.2 / §4a / §2.4 — wave-gate thresholds.
 #
@@ -85,6 +97,94 @@ def _geometry_for_manifold(manifold: "IdentityManifold") -> IdentityManifoldGeom
     return _geometry_for_axis_directions(directions)
 
 
+# ADR-0246 §3.5/§4.1 — version identifiers for the hard-break ledger scope and
+# the per-turn IdentityActionRecord. ``geometry_version`` identifies the
+# ``IdentityManifoldGeometry`` construction contract (Gram/lift semantics);
+# ``gate_version`` identifies the §3.7 admit-surface DECISION LOGIC in
+# ``evaluate_admission`` (as opposed to its threshold VALUES, which are
+# ``AdmissionPolicy.version_id()``). Bump either only on a genuine contract
+# change — these are code-identity tags, not calibration numbers.
+GEOMETRY_VERSION: str = "identity_manifold_geometry_v1"
+GATE_VERSION: str = "adr_0246_admit_surface_v1"
+
+
+def manifold_content_digest(manifold: "IdentityManifold") -> str:
+    """Full-SHA-256 content digest of the declared value-axis frame.
+
+    ADR-0246 §3.5 — a new identity-action chain must start whenever the
+    identity pack content changes. ``IdentityManifold`` carries no digest of
+    its own (the pack loader doesn't compute one), so this hashes the exact
+    content that defines the frame: each axis's id/name/direction/weight, the
+    boundary ids, and the alignment threshold — canonical JSON (sorted keys, no
+    ``default=str``), full 64-hex digest (ADR-0245 §2.3, no truncation).
+    """
+    payload = {
+        "value_axes": [
+            {
+                "axis_id": str(getattr(axis, "axis_id", getattr(axis, "name", ""))),
+                "name": str(getattr(axis, "name", "")),
+                "direction": [float(x) for x in getattr(axis, "direction", ()) or ()],
+                "weight": float(getattr(axis, "weight", 1.0)),
+            }
+            for axis in manifold.value_axes
+        ],
+        "boundary_ids": sorted(manifold.boundary_ids),
+        "alignment_threshold": float(manifold.alignment_threshold),
+    }
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+# §3.5 session scoping note: the live ledger object is held BY the runtime
+# instance, so the session boundary is enforced by object lifetime (a new
+# runtime/session starts from ``ledger=None`` → hard break). The constant
+# session_id below therefore only needs to be stable WITHIN an instance;
+# pack/geometry/policy changes mid-instance still hard-break via the scope
+# comparison in ``advance_identity_path``.
+_LIVE_SESSION_SCOPE_ID: str = "live_runtime_session"
+
+
+def advance_session_identity_path(
+    ledger: "IdentityPathLedger | None",
+    manifold: "IdentityManifold",
+    wave_field,
+    policy: "AdmissionPolicy",
+    *,
+    boundary_breach: bool = False,
+) -> tuple["IdentityPathLedger", dict]:
+    """Advance the live session's lawful-only identity path by one turn
+    (ADR-0246 §3.4/§3.5 serve integration — OBSERVE-ONLY).
+
+    Builds the §3.5 chain scope from the manifold's content digest + the
+    geometry/gate/policy version ids, evaluates the §3.7 admit surface for the
+    §3.4-step-2 ``admitted`` gate, and folds the turn's induced action into the
+    ledger (lawful-only composition; refused turns are break markers).
+
+    OBSERVE-ONLY: the returned ledger's ``session_admit`` is telemetry, not an
+    egress decision — ``epsilon_session`` is an UNCERTIFIED placeholder and
+    live activation of any identity gate remains unauthorized (D4 ratification
+    + the §6.3 discrimination evidence). No refusal is derived from the path
+    here; that requires calibrated budgets + explicit human ratification.
+    """
+    geometry = _geometry_for_manifold(manifold)
+    F = np.asarray(wave_field, dtype=np.float64)
+    result = evaluate_admission(geometry, F, policy, boundary_breach=boundary_breach)
+    action = geometry.induced_action(F)
+    scope = IdentityChainScope(
+        pack_content_digest=manifold_content_digest(manifold),
+        geometry_version=GEOMETRY_VERSION,
+        policy_version=f"{GATE_VERSION}:{policy.version_id()}",
+        session_id=_LIVE_SESSION_SCOPE_ID,
+    )
+    budget = PathBudget(
+        epsilon_turn=policy.epsilon_turn,
+        epsilon_session=PLACEHOLDER_EPSILON_SESSION,
+    )
+    return advance_identity_path(
+        ledger, scope, action, geometry.gram, budget, admitted=result.admitted
+    )
+
+
 @dataclass(frozen=True)
 class ValueAxis:
     """Compatibility value-axis shape for identity-gate tests and fixtures.
@@ -130,6 +230,10 @@ class IdentityScore:
     action_surface_active: bool = False
     d_orth: float = 0.0
     d_stab: float = 0.0
+    # ADR-0246 §4.1 — the full per-turn IdentityActionRecord (typed residual
+    # channels, digests, admit verdict). ``None`` unless the §3.7 surface ran
+    # (``action_surface_active=True``); legacy/flag-off callers are unaffected.
+    action_record: "IdentityActionRecord | None" = None
 
     @property
     def value(self) -> float:
@@ -283,6 +387,8 @@ class IdentityCheck:
         trajectory_id: str,
         boundary_violations: FrozenSet[str],
         admission_policy: "AdmissionPolicy | None" = None,
+        turn_id: int = 0,
+        pack_id: str = "",
     ) -> IdentityScore:
         """Operator-preservation identity score for a live versor (ADR-0244 §2.2/§4a).
 
@@ -297,7 +403,9 @@ class IdentityCheck:
         is additionally applied: a versor failing it folds into ``flagged`` (the
         existing ``would_violate`` refusal path abstains — admit-or-abstain, no
         corrector). When ``None`` (default) the result is byte-identical to the D4
-        wave path.
+        wave path. ``turn_id``/``pack_id`` (ADR-0246 §4.1) are forwarded into the
+        per-turn ``IdentityActionRecord`` when the surface is active; both default
+        to empty/zero so omitting them never affects behavior.
         """
         F = self._validate_wave_field(wave_field)
         geometry = _geometry_for_manifold(manifold)
@@ -328,6 +436,7 @@ class IdentityCheck:
         action_surface_active = False
         d_orth = 0.0
         d_stab = 0.0
+        action_record: "IdentityActionRecord | None" = None
         if admission_policy is not None:
             result = evaluate_admission(
                 geometry,
@@ -339,6 +448,23 @@ class IdentityCheck:
             d_orth = result.d_orth
             d_stab = result.d_stab
             flagged = flagged or not result.admitted
+            # ADR-0246 §4.1 per-turn telemetry record. Re-evaluates the (cheap,
+            # pure) admit surface rather than threading ``result`` through, so
+            # the already-audited ``evaluate_admission`` call above stays
+            # untouched — see docs/audit/adr-0246-slice1-opus-audit-and-hardening.md.
+            action_record = build_identity_action_record(
+                geometry,
+                F.astype(np.float64),
+                admission_policy,
+                turn_id=turn_id,
+                trajectory_id=trajectory_id,
+                pack_id=pack_id,
+                pack_content_digest=manifold_content_digest(manifold),
+                geometry_version=GEOMETRY_VERSION,
+                gate_version=GATE_VERSION,
+                wave_mode_active=True,
+                boundary_breach=bool(boundary_violations),
+            )
         return IdentityScore(
             score=score,
             flagged=flagged,
@@ -351,6 +477,7 @@ class IdentityCheck:
             action_surface_active=action_surface_active,
             d_orth=d_orth,
             d_stab=d_stab,
+            action_record=action_record,
         )
 
     def check(
@@ -361,6 +488,8 @@ class IdentityCheck:
         wave_field=None,
         violated_boundary_ids: FrozenSet[str] = frozenset(),
         admission_policy: "AdmissionPolicy | None" = None,
+        turn_id: int = 0,
+        pack_id: str = "",
     ) -> IdentityScore:
         """Check a trajectory against the IdentityManifold (ADR-0010 / ADR-0244).
 
@@ -371,7 +500,9 @@ class IdentityCheck:
 
         ``admission_policy`` (ADR-0246 §3.7, flag-gated behind
         ``identity_action_surface``) is forwarded to the wave path only; ``None``
-        (default) keeps every caller byte-identical to the D4 gate.
+        (default) keeps every caller byte-identical to the D4 gate. ``turn_id``/
+        ``pack_id`` (ADR-0246 §4.1) are cosmetic identifiers for the per-turn
+        record and default to ``0``/``""`` — omitting them changes nothing.
 
         ``violated_boundary_ids`` (the turn's safety/ethics violated boundaries)
         is intersected with the manifold's committed ``boundary_ids``; a non-empty
@@ -396,7 +527,7 @@ class IdentityCheck:
         if wave_field is not None:
             return self._wave_field_score(
                 wave_field, resolved_manifold, trajectory_id, boundary_violations,
-                admission_policy=admission_policy,
+                admission_policy=admission_policy, turn_id=turn_id, pack_id=pack_id,
             )
         confidence = float(getattr(trajectory, "total_coherence_delta", 0.0))
         confidence += self._mean_frame_coherence(trajectory)
@@ -614,3 +745,9 @@ class TurnEvent:
     composer_atom_set_hash: str = ""
     graph_atom_set_hash: str = ""
     composer_graph_atom_overlap_count: int = 0
+    # ADR-0246 §3.4/§3.5/§4.2 — the session identity-path ledger snapshot after
+    # this turn (an ``IdentityPathLedger``), populated only when the
+    # identity_action_surface path ran. ``None`` (default) on legacy/flag-off
+    # turns keeps the wire format byte-identical. Typed as ``object`` to
+    # preserve identity.py's low-coupling value-type role in TurnEvent.
+    identity_path: object = None

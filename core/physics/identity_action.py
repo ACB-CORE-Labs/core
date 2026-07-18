@@ -255,15 +255,19 @@ def advance_identity_path(
     action: np.ndarray,
     gram: np.ndarray,
     budget: PathBudget,
+    *,
+    admitted: bool = True,
 ) -> tuple[IdentityPathLedger, dict[str, Any]]:
     """Fold one turn's raw induced action into the lawful-only path (§3.4/§3.5).
 
     Returns ``(new_ledger, turn_record)``. ``turn_record`` reports this turn's
     ``lawful`` / ``d_stab_turn`` / ``path_break`` / ``hard_break``. A turn is
-    lawful iff ``d_stab(action) ≤ epsilon_turn`` under the locked singleton
-    ``H_id={I}``; only lawful turns compose. A scope change (or an absent prior
-    ledger) is a hard break that starts a fresh chain — the previous path is NOT
-    continued. Immutable: ``ledger`` is never mutated.
+    lawful iff it was ``admitted`` by the caller's per-turn policy (§3.4 step 2;
+    default ``True`` for pure geometric callers) AND ``d_stab(action) ≤
+    epsilon_turn`` under the locked singleton ``H_id={I}``; only lawful turns
+    compose. A scope change (or an absent prior ledger) is a hard break that
+    starts a fresh chain — the previous path is NOT continued. Immutable:
+    ``ledger`` is never mutated.
 
     **Composition semantics (ratification-relevant — ADR-0246 §3.4).** A lawful
     turn composes its *actual certified* induced action ``A_t`` (``a_path = A_t @
@@ -285,7 +289,13 @@ def advance_identity_path(
     dimension = action.shape[0]
     stabilizer = IdentityStabilizer.singleton(dimension)
     d_stab_turn = stabilizer_defect(action, gram, stabilizer)
-    lawful = d_stab_turn <= budget.epsilon_turn
+    # §3.4 step 2 then step 3: a turn must be ADMITTED by the per-turn policy
+    # (ℓ/d_orth/per-axis — the caller's §3.7 verdict, default True for pure
+    # geometric callers) BEFORE the stabilizer criterion can certify it lawful.
+    # A refused turn is a break marker even when its d_stab happens to be small
+    # (e.g. refused on leakage alone) — otherwise a policy-refused action would
+    # compose into "identity holonomy", the §3.4 category error.
+    lawful = admitted and d_stab_turn <= budget.epsilon_turn
 
     hard_break = ledger is None or ledger.scope != scope
     if hard_break:
@@ -361,6 +371,7 @@ CERTIFIED_GAMMA_ID: float = 0.2126624458513829
 # False`, and no serve path may admit on them until they are certified.
 PLACEHOLDER_ORTH_TOL: float = 1e-6
 PLACEHOLDER_EPSILON_TURN: float = 0.1
+PLACEHOLDER_EPSILON_SESSION: float = 0.3  # §3.4 path budget — UNCERTIFIED
 PLACEHOLDER_TAU_MAX: float = 0.2126624458513829  # per-axis leakage cap (= γ_id placeholder)
 PLACEHOLDER_S_MIN: float = 0.0  # self-alignment floor (matches D4 _WAVE_SELF_ALIGNMENT_FLOOR)
 PLACEHOLDER_UNCLASSIFIED_TOL: float = 1e-6
@@ -396,6 +407,25 @@ class AdmissionPolicy:
             unclassified_tol=PLACEHOLDER_UNCLASSIFIED_TOL,
             calibrated=False,
         )
+
+    def version_id(self) -> str:
+        """Full-SHA-256 identifier of this exact threshold set (ADR-0246 §4.1
+        ``policy_version`` / §3.5 "gate/policy version changed" hard-break key).
+
+        Changes iff any threshold or the ``calibrated`` flag changes — canonical
+        JSON, no ``default=str`` (ADR-0245 §2.3).
+        """
+        payload = {
+            "orth_tol": self.orth_tol,
+            "epsilon_turn": self.epsilon_turn,
+            "gamma_id": self.gamma_id,
+            "tau_max": self.tau_max,
+            "s_min": self.s_min,
+            "unclassified_tol": self.unclassified_tol,
+            "calibrated": self.calibrated,
+        }
+        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -482,4 +512,166 @@ def evaluate_admission(
         max_leakage=max_leakage,
         min_self_alignment=min_self_alignment,
         typed_channels=channels,
+    )
+
+
+# -- ADR-0246 §4.1/§4.3 per-turn identity-action telemetry record --------------
+
+
+def _field_digest(versor: np.ndarray) -> str:
+    """Full-SHA-256 digest of the versor's bytes (LE float64, ADR-0245 §2.3).
+
+    Same convention as :func:`core.physics.holographic_vault._default_mode_id`:
+    explicit little-endian coercion (platform-stable, not implicit host
+    endianness) and no truncation.
+    """
+    le_bytes = np.ascontiguousarray(versor, dtype=np.dtype("<f8")).tobytes()
+    return hashlib.sha256(le_bytes).hexdigest()
+
+
+@dataclass(frozen=True)
+class IdentityActionRecord:
+    """Per-turn identity-action telemetry record (ADR-0246 §4.1).
+
+    Built only when the §3.7 admit surface actually ran (mirrors
+    ``IdentityScore.action_surface_active``) — there is no "empty" record; its
+    mere existence signals the surface was active this turn. Immutable; every
+    array/measure is the RAW value (never a soft-projected stand-in).
+
+    **Deviation from the brief's literal singular ``refusal_reason``:**
+    :func:`evaluate_admission` can name MULTIPLE failed conditions
+    (``AdmissionResult.refusal_reasons``, a tuple); this record joins them with
+    ``";"`` into one string (``None`` when admitted) so no information from a
+    multi-condition refusal is silently dropped.
+
+    **``lawful_action``** reflects the §3.4 path-ledger's own narrower
+    criterion — ``d_stab ≤ epsilon_turn`` under the locked ``H_id={I}`` — which
+    is a STRICT SUBSET of the fuller §3.7 ``admitted`` verdict (which also
+    checks leakage/orth/self-align/boundary/unclassified). A turn can be
+    "admitted" but still ``lawful_action="none"`` if only the stabilizer
+    criterion fails to also hold within budget — though in practice the two
+    move together since ``d_stab>epsilon_turn`` is itself one of the admission
+    reasons. Never a soft projection: exactly ``"I"`` or ``"none"``.
+    """
+
+    schema_version: str
+    turn_id: int
+    trajectory_id: str
+    pack_id: str
+    pack_content_digest: str
+    geometry_version: str
+    gate_version: str
+    policy_version: str
+    wave_mode_active: bool
+    a_raw: np.ndarray
+    d_orth: float
+    d_stab: float
+    leakage: tuple[float, ...]
+    leakage_rms: float
+    max_leakage: float
+    self_align: tuple[float, ...]
+    min_self_alignment: float
+    typed_residual_energy: dict[str, float]
+    admitted: bool
+    refusal_reason: str | None
+    lawful_action: str
+    path_break: bool
+    field_digest: str
+
+    def _identity_payload(self) -> dict[str, Any]:
+        """Everything except ``record_digest`` itself (avoids self-reference)."""
+        return {
+            "schema_version": self.schema_version,
+            "turn_id": self.turn_id,
+            "trajectory_id": self.trajectory_id,
+            "pack_id": self.pack_id,
+            "pack_content_digest": self.pack_content_digest,
+            "geometry_version": self.geometry_version,
+            "gate_version": self.gate_version,
+            "policy_version": self.policy_version,
+            "wave_mode_active": self.wave_mode_active,
+            "A_raw": [[float(x) for x in row] for row in self.a_raw],
+            "d_orth": float(self.d_orth),
+            "d_stab": float(self.d_stab),
+            "leakage": [float(x) for x in self.leakage],
+            "leakage_rms": float(self.leakage_rms),
+            "max_leakage": float(self.max_leakage),
+            "self_align": [float(x) for x in self.self_align],
+            "min_self_alignment": float(self.min_self_alignment),
+            "typed_residual_energy": {
+                k: float(v) for k, v in self.typed_residual_energy.items()
+            },
+            "admitted": self.admitted,
+            "refusal_reason": self.refusal_reason,
+            "lawful_action": self.lawful_action,
+            "path_break": self.path_break,
+            "field_digest": self.field_digest,
+        }
+
+    def record_digest(self) -> str:
+        """Full-SHA-256 content id over the record (ADR-0245 §2.3 — no
+        truncation, canonical JSON, no ``default=str``)."""
+        canonical = json.dumps(
+            self._identity_payload(), sort_keys=True, separators=(",", ":")
+        )
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    def as_dict(self) -> dict[str, Any]:
+        out = self._identity_payload()
+        out["record_digest"] = self.record_digest()
+        return out
+
+
+def build_identity_action_record(
+    geometry: IdentityManifoldGeometry,
+    versor: np.ndarray,
+    policy: AdmissionPolicy,
+    *,
+    turn_id: int = 0,
+    trajectory_id: str = "",
+    pack_id: str = "",
+    pack_content_digest: str = "",
+    geometry_version: str = "",
+    gate_version: str = "",
+    wave_mode_active: bool = True,
+    path_break: bool = False,
+    boundary_breach: bool = False,
+) -> IdentityActionRecord:
+    """Build the full ADR-0246 §4.1 per-turn record for one versor.
+
+    Runs :func:`evaluate_admission` (the single source of truth for the admit
+    verdict) plus :meth:`IdentityManifoldGeometry.induced_action` /
+    ``axis_response`` for the raw per-axis vectors the aggregate result doesn't
+    expose. ``path_break`` defaults to ``False`` — a caller not integrated with
+    the §3.4/§3.5 path ledger has no path to report a break against; a
+    path-integrated caller should pass the ledger's own ``turn_record["path_break"]``.
+    """
+    result = evaluate_admission(geometry, versor, policy, boundary_breach=boundary_breach)
+    leakage, self_align = geometry.axis_response(versor)
+    lawful_action = "I" if result.d_stab <= policy.epsilon_turn else "none"
+    refusal_reason = ";".join(result.refusal_reasons) if result.refusal_reasons else None
+    return IdentityActionRecord(
+        schema_version="identity_action_v1",
+        turn_id=turn_id,
+        trajectory_id=trajectory_id,
+        pack_id=pack_id,
+        pack_content_digest=pack_content_digest,
+        geometry_version=geometry_version,
+        gate_version=gate_version,
+        policy_version=policy.version_id(),
+        wave_mode_active=wave_mode_active,
+        a_raw=geometry.induced_action(versor),
+        d_orth=result.d_orth,
+        d_stab=result.d_stab,
+        leakage=tuple(leakage),
+        leakage_rms=result.leakage_rms,
+        max_leakage=result.max_leakage,
+        self_align=tuple(self_align),
+        min_self_alignment=result.min_self_alignment,
+        typed_residual_energy=result.typed_channels,
+        admitted=result.admitted,
+        refusal_reason=refusal_reason,
+        lawful_action=lawful_action,
+        path_break=path_break,
+        field_digest=_field_digest(versor),
     )

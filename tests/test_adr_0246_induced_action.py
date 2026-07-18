@@ -108,6 +108,37 @@ def test_e5_boost_fires_boost_channel_and_is_non_isometric(geometry):
     assert geometry.orthogonality_defect(versor) > 0.05  # boost not a G-isometry
 
 
+def test_spatial_foreign_channel_is_zero_for_default_pack_by_construction():
+    """Resolves the open uncertainty from the Fable/Opus handoff notes: is
+    ``spatial_foreign`` structurally broken? No — for the DEFAULT 3-axis pack
+    (support = e1,e2,e3, i.e. the full spatial grade-1 block), the rejection
+    ``rotated - project(rotated)`` is by construction orthogonal to e1/e2/e3, so
+    this channel is TAUTOLOGICALLY zero — there is no "spatial but outside
+    support" direction left when the support IS all of span(e1,e2,e3).
+    """
+    geom3 = IdentityManifoldGeometry.from_directions(
+        ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
+    )
+    for versor in (_rotor(_E14, 1.3), _boost(_E25, 0.9), _rotor(_E12, 2.0)):
+        assert geom3.typed_residual_energy(versor)["spatial_foreign"] == pytest.approx(
+            0.0, abs=1e-12
+        )
+
+
+def test_spatial_foreign_channel_fires_for_reduced_support_pack():
+    """A pack whose declared axes do NOT span all of e1/e2/e3 (here: only
+    e1/e2) has a genuine "spatial but outside support" direction (e3), and a
+    versor tilting an axis toward it must register nonzero ``spatial_foreign``
+    — confirming the channel is correct in general, not merely inert.
+    """
+    geom2 = IdentityManifoldGeometry.from_directions(((1.0, 0.0, 0.0), (0.0, 1.0, 0.0)))
+    tilt_toward_e3 = _rotor(_E13, 1.0)  # e13 tilts axis e1 toward e3 (out-of-support)
+    channels = geom2.typed_residual_energy(tilt_toward_e3)
+    assert channels["spatial_foreign"] > 0.05
+    assert channels["null_or_conformal"] == pytest.approx(0.0, abs=1e-12)
+    assert channels["boost_like"] == pytest.approx(0.0, abs=1e-12)
+
+
 def test_typed_residual_energy_fractions_are_bounded_and_clean(geometry):
     for versor in (_rotor(_E14, 0.7), _boost(_E25, 0.6), _rotor(_E12, 0.3)):
         ch = geometry.typed_residual_energy(versor)

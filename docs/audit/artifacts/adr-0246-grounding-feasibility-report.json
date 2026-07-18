@@ -1,0 +1,111 @@
+{
+  "cohorts": {
+    "adversarial_n": 8,
+    "held_out_n": 12,
+    "train_n": 13
+  },
+  "cross_cohort_cosine_null_distribution": {
+    "mean": 0.377394,
+    "n_trials": 200,
+    "p95": 0.599818
+  },
+  "cross_cohort_cosine_percentile_in_null": 0.87,
+  "cross_cohort_top2_cosine_similarity": 0.524901,
+  "discrimination_auc_adversarial_vs_heldout": 0.489583,
+  "discrimination_auc_ci95": [
+    0.208333,
+    0.770833
+  ],
+  "held_out_eigenvalues": [
+    79.571248,
+    20.218919,
+    7.368282,
+    3.067749,
+    1.251647,
+    1.014757,
+    0.487365,
+    0.269996,
+    0.000952,
+    5.4e-05
+  ],
+  "held_out_stability_null_percentile_floor": 0.95,
+  "held_out_variance_explained_top_2": 0.881142,
+  "method": {
+    "generator_proxy": "bivector (grade-2) coefficient block, 10 planes",
+    "note": "approximates the Lie generator to first order; exact for single-plane simple rotors/boosts, approximate for compound multi-generator turns; no scipy / matrix-log dependency"
+  },
+  "null_calibration_sample_size": 12,
+  "plane_energy_fractions": {
+    "held_out": {
+      "e12": 0.197125,
+      "e13": 0.130823,
+      "e14": 0.068146,
+      "e15": 0.112533,
+      "e23": 0.10294,
+      "e24": 0.123708,
+      "e25": 0.07482,
+      "e34": 0.004372,
+      "e35": 0.143569,
+      "e45": 0.041963
+    },
+    "train": {
+      "e12": 0.16094,
+      "e13": 0.082142,
+      "e14": 0.12553,
+      "e15": 0.050535,
+      "e23": 0.088179,
+      "e24": 0.168982,
+      "e25": 0.025171,
+      "e34": 0.03812,
+      "e35": 0.12034,
+      "e45": 0.140062
+    }
+  },
+  "precision_transport": {
+    "max_bivector_delta": 6.86e-07,
+    "significant": false
+  },
+  "recovery_controls": {
+    "method_recovers_true_structure": true,
+    "null_distribution": {
+      "mean": 0.382094,
+      "n_trials": 200,
+      "p50": 0.369315,
+      "p95": 0.60089
+    },
+    "positive_control_cross_cohort_cosine": 0.999463,
+    "positive_control_percentile_in_null": 1.0,
+    "sample_size": 12
+  },
+  "residual_from_train_top2_subspace": {
+    "adversarial": {
+      "mean": 0.817659
+    },
+    "held_out": {
+      "mean": 0.74434
+    },
+    "train": {
+      "mean": 0.656085
+    }
+  },
+  "schema_version": "adr_0246_grounding_feasibility_v1",
+  "train_eigenvalues": [
+    17.063268,
+    8.003419,
+    0.574088,
+    0.435995,
+    0.187462,
+    0.031598,
+    0.014257,
+    0.004931,
+    0.003561,
+    0.00118
+  ],
+  "train_variance_explained_top_2": 0.95239,
+  "verdict": {
+    "held_out_stable_structure_found": false,
+    "honest_finding": "NULL (n_train=13, n_held_out=12): the top-2 generator-proxy subspace found on TRAIN does NOT reliably reproduce on the independently-collected HELD-OUT cohort \u2014 cosine similarity 0.52 sits at only the 87th percentile of what two INDEPENDENT pure-noise cohorts of the same size produce by chance (need >= 95th) and/or does not clear the discrimination bar (AUC 0.49, 95% CI [0.21, 0.77]). This is consistent with \u2014 and sharpens \u2014 the D4/slice-0/\u00a76.3 finding at the GENERATOR level (not just the induced-action level): benign cognition does not have a small, stable, cohort-independent generator subspace detectable at this sample size. Threshold tuning on the current pack cannot produce a discriminating gate; this feasibility study does not find grounds to draft a revised ADR-0246 implementation contract. A much larger cohort (this study used n<=13 per real cohort) would be needed to rule out a real but subtle effect, rather than to overturn this null.",
+    "recovery_method_validated": true,
+    "safety_relevant": false
+  }
+}

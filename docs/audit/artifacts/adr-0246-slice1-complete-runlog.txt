@@ -1,0 +1,45 @@
+ADR-0246 slice-1 COMPLETION — final verification run log
+branch: feat/adr-0246-slice1-complete (stacked on slice1-hardened; full Ring-1 stack)
+pre-commit HEAD: 47e7eb4e65703b186e4cbfcccd0add25b625b0fa
+
+=== §6.1/§6.2 eval harness ===
+
+[geometric_suite]
+  PASS  identity_versor
+  PASS  inplane_pi_inversion_e12
+  PASS  inplane_90deg_permutation_e12
+  PASS  mild_inplane_drift_e12_0.02
+  PASS  alien_tilt_e14_1.5
+  PASS  boost_e15_1.0
+  PASS  near_singular_gram
+  PASS  malformed_f_nan
+  PASS  malformed_f_wrong_shape
+
+[path_suite]
+  PASS  lawful_near_identity_sequence
+  PASS  small_rotations_accumulate_to_session_refusal
+  PASS  interleaved_refuse_admit
+  PASS  hard_break_on_pack_change
+  PASS  raw_product_differs_from_lawful
+
+14/14 cases passed; all_passed=True
+placeholders (uncertified): {'epsilon_turn': 0.1, 'epsilon_session': 0.3, 'note': 'UNCERTIFIED — D4 Phase 3 certified only gamma_id; ε not calibrated'}
+
+=== §11 grounding-feasibility (live) — summary of artifact ===
+cohorts: {'adversarial_n': 8, 'held_out_n': 12, 'train_n': 13}
+recovery: positive_cosine= 0.999463 pctile= 1.0 null_p95= 0.60089
+real: cosine= 0.524901 pctile= 0.87
+auc= 0.489583 ci= [0.208333, 0.770833]
+verdict: {'held_out_stable_structure_found': False, 'recovery_method_validated': True, 'safety_relevant': False}
+
+=== pytest: ALL ADR-0246 suites + adjacent D4 identity + telemetry ===
+........................................................................ [ 31%]
+........................................................................ [ 63%]
+........................................................................ [ 94%]
+............                                                             [100%]
+228 passed in 131.10s (0:02:11)
+
+=== uv run core test --suite smoke -q ===
+........................................................................ [ 81%]
+................................                                         [100%]
+176 passed in 130.16s (0:02:10)
