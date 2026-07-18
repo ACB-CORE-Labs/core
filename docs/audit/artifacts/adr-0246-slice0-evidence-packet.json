@@ -1,0 +1,2177 @@
+{
+  "declared_frame": {
+    "axes": [
+      "truthfulness=e1",
+      "coherence=e2",
+      "reverence=e3"
+    ],
+    "stabilizer": "H_id={I} (locked; unchanged)"
+  },
+  "diagnostic_tolerances": {
+    "d_orth_tol": 0.05,
+    "d_stab_tol": 0.05,
+    "leakage_tol": 0.02,
+    "note": "report-local classification aids, not gate thresholds",
+    "unclassified_tol": 1e-06
+  },
+  "mechanism_counts": {
+    "adversarial": {
+      "foreign_leakage": 4,
+      "in_span_unlawful": 1
+    },
+    "benign": {
+      "foreign_leakage": 13
+    },
+    "paraphrase": {
+      "foreign_leakage": 12
+    },
+    "synthetic": {
+      "foreign_leakage": 4,
+      "in_span_unlawful": 3,
+      "lawful_in_span": 2
+    }
+  },
+  "path_accumulation": {
+    "accumulation_is_the_mechanism": false,
+    "lawful_chain_exists": false,
+    "lawful_turn_count": 0,
+    "n_turns": 25,
+    "per_turn_d_stab_max": 813.791272,
+    "per_turn_d_stab_mean": 71.935609,
+    "per_turn_d_stab_min": 0.149209,
+    "raw_path_d_stab_curve": [
+      9.798827,
+      669.219467,
+      549.76668,
+      549.432418,
+      752.251071,
+      743.625864,
+      2561.803778,
+      2580.998037,
+      1861.765877,
+      312599.374601,
+      425082.986193,
+      409742.129706,
+      399501.94866,
+      597630.738973,
+      536266.478547,
+      472226.458954,
+      446151.718049,
+      8834137.81535,
+      387973188.817668,
+      16867754597.430227,
+      7427229702484.688,
+      57802522015940.04,
+      1.3922028563447058e+16,
+      1.393530377901318e+17,
+      2.1101025644441398e+18
+    ]
+  },
+  "precision_transport": {
+    "max_f32_roundtrip_action_delta": 3.5958e-05,
+    "significant": false
+  },
+  "schema_version": "adr_0246_slice0_diagnostic_v1",
+  "semantic_coupling": {
+    "declared_frame_mean_leakage": 0.572335,
+    "declared_frame_preferentially_preserved": false,
+    "fraction_of_random_frames_leaking_less_than_declared": 0.34375,
+    "n_versors": 25,
+    "named_alternative_frame_mean_leakage": {
+      "frame_e1e2e4": 0.537263,
+      "frame_e1e3e4": 0.624266,
+      "frame_e2e3e4": 0.619117
+    },
+    "random_frame_count": 32,
+    "random_frame_mean_leakage_max": 0.655494,
+    "random_frame_mean_leakage_mean": 0.596361,
+    "random_frame_mean_leakage_min": 0.551822
+  },
+  "suites": {
+    "adversarial": [
+      {
+        "d_orth": 0.994996,
+        "d_stab": 0.929263,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            0.070737,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "tilt_e14_1.5",
+        "leakage": [
+          0.997495,
+          0.0,
+          0.0
+        ],
+        "leakage_rms": 0.575904,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.576); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.070737,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 1.0,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.535369,
+          "grade2_total_energy": 0.464631,
+          "grade4_energy": 0.0,
+          "in_span_planes": 0.0
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.331665,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.070737,
+          1.0,
+          1.0
+        ],
+        "trace_class": "adversarial"
+      },
+      {
+        "d_orth": 0.994996,
+        "d_stab": 0.929263,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.070737,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "tilt_e24_1.5",
+        "leakage": [
+          0.0,
+          0.997495,
+          0.0
+        ],
+        "leakage_rms": 0.575904,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.576); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.070737,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 1.0,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.535369,
+          "grade2_total_energy": 0.464631,
+          "grade4_energy": 0.0,
+          "in_span_planes": 0.0
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.331665,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          1.0,
+          0.070737,
+          1.0
+        ],
+        "trace_class": "adversarial"
+      },
+      {
+        "d_orth": 2.278474,
+        "d_stab": 0.810656,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            1.810656,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "boost_e15_1.2",
+        "leakage": [
+          0.64033,
+          0.0,
+          0.0
+        ],
+        "leakage_rms": 0.369695,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.370); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": 0.7681,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.0,
+          "e5_mixing_planes": 1.0,
+          "grade0_energy": 1.405328,
+          "grade2_total_energy": 0.405328,
+          "grade4_energy": 0.0,
+          "in_span_planes": 0.0
+        },
+        "residual_channels": {
+          "boost_like": 0.301507,
+          "null_or_conformal": 0.0,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.7681,
+          1.0,
+          1.0
+        ],
+        "trace_class": "adversarial"
+      },
+      {
+        "d_orth": 1.381098,
+        "d_stab": 0.543081,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.543081,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "boost_e25_1.0",
+        "leakage": [
+          0.0,
+          0.605887,
+          0.0
+        ],
+        "leakage_rms": 0.349809,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.350); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": 0.795551,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.0,
+          "e5_mixing_planes": 1.0,
+          "grade0_energy": 1.27154,
+          "grade2_total_energy": 0.27154,
+          "grade4_energy": 0.0,
+          "in_span_planes": 0.0
+        },
+        "residual_channels": {
+          "boost_like": 0.239683,
+          "null_or_conformal": 0.0,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          1.0,
+          0.795551,
+          1.0
+        ],
+        "trace_class": "adversarial"
+      },
+      {
+        "d_orth": 0.0,
+        "d_stab": 2.828427,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            -1.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.0,
+            -1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "inversion_e12_pi",
+        "leakage": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "leakage_rms": 0.0,
+        "mechanism": "in_span_unlawful",
+        "mechanism_detail": "stays in span (\u2113_rms=0.000) but A departs I (d_stab=2.828) \u2014 rotation/permutation/inversion",
+        "min_self_alignment": -1.0,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.0,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.0,
+          "grade2_total_energy": 1.0,
+          "grade4_energy": 0.0,
+          "in_span_planes": 1.0
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.0,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -1.0,
+          -1.0,
+          1.0
+        ],
+        "trace_class": "adversarial"
+      }
+    ],
+    "benign": [
+      {
+        "d_orth": 79.300984,
+        "d_stab": 9.798827,
+        "f32_transport_delta": 2.1e-07,
+        "induced_action": [
+          [
+            -1.449454,
+            -3.23363,
+            -2.052253
+          ],
+          [
+            -4.181548,
+            -4.753537,
+            -3.260382
+          ],
+          [
+            2.064633,
+            3.134344,
+            0.791104
+          ]
+        ],
+        "label": "turn_00",
+        "leakage": [
+          0.699497,
+          0.705415,
+          0.697693
+        ],
+        "leakage_rms": 0.700876,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.701); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.514549,
+        "plane_occupancy": {
+          "e45_plane": 0.000833,
+          "e4_mixing_planes": 0.007527,
+          "e5_mixing_planes": 0.491548,
+          "grade0_energy": 0.877938,
+          "grade2_total_energy": 7.934639,
+          "grade4_energy": 0.214964,
+          "in_span_planes": 0.500091
+        },
+        "residual_channels": {
+          "boost_like": 0.490751,
+          "null_or_conformal": 0.002452,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.212107,
+          -0.514549,
+          0.144103
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 9984.435536,
+        "d_stab": 100.907729,
+        "f32_transport_delta": 2.401e-06,
+        "induced_action": [
+          [
+            -41.294631,
+            -56.844255,
+            -20.529203
+          ],
+          [
+            -37.827277,
+            -52.00848,
+            -20.203478
+          ],
+          [
+            -4.366652,
+            -7.697386,
+            -2.676511
+          ]
+        ],
+        "label": "turn_01",
+        "leakage": [
+          0.707053,
+          0.707077,
+          0.706897
+        ],
+        "leakage_rms": 0.707009,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.707); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.519873,
+        "plane_occupancy": {
+          "e45_plane": 0.002837,
+          "e4_mixing_planes": 0.002898,
+          "e5_mixing_planes": 0.497109,
+          "grade0_energy": 0.989153,
+          "grade2_total_energy": 98.888168,
+          "grade4_energy": 0.070976,
+          "in_span_planes": 0.497157
+        },
+        "residual_channels": {
+          "boost_like": 0.499925,
+          "null_or_conformal": 1e-06,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.519873,
+          -0.474972,
+          -0.065445
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 2.259653,
+        "d_stab": 2.040848,
+        "f32_transport_delta": 5.3e-08,
+        "induced_action": [
+          [
+            0.459773,
+            -1.473174,
+            -0.786158
+          ],
+          [
+            0.156524,
+            0.138043,
+            -0.300029
+          ],
+          [
+            0.454858,
+            -0.098253,
+            0.895638
+          ]
+        ],
+        "label": "turn_02",
+        "leakage": [
+          0.749037,
+          0.783148,
+          0.505584
+        ],
+        "leakage_rms": 0.690409,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.690); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": 0.057887,
+        "plane_occupancy": {
+          "e45_plane": 0.305022,
+          "e4_mixing_planes": 0.336919,
+          "e5_mixing_planes": 0.175113,
+          "grade0_energy": 0.944316,
+          "grade2_total_energy": 1.389721,
+          "grade4_energy": 0.037485,
+          "in_span_planes": 0.182945
+        },
+        "residual_channels": {
+          "boost_like": 0.328067,
+          "null_or_conformal": 0.196027,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.457773,
+          0.057887,
+          0.628796
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 0.262808,
+        "d_stab": 0.539673,
+        "f32_transport_delta": 4e-08,
+        "induced_action": [
+          [
+            0.94224,
+            0.181147,
+            0.114757
+          ],
+          [
+            -0.302468,
+            0.818587,
+            0.247199
+          ],
+          [
+            -0.034672,
+            -0.231921,
+            0.962145
+          ]
+        ],
+        "label": "turn_03",
+        "leakage": [
+          0.139623,
+          0.493268,
+          0.0
+        ],
+        "leakage_rms": 0.295977,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.296); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.818587,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.67587,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.895394,
+          "grade2_total_energy": 0.104605,
+          "grade4_energy": 1e-06,
+          "in_span_planes": 0.32413
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.087603,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.94224,
+          0.818587,
+          0.962145
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 35.04417,
+        "d_stab": 6.862228,
+        "f32_transport_delta": 1.78e-07,
+        "induced_action": [
+          [
+            -1.07919,
+            -0.949529,
+            -0.231678
+          ],
+          [
+            -4.265758,
+            -2.625357,
+            -1.878556
+          ],
+          [
+            -2.163977,
+            -1.276075,
+            0.205124
+          ]
+        ],
+        "label": "turn_04",
+        "leakage": [
+          0.727215,
+          0.804911,
+          0.69975
+        ],
+        "leakage_rms": 0.74529,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.745); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.507517,
+        "plane_occupancy": {
+          "e45_plane": 0.330903,
+          "e4_mixing_planes": 0.342314,
+          "e5_mixing_planes": 0.158638,
+          "grade0_energy": 0.871634,
+          "grade2_total_energy": 5.974426,
+          "grade4_energy": 0.269439,
+          "in_span_planes": 0.168144
+        },
+        "residual_channels": {
+          "boost_like": 0.482331,
+          "null_or_conformal": 0.080754,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.15107,
+          -0.507517,
+          0.076969
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 0.06246,
+        "d_stab": 0.807847,
+        "f32_transport_delta": 5.7e-08,
+        "induced_action": [
+          [
+            0.837404,
+            -0.543408,
+            0.047061
+          ],
+          [
+            0.510902,
+            0.814184,
+            0.126313
+          ],
+          [
+            -0.104901,
+            -0.07798,
+            0.990873
+          ]
+        ],
+        "label": "turn_05",
+        "leakage": [
+          0.163489,
+          0.189027,
+          0.0
+        ],
+        "leakage_rms": 0.144291,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.144); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.814184,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.163037,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.902682,
+          "grade2_total_energy": 0.097317,
+          "grade4_energy": 0.0,
+          "in_span_planes": 0.836963
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.02082,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.837404,
+          0.814184,
+          0.990873
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 23.601366,
+        "d_stab": 5.821411,
+        "f32_transport_delta": 2.36e-07,
+        "induced_action": [
+          [
+            -0.319585,
+            -2.405681,
+            -0.945403
+          ],
+          [
+            -1.399084,
+            -2.186332,
+            -0.144906
+          ],
+          [
+            -1.125125,
+            -3.311684,
+            -0.049828
+          ]
+        ],
+        "label": "turn_06",
+        "leakage": [
+          0.832116,
+          0.769322,
+          0.839446
+        ],
+        "leakage_rms": 0.814236,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.814); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.300992,
+        "plane_occupancy": {
+          "e45_plane": 0.377476,
+          "e4_mixing_planes": 0.389501,
+          "e5_mixing_planes": 0.112872,
+          "grade0_energy": 0.903064,
+          "grade2_total_energy": 4.976054,
+          "grade4_energy": 0.407252,
+          "in_span_planes": 0.120151
+        },
+        "residual_channels": {
+          "boost_like": 0.477504,
+          "null_or_conformal": 0.135911,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.097194,
+          -0.300992,
+          -0.028273
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 0.838719,
+        "d_stab": 1.095721,
+        "f32_transport_delta": 2.9e-08,
+        "induced_action": [
+          [
+            0.750426,
+            -0.726071,
+            0.163957
+          ],
+          [
+            0.20422,
+            0.708923,
+            -0.220753
+          ],
+          [
+            0.195618,
+            0.594717,
+            0.869083
+          ]
+        ],
+        "label": "turn_07",
+        "leakage": [
+          0.608906,
+          0.673876,
+          0.411679
+        ],
+        "leakage_rms": 0.575718,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.576); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.44532,
+        "plane_occupancy": {
+          "e45_plane": 0.340617,
+          "e4_mixing_planes": 0.363526,
+          "e5_mixing_planes": 0.143501,
+          "grade0_energy": 0.979675,
+          "grade2_total_energy": 0.639619,
+          "grade4_energy": 0.000263,
+          "in_span_planes": 0.152356
+        },
+        "residual_channels": {
+          "boost_like": 0.170823,
+          "null_or_conformal": 0.202101,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.742285,
+          0.44532,
+          0.868875
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 2.524726,
+        "d_stab": 2.599604,
+        "f32_transport_delta": 1.11e-07,
+        "induced_action": [
+          [
+            0.839947,
+            0.353061,
+            -0.181425
+          ],
+          [
+            0.519596,
+            -0.190998,
+            0.62683
+          ],
+          [
+            -0.659457,
+            1.671128,
+            -0.125092
+          ]
+        ],
+        "label": "turn_08",
+        "leakage": [
+          0.614258,
+          0.800808,
+          0.9349
+        ],
+        "leakage_rms": 0.79428,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.794); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.066818,
+        "plane_occupancy": {
+          "e45_plane": 0.448278,
+          "e4_mixing_planes": 0.477225,
+          "e5_mixing_planes": 0.037227,
+          "grade0_energy": 0.930253,
+          "grade2_total_energy": 2.405827,
+          "grade4_energy": 0.000345,
+          "in_span_planes": 0.03727
+        },
+        "residual_channels": {
+          "boost_like": 0.392891,
+          "null_or_conformal": 0.263956,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.55811,
+          -0.066559,
+          -0.066818
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 51596.687706,
+        "d_stab": 228.14348,
+        "f32_transport_delta": 4.746e-06,
+        "induced_action": [
+          [
+            -117.588118,
+            -107.805587,
+            50.381403
+          ],
+          [
+            -106.966034,
+            -96.382715,
+            45.602404
+          ],
+          [
+            19.687733,
+            17.992801,
+            -9.484406
+          ]
+        ],
+        "label": "turn_09",
+        "leakage": [
+          0.70711,
+          0.707126,
+          0.707091
+        ],
+        "leakage_rms": 0.707109,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.707); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.519098,
+        "plane_occupancy": {
+          "e45_plane": 0.000853,
+          "e4_mixing_planes": 0.001068,
+          "e5_mixing_planes": 0.498937,
+          "grade0_energy": 0.90667,
+          "grade2_total_energy": 217.758775,
+          "grade4_energy": 8.507186,
+          "in_span_planes": 0.499142
+        },
+        "residual_channels": {
+          "boost_like": 0.499985,
+          "null_or_conformal": 2.6e-05,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.519098,
+          -0.467673,
+          -0.097745
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 1.344008,
+        "d_stab": 1.643309,
+        "f32_transport_delta": 5.9e-08,
+        "induced_action": [
+          [
+            0.776639,
+            0.482879,
+            0.549269
+          ],
+          [
+            -1.006153,
+            0.672864,
+            0.258471
+          ],
+          [
+            -0.753863,
+            -0.564821,
+            0.794561
+          ]
+        ],
+        "label": "turn_10",
+        "leakage": [
+          0.598713,
+          0.160854,
+          0.536843
+        ],
+        "leakage_rms": 0.473474,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.473); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": 0.420943,
+        "plane_occupancy": {
+          "e45_plane": 0.013984,
+          "e4_mixing_planes": 0.107659,
+          "e5_mixing_planes": 0.433645,
+          "grade0_energy": 0.931117,
+          "grade2_total_energy": 0.655725,
+          "grade4_energy": 0.016007,
+          "in_span_planes": 0.444712
+        },
+        "residual_channels": {
+          "boost_like": 0.243164,
+          "null_or_conformal": 0.039648,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.420943,
+          0.662468,
+          0.670414
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 0.214199,
+        "d_stab": 0.149209,
+        "f32_transport_delta": 1.3e-08,
+        "induced_action": [
+          [
+            0.886622,
+            -0.071694,
+            -0.038501
+          ],
+          [
+            0.038962,
+            0.995903,
+            0.005522
+          ],
+          [
+            0.033946,
+            -0.008266,
+            0.999243
+          ]
+        ],
+        "label": "turn_11",
+        "leakage": [
+          0.459598,
+          0.05449,
+          0.0
+        ],
+        "leakage_rms": 0.267207,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.267); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.886622,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.979814,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.942057,
+          "grade2_total_energy": 0.057941,
+          "grade4_energy": 2e-06,
+          "in_span_planes": 0.020186
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.0714,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.886622,
+          0.995903,
+          0.999243
+        ],
+        "trace_class": "benign"
+      },
+      {
+        "d_orth": 0.217952,
+        "d_stab": 0.721344,
+        "f32_transport_delta": 4e-08,
+        "induced_action": [
+          [
+            0.867683,
+            0.419806,
+            0.266198
+          ],
+          [
+            -0.354167,
+            0.805102,
+            -0.106017
+          ],
+          [
+            -0.280275,
+            -0.027552,
+            0.95807
+          ]
+        ],
+        "label": "turn_12",
+        "leakage": [
+          0.207696,
+          0.418108,
+          0.0
+        ],
+        "leakage_rms": 0.269538,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.270); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.805102,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.476852,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.879597,
+          "grade2_total_energy": 0.119603,
+          "grade4_energy": 0.0008,
+          "in_span_planes": 0.523148
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.072651,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.867683,
+          0.805102,
+          0.95807
+        ],
+        "trace_class": "benign"
+      }
+    ],
+    "paraphrase": [
+      {
+        "d_orth": 10.467906,
+        "d_stab": 3.962827,
+        "f32_transport_delta": 5.9e-08,
+        "induced_action": [
+          [
+            0.514292,
+            1.247893,
+            -0.150307
+          ],
+          [
+            -2.895359,
+            -0.940116,
+            1.079905
+          ],
+          [
+            0.723392,
+            0.11991,
+            0.807046
+          ]
+        ],
+        "label": "turn_00",
+        "leakage": [
+          0.696005,
+          0.6247,
+          0.571623
+        ],
+        "leakage_rms": 0.632831,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.633); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.468482,
+        "plane_occupancy": {
+          "e45_plane": 0.000308,
+          "e4_mixing_planes": 0.012276,
+          "e5_mixing_planes": 0.488128,
+          "grade0_energy": 0.942066,
+          "grade2_total_energy": 2.50493,
+          "grade4_energy": 4e-06,
+          "in_span_planes": 0.499288
+        },
+        "residual_channels": {
+          "boost_like": 0.438895,
+          "null_or_conformal": 0.012524,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.121941,
+          -0.468482,
+          0.488162
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 0.262885,
+        "d_stab": 0.74526,
+        "f32_transport_delta": 5e-08,
+        "induced_action": [
+          [
+            0.875487,
+            0.259939,
+            0.406138
+          ],
+          [
+            -0.294835,
+            0.80511,
+            0.080556
+          ],
+          [
+            -0.364533,
+            -0.187231,
+            0.910254
+          ]
+        ],
+        "label": "turn_01",
+        "leakage": [
+          0.117094,
+          0.499173,
+          0.0
+        ],
+        "leakage_rms": 0.296021,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.296); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.80511,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.51445,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.865476,
+          "grade2_total_energy": 0.131399,
+          "grade4_energy": 0.003125,
+          "in_span_planes": 0.48555
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.087628,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.875487,
+          0.80511,
+          0.910254
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 0.256123,
+        "d_stab": 0.36994,
+        "f32_transport_delta": 1.4e-08,
+        "induced_action": [
+          [
+            0.888854,
+            0.025446,
+            -0.18763
+          ],
+          [
+            -0.132552,
+            0.940987,
+            0.129472
+          ],
+          [
+            0.188911,
+            -0.120223,
+            0.973669
+          ]
+        ],
+        "label": "turn_02",
+        "leakage": [
+          0.395829,
+          0.315346,
+          0.0
+        ],
+        "leakage_rms": 0.292189,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.292); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.888854,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.82981,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.917305,
+          "grade2_total_energy": 0.081889,
+          "grade4_energy": 0.000806,
+          "in_span_planes": 0.17019
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.085374,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.888854,
+          0.940987,
+          0.973669
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 0.178878,
+        "d_stab": 0.633561,
+        "f32_transport_delta": 1.8e-08,
+        "induced_action": [
+          [
+            0.923976,
+            -0.319511,
+            -0.104946
+          ],
+          [
+            0.380893,
+            0.817752,
+            0.227382
+          ],
+          [
+            0.010701,
+            -0.226698,
+            0.968134
+          ]
+        ],
+        "label": "turn_03",
+        "leakage": [
+          0.032797,
+          0.421667,
+          0.0
+        ],
+        "leakage_rms": 0.244185,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.244); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.817752,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.488782,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.904025,
+          "grade2_total_energy": 0.095956,
+          "grade4_energy": 2e-05,
+          "in_span_planes": 0.511218
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.059626,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.923976,
+          0.817752,
+          0.968134
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 766.018852,
+        "d_stab": 28.655421,
+        "f32_transport_delta": 1.159e-06,
+        "induced_action": [
+          [
+            -13.483043,
+            -10.402911,
+            -6.345277
+          ],
+          [
+            -16.058249,
+            -11.118569,
+            -6.95938
+          ],
+          [
+            -2.525316,
+            -1.147306,
+            -0.427567
+          ]
+        ],
+        "label": "turn_04",
+        "leakage": [
+          0.717912,
+          0.722991,
+          0.708679
+        ],
+        "leakage_rms": 0.716552,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.717); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.50305,
+        "plane_occupancy": {
+          "e45_plane": 0.313361,
+          "e4_mixing_planes": 0.314774,
+          "e5_mixing_planes": 0.185615,
+          "grade0_energy": 0.943462,
+          "grade2_total_energy": 27.440919,
+          "grade4_energy": 0.4956,
+          "in_span_planes": 0.18625
+        },
+        "residual_channels": {
+          "boost_like": 0.499055,
+          "null_or_conformal": 0.017113,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.444421,
+          -0.50305,
+          -0.031998
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 2493.426137,
+        "d_stab": 50.912914,
+        "f32_transport_delta": 2.256e-06,
+        "induced_action": [
+          [
+            -27.370788,
+            -20.108166,
+            13.406792
+          ],
+          [
+            -26.345511,
+            -18.151089,
+            11.754257
+          ],
+          [
+            0.601795,
+            -0.383041,
+            -0.902946
+          ]
+        ],
+        "label": "turn_05",
+        "leakage": [
+          0.707086,
+          0.706876,
+          0.706559
+        ],
+        "leakage_rms": 0.70684,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.707); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.509402,
+        "plane_occupancy": {
+          "e45_plane": 0.004506,
+          "e4_mixing_planes": 0.005294,
+          "e5_mixing_planes": 0.494054,
+          "grade0_energy": 0.862303,
+          "grade2_total_energy": 47.587849,
+          "grade4_energy": 1.497457,
+          "in_span_planes": 0.496146
+        },
+        "residual_channels": {
+          "boost_like": 0.499699,
+          "null_or_conformal": 8.9e-05,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.509402,
+          -0.473911,
+          -0.035791
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 13802.670143,
+        "d_stab": 118.475615,
+        "f32_transport_delta": 3.42e-06,
+        "induced_action": [
+          [
+            -2.306407,
+            5.356393,
+            -2.481017
+          ],
+          [
+            26.321108,
+            -79.118166,
+            47.081363
+          ],
+          [
+            -17.898444,
+            56.671823,
+            -32.619443
+          ]
+        ],
+        "label": "turn_06",
+        "leakage": [
+          0.707217,
+          0.707718,
+          0.707849
+        ],
+        "leakage_rms": 0.707595,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.708); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.573485,
+        "plane_occupancy": {
+          "e45_plane": 0.038679,
+          "e4_mixing_planes": 0.038739,
+          "e5_mixing_planes": 0.460876,
+          "grade0_energy": 0.896123,
+          "grade2_total_energy": 116.559971,
+          "grade4_energy": 0.186356,
+          "in_span_planes": 0.461707
+        },
+        "residual_channels": {
+          "boost_like": 0.499946,
+          "null_or_conformal": 0.000911,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.051095,
+          -0.573485,
+          -0.401898
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 660631.493073,
+        "d_stab": 813.791272,
+        "f32_transport_delta": 3.5958e-05,
+        "induced_action": [
+          [
+            -373.653883,
+            -389.382816,
+            -5.393435
+          ],
+          [
+            -418.475933,
+            -434.559376,
+            -7.08926
+          ],
+          [
+            -50.299114,
+            -53.129806,
+            -1.350525
+          ]
+        ],
+        "label": "turn_07",
+        "leakage": [
+          0.707156,
+          0.707166,
+          0.706303
+        ],
+        "leakage_rms": 0.706875,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.707); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.524411,
+        "plane_occupancy": {
+          "e45_plane": 0.047923,
+          "e4_mixing_planes": 0.047956,
+          "e5_mixing_planes": 0.451975,
+          "grade0_energy": 0.834762,
+          "grade2_total_energy": 800.998619,
+          "grade4_energy": 11.121808,
+          "in_span_planes": 0.452146
+        },
+        "residual_channels": {
+          "boost_like": 0.499999,
+          "null_or_conformal": 7.8e-05,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.46904,
+          -0.524411,
+          -0.106116
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 62.301956,
+        "d_stab": 8.768803,
+        "f32_transport_delta": 3.63e-07,
+        "induced_action": [
+          [
+            -4.315262,
+            -6.319059,
+            -2.019831
+          ],
+          [
+            0.620265,
+            -0.740458,
+            -0.384643
+          ],
+          [
+            -0.286034,
+            -0.957417,
+            0.736691
+          ]
+        ],
+        "label": "turn_08",
+        "leakage": [
+          0.699255,
+          0.702791,
+          0.664636
+        ],
+        "leakage_rms": 0.689109,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.689); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.706082,
+        "plane_occupancy": {
+          "e45_plane": 0.007468,
+          "e4_mixing_planes": 0.00794,
+          "e5_mixing_planes": 0.486429,
+          "grade0_energy": 0.913752,
+          "grade2_total_energy": 7.06677,
+          "grade4_energy": 0.000176,
+          "in_span_planes": 0.498163
+        },
+        "residual_channels": {
+          "boost_like": 0.488253,
+          "null_or_conformal": 0.00072,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.706082,
+          -0.081872,
+          0.252015
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 76441.638528,
+        "d_stab": 277.477026,
+        "f32_transport_delta": 1.1385e-05,
+        "induced_action": [
+          [
+            -240.886119,
+            -19.524269,
+            103.050689
+          ],
+          [
+            -41.98787,
+            -2.978628,
+            16.950862
+          ],
+          [
+            67.034223,
+            4.469336,
+            -29.070908
+          ]
+        ],
+        "label": "turn_09",
+        "leakage": [
+          0.707109,
+          0.706689,
+          0.707099
+        ],
+        "leakage_rms": 0.706966,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.707); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.671813,
+        "plane_occupancy": {
+          "e45_plane": 0.000217,
+          "e4_mixing_planes": 0.000239,
+          "e5_mixing_planes": 0.499576,
+          "grade0_energy": 0.886087,
+          "grade2_total_energy": 275.050729,
+          "grade4_energy": 0.554791,
+          "in_span_planes": 0.499968
+        },
+        "residual_channels": {
+          "boost_like": 0.49999,
+          "null_or_conformal": 8e-06,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.671813,
+          -0.104074,
+          -0.189624
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 254.549762,
+        "d_stab": 16.890992,
+        "f32_transport_delta": 2.34e-07,
+        "induced_action": [
+          [
+            -4.563173,
+            -8.552706,
+            -1.102375
+          ],
+          [
+            -4.649582,
+            -6.913152,
+            -0.203408
+          ],
+          [
+            -5.63785,
+            -7.691969,
+            -1.182427
+          ]
+        ],
+        "label": "turn_10",
+        "leakage": [
+          0.707881,
+          0.708322,
+          0.737726
+        ],
+        "leakage_rms": 0.718112,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.718); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.489927,
+        "plane_occupancy": {
+          "e45_plane": 0.086163,
+          "e4_mixing_planes": 0.089509,
+          "e5_mixing_planes": 0.409741,
+          "grade0_energy": 0.874558,
+          "grade2_total_energy": 15.224288,
+          "grade4_energy": 0.158554,
+          "in_span_planes": 0.414587
+        },
+        "residual_channels": {
+          "boost_like": 0.497093,
+          "null_or_conformal": 0.004926,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -0.374107,
+          -0.36362,
+          -0.489927
+        ],
+        "trace_class": "paraphrase"
+      },
+      {
+        "d_orth": 13359.925117,
+        "d_stab": 116.57535,
+        "f32_transport_delta": 5.305e-06,
+        "induced_action": [
+          [
+            0.583882,
+            15.284705,
+            -9.296373
+          ],
+          [
+            -5.252632,
+            -84.331294,
+            57.608156
+          ],
+          [
+            3.615982,
+            42.133811,
+            -28.215431
+          ]
+        ],
+        "label": "turn_11",
+        "leakage": [
+          0.702797,
+          0.707147,
+          0.707108
+        ],
+        "leakage_rms": 0.705687,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.706); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": -0.624361,
+        "plane_occupancy": {
+          "e45_plane": 0.004934,
+          "e4_mixing_planes": 0.004941,
+          "e5_mixing_planes": 0.494677,
+          "grade0_energy": 0.910647,
+          "grade2_total_energy": 114.696518,
+          "grade4_energy": 6e-06,
+          "in_span_planes": 0.495448
+        },
+        "residual_channels": {
+          "boost_like": 0.499944,
+          "null_or_conformal": 7.8e-05,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.064865,
+          -0.624361,
+          -0.30781
+        ],
+        "trace_class": "paraphrase"
+      }
+    ],
+    "synthetic": [
+      {
+        "d_orth": 0.0,
+        "d_stab": 0.0,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "identity_versor",
+        "leakage": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "leakage_rms": 0.0,
+        "mechanism": "lawful_in_span",
+        "mechanism_detail": "A \u2248 I under H_id={I}",
+        "min_self_alignment": 1.0,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.0,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 1.0,
+          "grade2_total_energy": 0.0,
+          "grade4_energy": 0.0,
+          "in_span_planes": 0.0
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.0,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "trace_class": "synthetic"
+      },
+      {
+        "d_orth": 0.0,
+        "d_stab": 0.422675,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            0.955336,
+            0.29552,
+            0.0
+          ],
+          [
+            -0.29552,
+            0.955336,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "rot_e12_0.3",
+        "leakage": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "leakage_rms": 0.0,
+        "mechanism": "in_span_unlawful",
+        "mechanism_detail": "stays in span (\u2113_rms=0.000) but A departs I (d_stab=0.423) \u2014 rotation/permutation/inversion",
+        "min_self_alignment": 0.955336,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.0,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.977668,
+          "grade2_total_energy": 0.022332,
+          "grade4_energy": 0.0,
+          "in_span_planes": 1.0
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.0,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.955336,
+          0.955336,
+          1.0
+        ],
+        "trace_class": "synthetic"
+      },
+      {
+        "d_orth": 0.0,
+        "d_stab": 2.0,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            -1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "rot_e12_halfpi_permutation",
+        "leakage": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "leakage_rms": 0.0,
+        "mechanism": "in_span_unlawful",
+        "mechanism_detail": "stays in span (\u2113_rms=0.000) but A departs I (d_stab=2.000) \u2014 rotation/permutation/inversion",
+        "min_self_alignment": 0.0,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.0,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.5,
+          "grade2_total_energy": 0.5,
+          "grade4_energy": 0.0,
+          "in_span_planes": 1.0
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.0,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "trace_class": "synthetic"
+      },
+      {
+        "d_orth": 0.0,
+        "d_stab": 2.828427,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            -1.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.0,
+            -1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "rot_e12_pi_inversion",
+        "leakage": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "leakage_rms": 0.0,
+        "mechanism": "in_span_unlawful",
+        "mechanism_detail": "stays in span (\u2113_rms=0.000) but A departs I (d_stab=2.828) \u2014 rotation/permutation/inversion",
+        "min_self_alignment": -1.0,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.0,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.0,
+          "grade2_total_energy": 1.0,
+          "grade4_energy": 0.0,
+          "in_span_planes": 1.0
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.0,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          -1.0,
+          -1.0,
+          1.0
+        ],
+        "trace_class": "synthetic"
+      },
+      {
+        "d_orth": 0.994996,
+        "d_stab": 0.929263,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            0.070737,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "tilt_e14_1.5",
+        "leakage": [
+          0.997495,
+          0.0,
+          0.0
+        ],
+        "leakage_rms": 0.575904,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.576); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.070737,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 1.0,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.535369,
+          "grade2_total_energy": 0.464631,
+          "grade4_energy": 0.0,
+          "in_span_planes": 0.0
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.331665,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.070737,
+          1.0,
+          1.0
+        ],
+        "trace_class": "synthetic"
+      },
+      {
+        "d_orth": 0.318821,
+        "d_stab": 0.174664,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.825336,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "tilt_e24_0.6",
+        "leakage": [
+          0.0,
+          0.564642,
+          0.0
+        ],
+        "leakage_rms": 0.325996,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.326); dominant residual channel = null_or_conformal (non-isometric on span)",
+        "min_self_alignment": 0.825336,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 1.0,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.912668,
+          "grade2_total_energy": 0.087332,
+          "grade4_energy": 0.0,
+          "in_span_planes": 0.0
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.106274,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          1.0,
+          0.825336,
+          1.0
+        ],
+        "trace_class": "synthetic"
+      },
+      {
+        "d_orth": 2.278474,
+        "d_stab": 0.810656,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            1.810656,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "boost_e15_1.2",
+        "leakage": [
+          0.64033,
+          0.0,
+          0.0
+        ],
+        "leakage_rms": 0.369695,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.370); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": 0.7681,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.0,
+          "e5_mixing_planes": 1.0,
+          "grade0_energy": 1.405328,
+          "grade2_total_energy": 0.405328,
+          "grade4_energy": 0.0,
+          "in_span_planes": 0.0
+        },
+        "residual_channels": {
+          "boost_like": 0.301507,
+          "null_or_conformal": 0.0,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.7681,
+          1.0,
+          1.0
+        ],
+        "trace_class": "synthetic"
+      },
+      {
+        "d_orth": 0.788732,
+        "d_stab": 0.337435,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.337435,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "label": "boost_e25_0.8",
+        "leakage": [
+          0.0,
+          0.553183,
+          0.0
+        ],
+        "leakage_rms": 0.31938,
+        "mechanism": "foreign_leakage",
+        "mechanism_detail": "axes leave span (\u2113_rms=0.319); dominant residual channel = boost_like (non-isometric on span)",
+        "min_self_alignment": 0.83306,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.0,
+          "e5_mixing_planes": 1.0,
+          "grade0_energy": 1.168717,
+          "grade2_total_energy": 0.168717,
+          "grade4_energy": 0.0,
+          "in_span_planes": 0.0
+        },
+        "residual_channels": {
+          "boost_like": 0.172308,
+          "null_or_conformal": 0.0,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          1.0,
+          0.83306,
+          1.0
+        ],
+        "trace_class": "synthetic"
+      },
+      {
+        "d_orth": 0.0,
+        "d_stab": 0.028284,
+        "f32_transport_delta": 0.0,
+        "induced_action": [
+          [
+            0.9998,
+            0.0,
+            0.019999
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            -0.019999,
+            0.0,
+            0.9998
+          ]
+        ],
+        "label": "mild_inplane_drift_0.02",
+        "leakage": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "leakage_rms": 0.0,
+        "mechanism": "lawful_in_span",
+        "mechanism_detail": "A \u2248 I under H_id={I}",
+        "min_self_alignment": 0.9998,
+        "plane_occupancy": {
+          "e45_plane": 0.0,
+          "e4_mixing_planes": 0.0,
+          "e5_mixing_planes": 0.0,
+          "grade0_energy": 0.9999,
+          "grade2_total_energy": 0.0001,
+          "grade4_energy": 0.0,
+          "in_span_planes": 1.0
+        },
+        "residual_channels": {
+          "boost_like": 0.0,
+          "null_or_conformal": 0.0,
+          "spatial_foreign": 0.0,
+          "unclassified": 0.0
+        },
+        "self_align": [
+          0.9998,
+          1.0,
+          0.9998
+        ],
+        "trace_class": "synthetic"
+      }
+    ]
+  },
+  "verdict": {
+    "benign_mechanism_counts": {
+      "foreign_leakage": 25
+    },
+    "declared_frame_preferentially_preserved": false,
+    "dominant_benign_mechanism": "foreign_leakage",
+    "path_accumulation_is_the_cause": false,
+    "precision_transport_is_the_cause": false,
+    "semantic_coupling_absent": true
+  }
+}
