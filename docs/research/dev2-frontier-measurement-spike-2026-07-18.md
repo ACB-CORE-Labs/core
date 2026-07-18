@@ -116,24 +116,61 @@ practice volume is what eventually generates §3.7's calibration data.** Order u
 **capability → practice → calibration → serve** — and the reader arc is now the **critical path for all
 three**.
 
-## 7. The next arc — reader practice loop (named for ruling; not started)
+## 7. The arc (RULED) — reader, design-first: per-family increments in lockstep
 
-99% parse-refusal makes the trigger a measured fact, not a judgment call. The reader is the first
-genuinely *learnable* component: `attempt-parse → compile → execute → gold-check` is a practice loop
-with a **decidable, wrong=0-gated reward**. Non-negotiable design constraints for the proposal:
+Superseding §10's practice-loop recommendation: the frontier being **common, formulaic, and
+frequency-ordered** (§3) argues *for* designed grammar-family extensions, not against — a formulaic
+frontier is exactly what designed grammar eats efficiently, each increment cheaply measurable.
+**Learning earns its complexity only when design stops paying — decided by number, not feel.** The
+practice loop is the paper-designed backup (§7.4), not the arc.
 
-1. **Practice signal is real held-out official data only** — never the authored corpus. (Training
-   against authored grammar is exactly how the overfit happened; §3's 200/200-vs-5/500 gap is its
-   fingerprint.)
-2. **`wrong=0` gates what consolidates** — a parse/graph is only kept if execute+gold-check is right,
-   never merely if it parsed.
-3. **The sealed test (1,319) is never touched** — final exam only.
-4. **`holdout_dev` splits** so practiced-against cases are **disjoint** from the measured dev metric
-   — "getting better" can only mean "generalizes to real problems," never "fit the metric set."
+### 7.1 Increment = a grammar family + its compiler tier, landed together
+Reader and compiler move in **lockstep**. §2 is the proof they cannot move separately: the 5 real
+`compare_multiplicative` parses **die at the affine compiler today** (reader emits, compiler refuses →
+0/500). A reader family with no compiler tier produces graphs nothing solves; a compiler tier with no
+reader family has no inputs — that is the *only* thing §10.2 de-prioritizes. **Paired, they are the
+arc.** Each increment is its own smoke-gated PR carrying a measured `holdout_dev` delta (new correct),
+the `wrong=0` floor held, and the sealed test untouched.
 
-Curriculum order = the §3 real-world frequency: rate → fraction → compare_multiplicative → …
-The done-when is a rising `correct` on the disjoint held-out real split **with `wrong=0`** — the honest
-metric the holdout lane was built to keep in front of us.
+### 7.2 Increment order
+1. **`compare_multiplicative` FIRST** — jumps the §3 frequency queue because the reader *already emits
+   real parses for it* (the 5/500), so pairing a compare compiler tier moves corridor real-reach from
+   **0/500 → >0 immediately** — the cheapest possible end-to-end proof the increment loop works on
+   official data.
+2. Then strict §3 frequency order: **rate (31) → fraction (28) → compare_additive (9) → partition (1)**.
+
+### 7.3 Escalation threshold X — PROPOSED (Shay rules with the merge)
+Fixed now, before anyone is attached, so "switch when design stops working" cannot drift.
+**Proposed X = 15 new-correct on `holdout_dev` per full family increment.** When a completed increment
+buys fewer than X, escalate to a practice-lane ruling. Rationale: these families carry 20–31% incidence
+(~100–155/500 problems each); a design that is paying converts far more than 15, so falling below
+15/500 (3%) means design has stopped efficiently converting known incidence — a number trips the
+switch, not a feeling.
+
+### 7.4 Backup lane — the practice loop (PAPER DESIGN only; starts warm if X trips)
+Same decidable loop (`attempt-parse → compile → execute → gold-check`, wrong=0-gated). Its leverage —
+how it reuses what these arcs already built, so only two things are genuinely new:
+- **Verifier** = the Tier-1/Tier-2 compiler stack: a candidate parse is correct **iff**
+  `compile → execute → gold` agrees. No separate oracle.
+- **Audit** = the certificate chains (`RelaxationCertificate`, `TurnRecord`, chain-of-custody).
+- **Consolidation gating** = `prepare → validate → commit` generalized: a candidate consolidates only
+  on full success.
+- **Holdout hygiene** = ADR-0119 sealing (split discipline; sealed test untouched).
+- **Genuinely new** = a **candidate generator** (proposes parses/grammar variants) + a **consolidation
+  store** (what survives wrong=0). That is the whole delta the lane adds.
+
+### 7.5 Non-negotiable constraints (bind the increments now; carry to the lane verbatim)
+1. Eval/practice signal is **real held-out official data only** — never the authored corpus (§3's
+   200/200-vs-5/500 gap is the overfit fingerprint).
+2. `wrong=0` gates what consolidates / lands.
+3. The sealed test (1,319) is **never touched** — final exam only.
+4. `holdout_dev` **splits**: tuned/practiced-against cases disjoint from the measured metric split —
+   "getting better" can only mean "generalizes to real problems."
+
+### 7.6 Design-first work IS the backup's curriculum (record, don't discard)
+Every increment's refusal taxonomy, tagged incidence, and labeled `(parse, compile, execute, gold)`
+tuples are **practice-lane artifacts**, not throwaway — the labeled data + failure map a candidate
+generator would train against. Design-first pre-pays the backup's cold-start.
 
 ## 8. Errata proposal — ADR-0249 / ADR-0250 (statuses stay Accepted)
 
@@ -150,14 +187,17 @@ memorized answers. The measurement only forces one distinction — **mechanism-g
 coverage.** The mechanism is general but starved: 1% reader reach, affine scope. The reader practice
 loop is precisely how that value becomes real coverage without re-introducing the overfit.
 
-## 10. For the ruling (nothing started)
+## 10. Ruling outcome (Shay, on this PR)
 
-1. **Reader-practice-loop** — RECOMMENDED. Critical path for capability → practice → calibration →
-   serve. Grow real-GSM8K parse coverage off 1%, wrong=0-gated on a disjoint held-out real split;
-   curriculum ordered by §3 frequency (rate → fraction → compare).
-2. **More compiler tiers** (compare/rate/fraction) — de-prioritized: the reader feeds them ~nothing.
-3. **Serve-landing** (§3.7 + `generate/`) — premature; corridor real reach is 0/500.
+The arc is the **reader, design-first**: per-family increments — a grammar family in Reader A plus its
+matching compiler tier, landed **in lockstep** (§7) — starting with **`compare_multiplicative`**, then
+strict §3 frequency order (rate → fraction → compare_additive → partition). Each increment is its own
+smoke-gated PR with a measured `holdout_dev` delta, `wrong=0` held, sealed test untouched.
 
-Delivered in this PR for the ruling: the errata sections (§8), the relabeled seal + two mechanism
-floors composition-disclosed (§5), the parse-independent incidence tagging (§3), and the reader-arc
-design with the four non-negotiable constraints (§7). **Nothing builds before the ruling on this PR.**
+The **practice loop is the paper-designed backup** (§7.4), not the arc; it starts warm only if a full
+increment buys **fewer than X = 15 new-correct on `holdout_dev`** (proposed §7.3, Shay rules with the
+merge). §5 (mechanism floors + never-blended scoreboard), §6 sequencing
+(capability → practice → calibration → serve; serve-landing deferred at 0/500), the errata (§8), and
+the four non-negotiable constraints (§7.5) are affirmed and merge with this.
+
+**Next: the `compare_multiplicative` increment plan as the arc's first PR. Nothing else starts.**
