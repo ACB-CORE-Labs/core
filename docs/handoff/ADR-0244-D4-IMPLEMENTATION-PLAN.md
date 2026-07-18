@@ -32,7 +32,7 @@ ADR-0244 is the **identity-layer consumer**; ADR-0245 is the **mechanical-sympat
 | 2.2 | Spectral-leakage **fail-closed** gate + `C_id` + `IdentityGateRefusal` | ❌ unbuilt as gate (call site exists at `chat/runtime.py:2679`, but **advisory** only) |
 | 2.3 | `Q_top` topological charge | ✅ resolved → **retire from egress** (proven vacuous, `evals/adr_0244_qtop_vacuity`) |
 | 2.4 | Bracketed-local Fibonacci search + `γ_id` calibration | ◐ search-honesty done (D3); calibration half unbuilt |
-| 2.5 | Serving-boundary f64→f32 cast contract | ❌ unbuilt (== ADR-0245 §2.2; the one genuinely-absent seam) |
+| 2.5 | Serving-boundary f64→f32 cast contract | ✅ done (Phase 4 — `serving_cast`→`ServingState`, `cognitive_lifecycle.py`) |
 | 2.6 | Rust GP fast-path + parity gate | ✅ done (f32 pre-existing + f64 D2, bit-identical) |
 | 2.7 | Full digests / no `default=str` / byte-order guard | ◐ hot-path done (D1); contemplation content-ids residual |
 | 2.8 | `eigh` memoization | ✅ done (`_cached_eigh`, D2) |
@@ -42,12 +42,12 @@ ADR-0244 is the **identity-layer consumer**; ADR-0245 is the **mechanical-sympat
 | ADR-0245 § | Mechanism | Status entering D4 |
 |---|---|---|
 | 2.1 | PyO3 Rust `geometric_product` f32 fast-path | ✅ done (`algebra/backend.py`) |
-| 2.2 | Gated f64→f32 serving boundary | ❌ unbuilt (== 0244 §2.5) |
+| 2.2 | Gated f64→f32 serving boundary | ✅ done (Phase 4 — `serving_cast`, == 0244 §2.5) |
 | 2.3 | Semantic rigor in content addressing | ◐ hot-path done (D1); residual |
 | 2.4 | `_cached_eigh` memoization | ✅ done |
 | 3 | Acceptance gate (parity, ≥10× f32 speedup, 0-LAPACK-on-repeat, collision-resistance) | ◐ parity ✓, 0-LAPACK partial (`test_adr_0244_mechanical_sympathy.py`); f32-speedup + collision proofs **missing** |
 
-**Net remaining build = ADR-0244 §2.1 + §2.2 (the identity gate rebuild), §2.4 calibration, §2.5/0245§2.2 cast, §2.7 residual, §2.9 wiring, + the ADR-0245 §3 gaps.**
+**Net remaining build (entering Phase 5) = §2.7 residual (3 contemplation content-id sites), §2.9 allocator wiring, §2.10 audit-confirm, + the ADR-0245 §3 acceptance gaps (f32 ≥10× speedup benchmark + collision-resistance proof).** (§2.1/§2.2 identity gate, §2.4 calibration, §2.5/0245§2.2 cast all landed Phases 1–4.)
 
 ---
 
@@ -161,8 +161,8 @@ Dependencies: `0 → {1, 4}` · `1 → 2 → 3` · `5 after 0` · `6 last`. Each
 **Steps:** add the typed cast contract at the egress hand-off; precision-sufficiency + parity test; keep f64 inside relaxation/eigendecomp.
 **Acceptance:** f32 cast only after certification; parity within documented f32 tolerance; f64 preserved upstream; determinism intact. Satisfies **both** 0244 §2.5 and 0245 §2.2.
 **Gate:** smoke + fast lane + cast tests.
-**Status:** ⬜ NOT STARTED (may run parallel to 1–3; sequence after 0)
-**Resume notes:** —
+**Status:** ✅ DONE — landed `17ec6eee`.
+**Resume notes:** Shipped `serving_cast(psi_steady, certificate, verdict, *, tol=1e-6) → ServingState` + `ServingCastError` in `core/physics/cognitive_lifecycle.py` (+ `__all__`), pinned by `tests/test_adr_0244_serving_cast.py` (10 tests). The **single explicit** f64→f32 down-cast at the certified egress hand-off: fail-closed — casts only a state that validates as a finite 32-vector, matches its certificate `psi_digest`, and was `verdict.admitted`; then precision-checks the f32 result (`cast_error = max|f64−f32|`, unit-norm) and fails closed on an f32 cliff (`f32_precision_insufficient`). **f64 stays source of truth** — `psi_steady` + the digest chain are untouched; `ServingState` carries provenance back (`source_psi_digest`, `certificate_id`, measured `cast_error`) for audit. Measured on a real certified outcome: `cast_error ≈ 1.2e-8`, `unit_norm_f32 ≈ 0.99999998` (well within tol). Off-serve (A-04 guard test: `chat.runtime` never imports it); f64 kept inside relaxation/eigendecomp. Independent of 1–3.
 
 ### Phase 5 — §2.7 residual + §2.9 adoption + §2.10 audit + ADR-0245 §3 gate
 **Objective:** finish semantic-rigor residuals, wire the allocator, close the 0245 acceptance gate.
@@ -231,6 +231,7 @@ Forward-looking mechanical-sympathy items from the critique — a separate optim
 - **2026-07-17** — **Phase 2b landed `c7e2b3b6`.** Runtime wiring: `identity_wave_gate` flag (`core/config.py`), two flag-gated touches in `chat/runtime.py` (`wave_field=final_state.F` at the identity check; post-verdict boundary supplement + geometric refusal fold), wave telemetry in `chat/telemetry.py` (emitted only when `wave_mode_active`). **Integration bug caught + fixed:** the live versor carries boost (e5) components → `F aᵢ F̃` is NOT Euclidean-norm-preserving → un-normalized leakage/self-align ran to 5.16 / −4.75. Fixed with per-axis normalization in `identity_manifold.py` (leakage fraction ∈ [0,1], signed cosine ∈ [−1,1]; Phase-1 unit-rotor results unchanged; boost test added; §4a updated). Gate: 74 targeted + smoke 176 + fast lane **11883 passed, 109 skipped** (8:26) — flag-off byte-identity confirmed. **Open reality for Phase 3:** value axes are placeholders (e1/e2/e3), so whether the geometric gate DISCRIMINATES adversarial vs benign is an empirical question — 2c measures it. Next: 2c (ablation eval).
 - **2026-07-17** — **Phase 2c landed `c0ff4720` → Phase 2 COMPLETE.** `evals/adr_0244_identity_gate/` (detection-value ablation) + `tests/test_adr_0244_identity_gate_eval.py` (6 tests) + CLI. Measured: the wave gate separates a geometric-attack panel (2 inversions caught by orientation, 4 tilts/boosts caught by subspace leakage) from an aligned in-subspace panel — all attacks flagged, all aligned admitted, `min_attack_signal 0.35 > max_aligned_leakage 0.0`; wave adds detection value 6-vs-0 over the geometry-blind legacy path. Honest caveat baked in: separation is on the *designed* geometric signal; real-encoder separation is empirical (Phase 3). Additive-only (evals/ + test), off-serving (quarantine green). Gate: smoke 176 + fast lane. Next: Phase 3 (γ_id calibration).
 - **2026-07-17** — **Phase 3 landed `f3702ad4` → calibration built + certified; live flag flip BLOCKED by empirical non-separation.** `evals/adr_0244_gamma_calibration/` + `tests/test_adr_0244_gamma_calibration.py` (9 tests). The bracketed-local Fibonacci search certifies `γ* = 0.2126624458513829` (cert `0079b5f201fbf616…`) separating the geometric attack signal; pinned as `identity._WAVE_LEAKAGE_BOUND` and **decoupled the wave path from `alignment_threshold`**. **Then measured the crux the whole arc deferred:** real benign live turns do NOT preserve `span(e1,e2,e3)` — leakage 0.14–0.81 (mean 0.55), self-align to −0.52, **12/13 benign false-refused at γ***, best-achievable balanced error **0.346**. So the calibration certifies `flag_flip_authorized=False`; **`identity_wave_gate` stays OFF**. Root cause: the shipped value axes are *nominal basis vectors, not dynamically-preserved eigenmodes* — no dynamical anchoring in the current field evolution; the fix is the **ADR-0246 induced-action programme** (brief already merged). The wave gate is validated, correctly-off scaffolding. A slow drift-guard test canaries any future change that starts preserving identity. Gate: smoke 176 + fast lane + 59 targeted (incl. wave/ablation/runtime unchanged). Next: Phase 4 (§2.5 cast) — independent of 1–3.
+- **2026-07-17** — **Phase 4 landed `17ec6eee` → §2.5 / 0245 §2.2 serving cast COMPLETE.** `serving_cast(psi_steady, certificate, verdict) → ServingState` + `ServingCastError` in `core/physics/cognitive_lifecycle.py`; `tests/test_adr_0244_serving_cast.py` (10 tests). The single explicit, fail-closed f64→f32 down-cast at the certified egress: casts only a validated / digest-matched / admitted state; precision-checks the f32 result and fails closed on a cliff (`f32_precision_insufficient`); keeps f64 as source of truth (digest chain untouched) and carries audit provenance. Measured `cast_error ≈ 1.2e-8`. Off-serve (A-04 guard green). Gate: smoke 176 + fast lane + 10 targeted. Next: Phase 5 (§2.7 residual + §2.9 allocator + §2.10 audit + 0245 §3 gate).
 
 ---
 
@@ -242,10 +243,10 @@ Forward-looking mechanical-sympathy items from the critique — a separate optim
 | 1 | §2.1 identity manifold primitive (operator-preservation) | ✅ DONE | `3c3d2c29` |
 | 2 | §2.2 fail-closed gate + boundary_ids + C_id + telemetry + eval | ✅ DONE | `1c7ea26e`+`c7e2b3b6`+`c0ff4720` |
 | 3 | §2.4 γ_id calibration (certified; **live flip BLOCKED — flag stays OFF**) | ✅ DONE | `f3702ad4` |
-| 4 | §2.5 / 0245 §2.2 serving-boundary cast | ⬜ NOT STARTED | — |
+| 4 | §2.5 / 0245 §2.2 serving-boundary cast | ✅ DONE | `17ec6eee` |
 | 5 | §2.7 residual + §2.9 wiring + §2.10 audit + 0245 §3 gate | ⬜ NOT STARTED | — |
 | 6 | Close-out (2 acceptance packets + 2 ratified flips) | ⬜ NOT STARTED | — |
 
-**▶ NEXT: Phase 4 — §2.5 / ADR-0245 §2.2 serving-boundary f64→f32 cast** (lifecycle-internal, `core/physics/cognitive_lifecycle.py`; independent of 1–3, depends only on Phase 0). Then Phase 5 (residuals + allocator + 0245 §3 gate), then Phase 6 (close-out).
+**▶ NEXT: Phase 5 — §2.7 residual (3 contemplation content-id sites) + §2.9 allocator wiring + §2.10 audit-confirm + ADR-0245 §3 acceptance gate** (f32 ≥10× speedup benchmark + `_content_id` collision-resistance proof). Then Phase 6 (close-out: 2 acceptance packets + user-ratified status flips + cleanup).
 
 **Phase 3 headline for resumers:** the γ_id calibration machinery is built + certified, but the empirical finding is that **the live serving flag cannot honestly be flipped on** — real benign traffic doesn't preserve the nominal identity subspace (best balanced error 0.346), so the gate would mass-refuse. `identity_wave_gate` stays OFF; the live gate awaits the ADR-0246 induced-action work. This is a **true architectural-gap discovery**, faithfully honoring the plan's conditional ("flip *once evidenced*"), not a deviation.

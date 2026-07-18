@@ -892,6 +892,104 @@ def egress_gate(
     )
 
 
+# --- Serving-boundary f64 -> f32 cast (ADR-0244 §2.5 / ADR-0245 §2.2) -----------------
+#
+# The lifecycle relaxes and certifies entirely in float64 (relaxation,
+# eigendecomposition, the psi_digest content-address chain — all f64). f32 is a
+# *serving* representation only: the down-cast happens once, at the certified
+# egress hand-off, for consumers on the f32 fast path (the Rust f32
+# geometric_product, SIMD, GPU). This is the single governed cast — explicit,
+# gated on certification, precision-checked, and auditable — not an implicit
+# dtype coercion sprinkled through the hot path.
+_F32_CAST_TOL = 1e-6  # float32 has ~1.19e-7 machine eps; a unit versor's
+#                       components are O(1), so a faithful down-cast keeps
+#                       max|f64 - f32| ~6e-8 and unit-norm within a few ulp. The
+#                       tolerance fails closed on a state whose dynamic range
+#                       exceeds what f32 can represent (a genuine precision
+#                       cliff) rather than serving a silently-degraded state.
+
+
+class ServingCastError(CognitiveLifecycleError):
+    """Refused to serve a state as f32: uncertified, digest-mismatched, or f32
+    precision-insufficient. f64 stays the source of truth; the cast never
+    silently degrades a state."""
+
+
+@dataclass(frozen=True, slots=True)
+class ServingState:
+    """f32 serving projection of a certified ψ_steady (ADR-0244 §2.5 / ADR-0245 §2.2).
+
+    The f64 state and its ``psi_digest`` remain authoritative; this is the
+    down-cast handed to f32 serving consumers, carrying provenance back to the
+    f64 certificate and the measured round-trip error so the cast is auditable.
+    """
+
+    psi_f32: np.ndarray
+    source_psi_digest: str
+    certificate_id: str
+    cast_error: float
+    unit_norm_f32: float
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "source_psi_digest": self.source_psi_digest,
+            "certificate_id": self.certificate_id,
+            "cast_error": float(self.cast_error),
+            "unit_norm_f32": float(self.unit_norm_f32),
+            "dtype": str(self.psi_f32.dtype),
+        }
+
+
+def serving_cast(
+    psi_steady: np.ndarray,
+    certificate: RelaxationCertificate,
+    verdict: EgressVerdict,
+    *,
+    tol: float = _F32_CAST_TOL,
+) -> ServingState:
+    """Governed f64→f32 down-cast at the certified serving boundary.
+
+    Fail-closed. The state is cast **only** if it (a) validates as a finite
+    32-vector, (b) matches its certificate's ``psi_digest`` (the state served is
+    provably the certified one), and (c) was admitted by the egress gate — an
+    uncertified or refused state is never handed to a serving consumer. The f32
+    representation is then precision-checked: if the down-cast perturbs any
+    component or the unit norm beyond ``tol``, the state sits on an f32 precision
+    cliff and the cast fails closed rather than serving a degraded state.
+
+    f64 remains the source of truth: neither ``psi_steady`` nor the certificate /
+    digest chain is mutated. This is the single explicit cast the ADR-0245 §2.2
+    mechanical-sympathy contract permits — f64 everywhere inside, f32 only here.
+    """
+    arr = _as_psi(psi_steady, "ψ_steady", error=ServingCastError)  # f64 validate
+    if _psi_digest(arr) != certificate.psi_digest:
+        raise ServingCastError(
+            "certificate_state_mismatch", certificate_id=certificate.certificate_id
+        )
+    if not verdict.admitted:
+        raise ServingCastError("uncertified_state_not_served", verdict_reason=verdict.reason)
+
+    f32 = np.ascontiguousarray(arr, dtype=np.dtype("<f4"))
+    roundtrip = f32.astype(np.float64)
+    cast_error = float(np.max(np.abs(arr - roundtrip))) if arr.size else 0.0
+    unit_norm_f32 = float(np.linalg.norm(roundtrip))
+    if cast_error > float(tol) or abs(unit_norm_f32 - 1.0) > float(tol) + _EPSILON_DRIFT:
+        raise ServingCastError(
+            "f32_precision_insufficient",
+            cast_error=cast_error,
+            unit_norm_f32=unit_norm_f32,
+            tol=float(tol),
+        )
+    f32.setflags(write=False)
+    return ServingState(
+        psi_f32=f32,
+        source_psi_digest=certificate.psi_digest,
+        certificate_id=certificate.certificate_id,
+        cast_error=cast_error,
+        unit_norm_f32=unit_norm_f32,
+    )
+
+
 # --- Composed lifecycle ---------------------------------------------------------------
 
 
@@ -991,6 +1089,8 @@ __all__ = [
     "RelaxationNotConverged",
     "RelaxationNumericalFailure",
     "RelaxationResult",
+    "ServingCastError",
+    "ServingState",
     "assignment_component_index",
     "compile_propositional",
     "compile_quadratic_well",
@@ -998,5 +1098,6 @@ __all__ = [
     "ingest_context",
     "propositional_entails",
     "relax_to_ground",
+    "serving_cast",
     "uniform_assignment_state",
 ]

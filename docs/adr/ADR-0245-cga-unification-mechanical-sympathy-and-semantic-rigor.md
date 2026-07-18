@@ -17,7 +17,7 @@
 > | § | Decision | Status |
 > |---|---|---|
 > | 2.1 | PyO3 Rust `geometric_product` f32 fast-path | ✅ **Done** — `algebra/backend.py`, pre-existing before this arc. |
-> | 2.2 | Gated f64→f32 serving boundary | ❌ **Open** — the one genuinely-unbuilt decision. Identical in substance to ADR-0244 §2.5 (same cast, same boundary); tracked as **one contract, two ADRs** — D4 Phase 4. |
+> | 2.2 | Gated f64→f32 serving boundary | ✅ **Built (D4 Phase 4)** — `serving_cast(psi_steady, certificate, verdict) → ServingState` in `cognitive_lifecycle.py`. A single explicit, fail-closed down-cast at the certified egress: casts only a certified/admitted/digest-matched state, precision-checks the f32 result (fails closed on a cliff), and keeps f64 as the source of truth (the digest chain is untouched). Same contract as ADR-0244 §2.5. Pinned by `tests/test_adr_0244_serving_cast.py` (10 tests). |
 > | 2.3 | Semantic rigor in content addressing (full 256-bit digest, no `default=str`, byte-order guard) | ◐ **Hot-path done, residual open** — `cognitive_lifecycle.py` / `biography_wiring.py` / `self_authorship.py` fixed (cohesion-directive D1). Three contemplation-module content-id sites (`core/contemplation/schema.py`, `plan_preflight.py`, `miners/articulation_quality.py`) still truncate to 16 hex chars and/or use `default=str` — D4 Phase 5. |
 > | 2.4 | `_cached_eigh` memoization (`functools.lru_cache`, keyed on `hamiltonian_id` + `matrix.tobytes()`) | ✅ **Done** — `core/physics/cognitive_lifecycle.py::_cached_eigh` (cohesion-directive D2), exactly as specified including the canonical two-part cache key. |
 >
