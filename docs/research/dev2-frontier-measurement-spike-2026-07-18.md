@@ -139,9 +139,9 @@ the `wrong=0` floor held, and the sealed test untouched.
    official data.
 2. Then strict §3 frequency order: **rate (31) → fraction (28) → compare_additive (9) → partition (1)**.
 
-### 7.3 Escalation threshold X — PROPOSED (Shay rules with the merge)
-Fixed now, before anyone is attached, so "switch when design stops working" cannot drift.
-**Proposed X = 15 new-correct on `holdout_dev` per full family increment.** When a completed increment
+### 7.3 Escalation threshold X — **RATIFIED (Shay, 2026-07-18, PR #76): X = 15**
+Fixed before anyone is attached, so "switch when design stops working" cannot drift.
+**X = 15 new-correct on `holdout_dev` per full family increment.** When a completed increment
 buys fewer than X, escalate to a practice-lane ruling. Rationale: these families carry 20–31% incidence
 (~100–155/500 problems each); a design that is paying converts far more than 15, so falling below
 15/500 (3%) means design has stopped efficiently converting known incidence — a number trips the
