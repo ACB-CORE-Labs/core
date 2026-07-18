@@ -160,6 +160,28 @@ def euclidean_norm(s: np.ndarray) -> float:
     return float(np.linalg.norm(np.asarray(s, dtype=np.float64), ord=2))
 
 
+class MalformedVersorError(ValueError):
+    """Raised when a versor handed to an ADR-0246 primitive is not a well-formed
+    ``N_COMPONENTS``-vector of finite floats.
+
+    Fail-closed at the primitive boundary (ADR-0246 §6.1 "Malformed F → typed
+    error"): a NaN/inf or wrong-shape field must raise, never propagate a silent
+    NaN into an induced action or a residual-channel split.
+    """
+
+
+def _validate_versor(versor: np.ndarray) -> np.ndarray:
+    """Coerce to a finite float64 ``(N_COMPONENTS,)`` array or fail closed."""
+    array = np.asarray(versor, dtype=np.float64)
+    if array.shape != (N_COMPONENTS,):
+        raise MalformedVersorError(
+            f"versor must have shape ({N_COMPONENTS},), got {array.shape}"
+        )
+    if not np.all(np.isfinite(array)):
+        raise MalformedVersorError("versor has non-finite (NaN/inf) components")
+    return array
+
+
 def orthogonality_defect_of_action(action: np.ndarray, gram: np.ndarray) -> float:
     """``‖AᵀGA − G‖_F`` for a precomputed induced action ``A`` (ADR-0246 §3.2).
 
@@ -270,8 +292,11 @@ class IdentityManifoldGeometry:
         When ``F`` preserves the subspace isometrically, ``A`` is ``G``-orthogonal
         (``AᵀGA = G``). Built only from existing primitives (Gram, signed inner
         product, sandwich); no new algebra.
+
+        Raises :class:`MalformedVersorError` on a non-finite or wrong-shape versor
+        (ADR-0246 §6.1 fail-closed on malformed F).
         """
-        versor = np.asarray(versor, dtype=np.float64)
+        versor = _validate_versor(versor)
         n = len(self.axes_psi)
         overlaps = np.empty((n, n), dtype=np.float64)
         for j, axis_j in enumerate(self.axes_psi):
@@ -310,8 +335,11 @@ class IdentityManifoldGeometry:
 
         Retains the positive-definite Euclidean coefficient norm (never the
         indefinite ``⟨·,·⟩₀``) so a boost/e5 component cannot silently vanish.
+
+        Raises :class:`MalformedVersorError` on a non-finite or wrong-shape versor
+        (ADR-0246 §6.1 fail-closed on malformed F).
         """
-        versor = np.asarray(versor, dtype=np.float64)
+        versor = _validate_versor(versor)
         e4_energy = e5_energy = spatial_foreign = unclassified = total = 0.0
         for axis in self.axes_psi:
             rotated = sandwich(versor, axis)

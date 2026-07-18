@@ -1,0 +1,38 @@
+ADR-0246 slice-1 scaffold — local run log
+branch: feat/adr-0246-slice1-scaffold
+base:   feat/adr-0246-path-ledger (contains §3 primitives + §3.4/3.5 ledger); all descend from main @ 04d67ca5
+commit (pre-scaffold-commit HEAD): 6efe4ad80cc9a4914fc97e0e51ec92c1dd43ec72
+python: Python 3.12.13
+
+=== §6.1/§6.2 eval harness: python -m evals.adr_0246_geometric_suite ===
+
+[geometric_suite]
+  PASS  identity_versor
+  PASS  inplane_pi_inversion_e12
+  PASS  inplane_90deg_permutation_e12
+  PASS  mild_inplane_drift_e12_0.02
+  PASS  alien_tilt_e14_1.5
+  PASS  boost_e15_1.0
+  PASS  near_singular_gram
+  PASS  malformed_f_nan
+  PASS  malformed_f_wrong_shape
+
+[path_suite]
+  PASS  lawful_near_identity_sequence
+  PASS  small_rotations_accumulate_to_session_refusal
+  PASS  interleaved_refuse_admit
+  PASS  hard_break_on_pack_change
+  PASS  raw_product_differs_from_lawful
+
+14/14 cases passed; all_passed=True
+placeholders (uncertified): {'epsilon_turn': 0.1, 'epsilon_session': 0.3, 'note': 'UNCERTIFIED — D4 Phase 3 certified only gamma_id; ε not calibrated'}
+
+=== pytest: ADR-0246 suites + adjacent identity surfaces ===
+........................................................................ [ 63%]
+..........................................                               [100%]
+114 passed in 52.42s
+
+=== uv run core test --suite smoke -q ===
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+176 passed, 1 warning in 130.75s (0:02:10)
