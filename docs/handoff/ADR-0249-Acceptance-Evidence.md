@@ -1,5 +1,10 @@
 # ADR-0249 — Acceptance Evidence
 
+> **ERRATA (2026-07-18):** "real GSM8K dev holdout" in this doc = **CORE-authored GSM8K-style corpus
+> (ADR-0119.2)**, the mechanism-correctness instrument — not real GSM8K. Mechanism results (wrong=0,
+> PARITY, 200/200) stand; only the corpus label is corrected. Measured real-GSM8K reach: reader 5/500,
+> corridor 0/500 (reader-gated). See ADR-0249 §ERRATA + `docs/research/dev2-frontier-measurement-spike-2026-07-18.md`.
+
 **Status**: RATIFIED — ADR-0249 Accepted 2026-07-18 by Joshua Shay for commit `220039f7`
 **Date**: 2026-07-18
 **ADR**: `docs/adr/ADR-0249-reader-hamiltonian-compiler-composition-frontier.md`

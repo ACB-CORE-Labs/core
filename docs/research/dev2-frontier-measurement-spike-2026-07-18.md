@@ -49,69 +49,115 @@ Corroborates the holdout_dev README's 2026-06-04 baseline ("real GSM8K capabilit
 solves 0 real cases — not because it is wrong, but because the reader feeds it only 5 graphs and those
 5 are a frontier kind the affine compiler refuses.
 
-## 3. The (a)/(b)/(c) verdict
+## 3. Censored-incidence fix — the parse-independent measurement
 
-- **(a) — DOMINANT. The frontier (and real GSM8K generally) is reader-gated.** Reader A refuses
-  495/500 real problems at parse. The binding constraint is not the compiler's affine scope; it is
-  that real GSM8K text does not become graphs at all. This is a *mechanism* gap in the reader.
-- **(b) — CONFIRMED for dev/public, but as authoring, not draw-filtering.** The frontier-free authored
-  corpus tells us nothing about real GSM8K. Every "real GSM8K" coverage claim on dev/public needs the
-  denominator correction to "authored corpus."
-- **(c) — REFUTED as the binding issue.** Frontier kinds are not rare in real GSM8K: the *very first*
-  problems that parse are `compare_multiplicative`, and real problems visibly use comparison / rate /
-  fraction language ("twice as many as", "half of"). The frontier is common; the reader just can't
-  reach it.
+The 500-run's op-kind incidence (§2) is **censored data**: it reads kinds only from the 5 graphs the
+reader produced, so it says nothing about what the 495 refusals *need*. To answer (b)-vs-(c) honestly,
+frontier incidence must be measured **around** the refusing reader. Protocol: the first **100** of the
+sha256-ordered holdout_dev (deterministic), classified by **keyword/pattern markers in the raw text**
+— parse-independent, multi-label, imperfect (a marker need not mean the op is required; over/under-count
+possible), but the *scale* is robust to that noise.
 
-## 4. Public-seal — approved, with the disclosure sharpened
+| Frontier kind (marker) | Incidence /100 |
+| :--- | :--- |
+| `apply_rate` ("per", "each … costs", "every …") | **31** |
+| `fraction_portion` ("half", "third", "%", "a/b") | **28** |
+| `compare_multiplicative` ("twice", "N times as many") | **20** |
+| `compare_additive` ("more/fewer than") | 9 |
+| `unit_partition` ("split into", "divided among") | 1 |
+| **basic-only (no frontier marker)** | **30 / 100** |
+| **≥1 frontier marker** | **70 / 100** |
 
-Sealing/pinning `public` (150) buys a **narrow authored regression floor**: 150 cases, **1 op per
-case (depth-1)**, **two kinds only** (divide 53 + transfer 97), all CORE-authored. Pin dev-1 (50/50)
-and public (150/150) as regression floors, but the coverage record MUST carry, per slice:
-- an **op-kind histogram** and **ops-per-case depth**, and
-- the **authored-not-real** provenance flag.
+## 4. The (a)/(b)/(c) verdict (de-censored)
 
-Honest headline: **"200/200 wrong=0 on CORE-authored GSM8K-style (depth/kinds disclosed); real-GSM8K
-compiler coverage = 0/500 (reader-gated)."** Anything shorter inflates.
+- **(a) — DOMINANT. Real GSM8K is reader-gated.** Reader A refuses 495/500 at parse; text does not
+  become graphs. A *mechanism* gap in the reader, not the compiler's affine scope.
+- **(b) — CONFIRMED as authoring bias.** dev/public are authored frontier-free; they carry zero
+  information about real GSM8K's distribution. Every "real GSM8K" claim on them needs the correction.
+- **(c) — REFUTED, now with parse-independent evidence.** The frontier is **common, not rare**:
+  **70/100** official problems carry frontier markers; rate + fraction alone appear in ~55%. Widening
+  off-serving capability against this frontier does NOT fail the decidable-done-when test — the reader
+  reaching it does.
 
-## 5. Sequencing verdict (three branches, resolved by the data)
+**Bonus: this table is the reader arc's curriculum, ordered by real-world frequency** — rate (31) →
+fraction (28) → compare_multiplicative (20) → compare_additive (9) → partition (1). Practice earns the
+most real coverage by attacking rate/fraction/comparison first.
 
-- big coherent bucket → build that tier;
-- long-tail fragmentation → serve landing (§3.7 + scoped `generate/`);
-- **frontier-rare-in-raw-GSM8K → serve landing** — **does NOT apply**: the frontier is common, not rare.
+## 5. Two instruments, cleanly named, both kept (ruling)
 
-The data selects a branch the skeleton didn't enumerate: **the biggest bucket is the reader itself**
-(495/500). Building more compiler tiers is capability with no inputs; serve-landing is premature
-(there is ~nothing real to serve). The decidable next move is to **make the reader parse real GSM8K**.
+The finding is a **reframe, not a retraction** — nothing measured is thrown away, it is relabeled.
 
-## 6. Reader-practice-loop — named, not started (per the charge)
+- **Authored corpus = the mechanism-correctness instrument.** A controlled curriculum that proved the
+  compiler end-to-end. Its **200/200 wrong=0 stands, as exactly that** — evidence the mechanism
+  (versor transport + chained certified relaxation + conservation + atomicity + chain-of-custody) is
+  correct on clean inputs.
+- **Official holdout = the generalization instrument.** `holdout_dev` (500), sealed test (1,319) —
+  real GSM8K, never authored.
 
-The Reader-A answer is **no** — it cannot turn real GSM8K text into graphs at scale — so by the
-standing agreement this moves the reader-practice-loop from "eventually" to the **leading next-arc
-candidate**. The reader is the first genuinely *learnable* component in the stack: `attempt-parse →
-compile → execute → gold-check` is a practice loop with a **decidable, wrong=0-gated reward** on a
-held-out real set (`holdout_dev`, never the authored corpus). Crucially, this is the
-**generalization-preserving** way to grow real capability — it optimizes parsing *coverage* against
-held-out real data, the opposite of authoring more grammar-matched problems (which is the overfit
-trap). It is named here for the post-spike ruling; not started.
+**The scoreboard, never blended:**
 
-## 7. The generalization reframe (Shay, live)
+| Instrument | Slice | Score | Reads as |
+| :--- | :--- | :--- | :--- |
+| Mechanism-correctness | authored (200) | **200/200 wrong=0** | the compiler is correct |
+| Generalization | official holdout_dev (500) | **5/500 Reader-A-symbolic · 0/500 corridor** | real reach is ~0 |
 
-"We don't want overfitting; we want generalization" is right, and the compiler honors it: it is a
-**general mechanism** (versor transport + chained certified relaxation), not memorized answers —
-which is why it holds wrong=0 across authored problems it never saw. But the measurement forces a
-distinction: **mechanism-generality ≠ real-problem coverage.** The mechanism is general yet starved —
-1% reader coverage, and its affine scope misses the compare/rate/fraction the little real data uses.
-"Generalized problem-solving on real inputs" (the original done-when) is therefore **not yet shown**;
-what is shown is a general composition substrate validated on clean inputs. The reader-practice-loop
-is exactly how that value (generalize, don't overfit) becomes real-problem coverage.
+Seal `public` and pin both floors (dev-1 50/50, public 150/150) — but **label them mechanism floors,
+not coverage claims**, each carrying an op-kind histogram + ops-per-case depth + the authored-not-real
+flag (public: depth-1, divide 53 + transfer 97). A regression floor that guards mechanism correctness;
+it says nothing about real-GSM8K coverage, and the record must say so.
 
-## 8. For the ruling (three arcs on the table, none started)
+## 6. Sequencing verdict (resolved by the data)
 
-1. **Reader-practice-loop** — grow real-GSM8K parse coverage off 1%, wrong=0-gated on held-out real
-   data. Strongest by the measurement.
-2. **More compiler tiers** (compare/rate/fraction) — de-prioritized: the reader feeds them almost
-   nothing; capability without inputs.
-3. **Serve-landing** (§3.7 + `generate/`) — premature until there is real capability to serve.
+The three-branch skeleton doesn't fire: the frontier is common (§3), so "frontier-rare → serve
+landing" is out; and the biggest bucket isn't a compiler tier — **it's the reader** (495/500). Stated
+plainly: **corridor real end-to-end capability is 0/500, so serve-landing of corridor arithmetic loses
+priority — there is nothing real-reaching to serve.** §3.7 calibration stays queued; the **reader
+practice volume is what eventually generates §3.7's calibration data.** Order unchanged:
+**capability → practice → calibration → serve** — and the reader arc is now the **critical path for all
+three**.
 
-Recommendation: reader-practice-loop. Plus the cheap housekeeping: pin the two authored floors
-(composition-disclosed) and correct the "real GSM8K" language in the ADR-0249/0250 evidence.
+## 7. The next arc — reader practice loop (named for ruling; not started)
+
+99% parse-refusal makes the trigger a measured fact, not a judgment call. The reader is the first
+genuinely *learnable* component: `attempt-parse → compile → execute → gold-check` is a practice loop
+with a **decidable, wrong=0-gated reward**. Non-negotiable design constraints for the proposal:
+
+1. **Practice signal is real held-out official data only** — never the authored corpus. (Training
+   against authored grammar is exactly how the overfit happened; §3's 200/200-vs-5/500 gap is its
+   fingerprint.)
+2. **`wrong=0` gates what consolidates** — a parse/graph is only kept if execute+gold-check is right,
+   never merely if it parsed.
+3. **The sealed test (1,319) is never touched** — final exam only.
+4. **`holdout_dev` splits** so practiced-against cases are **disjoint** from the measured dev metric
+   — "getting better" can only mean "generalizes to real problems," never "fit the metric set."
+
+Curriculum order = the §3 real-world frequency: rate → fraction → compare_multiplicative → …
+The done-when is a rising `correct` on the disjoint held-out real split **with `wrong=0`** — the honest
+metric the holdout lane was built to keep in front of us.
+
+## 8. Errata proposal — ADR-0249 / ADR-0250 (statuses stay Accepted)
+
+A prominent **errata section** (not silent rewording) is added to both ADRs and their acceptance
+evidence, and to the PR #74 review record: the mechanism claims all survive; the single correction is
+the corpus label — **"real GSM8K dev holdout" → "CORE-authored GSM8K-style corpus (ADR-0119.2)."** The
+record thus shows we caught our own mislabel, which is the honest-measurement doctrine working, not a
+failure to hide. (Errata text lands in this PR alongside the spike.)
+
+## 9. The generalization reframe (Shay, live)
+
+"Generalize, don't overfit" is right, and the compiler honors it: it is a general *mechanism*, not
+memorized answers. The measurement only forces one distinction — **mechanism-generality ≠ real-problem
+coverage.** The mechanism is general but starved: 1% reader reach, affine scope. The reader practice
+loop is precisely how that value becomes real coverage without re-introducing the overfit.
+
+## 10. For the ruling (nothing started)
+
+1. **Reader-practice-loop** — RECOMMENDED. Critical path for capability → practice → calibration →
+   serve. Grow real-GSM8K parse coverage off 1%, wrong=0-gated on a disjoint held-out real split;
+   curriculum ordered by §3 frequency (rate → fraction → compare).
+2. **More compiler tiers** (compare/rate/fraction) — de-prioritized: the reader feeds them ~nothing.
+3. **Serve-landing** (§3.7 + `generate/`) — premature; corridor real reach is 0/500.
+
+Delivered in this PR for the ruling: the errata sections (§8), the relabeled seal + two mechanism
+floors composition-disclosed (§5), the parse-independent incidence tagging (§3), and the reader-arc
+design with the four non-negotiable constraints (§7). **Nothing builds before the ruling on this PR.**
