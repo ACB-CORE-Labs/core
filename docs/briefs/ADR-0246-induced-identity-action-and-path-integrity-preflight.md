@@ -60,6 +60,8 @@ structure is stabilized would instrument lawfulness on a frame the dynamics igno
 | **§4.1/§4.2 telemetry + path serve integration** (completion pass) | `IdentityActionRecord` (full digests, `policy_version=version_id()`, multi-condition `refusal_reason`); `manifold_content_digest` + geometry/gate version ids; §3.4-step-2 `admitted` gate on the ledger; `advance_session_identity_path` observe-only serve wiring (same flags, instance lifetime = session boundary); telemetry emits `identity_action_*`/`identity_path_*` keys only when the paths ran | **committed** `feat/adr-0246-slice1-complete` — flag-off byte-identical; all suites green |
 | **§11 grounding-feasibility** (completion pass) | fixed TRAIN(13)/HELD-OUT(12)/ADVERSARIAL(8) splits; bivector generator proxy (numpy-only); **sample-size-calibrated null** (200 noise-pair trials at real n) + shared-basis positive recovery control; precision pairs; per-plane energy | **DONE — honest NULL, method validated**: positive control 0.9995 (100th pctile of null) but real cross-cohort cosine 0.52 = 87th pctile of chance; AUC 0.49; no stable generator subspace at this n. Artifact: `docs/audit/artifacts/adr-0246-grounding-feasibility-report.json` |
 | **ADR-0246 body + acceptance packet** | `docs/adr/ADR-0246-induced-identity-action-and-path-integrity.md` (**Proposed**; F1 semantics, ‖·‖_G convention, turn-ownership + refusal_reason rulings requested; binding claims language; honest §6.3 + §11 numbers; machine-readable operational-status block); packet `docs/audit/adr-0246-acceptance-packet-2026-07-17.md` §8 **RULING PENDING** | **committed** — no self-Accept; awaiting Shay ruling |
+| **Ring 2 — multi-port residual protocol** | the §9 shared control grammar as `core/ports/residual_protocol.py` (7 stages; zero-bound operators only, nonzero fails closed; fail-closed unaccounted residual; re-certification raises on witness drift; append-only full-SHA-256 replay chain + `verify_replay_chain`); real adapters `IdentityPort` (ADR-0246 geometry) + `PrecisionPort` (ADR-0244 §2.5 cast transport) + synthetic port proving agnosticism; **no registry, no scheduler** (§7 non-goal #2 honored) | **built** — ADR-0247 **Proposed**; `tests/test_ring2_residual_protocol.py` green; pure/off-serving |
+| **Ring 3 — integrity-coordinated handoff** | the §9 coordination seam as `core/ports/integrity_handoff.py`: fuses Ring-2 port decisions + existing `EpistemicState`/`NormativeClearance` into content-free `proceed/hedge/abstain` (conjunctive, strongest-restriction-wins; fail-closed on missing/invalid evidence; binds replay-chain digest); content organs mapped to existing substrate; remainder (world-model, governed-learning consumption, discourse widening) honestly listed open | **built (observe-only)** — ADR-0248 **Proposed**; `tests/test_ring3_integrity_handoff.py` green; no serve consumer yet |
 
 Nothing in the reordering relaxes a §7 non-goal: no `C_id` corrector, no `H_id`
 enlargement, no pack/axis redesign, no gate activation. The §11 grounding study
@@ -457,6 +459,11 @@ PrecisionTransportCertificate:
 ---
 
 ## 9. Ring 2 / Ring 3 pointers (out of scope, preserved direction)
+
+> **Status (2026-07-17):** both pointers are now first-slice BUILT exactly as
+> bounded here — the shared control grammar (`core/ports/`, ADR-0247 Proposed)
+> and the integrity-handoff coordination seam (ADR-0248 Proposed) — see §0a.
+> The direction text below is preserved verbatim as the design authority.
 
 ### Ring 2 — multi-port residual protocol (future)
 
