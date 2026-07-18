@@ -303,6 +303,15 @@ class RuntimeConfig:
     # (legacy scalar-L2 identity score, no geometric refusal).
     identity_wave_gate: bool = False
 
+    # ADR-0246 §3.7 — the fuller induced-action admit surface (d_orth, d_stab vs
+    # locked H_id={I}, typed residual channels) layered on the wave gate. OFF by
+    # default and NOT authorized for live activation: its thresholds are
+    # UNCERTIFIED placeholders (only γ_id is certified) and the §6.3 discrimination
+    # report shows it refuses benign and adversarial traffic alike on the declared
+    # placeholder frame. Requires identity_wave_gate to also be on (it acts on the
+    # live versor F). Flag-off is byte-identical to the D4 wave path.
+    identity_action_surface: bool = False
+
     # Step B (inline realization) — when on, each turn ACCRUES knowledge into the
     # held self: a comprehensible declarative turn is realized into the session vault
     # (SPECULATIVE, as-told), and a comprehensible question turn is determined over

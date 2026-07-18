@@ -221,6 +221,26 @@ def test_as_dict_shape(geometry):
     assert "a_path_lawful" in d and "d_stab_path" in d and "ledger_digest" in d
 
 
+def test_lawful_path_equals_lawful_subproduct_not_raw(geometry):
+    # HARDENING (ADR-0246 §3.4): a mixed sequence of small LAWFUL rotations
+    # interleaved with a large REFUSED rotation must compose to exactly the
+    # product of the lawful actions alone. This fails loudly if the raw product
+    # (which would include the refused 90° turn) ever sneaks into a_path_lawful.
+    small_a = _action(geometry, _rotor(_E12, 0.03))
+    small_b = _action(geometry, _rotor(_E13, 0.04))
+    big = _action(geometry, _rotor(_E12, np.pi / 2.0))  # refused (d_stab huge)
+    seq = [small_a, big, small_b, big, small_a]
+    ledger = None
+    for a in seq:
+        ledger, _ = advance_identity_path(ledger, _scope(), a, geometry.gram, _BUDGET)
+    # independently: product of the LAWFUL turns only, in time order (later on left)
+    expected = small_a @ (small_b @ small_a)
+    assert ledger.composed_turn_count == 3 and ledger.break_count == 2
+    assert np.allclose(ledger.a_path_lawful, expected, atol=1e-12)
+    # and it must NOT equal the raw product (which includes the two big turns)
+    assert not np.allclose(ledger.a_path_lawful, raw_path_product(seq))
+
+
 def test_module_is_pure_offserving():
     import core.physics.identity_action as a
 

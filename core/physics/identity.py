@@ -22,6 +22,7 @@ import numpy as np
 
 from algebra.cl41 import N_COMPONENTS
 from core.physics.identity_manifold import IdentityManifoldGeometry
+from core.physics.identity_action import AdmissionPolicy, evaluate_admission
 
 # ADR-0244 §2.2 / §4a / §2.4 — wave-gate thresholds.
 #
@@ -123,6 +124,12 @@ class IdentityScore:
     # Committed boundary_ids the turn violated (intersection with the manifold's
     # boundary set); a non-empty set is a hard identity-boundary breach.
     boundary_violations: FrozenSet[str] = frozenset()
+    # ADR-0246 §3.7 induced-action admit-surface measures. Populated only when the
+    # ``identity_action_surface`` policy runs (``action_surface_active=True``);
+    # legacy defaults keep the flag-off wave/legacy IdentityScore byte-identical.
+    action_surface_active: bool = False
+    d_orth: float = 0.0
+    d_stab: float = 0.0
 
     @property
     def value(self) -> float:
@@ -275,6 +282,7 @@ class IdentityCheck:
         manifold: IdentityManifold,
         trajectory_id: str,
         boundary_violations: FrozenSet[str],
+        admission_policy: "AdmissionPolicy | None" = None,
     ) -> IdentityScore:
         """Operator-preservation identity score for a live versor (ADR-0244 §2.2/§4a).
 
@@ -282,6 +290,14 @@ class IdentityCheck:
         the value subspace via its action on the axes ``F aᵢ F̃`` — subspace
         leakage (tilt toward alien dimensions) plus signed self-alignment
         (in-subspace inversion). See :mod:`core.physics.identity_manifold`.
+
+        When ``admission_policy`` is supplied (ADR-0246 §3.7, flag-gated behind
+        ``identity_action_surface``), the fuller induced-action admit surface
+        (``d_orth``, ``d_stab`` vs locked ``H_id={I}``, typed residual channels)
+        is additionally applied: a versor failing it folds into ``flagged`` (the
+        existing ``would_violate`` refusal path abstains — admit-or-abstain, no
+        corrector). When ``None`` (default) the result is byte-identical to the D4
+        wave path.
         """
         F = self._validate_wave_field(wave_field)
         geometry = _geometry_for_manifold(manifold)
@@ -305,6 +321,24 @@ class IdentityCheck:
             or bool(deviations)
             or bool(boundary_violations)
         )
+        # ADR-0246 §3.7 (flag-gated). When a policy is supplied, additionally apply
+        # the induced-action admit surface; a refusal folds into ``flagged`` so the
+        # existing ``would_violate`` egress abstains (admit-or-abstain, no
+        # corrector). When absent, the fields keep legacy defaults ⇒ byte-identical.
+        action_surface_active = False
+        d_orth = 0.0
+        d_stab = 0.0
+        if admission_policy is not None:
+            result = evaluate_admission(
+                geometry,
+                F.astype(np.float64),
+                admission_policy,
+                boundary_breach=bool(boundary_violations),
+            )
+            action_surface_active = True
+            d_orth = result.d_orth
+            d_stab = result.d_stab
+            flagged = flagged or not result.admitted
         return IdentityScore(
             score=score,
             flagged=flagged,
@@ -314,6 +348,9 @@ class IdentityCheck:
             leakage_norm=leakage_rms,
             min_self_alignment=min_align,
             boundary_violations=boundary_violations,
+            action_surface_active=action_surface_active,
+            d_orth=d_orth,
+            d_stab=d_stab,
         )
 
     def check(
@@ -323,6 +360,7 @@ class IdentityCheck:
         *,
         wave_field=None,
         violated_boundary_ids: FrozenSet[str] = frozenset(),
+        admission_policy: "AdmissionPolicy | None" = None,
     ) -> IdentityScore:
         """Check a trajectory against the IdentityManifold (ADR-0010 / ADR-0244).
 
@@ -330,6 +368,10 @@ class IdentityCheck:
         ``final_state.F``) is supplied, run the metric-exact operator-preservation
         gate; otherwise fall back to the legacy scalar-L2 heuristic. A *malformed*
         wave field raises (fail-closed) — only an ABSENT one falls back.
+
+        ``admission_policy`` (ADR-0246 §3.7, flag-gated behind
+        ``identity_action_surface``) is forwarded to the wave path only; ``None``
+        (default) keeps every caller byte-identical to the D4 gate.
 
         ``violated_boundary_ids`` (the turn's safety/ethics violated boundaries)
         is intersected with the manifold's committed ``boundary_ids``; a non-empty
@@ -353,7 +395,8 @@ class IdentityCheck:
             )
         if wave_field is not None:
             return self._wave_field_score(
-                wave_field, resolved_manifold, trajectory_id, boundary_violations
+                wave_field, resolved_manifold, trajectory_id, boundary_violations,
+                admission_policy=admission_policy,
             )
         confidence = float(getattr(trajectory, "total_coherence_delta", 0.0))
         confidence += self._mean_frame_coherence(trajectory)

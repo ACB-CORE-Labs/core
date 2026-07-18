@@ -41,7 +41,10 @@ from typing import Any, Sequence
 
 import numpy as np
 
-from core.physics.identity_manifold import IdentityManifoldGeometry
+from core.physics.identity_manifold import (
+    IdentityManifoldGeometry,
+    orthogonality_defect_of_action,
+)
 
 # Below this the axis Gram is treated as the identity matrix and the G-weighted
 # norm collapses to the plain Frobenius norm (exact for the default pack).
@@ -261,6 +264,18 @@ def advance_identity_path(
     ``H_id={I}``; only lawful turns compose. A scope change (or an absent prior
     ledger) is a hard break that starts a fresh chain — the previous path is NOT
     continued. Immutable: ``ledger`` is never mutated.
+
+    **Composition semantics (ratification-relevant — ADR-0246 §3.4).** A lawful
+    turn composes its *actual certified* induced action ``A_t`` (``a_path = A_t @
+    a_path``), NOT a literal ``I`` element of ``H_id``. This is required, not a
+    shortcut: the ledger exists to catch slow multi-turn drift (§2 gap "slow
+    drift evades per-turn thresholds"), and many individually-lawful near-``I``
+    turns must be allowed to *accumulate* until ``d_stab(A_path) > ε_session``.
+    Composing literal ``I`` elements would make ``A_path ≡ I`` and detect nothing.
+    So "compose lawful ``H_t``" (§3.4 step 4) means "compose the per-turn actions
+    that were *certified lawful*", and only those — a refused turn is a break
+    marker, excluded from the product, never a soft-projected ``I`` masquerading
+    as a pass. The ADR body should state this reading explicitly.
     """
     action = np.asarray(action, dtype=np.float64)
     if action.ndim != 2 or action.shape[0] != action.shape[1]:
@@ -330,3 +345,141 @@ def raw_path_product(actions: Sequence[np.ndarray]) -> np.ndarray:
     for action in actions:
         result = np.asarray(action, dtype=np.float64) @ result
     return result
+
+
+# -- ADR-0246 §3.7 per-turn admission surface (pure; admit-or-abstain only) -----
+
+# The one CERTIFIED threshold: γ_id from D4 Phase 3 (Fibonacci-search certificate
+# `0079b5f2…`), the same value pinned as ``identity._WAVE_LEAKAGE_BOUND``. A test
+# asserts the two stay equal so they cannot drift.
+CERTIFIED_GAMMA_ID: float = 0.2126624458513829
+
+# UNCERTIFIED PLACEHOLDERS. D4 Phase 3 certified ONLY γ_id. These bounds are NOT
+# calibrated — they exist so the §3.7 admit surface is *expressible and testable*,
+# and so the discrimination report can measure what such a gate WOULD do. They are
+# never a live default: `AdmissionPolicy.placeholder_default()` sets `calibrated=
+# False`, and no serve path may admit on them until they are certified.
+PLACEHOLDER_ORTH_TOL: float = 1e-6
+PLACEHOLDER_EPSILON_TURN: float = 0.1
+PLACEHOLDER_TAU_MAX: float = 0.2126624458513829  # per-axis leakage cap (= γ_id placeholder)
+PLACEHOLDER_S_MIN: float = 0.0  # self-alignment floor (matches D4 _WAVE_SELF_ALIGNMENT_FLOOR)
+PLACEHOLDER_UNCLASSIFIED_TOL: float = 1e-6
+
+
+@dataclass(frozen=True)
+class AdmissionPolicy:
+    """Thresholds for the ADR-0246 §3.7 per-turn admit surface.
+
+    ``calibrated`` is ``False`` for any policy built from placeholders. A serve
+    gate MUST refuse to *activate* (admit live traffic) on an uncalibrated policy;
+    the policy is usable off-serving (discrimination reports, tests) regardless.
+    Only ``gamma_id`` is certified (D4 Phase 3); the rest are placeholders.
+    """
+
+    orth_tol: float
+    epsilon_turn: float
+    gamma_id: float
+    tau_max: float
+    s_min: float
+    unclassified_tol: float
+    calibrated: bool = False
+
+    @classmethod
+    def placeholder_default(cls) -> "AdmissionPolicy":
+        """Certified γ_id + clearly-uncalibrated placeholders (``calibrated=False``)."""
+        return cls(
+            orth_tol=PLACEHOLDER_ORTH_TOL,
+            epsilon_turn=PLACEHOLDER_EPSILON_TURN,
+            gamma_id=CERTIFIED_GAMMA_ID,
+            tau_max=PLACEHOLDER_TAU_MAX,
+            s_min=PLACEHOLDER_S_MIN,
+            unclassified_tol=PLACEHOLDER_UNCLASSIFIED_TOL,
+            calibrated=False,
+        )
+
+
+@dataclass(frozen=True)
+class AdmissionResult:
+    """Outcome of the §3.7 admit surface for one versor — admit-or-abstain only.
+
+    ``admitted`` is the AND of every condition; ``refusal_reasons`` names each
+    failed condition (empty iff admitted). All raw measurements are retained for
+    telemetry / the discrimination report. No corrector: this never rewrites the
+    versor or the action — it only decides admit vs refuse.
+    """
+
+    admitted: bool
+    refusal_reasons: tuple[str, ...]
+    d_orth: float
+    d_stab: float
+    leakage_rms: float
+    max_leakage: float
+    min_self_alignment: float
+    typed_channels: dict[str, float]
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "admitted": self.admitted,
+            "refusal_reasons": list(self.refusal_reasons),
+            "d_orth": float(self.d_orth),
+            "d_stab": float(self.d_stab),
+            "leakage_rms": float(self.leakage_rms),
+            "max_leakage": float(self.max_leakage),
+            "min_self_alignment": float(self.min_self_alignment),
+            "typed_channels": {k: float(v) for k, v in self.typed_channels.items()},
+        }
+
+
+def evaluate_admission(
+    geometry: IdentityManifoldGeometry,
+    versor: np.ndarray,
+    policy: AdmissionPolicy,
+    *,
+    boundary_breach: bool = False,
+) -> AdmissionResult:
+    """Evaluate the ADR-0246 §3.7 per-turn admit surface for ``versor``.
+
+    Admit iff ALL of: ``d_orth ≤ orth_tol``, ``d_stab ≤ epsilon_turn``,
+    ``leakage_rms ≤ gamma_id``, ``max_i leakage_i ≤ tau_max``,
+    ``min_i self_align_i ≥ s_min``, no ``boundary_breach``, and no unclassified
+    residual channel firing (``> unclassified_tol``). Otherwise refuse (naming
+    every failed condition). Pure and admit-or-abstain — never a corrector.
+
+    A malformed versor raises :class:`MalformedVersorError` from the primitives;
+    the serve caller is expected to translate that into a fail-closed refusal.
+    """
+    leakage, self_align = geometry.axis_response(versor)
+    leakage_rms = float((sum(v * v for v in leakage) / len(leakage)) ** 0.5)
+    max_leakage = float(max(leakage))
+    min_self_alignment = float(min(self_align))
+    action = geometry.induced_action(versor)
+    d_orth = orthogonality_defect_of_action(action, geometry.gram)
+    d_stab = stabilizer_defect(action, geometry.gram, IdentityStabilizer.singleton(action.shape[0]))
+    channels = geometry.typed_residual_energy(versor)
+
+    reasons: list[str] = []
+    if d_orth > policy.orth_tol:
+        reasons.append("d_orth>orth_tol")
+    if d_stab > policy.epsilon_turn:
+        reasons.append("d_stab>epsilon_turn")
+    if leakage_rms > policy.gamma_id:
+        reasons.append("leakage_rms>gamma_id")
+    if max_leakage > policy.tau_max:
+        reasons.append("max_leakage>tau_max")
+    if min_self_alignment < policy.s_min:
+        reasons.append("min_self_alignment<s_min")
+    if boundary_breach:
+        reasons.append("boundary_id_breach")
+    if channels["unclassified"] > policy.unclassified_tol:
+        reasons.append("unclassified_channel_firing")
+
+    return AdmissionResult(
+        admitted=not reasons,
+        refusal_reasons=tuple(reasons),
+        d_orth=d_orth,
+        d_stab=d_stab,
+        leakage_rms=leakage_rms,
+        max_leakage=max_leakage,
+        min_self_alignment=min_self_alignment,
+        typed_channels=channels,
+    )

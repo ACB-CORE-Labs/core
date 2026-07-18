@@ -1,0 +1,45 @@
+ADR-0246 slice-1 — Opus audit + hardening run log
+branch: feat/adr-0246-slice1-hardened (stacked on feat/adr-0246-slice1-scaffold)
+pre-commit HEAD: ed54dddacb8c1f282dedbb85364b6e999139632e
+
+=== §6.1/§6.2 eval matrix ===
+
+[geometric_suite]
+  PASS  identity_versor
+  PASS  inplane_pi_inversion_e12
+  PASS  inplane_90deg_permutation_e12
+  PASS  mild_inplane_drift_e12_0.02
+  PASS  alien_tilt_e14_1.5
+  PASS  boost_e15_1.0
+  PASS  near_singular_gram
+  PASS  malformed_f_nan
+  PASS  malformed_f_wrong_shape
+
+[path_suite]
+  PASS  lawful_near_identity_sequence
+  PASS  small_rotations_accumulate_to_session_refusal
+  PASS  interleaved_refuse_admit
+  PASS  hard_break_on_pack_change
+  PASS  raw_product_differs_from_lawful
+
+14/14 cases passed; all_passed=True
+placeholders (uncertified): {'epsilon_turn': 0.1, 'epsilon_session': 0.3, 'note': 'UNCERTIFIED — D4 Phase 3 certified only gamma_id; ε not calibrated'}
+
+=== all ADR-0246 tests + adjacent D4 identity surfaces ===
+........................................................................ [ 57%]
+.....................................................                    [100%]
+125 passed in 53.98s
+
+=== uv run core test --suite smoke -q ===
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+176 passed, 1 warning in 132.38s (0:02:12)
+
+=== §3.7 egress serve wiring (Steps 2.1/2.2) verification ===
+egress wiring + all D4 gate surfaces (byte-identity):
+...............................................                          [100%]
+47 passed in 54.37s
+
+smoke POST serve-wiring:
+................................                                         [100%]
+176 passed in 133.41s (0:02:13)

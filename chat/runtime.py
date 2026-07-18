@@ -80,6 +80,7 @@ from core.physics.identity import (
     IdentityScore,
     TurnEvent,
 )
+from core.physics.identity_action import AdmissionPolicy
 from packs.ethics.check import EthicsCheck, EthicsContext
 from packs.ethics.loader import (
     DEFAULT_ETHICS_PACK as _DEFAULT_ETHICS_PACK,
@@ -2688,6 +2689,14 @@ class ChatRuntime:
             self.identity_manifold,
             wave_field=(
                 result.final_state.F if self.config.identity_wave_gate else None
+            ),
+            # ADR-0246 §3.7 — fuller admit surface, flag-gated + default-off. The
+            # policy is placeholder/uncalibrated (calibrated=False); it only acts
+            # when identity_wave_gate is also on (a wave_field exists).
+            admission_policy=(
+                AdmissionPolicy.placeholder_default()
+                if self.config.identity_action_surface
+                else None
             ),
         )
         flagged = identity_score.flagged
