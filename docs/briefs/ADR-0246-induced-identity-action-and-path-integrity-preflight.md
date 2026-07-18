@@ -39,6 +39,35 @@ Do **not** insert Rings 1–3 into active D4 commits.
 
 ---
 
+## 0a. Post-D4 execution sequencing (actual — 2026-07-17)
+
+D4 closed and was ratified; this brief is now the live plan. The R&D assessment's
+one-shot "build the whole Ring-1 gate machinery" is being executed as small,
+verified units, and the brief's own **§11 semantic-grounding question was promoted
+to run as a consumer of the §3 apparatus** (not a re-sequenced blocker), because
+D4 Phase 3 + slice 0 proved no fixed spatial frame is dynamically stabilized —
+building a lawfulness gate on the declared frame before knowing whether *any*
+structure is stabilized would instrument lawfulness on a frame the dynamics ignore
+(the "instruments ≠ meaning" trap, §2 / §11).
+
+| Unit | Scope | Status |
+|------|-------|--------|
+| **Slice 0** — mismatch diagnostic | evidence-only classification of the benign mismatch (foreign leakage vs in-span-unlawful vs numerical vs path vs semantic-coupling-absent) | **merged** `main` (quarantined diagnostic artifact); found: structural e4/e5 foreign leakage, declared frame dynamically unspecial |
+| **§3 primitives** | pure `A(F)`, `d_orth`, `d_stab` vs locked `H_id={I}`, typed residual channels in `core/physics/identity_manifold.py` + `identity_action.py`; slice-0 eval rewired to consume them (single source of truth) | **committed** `feat/adr-0246-induced-action-primitives` (RED→GREEN, off-serving, flag untouched) — awaiting review |
+| **§3.4/§3.5 path ledger** | lawful-only composition + hard breaks: `PathBudget`, `IdentityChainScope`, `IdentityPathLedger`, `advance_identity_path` in `identity_action.py`; refused turns = break markers (never soft-projected `I`); scope change = hard break onto new chain | **committed** `feat/adr-0246-path-ledger` (RED→GREEN, off-serving), stacked on primitives — awaiting review |
+| **§6.1/§6.2 eval matrix (scaffold)** (this unit) | runnable synthetic geometric + path/holonomy suites (`evals/adr_0246_geometric_suite/`), every §6.1/§6.2 case pinned; malformed-F fail-closed (`MalformedVersorError`) | **draft scaffold** `feat/adr-0246-slice1-scaffold` (14/14 eval cases + 114 identity-surface tests + smoke green) — awaiting Opus/Shay audit (`docs/handoff/adr-0246-slice1-scaffold-notes.md`) |
+| **§3.7 gate admit surface + §6.3 discrimination** (Opus audit+hardening) | `AdmissionPolicy`/`evaluate_admission` (§3.7 pure surface); wired into `identity.py`/`chat/runtime.py` behind new default-off `identity_action_surface` (byte-identical flag-off, admit-or-abstain, no corrector); §6.3 discrimination report | **committed** `feat/adr-0246-slice1-hardened` — audit PASS, honest finding: gate refuses benign+adversarial alike (AUC 0.375, benign d_stab 18× adversarial), stays off; awaiting Shay ratification (`docs/audit/adr-0246-slice1-opus-audit-and-hardening.md`) |
+| **§4.1/§4.2 telemetry + path serve integration** (completion pass) | `IdentityActionRecord` (full digests, `policy_version=version_id()`, multi-condition `refusal_reason`); `manifold_content_digest` + geometry/gate version ids; §3.4-step-2 `admitted` gate on the ledger; `advance_session_identity_path` observe-only serve wiring (same flags, instance lifetime = session boundary); telemetry emits `identity_action_*`/`identity_path_*` keys only when the paths ran | **committed** `feat/adr-0246-slice1-complete` — flag-off byte-identical; all suites green |
+| **§11 grounding-feasibility** (completion pass) | fixed TRAIN(13)/HELD-OUT(12)/ADVERSARIAL(8) splits; bivector generator proxy (numpy-only); **sample-size-calibrated null** (200 noise-pair trials at real n) + shared-basis positive recovery control; precision pairs; per-plane energy | **DONE — honest NULL, method validated**: positive control 0.9995 (100th pctile of null) but real cross-cohort cosine 0.52 = 87th pctile of chance; AUC 0.49; no stable generator subspace at this n. Artifact: `docs/audit/artifacts/adr-0246-grounding-feasibility-report.json` |
+| **ADR-0246 body + acceptance packet** | `docs/adr/ADR-0246-induced-identity-action-and-path-integrity.md` (**Proposed**; F1 semantics, ‖·‖_G convention, turn-ownership + refusal_reason rulings requested; binding claims language; honest §6.3 + §11 numbers; machine-readable operational-status block); packet `docs/audit/adr-0246-acceptance-packet-2026-07-17.md` §8 **RULING PENDING** | **committed** — no self-Accept; awaiting Shay ruling |
+
+Nothing in the reordering relaxes a §7 non-goal: no `C_id` corrector, no `H_id`
+enlargement, no pack/axis redesign, no gate activation. The §11 grounding study
+remains *feasibility only* until it produces a held-out-stable, safety-relevant
+candidate (per the D4 ratification's activation prerequisites).
+
+---
+
 ## 1. Authority documents
 
 | Doc | Role |

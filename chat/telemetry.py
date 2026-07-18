@@ -151,6 +151,33 @@ def serialize_turn_event(
             out["identity_boundary_violations"] = sorted(
                 getattr(identity_score, "boundary_violations", ()) or ()
             )
+            # ADR-0246 §3.7/§4.1 — induced-action admit-surface telemetry.
+            # Emitted only when the surface ran this turn (behind the separate
+            # default-off ``identity_action_surface`` flag); absent otherwise, so
+            # the D4-only wire format above stays byte-identical.
+            if getattr(identity_score, "action_surface_active", False):
+                out["identity_d_orth"] = float(getattr(identity_score, "d_orth", 0.0))
+                out["identity_d_stab"] = float(getattr(identity_score, "d_stab", 0.0))
+                record = getattr(identity_score, "action_record", None)
+                if record is not None:
+                    out["identity_action_admitted"] = bool(record.admitted)
+                    out["identity_action_lawful"] = str(record.lawful_action)
+                    out["identity_action_refusal_reason"] = record.refusal_reason
+                    out["identity_action_record_digest"] = record.record_digest()
+    # ADR-0246 §3.4/§3.5/§4.2 — session identity-path ledger telemetry
+    # (observe-only). Emitted only when the path ran this turn; absent
+    # otherwise, so the flag-off wire format stays byte-identical.
+    ledger = getattr(event, "identity_path", None)
+    if ledger is not None:
+        out["identity_path_chain_id"] = str(getattr(ledger, "chain_id", ""))
+        out["identity_path_d_stab"] = float(getattr(ledger, "d_stab_path", 0.0))
+        out["identity_path_composed_turns"] = int(
+            getattr(ledger, "composed_turn_count", 0)
+        )
+        out["identity_path_breaks"] = int(getattr(ledger, "break_count", 0))
+        out["identity_path_session_admit"] = bool(
+            getattr(ledger, "session_admit", True)
+        )
     if include_content:
         out["input_tokens"] = list(getattr(event, "input_tokens", ()))
         out["surface"] = str(getattr(event, "surface", ""))
