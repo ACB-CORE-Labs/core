@@ -21,6 +21,47 @@ The §3/§4/§6 design below is unchanged EXCEPT: q:difference (item 4) becomes 
 built capability; increment 1 carries one wrong=0 driver (#78), not two.
 
 **Status**: RULED — approved to build (measure-once). Design-first gate cleared (same gate as PR #76).
+
+---
+
+## BUILD OUTCOME (2026-07-19) — band-solve=0; the ~30-band bet is FALSIFIED
+
+The headline stays band-solve=0. The two foundations are **built and verified**; they are the banked
+byproduct, **not** a success against increment 1's conversion goal.
+
+### Shipped (verified, wrong=0-safe)
+The **#78 positive-polarity allowlist substrate** — `NEUTRAL_COUNT_VERBS` (`math_roundtrip.py`, extends
+`ADD_VERBS` with curated neutral production verbs), shared by the seed matcher (acquisition path) and the
+comparison `_comparison_anchor_verb()`. Depletion/transfer verbs refuse by **positive determination**
+(not a blocklist). Verified: production injects / depletion refuses; **71 pinned comparative tests pass**;
+**full-500 wrong=0** (tune 261 + measure 239); PARSED unchanged (tune 3, measure 2 — no regression, no
+conversion); **smoke 176 green**. Merge gate met: full-500 wrong=0 + refusal histogram stable-or-explained.
+
+### band-solve = 0, measured FOUR ways
+yield harness, band map, band oracle (rewrite-and-run), capability histogram — all agree: the scoped band
+`{seed + forward-comparison + q:simple/summation}` converts **0** tune cases. Its otherwise-in-band cases
+**strand on capabilities outside the band**: 25 need multi-compound, 17 need compare-additive. §5 named
+this exact risk; it landed.
+
+### Minimal-convertible-band measurement (Josh's option-3 spec)
+- **No small band converts.** The band oracle converts 0 with `{seed + comparison + q}`.
+- **Taxonomy is NOT at bedrock.** The refined atomic classifier's "smallest tractable set" `{seed, q:simple}`
+  (4 cases) dissolved on inspection — every one actually needs rate / compare / currency / copula
+  (e.g. "James **spends 30 minutes twice a day** on meditation" = rate + temporal + unit-conversion in ONE
+  sentence). **Real GSM8K statements are individually multi-capability**; the conjunction recurs *within*
+  a sentence, so a capability list keeps fragmenting.
+- **multi-compound is the single highest-leverage capability** — on the critical path for **70/106 (66%)**
+  of tractable needed-sets — but insufficient alone (its cases also need rate/currency/etc.).
+- **q:complex is the biggest intractable wall** (~35+ cases gated on it: 3 size-1, 18+14 size-2 needed-sets).
+- **Closest cases** (0000/0001/0148/0082) all need complex compare forms (chained / mass-noun entities /
+  "than" + aggregate reference) + summation/difference — still multi-capability.
+
+### Implication for increment 2 (the first-conversion increment) — CASE-FIRST, not capability-first
+Because the taxonomy fragments, no small capability band is a real floor. The path to the first conversion
+is **case-first**: pick 2–3 specific closest tune cases, hand-enumerate their *exact* end-to-end needs
+(however many capabilities), build precisely that, convert them, measure. The "minimal convertible band" is
+not a small capability set — it is whatever a chosen handful of real cases need, built end-to-end. This is
+the recommendation carried to Josh with the foundations PR.
 **Date**: 2026-07-19
 **Base**: `forgejo/main @ e1eb2a5c` (worktree `core-wt-seed`, branch `feat/seeding-injection` → to be
 repurposed to the band).
