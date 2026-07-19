@@ -153,6 +153,36 @@ def test_summation_record_has_no_source_entity() -> None:
 # --- Fail-closed refusals ----------------------------------------------------
 
 
+def test_refuses_chained_reference_before_definition() -> None:
+    # A := 2×B, but B is never seeded or defined at that point (story order ≠
+    # dependency order): fail-closed, don't guess. Pins the ordering rule.
+    graph = MathProblemGraph(
+        entities=("A", "B", "C"),
+        initial_state=(InitialPossession("C", Quantity(5, "x")),),
+        operations=(Operation("A", "compare_multiplicative", Comparison("B", None, 2.0, "times")),),
+        unknown=Unknown("A", "x"),
+    )
+    with pytest.raises(MultiRegisterError):
+        compile_multi_register_program(graph)
+
+
+def test_refuses_compare_redefining_known_register() -> None:
+    # A seeded; "B is twice A" mis-directed so the target is the KNOWN side —
+    # a redefine of a seeded register. Refuse (the reader must invert to the
+    # unknown side); never overwrite a known quantity.
+    graph = MathProblemGraph(
+        entities=("A", "B"),
+        initial_state=(
+            InitialPossession("A", Quantity(5, "x")),
+            InitialPossession("B", Quantity(9, "x")),
+        ),
+        operations=(Operation("B", "compare_multiplicative", Comparison("A", None, 2.0, "times")),),
+        unknown=Unknown(None, "x"),
+    )
+    with pytest.raises(MultiRegisterError):
+        compile_multi_register_program(graph)
+
+
 def test_refuses_compare_additive() -> None:
     # compare_additive ("more"/"fewer") is a later increment — out of scope now.
     graph = MathProblemGraph(

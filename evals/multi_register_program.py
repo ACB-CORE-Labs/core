@@ -208,9 +208,16 @@ def compile_multi_register_program(graph: MathProblemGraph) -> MultiRegisterProg
                 raise MultiRegisterError("compare_factor_not_positive", factor=factor)
             if op.actor == reference:
                 raise MultiRegisterError("compare_self_reference", actor=op.actor)
-            if op.actor not in units:  # the comparison DEFINES the actor register
-                units[op.actor] = units[reference]  # unit propagation from the reference
-                order.append(op.actor)
+            # The comparison DEFINES the actor. If the actor is already known
+            # (seeded or defined earlier), this is a redefine — most often a
+            # mis-directed inverse compare (the known side used as the target).
+            # Refuse rather than overwrite: a reader direction error becomes a
+            # refusal, never a wrong (the reader must bind the unknown side as
+            # the target, with a fraction factor).
+            if op.actor in units:
+                raise MultiRegisterError("compare_redefines_register", actor=op.actor)
+            units[op.actor] = units[reference]  # unit propagation from the reference
+            order.append(op.actor)
             turns.append(
                 RegisterTurn(_COMPARE_MULT, op.actor, factor, 0.0, factor, reference=reference)
             )
