@@ -116,7 +116,13 @@ the project is large.
 
 ## MEASURED OUTCOME — the reader half (frame-anchored recognizer)
 
-### What shipped
+> **STATUS: BUILT + MEASURED, then DEFERRED out of increment 1 (PR #77 ruling).** The code change
+> (`c3aed13b`, frame-anchored recognizer) was reverted from the merged increment; only the compiler
+> tier + this finding land. Frame-anchoring is now an **open design task owned by the rate-frame
+> increment** — see *Deferral ruling* below. This section is the on-record measurement that motivated
+> the split.
+
+### What was built and measured
 Per the construction constraint (anchor on the comparative FRAME, not verb-whitelist growth), the two
 multiplicative-frame regexes (`_COMPARE_MULT_ANCHOR_RE`, `_COMPARE_MULT_NTIMES_RE`) were re-anchored:
 the closed-class frame — `<factor> as many/much <unit> as <REF>` — is the gate, the verb slot became a
@@ -124,17 +130,21 @@ verb-free bounded connector, and `as much` joined `as many`. `_comparison_anchor
 is left in place for the ADDITIVE / NESTED frames (out of scope). Both frame regexes remain `$`-anchored,
 so multi-clause / nested surfaces stay refused by construction.
 
-### The polarity refutation (and the sanctioned fallback)
+### The polarity refutation — the real lesson
 Pure verb-free anchoring is **not** wrong=0-safe: a polarity-inverting / depletion verb inside the frame
 ("Alice **lost** twice as many apples as Bob") makes the compared quantity a loss, so
 `actor = factor × reference` reads the relation backwards → wrong>0. The frame does NOT disambiguate this
 (pinned by `test_adr_0131_G2a…::test_polarity_inverting_verb_not_admitted`, `…spend…`,
-`test_recognizer_comparative_inject…[Alice lost…]`). Resolution = the fallback the ruling anticipated:
-frame-anchored **plus a closed-class polarity blocklist** (`_COMPARE_POLARITY_BLOCK`:
-lose/spend/use/give/sell/win/donate/pay/eat/drop/lend) the connector may not span. Admission stays
-open-class for every *safe* verb (scored/wrote/caught/taught/baked/grew/…); the blocklist is the one
-piece of verb knowledge wrong=0 genuinely requires — a small closed semantic class, not a whitelist.
-**The frame is the gate either way.**
+`test_recognizer_comparative_inject…[Alice lost…]`). The prototype fix was a closed-class polarity
+**blocklist** the connector may not span — but the ruling named the deeper problem this exposes, and it
+is decisive: **the verb carries a polarity bit that must be positively determined, not
+assumed-safe-unless-blocklisted.** A blocklist is fail-*open* — it admits every unenumerated verb, so a
+depletion verb nobody listed reaches a *complete* frame as a coherent-but-inverted graph: a **wrong** on
+the run-once sealed arbiter (the round-trip net guards parse consistency, not gold-correctness). The
+fail-closed doctrine never takes that trade — least of all for the **zero** measured benefit below. So
+the wrong=0-safe resolution is genuine design work: frame **plus positive polarity determination** (a
+neutral-polarity *allowlist*, or a small polarity classifier), exercised end-to-end where it earns its
+keep — the rate-frame increment — not bolted on here.
 
 ### Footprint — provable, tiny, safe
 Develop-on-tune / measure-once discipline held. A new-vs-old frame-fire diff over all 500 official cases:
@@ -164,18 +174,51 @@ extension (multi-word reference) converts **0** cases end-to-end — and introdu
 hazard — so it was reverted.
 
 **Ruling per the pre-committed funnel-conditioned escalation rule:** the mass is dying in **shared
-layers**, not compare-specific logic ⇒ the next increment is a **shared-layer design increment**
-(highest-leverage: the summation-question reader — evidenced by `0228` + `0441` both dying there), NOT
-a practice-lane escalation, and NOT more compare-family frame surgery. X is re-applied *after* the
+layers**, not compare-specific logic ⇒ the next increment is a **shared-layer design increment**, NOT a
+practice-lane escalation, and NOT more compare-family frame surgery. **Shay's ruling (#77): next =
+seeding-sentence injection** — the 135/261 "no injection (discrete_count)" wall, the dominant shared
+bucket that gates every family (production/possession verbs like *made/baked/grew/wrote* that don't
+inject an initial state). The compare-specific unblock (summation-question reader + **inverse compare** —
+known=actor, solve reference; `0441` needs both) stays queued behind it. X is re-applied *after* the
 shared layer lands.
 
 ### Triple report
 - **correct**: measure new-correct = **0**. The compiler tier solves the compare cases the reader can
   already reach (`0101` "double what", `0108` "times the number of", `0411`) — all **pre-existing**, not
   new from the frame-anchoring.
-- **refused-by-reason (traps broken out)**: polarity-inverting (lost/spent) → refused by
-  `_COMPARE_POLARITY_BLOCK` (absent from the real splits; pinned by synthetic confusers). Family funnel:
-  16 multiclause/nested, 10 frame-no-match, 5 number/amount-of, 5 as-ADJ, 2 double-what — all now
-  refuse-and-record.
+- **refused-by-reason (traps broken out)**: polarity-inverting (lost/spent) → refused fail-closed by the
+  `_comparison_anchor_verb()` whitelist (the merged state, after the frame-anchoring revert; the
+  blocklist prototype that would have admitted-then-guarded them is deferred with the frame change).
+  Family funnel: 16 multiclause/nested, 10 frame-no-match, 5 number/amount-of, 5 as-ADJ, 2 double-what —
+  all refuse-and-record.
 - **wrong = 0**: held on tune (261) **and** measure (239) **and** smoke (176). No over-admission from
   the verb-free widening; no branch-disagreement regression (0 tune divergences).
+
+### Deferral ruling (#77) — the split
+Increment 1 merges the **compiler tier + this finding**; the **frame-anchoring reader change is held
+out** (`c3aed13b` reverted from the PR). Three compounding reasons, on record:
+
+1. **Zero measured benefit today** — 0 conversions across all 500 official cases.
+2. **Its consumer is a later increment** — frame-anchoring exists to serve rate-frame admission
+   (increment 2). The *next* increment is seeding-sentence injection, a shared layer that does not touch
+   it. Nothing on the critical path needs it now.
+3. **Fail-open surface at the sealed test for that zero benefit** — the polarity blocklist admits every
+   unenumerated verb; an unlisted depletion verb in a complete frame is a coherent-but-inverted graph =
+   a wrong on the run-once arbiter. The fail-closed doctrine never risks that, least of all for no gain.
+
+Verified before merge: with the whitelist reader restored, the 5 real compare parses are **non-divergent**
+— `test_real_compare_cases_solved_wrong_zero` still sees **5, solves 5, wrong 0** (corridor real-reach
+`0→5/500` preserved). The tier keeps its win without the frame change.
+
+### OPEN DESIGN TASK (owned by the rate-frame increment)
+**Frame-anchored comparative admission with wrong=0-safe polarity determination.** The frame is the right
+gate; the open problem is the verb's polarity bit. It must be **positively determined**, not
+assumed-safe-unless-blocklisted:
+
+- a **neutral-polarity allowlist** (fail-closed: only verbs affirmatively known non-inverting admit), or
+- a small **polarity classifier / lexicon** (possession/production/acquisition = neutral → `factor×ref`;
+  depletion/transfer/loss = inverting → refuse or model as a delta).
+
+Deliverable when the rate-frame increment lands it: exercised end-to-end on rate frames, measured on the
+disjoint split, wrong=0 preserved on the sealed arbiter. Until then the reader stays on the
+`_comparison_anchor_verb()` whitelist (fail-closed) for all comparative frames.

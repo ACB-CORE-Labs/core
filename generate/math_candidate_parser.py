@@ -1217,76 +1217,25 @@ _COMPARE_ADDITIVE_RE: Final[re.Pattern[str]] = re.compile(
     rf"(?P<reference>{_COMPARE_REF})\s*\.?$"
 )
 
-# ADR-0250 reader-arc increment 1 — FRAME-ANCHORED admission (verb-free).
-#
-# The multiplicative comparison FRAME — "<factor> as many/much <unit> as
-# <REF>" / "<N> times as many/much <unit> as <REF>" — is the closed-class
-# structure that carries the relation.  The verb between the actor and the
-# frame is open-class ("scored", "caught", "taught", "has", ...) and does NO
-# disambiguating work the frame doesn't already do; growing a verb whitelist
-# only adds maintenance and trap surface ("scored twice" = event count,
-# "reads twice a day" = frequency — both verb-adjacent traps).  So the
-# connector below admits ANY 0-3 word tokens in the verb slot and lets the
-# COMPLETE frame be the gate.  This is safe by construction:
-#   * both regexes remain ``$``-anchored, so the frame must end the clause —
-#     multi-clause / nested surfaces ("…, but 3 fewer…", "6 more than three
-#     times…") do NOT match and stay refused (a later layer / practice lane);
-#   * the connector is word-only (``\w+``), so it cannot span a comma or
-#     clause boundary — the actor stays the sentence-initial subject;
-#   * the frequency/event-count traps lack the "as many/much <unit> as <REF>"
-#     tail, so the frame refuses them WITHOUT any verb reasoning;
-#   * the round-trip filter + branch-disagreement + compiler conservation
-#     remain the wrong=0 net unchanged.
-# ``_comparison_anchor_verb()`` is intentionally left in place for the
-# ADDITIVE / NESTED frames (out of scope for this increment).
-#
-# ONE class of verb is NOT frame-neutral: polarity-inverting / depletion
-# verbs.  In "A <verb> N as many X as REF", a verb like lose/spend/give/sell
-# makes the compared quantity a LOSS or transfer delta, not a possession —
-# so ``actor = factor × reference`` (what compare_multiplicative asserts)
-# reads the relation backwards → wrong>0.  The frame does NOT disambiguate
-# this, so the connector must refuse to span any member of this closed set
-# (the exact set ``_comparison_anchor_verb`` documents as EXCLUDED).  This is
-# the sanctioned fallback: the frame is still the gate for every OTHER verb;
-# this blocklist is the minimal, closed, semantic-class piece of verb
-# knowledge wrong=0 requires — NOT an open-class whitelist.  Every non-listed
-# verb (scored/wrote/caught/taught/baked/grew/…) is admitted verb-free.
-_COMPARE_POLARITY_BLOCK: Final[str] = (
-    r"lose|lost|loses|losing|"
-    r"spend|spent|spends|spending|"
-    r"use|used|uses|using|"
-    r"give|gave|gives|giving|given|"
-    r"sell|sold|sells|selling|"
-    r"win|won|wins|winning|"
-    r"donate|donated|donates|donating|"
-    r"pay|paid|pays|paying|"
-    r"eat|ate|eats|eating|eaten|"
-    r"drop|dropped|drops|dropping|"
-    r"lend|lent|lends|lending"
-)
-_COMPARE_FRAME_CONNECTOR: Final[str] = (
-    rf"(?:(?!(?i:{_COMPARE_POLARITY_BLOCK})\b)\w+\s+){{0,3}}"
-)
-
 # Multiplicative: anchor-as-value form ("twice"/"thrice"/"half"/"quarter"/
-# "third" carry the factor implicitly). "as many/much <unit>" required; unit
+# "third" carry the factor implicitly). "as many <unit>" required; unit
 # ellipsis ("twice as many as Bob") is deferred to keep wrong==0 strict.
 # "quarter" / "third" admit an optional article ("a quarter", "a third") —
 # the article is not a named group; matched_verb is the anchor word itself,
 # which is a substring of the source and registered in
 # COMPARE_MULTIPLICATIVE_ANCHORS, so round-trip checks pass.
 _COMPARE_MULT_ANCHOR_RE: Final[re.Pattern[str]] = re.compile(
-    rf"^(?P<actor>{_ENTITY})\s+{_COMPARE_FRAME_CONNECTOR}"
-    r"(?:a\s+)?(?P<anchor>twice|thrice|half|quarter|third)\s+as\s+(?:many|much)\s+"
+    rf"^(?P<actor>{_ENTITY})\s+{_comparison_anchor_verb()}\s+"
+    r"(?:a\s+)?(?P<anchor>twice|thrice|half|quarter|third)\s+as\s+many\s+"
     r"(?P<unit>\w+(?:\s+\w+)?)\s+as\s+"
     rf"(?P<reference>{_COMPARE_REF})\s*\.?$"
 )
 
-# Multiplicative: explicit "N times as many/much <unit> as <REF>".
+# Multiplicative: explicit "N times as many <unit> as <REF>".
 # ADR-0131.G.2a — unit slot admits an optional second word ("jumping jacks").
 _COMPARE_MULT_NTIMES_RE: Final[re.Pattern[str]] = re.compile(
-    rf"^(?P<actor>{_ENTITY})\s+{_COMPARE_FRAME_CONNECTOR}"
-    rf"(?P<value>{_VALUE})\s+times\s+as\s+(?:many|much)\s+"
+    rf"^(?P<actor>{_ENTITY})\s+{_comparison_anchor_verb()}\s+"
+    rf"(?P<value>{_VALUE})\s+times\s+as\s+many\s+"
     r"(?P<unit>\w+(?:\s+\w+)?)\s+as\s+"
     rf"(?P<reference>{_COMPARE_REF})\s*\.?$"
 )
