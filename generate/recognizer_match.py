@@ -32,6 +32,7 @@ from dataclasses import dataclass
 from typing import Any, Final, Literal, Mapping
 
 from evals.refusal_taxonomy.shape_categories import ShapeCategory
+from generate.math_roundtrip import NEUTRAL_COUNT_VERBS
 from generate.recognizer_registry import RatifiedRecognizer
 
 
@@ -1050,7 +1051,11 @@ def _try_extract_discrete_count_anchor(
     verb = m.group("verb").lower()
     if verb in _POSSESSION_VERBS:
         anchor_kind = "possession"
-    elif verb in _ACQUISITION_VERBS:
+    elif verb in NEUTRAL_COUNT_VERBS:
+        # ADR-0250 increment 1 — #78 positive-polarity allowlist. Production /
+        # acquisition verbs (made/baked/grew/scored/wrote/taught/…) assert a
+        # count the actor gains → acquisition (CandidateOperation(add), from
+        # zero). Depletion/transfer verbs are NOT in the allowlist → refuse.
         anchor_kind = "acquisition"
     else:
         return None
@@ -1124,6 +1129,14 @@ _COMPOUND_REFUSE_SUBSTRINGS: Final[tuple[str, ...]] = (
     " half as ", " twice as ", " thrice ",
     "%", " percent",
     " half of ", " quarter of ", " third of ",
+    # ADR-0250 increment 1 — a compare clause using the "<factor> the
+    # amount/number of <REF>" surface carries NO digit, so the all-or-nothing
+    # tail-digit guard below cannot see it and would silently DROP it (e.g.
+    # "buys 4 lbs beans, 6 lbs milk, and twice the amount of carrots as beans"
+    # injected 4+6 and lost the carrots — a wrong=0 hazard). Refuse the whole
+    # compound when any such compare surface appears.
+    " twice the ", " thrice the ", " times the ", " half the ",
+    " the amount of ", " the number of ", " double ", " triple ",
 )
 
 # Fraction literal pattern (matched against raw statement, not padded).
@@ -1201,10 +1214,10 @@ def _try_extract_compound_discrete_count_anchors(
     verb = head_m.group("verb").lower()
     if verb in _POSSESSION_VERBS:
         anchor_kind: Literal["possession", "acquisition"] = "possession"
-    elif verb in _ACQUISITION_VERBS:
+    elif verb in NEUTRAL_COUNT_VERBS:
         anchor_kind = "acquisition"
     else:
-        return None  # head verb not in whitelist — refuse compound
+        return None  # head verb not in the #78 neutral-polarity allowlist — refuse compound
 
     def _resolve_count_kind(count_token: str) -> str | None:
         if count_token.isdigit():
