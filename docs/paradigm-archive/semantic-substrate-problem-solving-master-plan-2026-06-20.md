@@ -1,3 +1,5 @@
+> SUPERSEDED 2026-07-19 — consolidated under ADR-0252. Archived, not governing.
+
 # Semantic-Substrate Problem-Solving Master Plan — 2026-06-20
 
 **Status:** proposed implementation plan for architect ratification

@@ -1,3 +1,5 @@
+> SUPERSEDED 2026-07-19 — consolidated under ADR-0252. Archived, not governing.
+
 # GSM8K Capability Paradigm Sprint 9 — Lookback (2026-06-17)
 
 ## 1. Starting baseline

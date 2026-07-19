@@ -1,6 +1,7 @@
 # ADR-0164 — Incremental Comprehension Reader (replaces regex sentence-template parsing)
 
 **Status:** Accepted (ratified by ADR-0207, 2026-06-03) — Phase 1+2 shipped; remainder per ADR-0207 §5
+**Superseded-by:** ADR-0252 (problem-solving paradigm consolidation, 2026-07-19) — this ADR remains Accepted as the permanent record; the six unratified paradigm docs are retired under ADR-0252, not this ADR itself.
 **Date:** 2026-05-26
 **Author:** Shay
 **Anchor:** [[thesis-decoding-not-generating]]

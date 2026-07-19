@@ -1,3 +1,5 @@
+> SUPERSEDED 2026-07-19 — consolidated under ADR-0252. Archived, not governing.
+
 # Semantic-Symbolic Binding Graph Proposal
 
 **Status:** Proposed architecture direction  

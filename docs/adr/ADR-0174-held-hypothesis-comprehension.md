@@ -1,6 +1,7 @@
 # ADR-0174 — Held-Hypothesis Comprehension with Lookback and In-Loop Contemplation
 
 **Status:** Accepted (ratified by ADR-0207, 2026-06-03)
+**Superseded-by:** ADR-0252 (problem-solving paradigm consolidation, 2026-07-19) — this ADR remains Accepted as the permanent record; the six unratified paradigm docs are retired under ADR-0252, not this ADR itself.
 **Date:** 2026-05-28
 **Author:** Shay
 **Anchor:** [[thesis-decoding-not-generating]]

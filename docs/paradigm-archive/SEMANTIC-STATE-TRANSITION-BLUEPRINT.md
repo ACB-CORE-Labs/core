@@ -1,3 +1,5 @@
+> SUPERSEDED 2026-07-19 — consolidated under ADR-0252. Archived, not governing.
+
 # Semantic State Transition Blueprint
 
 **Status:** development blueprint / handoff document  

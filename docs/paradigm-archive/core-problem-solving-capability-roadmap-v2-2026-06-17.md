@@ -1,3 +1,5 @@
+> SUPERSEDED 2026-07-19 — consolidated under ADR-0252. Archived, not governing.
+
 # CORE Problem-Solving Capability Roadmap v2 — 2026-06-17
 
 **Status:** Living document (post-Gate-A1 calibration update)
