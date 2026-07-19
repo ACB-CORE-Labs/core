@@ -173,12 +173,22 @@ def _has_number_word(padded_lower: str) -> bool:
     return False
 
 
+_COMPARATIVE_TOKENS: Final[tuple[str, ...]] = (
+    " more than ", " less than ",
+    " twice as ", " twice the ",
+    " as much as ", " as many as ", " as long as ",
+    " times her ", " times his ", " times their ", " times the ",
+)
+
 def _has_any_quantity_marker(statement: str, padded_lower: str) -> bool:
     if _DIGIT_RE.search(statement):
         return True
     if _has_number_word(padded_lower):
         return True
     for needle in _INDEFINITE_TOKENS:
+        if needle in padded_lower:
+            return True
+    for needle in _COMPARATIVE_TOKENS:
         if needle in padded_lower:
             return True
     return False
@@ -1860,6 +1870,7 @@ from generate.math_candidate_parser import (  # noqa: E402
     _ANCHOR_TO_FACTOR,
     _COMPARE_MULT_ANCHOR_RE,
     _COMPARE_MULT_NTIMES_RE,
+    _COMPARE_MASSNOUN_RE,
     _is_indefinite_quantifier,
 )
 from generate.math_roundtrip import WORD_NUMBERS  # noqa: E402
@@ -1901,10 +1912,11 @@ def _parse_comparative_v1_count_factor(value_raw: str) -> float | None:
 def _is_comparative_multiplicative_v1_surface(statement: str) -> bool:
     """True when *statement* matches the Gate A1 closed comparative template."""
     s = statement.strip()
+    if _COMPARE_MASSNOUN_RE.match(s) is not None:
+        return True
     if _COMPARE_MULT_ANCHOR_RE.match(s) is not None:
         return True
     return _COMPARE_MULT_NTIMES_RE.match(s) is not None
-
 
 def _try_extract_comparative_multiplicative_anchor(
     statement: str,
@@ -1914,6 +1926,30 @@ def _try_extract_comparative_multiplicative_anchor(
     s = statement.strip()
     observed_anchors = set(spec.get("observed_factor_anchors") or ())
     allows_numeric = bool(spec.get("allows_numeric_factor"))
+
+    m = _COMPARE_MASSNOUN_RE.match(s)
+    if m is not None:
+        anchor_word = m.group("anchor").lower()
+        if anchor_word in _DEFERRED_COMPARATIVE_FACTOR_SURFACES:
+            return None
+        if anchor_word not in observed_anchors:
+            return None
+        factor, direction = _ANCHOR_TO_FACTOR[anchor_word]
+        actor_token = m.group("actor")
+        unit_token = m.group("unit")
+        reference_token = m.group("reference")
+        phrase = f"{anchor_word} the number of {unit_token}"
+        return {
+            "kind": "comparative_multiplicative",
+            "actor_token": actor_token,
+            "reference_actor_token": reference_token,
+            "unit_token": unit_token,
+            "factor_token": anchor_word,
+            "factor": factor,
+            "direction": direction,
+            "matched_verb": anchor_word,
+            "comparator_phrase": phrase,
+        }
 
     m = _COMPARE_MULT_ANCHOR_RE.match(s)
     if m is not None:

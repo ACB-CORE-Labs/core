@@ -253,6 +253,8 @@ def _has_any_quantity_marker(statement: str, padded_lower: str) -> bool:
         return True
     if _has_any_substring(padded_lower, _INDEFINITE_TOKENS):
         return True
+    if _has_any_substring(padded_lower, _COMPARATIVE_TOKENS):
+        return True
     return False
 
 

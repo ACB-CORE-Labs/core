@@ -2,8 +2,8 @@
   "baseline_correct": 0,
   "capability_pass": true,
   "counts": {
-    "correct": 5,
-    "refused": 495,
+    "correct": 6,
+    "refused": 494,
     "wrong": 0
   },
   "lane": "gsm8k_math/holdout_dev/v1",
@@ -606,7 +606,7 @@
     },
     {
       "case_id": "gsm8k-holdout-dev-v1-0148",
-      "verdict": "refused"
+      "verdict": "correct"
     },
     {
       "case_id": "gsm8k-holdout-dev-v1-0149",

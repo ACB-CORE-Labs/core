@@ -317,7 +317,17 @@ def _tokens(text: str) -> frozenset[str]:
 
 def _token_in(needle: str, haystack_tokens: frozenset[str]) -> bool:
     """Word-boundary containment: 'ate' must not match 'states'."""
-    return needle.lower() in haystack_tokens
+    lower = needle.lower()
+    if lower in haystack_tokens:
+        return True
+    
+    # ADR-0250 increment 2 widening: multi-word phrases ("the first day") ground 
+    # when every component appears as a word token in source.
+    parts = lower.split()
+    if len(parts) > 1 and all(p in haystack_tokens for p in parts):
+        return True
+        
+    return False
 
 
 def _unit_grounds(

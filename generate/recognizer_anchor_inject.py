@@ -53,6 +53,7 @@ from generate.math_candidate_parser import (
     CandidateOperation,
     _build_compare_multiplicative,
     _build_unit_partition,
+    _COMPARE_MASSNOUN_RE,
 )
 from generate.math_problem_graph import (
     InitialPossession,
@@ -761,9 +762,12 @@ def inject_comparative_multiplicative(
         return ()
 
     # Narrow actor binding (mirror rate v1): ProperName subject only.
-    actor = extract_proper_noun_subject(sentence)
-    if not actor or actor != actor_token:
-        return ()
+    # ADR-0250 increment 2 — mass noun form allows definite description actors.
+    is_massnoun = _COMPARE_MASSNOUN_RE.match(sentence.strip()) is not None
+    if not is_massnoun:
+        actor = extract_proper_noun_subject(sentence)
+        if not actor or actor != actor_token:
+            return ()
 
     cand = _build_compare_multiplicative(
         actor_raw=actor_token,

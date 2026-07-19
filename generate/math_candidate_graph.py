@@ -666,6 +666,18 @@ def _parse_and_solve_core(text: str, *, sealed: bool = False) -> CandidateGraphR
 
     question_sentences = [s for s in sentences if s.rstrip().endswith("?")]
     statement_sentences = [s for s in sentences if not s.rstrip().endswith("?")]
+    
+    # ADR-0163.D.3 / ADR-0250 increment 2 widening:
+    # If the question sentence contains a conditional prefix ("If X, ..."),
+    # we extract the conditional prefix and append it to statement_sentences.
+    # The prefix represents a load-bearing statement (InitialPossession / Operation).
+    if len(question_sentences) == 1:
+        m = _CONDITIONAL_PREFIX_RE.match(question_sentences[0])
+        if m is not None:
+            prefix = m.group(0).strip()
+            if prefix.endswith(","):
+                prefix = prefix[:-1]
+            statement_sentences.append(prefix)
     # ADR-0191 — preserve EVERY statement sentence before the numeric-only
     # filter below drops non-numeric ones.  The completeness guard must see
     # quantity signals carried in dropped sentences (e.g. "Jerry has twice
