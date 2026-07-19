@@ -1268,6 +1268,23 @@ _ANCHOR_TO_FACTOR: Final[dict[str, tuple[float, str]]] = {
     "third": (1.0 / 3.0, "fraction"),
 }
 
+# ADR-0250 increment 2 (case-first, target 0148) — mass-noun compare frame:
+#   "the [total] number of <unit> <participle> on <A> was <anchor> the [total]
+#    number [<participle>] on <B>"  →  A = <factor> × B.
+# The entities are mass-noun/temporal phrases ("the first day" / "the second
+# day"); the anchor is the SAME closed factor set as the possessive frames, so
+# no new factor/direction driver. Fail-closed: `$`-anchored, single clause, and
+# the anchor must be a known multiplier — an additive "N more … than" surface
+# has no anchor here and cannot match (that hazard belongs to compare_additive,
+# out of scope). Narrow by design; refuses anything off-shape.
+_COMPARE_MASSNOUN_RE: Final[re.Pattern[str]] = re.compile(
+    r"^\s*the\s+(?:total\s+)?number\s+of\s+(?P<unit>\w+)\s+\w+\s+on\s+"
+    r"(?P<actor>the\s+\w+(?:\s+\w+)?)\s+was\s+(?:a\s+)?"
+    r"(?P<anchor>twice|thrice|half|quarter|third)\s+the\s+(?:total\s+)?number\s+"
+    r"(?:\w+\s+)?on\s+(?P<reference>the\s+\w+(?:\s+\w+)?)\s*\.?\s*$",
+    flags=re.IGNORECASE,
+)
+
 
 def _direction_to_anchor(direction_raw: str) -> tuple[str, str]:
     """Map surface direction word → (canonical Comparison.direction,
@@ -1436,6 +1453,27 @@ def _compare_additive_candidates(sentence: str) -> list[CandidateOperation]:
 def _compare_multiplicative_candidates(sentence: str) -> list[CandidateOperation]:
     s = sentence.strip()
     out: list[CandidateOperation] = []
+
+    # ADR-0250 increment 2 — mass-noun frame ("the number of <unit> counted on
+    # <A> was twice the total number counted on <B>"). Checked first because its
+    # anchor set overlaps the possessive frames; fail-closed by the narrow regex.
+    m = _COMPARE_MASSNOUN_RE.match(s)
+    if m is not None:
+        anchor = m.group("anchor").lower()
+        factor, direction = _ANCHOR_TO_FACTOR[anchor]
+        cand = _build_compare_multiplicative(
+            actor_raw=m.group("actor"),
+            factor=factor,
+            matched_verb=anchor,
+            matched_value_token=anchor,
+            unit_raw=m.group("unit"),
+            reference_raw=m.group("reference"),
+            source=sentence,
+            direction=direction,
+        )
+        if cand is not None:
+            out.append(cand)
+        return out
 
     m = _COMPARE_MULT_ANCHOR_RE.match(s)
     if m is not None:
