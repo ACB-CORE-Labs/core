@@ -130,6 +130,8 @@ class CandidateInitial:
             # i.e. holds a count of N. Admitted only via the day-enumeration
             # extractor's closed shape; the whitelist is the runtime safety net.
             "do", "does", "did",
+            # ADR-0250 increment 2 widening:
+            "were counted on",
         ):
             raise ValueError(
                 f"CandidateInitial.matched_anchor must be a registered initial-"
@@ -262,6 +264,18 @@ _INITIAL_HAS_INDEF_RE: Final[re.Pattern[str]] = re.compile(
     r"(?:\s+(?P<unit>\w+))?"
     r"(?:\s+(?:of|in|for|with)\s+.+)?"
     r"\s*\.?$"
+)
+
+# ADR-0250 increment 2 widening:
+# "If 500 people were counted on the second day" -> passive seed
+_INITIAL_PASSIVE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^(?:If\s+)?(?P<value>\d+)\s+(?P<unit>\w+(?:\s+\w+)*)\s+(?P<anchor>were\s+counted\s+on)\s+(?P<entity>the\s+\w+\s+\w+)\.?$",
+    flags=re.IGNORECASE
+)
+
+_Q_COUNTED_RE: Final[re.Pattern[str]] = re.compile(
+    r"^How\s+many\s+(?P<unit>\w+)\s+were\s+counted(?:\s+on\s+the\s+two\s+days)?\s*\??$",
+    flags=re.IGNORECASE
 )
 
 # ADR-0194 — labeled-container subject: "Jar A has 28 marbles.",
@@ -525,6 +539,28 @@ def extract_initial_candidates(sentence: str) -> list[CandidateInitial]:
     """
     s = sentence.strip().rstrip(".")
     out: list[CandidateInitial] = []
+
+    m = _INITIAL_PASSIVE_RE.match(s)
+    if m is not None:
+        value_raw = m.group("value")
+        rv = _resolve_value(value_raw)
+        if rv is not None:
+            entity = _normalize_entity(m.group("entity"))
+            unit_raw = m.group("unit")
+            out.append(
+                CandidateInitial(
+                    initial=InitialPossession(
+                        entity=entity,
+                        quantity=Quantity(value=rv.value, unit=_canonicalize_unit(unit_raw))
+                    ),
+                    source_span=sentence,
+                    matched_anchor=m.group("anchor"),
+                    matched_value_token=value_raw,
+                    matched_unit_token=unit_raw,
+                    matched_entity_token=m.group("entity"),
+                )
+            )
+            return out
 
     m = _INITIAL_HAS_RE.match(s)
     if m is not None:
@@ -919,6 +955,20 @@ def extract_question_candidates(
         )
         return out
 
+    m = _Q_COUNTED_RE.match(s)
+    if m is not None:
+        unit_raw = m.group("unit")
+        unit = _canonicalize_unit(unit_raw)
+        out.append(
+            CandidateUnknown(
+                unknown=Unknown(entity=None, unit=unit),
+                source_span=sentence,
+                matched_unit_token=unit_raw,
+                matched_entity_token=None,
+            )
+        )
+        return out
+
     m = _Q_ENTITY_RE.match(s)
     if m is not None:
         unit_raw = m.group("unit")
@@ -1278,7 +1328,7 @@ _ANCHOR_TO_FACTOR: Final[dict[str, tuple[float, str]]] = {
 # has no anchor here and cannot match (that hazard belongs to compare_additive,
 # out of scope). Narrow by design; refuses anything off-shape.
 _COMPARE_MASSNOUN_RE: Final[re.Pattern[str]] = re.compile(
-    r"^\s*the\s+(?:total\s+)?number\s+of\s+(?P<unit>\w+)\s+\w+\s+on\s+"
+    r"^\s*(?:.*?\s*,\s*)?the\s+(?:total\s+)?number\s+of\s+(?P<unit>\w+)\s+\w+\s+on\s+"
     r"(?P<actor>the\s+\w+(?:\s+\w+)?)\s+was\s+(?:a\s+)?"
     r"(?P<anchor>twice|thrice|half|quarter|third)\s+the\s+(?:total\s+)?number\s+"
     r"(?:\w+\s+)?on\s+(?P<reference>the\s+\w+(?:\s+\w+)?)\s*\.?\s*$",
@@ -2409,6 +2459,11 @@ _WORD_NUMBER_RE: Final[re.Pattern[str]] = re.compile(
 )
 
 
+_COMPARE_MULT_ANCHOR_TOKENS_RE: Final[re.Pattern[str]] = re.compile(
+    r"\b(?:" + "|".join(re.escape(k) for k in _ANCHOR_TO_FACTOR.keys()) + r")\b",
+    re.IGNORECASE,
+)
+
 def has_numeric_token(sentence: str) -> bool:
     """Return True if *sentence* contains any digit or closed-set word-number.
 
@@ -2416,6 +2471,8 @@ def has_numeric_token(sentence: str) -> bool:
     so it is safe to classify as a context filler and skip it.
     """
     if re.search(r"\d", sentence):
+        return True
+    if _COMPARE_MULT_ANCHOR_TOKENS_RE.search(sentence):
         return True
     return bool(_WORD_NUMBER_RE.search(sentence))
 
