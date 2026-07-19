@@ -48,7 +48,7 @@ from core.physics.quantity_kernel import (
     translate_quantity,
 )
 from core.ports.residual_protocol import GENESIS_DIGEST
-from generate.math_problem_graph import MathProblemGraph, Quantity
+from generate.math_problem_graph import Comparison, MathProblemGraph, Quantity
 
 __all__ = [
     "MultiRegisterError",
@@ -63,6 +63,7 @@ __all__ = [
 
 _AFFINE = frozenset({"add", "subtract", "multiply", "divide"})
 _CONSERVATION_RTOL = 1e-6
+_COMPARE_MULT = "compare_multiply"  # internal turn kind for actor := factor × reference
 
 
 class MultiRegisterError(ValueError):
@@ -96,7 +97,8 @@ def _state_digest(psi: np.ndarray) -> str:
 
 @dataclass(frozen=True, slots=True)
 class RegisterTurn:
-    """One program step: a per-register affine op or a coupled transfer."""
+    """One program step: a per-register affine op, a coupled transfer, or a
+    cross-register comparison (``actor := factor × reference``)."""
 
     kind: str
     actor: str
@@ -104,6 +106,7 @@ class RegisterTurn:
     offset: float
     operand: float
     target: str | None = None
+    reference: str | None = None  # compare_multiply: the source register read from
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,6 +115,8 @@ class MultiRegisterProgram:
     turns: tuple[RegisterTurn, ...]
     answer_entity: str | None  # None ⇒ certified summation over all registers
     answer_unit: str
+    # Deterministic register order for summation: seed order, then compare-defined order.
+    register_order: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,7 +129,8 @@ class MultiRegisterRecord:
     converged: bool
     step: tuple[str, float, float]  # (kind, scale, offset)
     prev_record_digest: str
-    operand_source_digest: str = ""  # summation only: binds the operand to its source state
+    operand_source_digest: str = ""  # summation/compare: binds the operand to its source state
+    source_entity: str = ""  # compare only: the reference register the dilation read from
 
     def _payload(self) -> dict:
         payload = {
@@ -135,9 +141,12 @@ class MultiRegisterRecord:
             "step": [self.step[0], repr(float(self.step[1])), repr(float(self.step[2]))],
             "prev_record_digest": self.prev_record_digest,
         }
-        # Present only for summation turns, so non-summation record digests are unchanged.
+        # Each field is present only when set, so affine/transfer/summation record
+        # digests are byte-identical to before compare landed.
         if self.operand_source_digest:
             payload["operand_source_digest"] = self.operand_source_digest
+        if self.source_entity:
+            payload["source_entity"] = self.source_entity
         return payload
 
     def record_digest(self) -> str:
@@ -171,21 +180,48 @@ def compile_multi_register_program(graph: MathProblemGraph) -> MultiRegisterProg
         raise MultiRegisterError("no_initial_state")
     seeds: list[tuple[str, float]] = []
     units: dict[str, str] = {}
+    order: list[str] = []  # deterministic register order: seeds first, defined later
     for possession in graph.initial_state:
         entity = possession.entity
         if entity in units:
             raise MultiRegisterError("duplicate_initial_entity", entity=entity)
         units[entity] = possession.quantity.unit
+        order.append(entity)
         seeds.append((entity, float(possession.quantity.value)))
-
-    # A concrete unknown decodes that register; a None unknown ("altogether") is
-    # the explicit signal for a certified summation over all registers.
-    answer_entity = graph.unknown.entity
-    if answer_entity is not None and answer_entity not in units:
-        raise MultiRegisterError("unknown_entity_not_a_register", entity=answer_entity)
 
     turns: list[RegisterTurn] = []
     for op in graph.operations:
+        if op.kind == "compare_multiplicative":
+            # actor := factor × reference — a cross-register definition (AMENDMENT 1/2).
+            comparison = op.operand
+            if not isinstance(comparison, Comparison):
+                raise MultiRegisterError("compare_operand_not_comparison", kind=op.kind)
+            if comparison.direction not in ("times", "fraction"):
+                raise MultiRegisterError("compare_additive_out_of_scope", direction=comparison.direction)
+            reference = comparison.reference_actor
+            if reference not in units:
+                raise MultiRegisterError("compare_reference_not_a_register", reference=reference)
+            if comparison.factor is None:  # invariant: times/fraction carry a factor
+                raise MultiRegisterError("compare_missing_factor", direction=comparison.direction)
+            factor = float(comparison.factor)
+            if not math.isfinite(factor) or factor <= 0.0:
+                raise MultiRegisterError("compare_factor_not_positive", factor=factor)
+            if op.actor == reference:
+                raise MultiRegisterError("compare_self_reference", actor=op.actor)
+            # The comparison DEFINES the actor. If the actor is already known
+            # (seeded or defined earlier), this is a redefine — most often a
+            # mis-directed inverse compare (the known side used as the target).
+            # Refuse rather than overwrite: a reader direction error becomes a
+            # refusal, never a wrong (the reader must bind the unknown side as
+            # the target, with a fraction factor).
+            if op.actor in units:
+                raise MultiRegisterError("compare_redefines_register", actor=op.actor)
+            units[op.actor] = units[reference]  # unit propagation from the reference
+            order.append(op.actor)
+            turns.append(
+                RegisterTurn(_COMPARE_MULT, op.actor, factor, 0.0, factor, reference=reference)
+            )
+            continue
         if op.actor not in units:
             raise MultiRegisterError("actor_not_a_register", actor=op.actor)
         if op.kind == "transfer":
@@ -223,11 +259,18 @@ def compile_multi_register_program(graph: MathProblemGraph) -> MultiRegisterProg
                 raise MultiRegisterError("non_positive_scale", kind="divide", value=value)
             turns.append(RegisterTurn("divide", op.actor, 1.0 / value, 0.0, value))
 
+    # Validate the answer target AFTER ops, so compare-defined entities count
+    # (a concrete unknown may be a compare-defined register). None ⇒ summation.
+    answer_entity = graph.unknown.entity
+    if answer_entity is not None and answer_entity not in units:
+        raise MultiRegisterError("unknown_entity_not_a_register", entity=answer_entity)
+
     return MultiRegisterProgram(
         seeds=tuple(seeds),
         turns=tuple(turns),
         answer_entity=answer_entity,
         answer_unit=graph.unknown.unit,
+        register_order=tuple(order),
     )
 
 
@@ -284,6 +327,29 @@ def execute_multi_register_program(program: MultiRegisterProgram) -> MultiRegist
                 prev = record.record_digest()
                 records.append(record)
                 index += 1
+        elif turn.kind == _COMPARE_MULT:
+            # actor := factor × reference. Read the reference register's STATE,
+            # dilate, write the actor (a definition, not a transfer — no
+            # conservation pin). The record binds the reference entity + its state
+            # digest so re-verification reconstructs the source from records alone.
+            reference = turn.reference
+            if reference is None:  # invariant: compile sets a reference for compare
+                raise MultiRegisterError("compare_missing_reference", actor=turn.actor)
+            reference_state = registers[reference]
+            target = _unit(dilate_quantity(reference_state, -math.log(turn.scale)))
+            new_state, cert = _relax_to(reference_state, target)
+            if not cert.converged:
+                raise MultiRegisterError("compare_nonconverged", actor=turn.actor, reference=reference)
+            registers = {**registers, turn.actor: new_state}
+            record = MultiRegisterRecord(
+                index, turn.actor, cert.certificate_id, cert.converged,
+                (_COMPARE_MULT, turn.scale, 0.0), prev,
+                operand_source_digest=_state_digest(reference_state),
+                source_entity=reference,
+            )
+            prev = record.record_digest()
+            records.append(record)
+            index += 1
         else:
             target = _unit(
                 translate_quantity(
@@ -308,7 +374,10 @@ def execute_multi_register_program(program: MultiRegisterProgram) -> MultiRegist
         # decode of a certified register state, bound by ``operand_source_digest``
         # (= that state's psi_digest) — deterministic re-execution reproduces it,
         # so the Python layer cannot tamper with the intermediate value.
-        order = [entity for entity, _ in program.seeds]
+        # Registers-driven (AMENDMENT 1): sum ALL registers — seeds AND
+        # compare-defined — in the pinned deterministic order, so a defined
+        # register is never silently dropped from a total.
+        order = list(program.register_order)
         accumulator = registers[order[0]]
         for entity in order[1:]:
             source_state = registers[entity]
