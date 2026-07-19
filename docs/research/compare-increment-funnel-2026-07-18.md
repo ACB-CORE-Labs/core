@@ -37,6 +37,25 @@ the **injection** step then produces no candidate — the multi-clause / compare
 This is where the mass is — not the candidate regexes (they fire on clean clauses but the real
 sentences never reach them), and not segmentation writ large.
 
+## The "no injection" is intentional — the reader was waiting on the compiler
+
+Code archaeology (before treating "no injection" as a defect) found the cause is a **deliberate
+narrowing**, not broken code. In `generate/recognizer_anchor_inject.py`, the discrete-count injector
+carries explicit fail-closed guards for comparative surfaces:
+
+- Line ~324: *"…it is an incomplete comparative-multiplicative clause. Letting this through as an
+  initial … defeats the ADR-0191 completeness guard. **Refuse here until a real compare_multiplicative
+  operation can be emitted.**"*
+- `_count_token_followed_by_times` (~460): *"it only suppresses the malformed initial candidate and
+  **does not create any new admitting path**."*
+
+This is the **lockstep thesis of the arc written into the code's own history**: the reader
+deliberately *refused* compare shapes — to protect `wrong=0` and completeness — because nothing
+downstream could compile them. **The compiler tier this increment just shipped is exactly that
+"real compare_multiplicative operation."** So the fix is not repairing injection; it is **lifting a
+now-obsolete guard whose reason has shipped** — turning the deliberate suppression into a compare
+emission — which is a cleaner, safer change than patching around it.
+
 ## Consequence for the fix (emitter-fix, not gate-loosening)
 
 Injection is an **emitter** (it produces candidates), not a validator — so making it inject
