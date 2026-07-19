@@ -363,7 +363,7 @@ def _initial_admissible(ic: CandidateInitial) -> bool:
         return _composed_initial_admissible(ic)
     from generate.math_roundtrip import _tokens, _value_grounds, _token_in, _unit_grounds
     haystack = _tokens(ic.source_span)
-    if not _token_in(ic.matched_anchor, haystack):
+    if not _token_in(ic.matched_anchor, haystack, ic.source_span):
         return False
     if not _value_grounds(ic.matched_value_token, haystack):
         return False

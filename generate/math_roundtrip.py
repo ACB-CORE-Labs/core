@@ -315,16 +315,19 @@ def _tokens(text: str) -> frozenset[str]:
     return frozenset(m.group(0).lower() for m in _WORD_RE.finditer(text))
 
 
-def _token_in(needle: str, haystack_tokens: frozenset[str]) -> bool:
+def _token_in(needle: str, haystack_tokens: frozenset[str], source_span: str | None = None) -> bool:
     """Word-boundary containment: 'ate' must not match 'states'."""
     lower = needle.lower()
     if lower in haystack_tokens:
         return True
     
     # ADR-0250 increment 2 widening: multi-word phrases ("the first day") ground 
-    # when every component appears as a word token in source.
+    # when every component appears as a word token in source AND the phrase is a 
+    # contiguous substring in the original source text.
     parts = lower.split()
     if len(parts) > 1 and all(p in haystack_tokens for p in parts):
+        if source_span is not None and lower not in source_span.lower():
+            return False
         return True
         
     return False
@@ -505,11 +508,11 @@ def roundtrip_admissible(c: CandidateOperation) -> bool:
     haystack = _tokens(c.source_span)
 
     # 2. Matched verb must appear in source.
-    if not _token_in(c.matched_verb, haystack):
+    if not _token_in(c.matched_verb, haystack, c.source_span):
         return False
 
     # 3. Actor name must appear in source.
-    if not _token_in(c.matched_actor_token, haystack):
+    if not _token_in(c.matched_actor_token, haystack, c.source_span):
         return False
 
     # 4. Numeric value must ground.
@@ -535,12 +538,12 @@ def roundtrip_admissible(c: CandidateOperation) -> bool:
 
     # 6. Transfer target must appear.
     if c.matched_target_token is not None:
-        if not _token_in(c.matched_target_token, haystack):
+        if not _token_in(c.matched_target_token, haystack, c.source_span):
             return False
 
     # 7. Comparison reference_actor must appear.
     if c.matched_reference_actor_token is not None:
-        if not _token_in(c.matched_reference_actor_token, haystack):
+        if not _token_in(c.matched_reference_actor_token, haystack, c.source_span):
             return False
 
     # 8. Operand kind/shape sanity (defense-in-depth — Operation
