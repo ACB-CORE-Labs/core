@@ -49,6 +49,7 @@ from generate.math_problem_graph import (
 )
 from generate.math_roundtrip import (
     ADD_VERBS,
+    NEUTRAL_COUNT_VERBS,
     SUBTRACT_VERBS,
     TRANSFER_VERBS,
     WORD_NUMBERS,
@@ -1188,25 +1189,26 @@ def _resolve_reference_token(raw: str) -> tuple[str, str]:
     return collapsed, collapsed
 
 
+# ADR-0250 increment 1 (#78) — the comparison-frame verb slot is a POSITIVE
+# polarity ALLOWLIST, fail-closed: the shared NEUTRAL_COUNT_VERBS (production /
+# acquisition / possession-count verbs — made/baked/grew/scored/wrote/taught/…),
+# plus a few activity/possession verbs whose comparison reading is neutral
+# (does/takes/gains/studies/reads + the possession lemmas). Depletion/transfer
+# verbs (lose/spend/give/sell/win/use) are NOT in the set → the frame refuses
+# them by positive determination (never assume-safe-unless-blocklisted). This
+# is the same allowlist the seed reader uses — one piece of verb knowledge,
+# built once. The round-trip filter + reference grounding remain the wrong=0 net.
+_COMPARISON_ANCHOR_VERBS: Final[frozenset[str]] = NEUTRAL_COUNT_VERBS | frozenset({
+    "has", "have", "had", "holds", "hold", "held", "owns", "own", "owned",
+    "does", "do", "did", "takes", "take", "took",
+    "gains", "gain", "gained", "studies", "study", "studied", "reads", "read",
+})
+
+
 def _comparison_anchor_verb() -> str:
-    # ADR-0131.G.2a — widen the comparison anchor verb beyond 'has'/'have'.
-    # The verb here only names the action whose *quantity* is being compared
-    # ("A <verb> N more/×-as-many X than/as B"); it does not carry polarity
-    # the way accumulation verbs do, so a closed set of non-inverting action
-    # verbs is wrong=0-safe (the round-trip filter still requires the
-    # comparator anchor + reference actor to ground). The set reuses the
-    # already-vetted legacy math_parser._COMPARE_VERB lemmas plus the
-    # production/activity verbs observed in real GSM8K comparative statements
-    # ('does'/'collected'/'gained'/'studied' …).
-    #
-    # Deliberately EXCLUDED (polarity-inverting in a comparison context —
-    # admitting them could read the comparison backwards → wrong>0):
-    # lose/lost, win/won, spend/spent, use/used, give/gave, sell/sold.
-    return (
-        r"(?:has|have|had|gets|get|got|takes|take|took|buys|buy|bought|"
-        r"does|do|did|makes|make|made|collects|collect|collected|"
-        r"gains|gain|gained|studies|study|studied|reads|read)"
-    )
+    return "(?:" + "|".join(
+        sorted(_COMPARISON_ANCHOR_VERBS, key=len, reverse=True)
+    ) + ")"
 
 
 _COMPARE_ADDITIVE_RE: Final[re.Pattern[str]] = re.compile(

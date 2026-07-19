@@ -78,6 +78,42 @@ ADD_VERBS: Final[frozenset[str]] = frozenset({
     "pack", "packs", "packed",
     "build", "builds", "built",
     "grow", "grows", "grew",
+    # ADR-0250 increment 1 — curated neutral-gain production verbs the reader
+    # band needs (each asserts a COUNT of items the actor gains/produces; all
+    # verified gain-polarity, none depletion/transfer). Refusal-preferring:
+    # unknown verbs still refuse (curriculum).
+    "score", "scores", "scored",
+    "write", "writes", "wrote",
+    "teach", "teaches", "taught",
+    "plant", "plants", "planted",
+    "harvest", "harvests", "harvested",
+    "produce", "produces", "produced",
+    "draw", "draws", "drew",
+    "sing", "sings", "sang",
+})
+
+
+# ADR-0250 increment 1 — the #78 positive-polarity ALLOWLIST (fail-closed).
+# Neutral-polarity verbs that assert a COUNT of discrete possessable items the
+# actor GAINS or PRODUCES — safe to read as a seed (initial/add) or as the verb
+# anchor of a comparison frame ("A <verb> N times as many X as B"). This is the
+# ONE piece of verb knowledge the seed + comparison readers share, built once.
+# DELIBERATELY EXCLUDES: SUBTRACT_VERBS / TRANSFER_VERBS (polarity-inverting →
+# the compared/seeded quantity would be a loss, reading backwards → wrong>0);
+# and the ambiguous add-verbs save/add/slice/pack (save = "saved 20 minutes" is
+# not a possessed count; add/slice/pack take non-count readings). Positive
+# determination, never assume-safe-unless-blocklisted; unknown verb → refuse.
+NEUTRAL_COUNT_VERBS: Final[frozenset[str]] = frozenset({
+    "bake", "bakes", "baked", "make", "makes", "made", "cook", "cooks", "cooked",
+    "build", "builds", "built", "grow", "grows", "grew",
+    "buy", "buys", "bought", "get", "gets", "got", "find", "finds", "found",
+    "receive", "receives", "received", "earn", "earns", "earned",
+    "pick", "picks", "picked", "collect", "collects", "collected",
+    "gather", "gathers", "gathered", "catch", "catches", "caught",
+    "score", "scores", "scored", "write", "writes", "wrote",
+    "teach", "teaches", "taught", "plant", "plants", "planted",
+    "harvest", "harvests", "harvested", "produce", "produces", "produced",
+    "draw", "draws", "drew", "sing", "sings", "sang",
 })
 
 # Surface verbs that grammatically place the actor as the *loser* of the

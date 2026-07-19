@@ -1,6 +1,26 @@
-# Increment-1 Band Plan — reader arc (DESIGN-FIRST, awaits ruling)
+# Increment-1 Band Plan — reader arc (RULED — APPROVED TO BUILD)
 
-**Status**: DESIGN-FIRST — ruling before any build (same gate as PR #76).
+## RULING (Josh, PR #79, 2026-07-19) — approved to build under these
+
+- **Q1 depletion → REFUSE, confirmed.** Count depletion-containing band cases as *expected haircut*, not bugs.
+- **Q2 existential → admit CONTAINER-BOUND only, refuse container-less, confirmed.** If tune surfaces a
+  container-bound case that is actually a partitioned total, refuse that sub-form too.
+- **Q3 q:difference → DEFER the capability, CLOSE the hazard now.** Its 23 cases likely strand on
+  `multi-compound` (increment 2), so building the direction driver now is risk without in-band yield —
+  defer to where its cases convert, and **verify the co-occurrence to confirm**. BUT make the existing
+  partial Pattern-B ("how many more") path **fail-closed immediately**: if it can emit a guessed-direction
+  difference today, that is a latent wrong=0 hazard to close regardless. **Increment 1 then carries EXACTLY
+  ONE wrong=0 driver (#78).**
+- **Sharpening 1** — allowlist-miss refusals are recorded as **curriculum** (unknown-verb refusals feed the
+  practice/coverage backlog, not treated as failures).
+- **Sharpening 2** — the sha256 tune/measure split stays **FIXED across increments 1–3** (the ~40 bar is
+  cumulative; `evals/gsm8k_math/holdout_dev/v1/split.py` is frozen).
+- **Sharpening 3** — the **haircut factor** ships with the triple in the final report.
+
+The §3/§4/§6 design below is unchanged EXCEPT: q:difference (item 4) becomes *hazard-close only*, not a
+built capability; increment 1 carries one wrong=0 driver (#78), not two.
+
+**Status**: RULED — approved to build (measure-once). Design-first gate cleared (same gate as PR #76).
 **Date**: 2026-07-19
 **Base**: `forgejo/main @ e1eb2a5c` (worktree `core-wt-seed`, branch `feat/seeding-injection` → to be
 repurposed to the band).

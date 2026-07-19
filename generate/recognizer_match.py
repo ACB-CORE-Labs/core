@@ -32,6 +32,7 @@ from dataclasses import dataclass
 from typing import Any, Final, Literal, Mapping
 
 from evals.refusal_taxonomy.shape_categories import ShapeCategory
+from generate.math_roundtrip import NEUTRAL_COUNT_VERBS
 from generate.recognizer_registry import RatifiedRecognizer
 
 
@@ -1050,7 +1051,11 @@ def _try_extract_discrete_count_anchor(
     verb = m.group("verb").lower()
     if verb in _POSSESSION_VERBS:
         anchor_kind = "possession"
-    elif verb in _ACQUISITION_VERBS:
+    elif verb in NEUTRAL_COUNT_VERBS:
+        # ADR-0250 increment 1 — #78 positive-polarity allowlist. Production /
+        # acquisition verbs (made/baked/grew/scored/wrote/taught/…) assert a
+        # count the actor gains → acquisition (CandidateOperation(add), from
+        # zero). Depletion/transfer verbs are NOT in the allowlist → refuse.
         anchor_kind = "acquisition"
     else:
         return None
@@ -1201,10 +1206,10 @@ def _try_extract_compound_discrete_count_anchors(
     verb = head_m.group("verb").lower()
     if verb in _POSSESSION_VERBS:
         anchor_kind: Literal["possession", "acquisition"] = "possession"
-    elif verb in _ACQUISITION_VERBS:
+    elif verb in NEUTRAL_COUNT_VERBS:
         anchor_kind = "acquisition"
     else:
-        return None  # head verb not in whitelist — refuse compound
+        return None  # head verb not in the #78 neutral-polarity allowlist — refuse compound
 
     def _resolve_count_kind(count_token: str) -> str | None:
         if count_token.isdigit():
