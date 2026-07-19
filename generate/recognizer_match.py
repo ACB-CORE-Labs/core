@@ -1129,6 +1129,14 @@ _COMPOUND_REFUSE_SUBSTRINGS: Final[tuple[str, ...]] = (
     " half as ", " twice as ", " thrice ",
     "%", " percent",
     " half of ", " quarter of ", " third of ",
+    # ADR-0250 increment 1 — a compare clause using the "<factor> the
+    # amount/number of <REF>" surface carries NO digit, so the all-or-nothing
+    # tail-digit guard below cannot see it and would silently DROP it (e.g.
+    # "buys 4 lbs beans, 6 lbs milk, and twice the amount of carrots as beans"
+    # injected 4+6 and lost the carrots — a wrong=0 hazard). Refuse the whole
+    # compound when any such compare surface appears.
+    " twice the ", " thrice the ", " times the ", " half the ",
+    " the amount of ", " the number of ", " double ", " triple ",
 )
 
 # Fraction literal pattern (matched against raw statement, not padded).
