@@ -130,9 +130,9 @@ def run_four_arm_ablation(
         )
     )
 
-    # Metrics
-    # Metadata decision kind must match canonical (both PASS).
-    meta_identical = d_meta.kind is d_can.kind is DecisionKind.PASS
+    # Metrics — Stage 4 requires metadata bit-identical to canonical baseline
+    # (full SHA-256 of decision payload, not kind-only equality).
+    meta_identical = _digest(d_meta) == _digest(d_can) and d_meta.kind is DecisionKind.PASS
     # Executable must change decision to ABSTAIN vs baseline PASS.
     exec_changed = (
         d_can.kind is DecisionKind.PASS and d_exec.kind is DecisionKind.ABSTAIN

@@ -1,21 +1,25 @@
 """Bounded multi-step inductive closure over teaching-store relations (Stage 3C).
 
 Fixed-point expansion of same-relation chains with explicit budgets,
-cycle handling, contradiction detection, and replayable provenance.
+cycle handling, contradiction detection, geometric admissibility, and
+replayable provenance.
 
 Atom *identity* for entailment telemetry remains conformal
 (``CognitiveTurnPipeline._proof_atom``). This module expands the *relation
 graph* of surface triples from ``TeachingStore.triples()`` into a closed
 set under transitive composition of equal relation labels — not string
-atom join as final authority for field identity.
+atom join as final identity authority.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Iterable, Sequence
+from typing import Any, Callable, Iterable, Sequence
 
 _DEFAULT_BUDGET = 16
+
+# geometric_admissible(head, relation, tail) -> bool
+GeometricAdmissibleFn = Callable[[str, str, str], bool]
 
 
 def _norm(token: str) -> str:
@@ -71,7 +75,19 @@ class InductiveClosureResult:
             "fixed_point": self.fixed_point,
             "truncated": self.truncated,
             "n_derived": len(self.derived),
+            "n_admissible_derived": sum(1 for d in self.derived if d.admissible),
         }
+
+
+def default_geometric_admissible(head: str, relation: str, tail: str) -> bool:
+    """Strict default: a derived relation is admissible only if endpoints are
+    non-empty distinct tokens and the relation is non-empty. Callers that
+    have a vocab/field resolver should pass a stronger callback that checks
+    closed Cl(4,1) versors (see pipeline wiring).
+    """
+    del relation
+    h, t = head.strip(), tail.strip()
+    return bool(h) and bool(t) and h != t
 
 
 def expand_relation_closure(
@@ -79,6 +95,7 @@ def expand_relation_closure(
     *,
     budget: int = _DEFAULT_BUDGET,
     relations: Iterable[str] | None = None,
+    geometric_admissible: GeometricAdmissibleFn | None = None,
 ) -> InductiveClosureResult:
     """Compute same-relation transitive closure with budget and contradictions.
 
@@ -88,22 +105,20 @@ def expand_relation_closure(
         derive (a,r,c) with path a…c.
       * Cycle: if path would revisit a node, skip (no infinite loop).
       * Contradiction: two different tails for the same (head, relation)
-        at the same fixed-point layer mark both as contradiction=True
-        (functional assumption for same-relation edges).
+        among base facts mark contradiction=True.
+      * Geometric admissibility: each *derived* relation is stamped
+        admissible only when ``geometric_admissible(h,r,t)`` is True.
+        Default requires non-empty distinct endpoints; pipeline supplies
+        versor-grounded checks when session vocab is available.
       * Termination: no new triples or budget exhausted.
-
-    Geometric admissibility of *field* atoms is enforced by callers that
-    map surfaces through ``_proof_atom`` before using derived triples as
-    proof premises; this expander is total over the teaching-store graph.
     """
     if budget < 1:
         raise ValueError("budget must be >= 1")
 
+    geom = geometric_admissible or default_geometric_admissible
     rel_filter = None if relations is None else {_norm(r) for r in relations}
 
-    # Base
     base_list: list[DerivedRelation] = []
-    # key (h,r) -> set of tails for contradiction detection
     edge_map: dict[tuple[str, str], set[str]] = {}
     known: set[tuple[str, str, str]] = set()
 
@@ -118,6 +133,7 @@ def expand_relation_closure(
             continue
         known.add(key3)
         edge_map.setdefault((hn, rn), set()).add(tn)
+        # Base facts are store-grounded; admissible if geometric check passes.
         base_list.append(
             DerivedRelation(
                 head=hn,
@@ -125,11 +141,10 @@ def expand_relation_closure(
                 tail=tn,
                 path=(hn, tn),
                 step=0,
-                admissible=True,
+                admissible=bool(geom(hn, rn, tn)),
             )
         )
 
-    # Mark base contradictions
     contradictions: list[DerivedRelation] = []
     for (h, r), tails in edge_map.items():
         if len(tails) > 1:
@@ -148,7 +163,6 @@ def expand_relation_closure(
                     )
 
     derived: list[DerivedRelation] = []
-    # Working set of edges as (h,r,t) for composition
     work = set(known)
     steps_taken = 0
     fixed_point = False
@@ -157,7 +171,6 @@ def expand_relation_closure(
     for step in range(1, budget + 1):
         steps_taken = step
         new_edges: list[DerivedRelation] = []
-        # Index tails by (h,r)
         by_hr: dict[tuple[str, str], list[str]] = {}
         for h, r, t in work:
             by_hr.setdefault((h, r), []).append(t)
@@ -166,12 +179,12 @@ def expand_relation_closure(
             for b in mids:
                 for c in by_hr.get((b, r), ()):
                     if a == c:
-                        continue  # cycle / identity
+                        continue
                     key3 = (a, r, c)
                     if key3 in work:
                         continue
-                    # path reconstruction (bounded)
                     path = (a, b, c)
+                    ok = bool(geom(a, r, c))
                     new_edges.append(
                         DerivedRelation(
                             head=a,
@@ -179,7 +192,8 @@ def expand_relation_closure(
                             tail=c,
                             path=path,
                             step=step,
-                            admissible=True,
+                            admissible=ok,
+                            contradiction=False,
                         )
                     )
 
@@ -188,9 +202,6 @@ def expand_relation_closure(
             steps_taken = step - 1 if step > 0 else 0
             break
 
-        # Dedup new edges. Transitive multi-tails for the same (head, relation)
-        # are *not* contradictions — only base multi-tails (step 0) mark
-        # functional conflicts (recorded once above).
         for dr in new_edges:
             key3 = dr.as_triple()
             if key3 in work:
@@ -199,9 +210,7 @@ def expand_relation_closure(
             edge_map.setdefault((dr.head, dr.relation), set()).add(dr.tail)
             derived.append(dr)
     else:
-        # Budget exhausted without fixed point
         truncated = True
-        # Check if more edges would exist
         by_hr = {}
         for h, r, t in work:
             by_hr.setdefault((h, r), []).append(t)

@@ -61,8 +61,15 @@ def apply_he_morph_constraint(
     ``he_surface`` is the observed HE surface form when present.
     """
     mode = mode.strip().lower()
+    # Canonical baseline decision (no morph authority). Metadata-only must
+    # return this *exact* decision object shape so digests are bit-identical
+    # to baseline (Stage 4 sealed harness). Morph provenance is tracked by
+    # the ablation harness separately, never folded into the decision payload
+    # on the metadata arm.
+    baseline = ConstraintDecision(kind=DecisionKind.PASS, reason="canonical_baseline")
+
     if mode == "canonical":
-        return ConstraintDecision(kind=DecisionKind.PASS, reason="canonical_baseline")
+        return baseline
 
     if not he_surface:
         if mode == "adversarial":
@@ -70,7 +77,8 @@ def apply_he_morph_constraint(
                 kind=DecisionKind.FAIL_CLOSED,
                 reason="missing_he_surface",
             )
-        return ConstraintDecision(kind=DecisionKind.PASS, reason="no_he_surface")
+        # No HE surface → identical to baseline (including metadata arm).
+        return baseline
 
     hits = lookup_surface(observed_catalog, he_surface)
     if hits is None:
@@ -111,12 +119,8 @@ def apply_he_morph_constraint(
         )
 
     if mode == "metadata":
-        # Morph present for provenance only — decision identical to baseline.
-        return ConstraintDecision(
-            kind=DecisionKind.PASS,
-            reason="metadata_only_inert",
-            surfaces=(surface,),
-        )
+        # Morph observed but must not change the consumer decision vs baseline.
+        return baseline
 
     if mode == "adversarial" and "INVALID" in he_surface:
         return ConstraintDecision(
@@ -127,12 +131,7 @@ def apply_he_morph_constraint(
 
     # Executable rule arm
     if not rule.matches(surface):
-        return ConstraintDecision(
-            kind=DecisionKind.PASS,
-            reason="rule_preconditions_unmet",
-            surfaces=(surface,),
-            rule_id=rule.rule_id,
-        )
+        return baseline
 
     constraint = rule.to_constraint(surface)
     # Abstain when proposal asserts exclusive singular / singular-only claim
@@ -151,10 +150,5 @@ def apply_he_morph_constraint(
             surfaces=(surface,),
             rule_id=rule.rule_id,
         )
-    return ConstraintDecision(
-        kind=DecisionKind.PASS,
-        reason="rule_matched_no_conflict",
-        constraints=(constraint,),
-        surfaces=(surface,),
-        rule_id=rule.rule_id,
-    )
+    # Rule matched but no singular-exclusivity conflict → same decision as baseline.
+    return baseline

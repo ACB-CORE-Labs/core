@@ -41,9 +41,19 @@ def test_four_arm_ablation_sealed_metrics():
 
 
 def test_metadata_only_inert_vs_executable_effect():
+    import hashlib
+    import json
+
     catalog = load_observed_morphology("he_logos_micro_v1")
     plural = next(s for s in catalog if s.number == "plural")
     claim = f"{plural.lemma} must be singular only — exclusive singular identity"
+    can = apply_he_morph_constraint(
+        proposal_text=claim,
+        lemma_key=plural.lemma,
+        observed_catalog=catalog,
+        mode="canonical",
+        he_surface=plural.surface,
+    )
     meta = apply_he_morph_constraint(
         proposal_text=claim,
         lemma_key=plural.lemma,
@@ -58,6 +68,14 @@ def test_metadata_only_inert_vs_executable_effect():
         mode="executable",
         he_surface=plural.surface,
     )
+    # Bit-identical decision payloads (Stage 4 sealed requirement).
+    d_can = hashlib.sha256(
+        json.dumps(can.as_dict(), sort_keys=True).encode()
+    ).hexdigest()
+    d_meta = hashlib.sha256(
+        json.dumps(meta.as_dict(), sort_keys=True).encode()
+    ).hexdigest()
+    assert d_can == d_meta
     assert meta.kind is DecisionKind.PASS
     assert exe.kind is DecisionKind.ABSTAIN
     assert exe.rule_id == PLURAL_ABSTAIN_RULE_V0.rule_id
@@ -78,12 +96,11 @@ def test_oov_and_invalid_fail_closed():
 
 
 def test_teaching_store_consumer_seam_abstains_on_plural_rule():
-    """Live TeachingStore.add path: HE plural rule forces CONTESTED (abstain)."""
+    """Live TeachingStore.add path: HE plural rule auto-applies (no test-only kwarg)."""
     catalog = load_observed_morphology("he_logos_micro_v1")
     plural = next(s for s in catalog if s.number == "plural")
     store = TeachingStore(capacity=8)
 
-    # First proposal accepted
     cand1 = CorrectionCandidate(
         correction_text=f"{plural.lemma} is a logos utterance",
         intent=DialogueIntent(tag=IntentTag.CORRECTION, subject=plural.lemma),
@@ -100,18 +117,13 @@ def test_teaching_store_consumer_seam_abstains_on_plural_rule():
     p1 = store.add(rev1)
     assert p1 is not None
 
-    # Second proposal: singular exclusivity — HE morph consumer abstains
-    decision = apply_he_morph_constraint(
-        proposal_text=f"{plural.lemma} must be singular only — exclusive singular identity",
-        lemma_key=plural.lemma,
-        observed_catalog=catalog,
-        mode="executable",
-        he_surface=plural.surface,
-    )
-    assert decision.kind is DecisionKind.ABSTAIN
-    # Consumer integration: when ABSTAIN, teaching path marks CONTESTED
+    # Correction text includes the observed HE plural surface so the live
+    # auto-path in TeachingStore.add finds the catalog row and abstains.
     cand2 = CorrectionCandidate(
-        correction_text=f"{plural.lemma} must be singular only — exclusive singular identity",
+        correction_text=(
+            f"{plural.surface} ({plural.lemma}) must be singular only — "
+            f"exclusive singular identity"
+        ),
         intent=DialogueIntent(tag=IntentTag.CORRECTION, subject=plural.lemma),
         prior_surface="prior",
         prior_turn=1,
@@ -123,6 +135,24 @@ def test_teaching_store_consumer_seam_abstains_on_plural_rule():
         review_hash="h2",
         epistemic_status=EpistemicStatus.SPECULATIVE,
     )
-    p2 = store.add(rev2, he_morph_decision=decision)
+    # No he_morph_decision kwarg — production auto-path must fire.
+    p2 = store.add(rev2)
     assert p2 is not None
     assert p2.epistemic_status is EpistemicStatus.CONTESTED
+
+
+def test_vault_promotion_default_requires_geometric_unitarity():
+    """Production VaultPromotionPolicy() uses 1e-6 residual, not soft 0.05."""
+    from core.physics.learning import VaultPromotionPolicy
+    from core.physics.energy import EnergyClass, EnergyProfile
+
+    policy = VaultPromotionPolicy()  # production default
+    assert policy.residual_threshold <= 1e-6
+    soft = EnergyProfile(
+        raw=0.05, energy_class=EnergyClass.E0, coherence_residual=0.02
+    )
+    assert policy.decide(soft).promote is False
+    tight = EnergyProfile(
+        raw=0.05, energy_class=EnergyClass.E0, coherence_residual=1e-9
+    )
+    assert policy.decide(tight).promote is True

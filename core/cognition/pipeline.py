@@ -442,8 +442,25 @@ class CognitiveTurnPipeline:
             compose_surface = CognitiveTurnPipeline._render_compose_surface(compose_result)
 
         # Stage 3C — bounded inductive closure over teaching-store relations.
-        # Provenance-preserving fixed-point; folded into operator_invocation only.
-        inductive_closure = expand_relation_closure(triples, budget=16)
+        # Provenance-preserving fixed-point; derived edges require geometric
+        # admissibility (closed Cl(4,1) versors when vocab can ground them).
+        def _geom_admissible(h: str, r: str, t: str) -> bool:
+            del r
+            hv = self._resolve_surface_versor(h)
+            tv = self._resolve_surface_versor(t)
+            if hv is None or tv is None:
+                # Ungrounded endpoints cannot be promoted as geometric facts.
+                return False
+            return (
+                float(versor_condition(hv)) < 1e-6
+                and float(versor_condition(tv)) < 1e-6
+            )
+
+        inductive_closure = expand_relation_closure(
+            triples,
+            budget=16,
+            geometric_admissible=_geom_admissible,
+        )
 
         entailment_trace = self._maybe_entailment_trace(intent, triples)
 

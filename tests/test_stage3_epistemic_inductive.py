@@ -62,15 +62,35 @@ def test_inductive_closure_derives_two_hop():
         ("a", "is", "b"),
         ("b", "is", "c"),
     )
-    res = expand_relation_closure(triples, budget=8)
+    # Explicit geometric_admissible always-true for pure graph composition tests.
+    res = expand_relation_closure(
+        triples, budget=8, geometric_admissible=lambda h, r, t: True
+    )
     assert len(res.base) == 2
     derived_tails = {(d.head, d.relation, d.tail) for d in res.derived}
     assert ("a", "is", "c") in derived_tails
     assert res.fixed_point is True
     assert res.steps_taken >= 1
-    # Provenance path
     a_to_c = next(d for d in res.derived if d.head == "a" and d.tail == "c")
     assert a_to_c.path[0] == "a" and a_to_c.path[-1] == "c"
+    assert a_to_c.admissible is True
+
+
+def test_inductive_derived_requires_geometric_admissibility():
+    triples = (
+        ("a", "is", "b"),
+        ("b", "is", "c"),
+    )
+
+    def refuse_all(h, r, t):
+        del h, r, t
+        return False
+
+    res = expand_relation_closure(
+        triples, budget=8, geometric_admissible=refuse_all
+    )
+    assert any(d.head == "a" and d.tail == "c" for d in res.derived)
+    assert all(d.admissible is False for d in res.derived)
 
 
 def test_inductive_closure_detects_contradiction():
@@ -78,7 +98,9 @@ def test_inductive_closure_detects_contradiction():
         ("a", "is", "b"),
         ("a", "is", "c"),
     )
-    res = expand_relation_closure(triples, budget=4)
+    res = expand_relation_closure(
+        triples, budget=4, geometric_admissible=lambda h, r, t: True
+    )
     assert any(c.contradiction for c in res.contradictions)
     assert len(res.contradictions) >= 2
 
@@ -86,10 +108,10 @@ def test_inductive_closure_detects_contradiction():
 def test_inductive_closure_budget_truncation():
     # Long chain: a0->a1->...->a20
     triples = tuple((f"a{i}", "r", f"a{i+1}") for i in range(20))
-    res = expand_relation_closure(triples, budget=2)
+    ok = lambda h, r, t: True  # noqa: E731
+    res = expand_relation_closure(triples, budget=2, geometric_admissible=ok)
     assert res.truncated or res.steps_taken <= 2
-    # With larger budget, multi-hop appears
-    res2 = expand_relation_closure(triples, budget=16)
+    res2 = expand_relation_closure(triples, budget=16, geometric_admissible=ok)
     assert any(d.head == "a0" and d.tail == "a2" for d in res2.derived) or any(
         d.head == "a0" for d in res2.derived
     )
@@ -100,7 +122,9 @@ def test_inductive_closure_cycle_safe():
         ("a", "r", "b"),
         ("b", "r", "a"),
     )
-    res = expand_relation_closure(triples, budget=8)
+    res = expand_relation_closure(
+        triples, budget=8, geometric_admissible=lambda h, r, t: True
+    )
     # Must terminate without inventing infinite chain
     assert res.fixed_point or res.steps_taken <= 8
     assert all(len(d.path) < 20 for d in res.derived)
