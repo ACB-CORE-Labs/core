@@ -274,6 +274,43 @@ def test_surface_variant_inverted_s1():
     assert trace.graph_source == "sm_extract"
 
 
+def test_extract_refuses_multi_entity_zoo_0361():
+    """Regression: 0361 overmatch must refuse, never emit wrong certified answer.
+
+    Prior loose P2 regex matched 'John has 8 more pandas than he does lions'
+    as pure S1 and the corridor emitted 1.125 vs gold 114.0 (wrong≠0).
+    """
+    text = (
+        "John wants to start a zoo.  He has 15 snakes.  He has twice as many "
+        "monkeys as he does snakes.  He has 5 fewer lions than he does monkeys.   "
+        "John has 8 more pandas than he does lions.  John has 1/3 as many dogs as "
+        "he does pandas.  How many total animals does John have?"
+    )
+    from generate.structure_mapping.text_extract import extract_pure_s1
+
+    ext = extract_pure_s1(text)
+    assert ext.graph is None, f"must refuse extract, got {ext}"
+    assert ext.reason is not None
+    assert "not_pure_s1" in ext.reason or "no_pure" in ext.reason
+
+    out, trace, _ = run_structure_mapping_pipeline(text)
+    assert not out.emitted
+    assert out.answer is None
+    assert not trace.extract_used
+
+
+def test_extract_refuses_bare_n_more_as_factor():
+    """Bare additive 'N more' must never be parsed as multiplicative factor."""
+    from generate.structure_mapping.text_extract import extract_pure_s1
+
+    text = (
+        "John has 8 more pandas than he does lions. If John has 8 pandas, "
+        "how many pandas and lions do they have altogether?"
+    )
+    ext = extract_pure_s1(text)
+    assert ext.graph is None
+
+
 def test_mapper_modules_do_not_import_scoring_labels():
     root = Path("generate/structure_mapping")
     for path in root.glob("*.py"):

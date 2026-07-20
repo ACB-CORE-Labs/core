@@ -123,6 +123,20 @@ SUMMARY right-reason: correct=9 wrong=0 refused=0
 SUMMARY surface-variant: ok=True
 ```
 
+### 3g. Full holdout wrong=0 gate (all 500 — not curated subset)
+
+Regression: a loose inverted-seed regex matched multi-entity zoo case **0361**
+(`John has 8 more pandas…`) as pure S1 and the corridor emitted `1.125` vs
+gold `114.0`. Fixed by pure-family surface gates (require explicit multiplicative
+language; refuse bare `N more` / multi-clause / multi-numeric surfaces).
+
+```text
+$ uv run python scripts/measure_trackb_inc2.py --mode full-holdout-wrong0
+=== full holdout_dev/v1 wrong=0 gate (all 500 cases) ===
+SUMMARY full-holdout: emit_ok=9 wrong=0 refused=491 n=500
+PASS: wrong=0 absolute on full holdout_dev/v1
+```
+
 ---
 
 ## 4. Discipline checks
@@ -138,8 +152,9 @@ SUMMARY surface-variant: ok=True
 
 1. **S2–S4 holdout ratio = 0** until the serving reader (or a reviewed SM extract family) produces pure transfer/rate/additive graphs on holdout. Do not manufacture synthetic holdout clones for ratio.
 2. **S3/S4 solve emit** blocked by multi-register scope (`apply_rate`, `compare_additive` not Tier-2a). Gates not weakened — refuse.
-3. **SM extract is narrow** (regex pure-S1 templates only). It is not a general parser; expanding it is a deliberate future increment.
+3. **SM extract is narrow** (regex pure-S1 templates only, with fail-closed purity gates). It is not a general parser; expanding it is a deliberate future increment. Overmatch risk is gated by `mode full-holdout-wrong0` on all 500 cases.
 4. **Organ retirement** deferred; coverage-gain path met bar 2 without serving risk.
+5. **0361 pure-S1 overmatch** (fixed in follow-up commit): optional `times` in P2 regex treated additive `8 more` as multiplicative; purity gate + required `times as many` closed it. Full-holdout scan is now mandatory before claiming wrong=0.
 
 ---
 

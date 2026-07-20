@@ -410,6 +410,50 @@ def mode_right_reason() -> None:
     print(f"SUMMARY s2_public_sample: ok={s2_ok} scanned_transferish={s2_n}")
 
 
+def mode_full_holdout_wrong0() -> None:
+    """Absolute wrong=0 gate over **all** holdout_dev/v1 cases (not curated subset).
+
+    Any pipeline emit whose answer disagrees with gold is a hard failure of the
+    wrong=0 bar. Overmatching SM extract that certifies garbage is the hazard
+    this mode is designed to catch (regression: 0361).
+    """
+    print("=== full holdout_dev/v1 wrong=0 gate (all 500 cases) ===")
+    cases = _load_cases()
+    emit_ok = 0
+    wrong: list[tuple[str, float | None, float, str | None, str | None]] = []
+    refused = 0
+    for cid, row in cases.items():
+        gold = float(row["expected_answer"])
+        out, trace, _ = run_structure_mapping_pipeline(row["problem"])
+        if not out.emitted or out.answer is None:
+            refused += 1
+            continue
+        if abs(float(out.answer) - gold) <= 1e-6 * max(1.0, abs(gold)):
+            emit_ok += 1
+        else:
+            wrong.append(
+                (
+                    cid,
+                    out.answer,
+                    gold,
+                    trace.graph_source,
+                    trace.extract_pattern,
+                )
+            )
+    print(
+        f"SUMMARY full-holdout: emit_ok={emit_ok} wrong={len(wrong)} "
+        f"refused={refused} n={len(cases)}"
+    )
+    for cid, ans, gold, src, pat in wrong:
+        print(
+            f"  WRONG {cid} emit={ans} gold={gold} src={src} extract={pat}"
+        )
+    if wrong:
+        print("FAIL: wrong≠0 on holdout_dev/v1 — pure-family extract overmatch")
+    else:
+        print("PASS: wrong=0 absolute on full holdout_dev/v1")
+
+
 def mode_all() -> None:
     mode_ratio()
     print()
@@ -420,6 +464,8 @@ def mode_all() -> None:
     mode_parser_frontier()
     print()
     mode_right_reason()
+    print()
+    mode_full_holdout_wrong0()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -432,6 +478,7 @@ def main(argv: list[str] | None = None) -> int:
             "selector",
             "parser-frontier",
             "right-reason",
+            "full-holdout-wrong0",
             "all",
         ),
         default="all",
@@ -443,6 +490,7 @@ def main(argv: list[str] | None = None) -> int:
         "selector": mode_selector,
         "parser-frontier": mode_parser_frontier,
         "right-reason": mode_right_reason,
+        "full-holdout-wrong0": mode_full_holdout_wrong0,
         "all": mode_all,
     }[args.mode]()
     return 0
