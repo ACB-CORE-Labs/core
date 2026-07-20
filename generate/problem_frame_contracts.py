@@ -469,7 +469,7 @@ def assess_fraction_decrease(frame: ProblemFrame) -> ContractAssessment:
                 missing.append("state_entity_continuity_unproven")
 
     scale = quantities.get(scale_id) if scale_id is not None else None
-    if scale is not None and not (0 < scale.value < 1):
+    if scale is not None and not _is_valid_fraction_decrease_scale(scale.value):
         missing.append("scale_out_of_range")
 
     categories = {hazard.category for hazard in frame.hazards}
@@ -881,11 +881,30 @@ def assess_percent_partition(frame: ProblemFrame) -> ContractAssessment:
     )
 
 
+def _is_valid_fraction_decrease_scale(scale_value: object) -> bool:
+    """Canonical semantic domain for fraction-decrease scale: finite ``0 < k < 1``.
+
+    Shared by obligation assessment (``scale_out_of_range``) and geometric
+    VersorBinding admission so the geometric path cannot grant permission the
+    obligation layer denies. Accepts ``Fraction`` and numeric types via
+    ``float()``; rejects non-finite, zero, negative, one, and greater-than-one.
+    """
+    try:
+        k = float(scale_value)  # Fraction implements __float__
+    except (TypeError, ValueError):
+        return False
+    return bool(np.isfinite(k) and 0.0 < k < 1.0)
+
+
 def _dilation_versor_payload(scale: float) -> np.ndarray:
     """CGA dilation versor for multiplicative scale ``k`` (cosh/sinh on log-ratio).
 
     Pure construction boundary — produces a 32-float payload with
     ``versor_condition < 1e-6`` by construction for positive finite ``k``.
+
+    Note: mathematical dilation admits any positive finite ``k``. Organ-level
+    semantic domain for *fraction decrease* is stricter (``0 < k < 1``) and is
+    enforced by ``_is_valid_fraction_decrease_scale`` before binding.
     """
     k = float(scale)
     if not np.isfinite(k) or k <= 0.0:
@@ -929,6 +948,10 @@ def _versor_binding_from_scale_value(
     This is the post-pivot construction path: scale arrives as a grounded
     scalar fact on ProblemFrame — never re-parsed from "decrease to N/M of"
     prose. CGA dilation is a pure construction-boundary op on that number.
+
+    Callers that represent *fraction-decrease* organ admission must gate with
+    ``_is_valid_fraction_decrease_scale`` first; this helper only enforces the
+    algebraic dilation precondition (positive finite scale).
     """
     try:
         k = float(scale_value)  # Fraction implements __float__
@@ -953,6 +976,10 @@ def _fraction_decrease_scale_binding(frame: ProblemFrame) -> VersorBinding | Non
     2. Optional pack geometric_signature on the scale *surface* (named fractions
        / pack-ratified lemmas) when present — still identity = surface token,
        not a phrase regex.
+
+    Domain: only ``0 < scale < 1`` (finite) may produce a VersorBinding. This
+    matches ``assess_fraction_decrease`` / ``scale_out_of_range`` so geometric
+    admission cannot bypass the obligation semantic domain.
     """
     relations = [
         relation
@@ -980,24 +1007,36 @@ def _fraction_decrease_scale_binding(frame: ProblemFrame) -> VersorBinding | Non
         span = role_spans[0]
     source_span = (span.start, span.end)
 
-    # Prefer exact kernel scalar (slash_fraction / named fraction already
-    # canonicalized to Fraction on the frame).
-    binding = _versor_binding_from_scale_value(
-        getattr(scale_q, "value", scale_q),
-        semantic_identity=str(surface),
-        source_span=source_span,
-    )
-    if binding is not None:
-        return binding
+    scale_value = getattr(scale_q, "value", scale_q)
+
+    # Prefer exact kernel scalar when inside the organ domain.
+    if _is_valid_fraction_decrease_scale(scale_value):
+        binding = _versor_binding_from_scale_value(
+            scale_value,
+            semantic_identity=str(surface),
+            source_span=source_span,
+        )
+        if binding is not None:
+            return binding
+        return None
+
+    # Grounded numeric scale outside (0, 1): fail closed. Do not let pack
+    # geometric_signature re-admit an out-of-range kernel fact.
+    try:
+        float(scale_value)
+    except (TypeError, ValueError):
+        pass
+    else:
+        return None
 
     # Pack geometric_signature on scale surface (e.g. named fraction lemmas
-    # with senses geometric_signature) — substrate lookup only.
+    # with senses geometric_signature) — substrate lookup only; still domain-gated.
     signature = resolve_geometric_signature(str(surface))
     if signature is None:
         return None
     _, geom = signature
     scale = _scale_from_geometric_signature(geom)
-    if scale is None:
+    if scale is None or not _is_valid_fraction_decrease_scale(scale):
         return None
     return _versor_binding_from_scale_value(
         scale,
