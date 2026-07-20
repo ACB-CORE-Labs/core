@@ -98,6 +98,8 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_wave_a_multiplicative_aggregation_injector.py",
     ),
     "algebra": (
+        "tests/test_stage2_physics_hardening.py",
+        "tests/test_geometric_convergence_checklist.py",
         "tests/test_versor_closure.py",
         "tests/test_holonomy.py",
         "tests/test_holonomy_resonance.py",
