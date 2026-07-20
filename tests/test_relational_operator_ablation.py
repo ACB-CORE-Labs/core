@@ -236,22 +236,19 @@ def test_adversarial_refuse_closed(case: AblationCase) -> None:
         assert result.answer is None
 
 
-def test_preexisting_scale_out_of_range_gap_isolated() -> None:
-    """Document pre-existing Gate A2k gap: scale>1 may still admit geometrically.
+def test_scale_out_of_range_operator_and_baseline_refuse() -> None:
+    """Gate A2k: scale>1 is fail-closed on both baseline and geometric operator.
 
-    Frame assess_fraction_decrease marks scale_out_of_range (baseline refuses).
-    Geometric A2k path may still compute a negative delta — not introduced by
-    this ablation. Do not mask; pin the split so a future organ fix flips this.
+    Formerly pinned a pre-existing geometric bypass (negative delta). Obligation
+    and geometric admission now share 0 < scale < 1, so operator must refuse.
     """
     base = run_baseline(SCALE_OOR_PREEXISTING)
     op = run_operator(SCALE_OOR_PREEXISTING)
     assert base.outcome == "refused"
     assert base.answer is None
-    # Pre-existing: operator may wrong-commit. If a future PR fixes A2k, this
-    # assertion should be updated to require refuse.
-    assert op.outcome in {"refused", "wrong"}
-    if op.outcome == "wrong":
-        assert op.answer is not None
+    assert op.outcome == "refused"
+    assert op.answer is None
+    assert op.operator_bindings == 0
 
 
 def test_malformed_depth_labels_cannot_elevate_runnable() -> None:
