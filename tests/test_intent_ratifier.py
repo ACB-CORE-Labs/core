@@ -27,7 +27,6 @@ class _StubVocab:
 
 def _make_vocab(tokens: dict[str, int]) -> _StubVocab:
     table: dict[str, np.ndarray] = {}
-    rng = np.random.default_rng(0)
     for token, seed in tokens.items():
         rng = np.random.default_rng(seed)
         table[token] = rng.standard_normal(32).astype(np.float32)
@@ -35,20 +34,20 @@ def _make_vocab(tokens: dict[str, int]) -> _StubVocab:
 
 
 class TestRatifyIntent:
-    def test_unknown_seed_passthrough(self) -> None:
+    def test_unknown_seed_demotes(self) -> None:
         vocab = _make_vocab({})
         intent = DialogueIntent(tag=IntentTag.UNKNOWN, subject="")
         result = ratify_intent(intent, np.zeros(32, dtype=np.float32), vocab=vocab)
-        assert result.outcome is RatificationOutcome.PASSTHROUGH
+        assert result.outcome is RatificationOutcome.DEMOTED
         assert result.intent.tag is IntentTag.UNKNOWN
 
-    def test_no_anchor_returns_passthrough(self) -> None:
+    def test_no_anchor_demotes_to_unknown(self) -> None:
         vocab = _make_vocab({})  # empty vocab
         intent = DialogueIntent(tag=IntentTag.DEFINITION, subject="quokka")
         result = ratify_intent(intent, np.ones(32, dtype=np.float32), vocab=vocab)
-        assert result.outcome is RatificationOutcome.PASSTHROUGH
-        # Seed survives unchanged
-        assert result.intent.tag is IntentTag.DEFINITION
+        assert result.outcome is RatificationOutcome.DEMOTED
+        assert result.intent.tag is IntentTag.UNKNOWN
+        assert result.seed_tag is IntentTag.DEFINITION
 
     def test_ratified_when_prompt_aligns_with_anchor(self) -> None:
         vocab = _make_vocab({"truth": 1})
@@ -56,17 +55,25 @@ class TestRatifyIntent:
         intent = DialogueIntent(tag=IntentTag.DEFINITION, subject="truth")
         # prompt = the anchor itself → maximally aligned
         result = ratify_intent(intent, anchor, vocab=vocab, threshold=0.0)
-        assert result.outcome in (
-            RatificationOutcome.RATIFIED,
-            RatificationOutcome.PASSTHROUGH,
-        )
-        # Either way the seed survives
+        assert result.outcome is RatificationOutcome.RATIFIED
         assert result.intent.tag is IntentTag.DEFINITION
+
+    def test_subject_self_boost_does_not_rescue_weak_prompt(self) -> None:
+        """Skeptic: subject self-inner must not override a weak prompt field."""
+        vocab = _make_vocab({"truth": 1, "is": 2})
+        subject = vocab.get_versor("truth")
+        # Weak prompt anti-aligned with subject (not the subject versor itself).
+        weak = (-subject).astype(np.float32)
+        intent = DialogueIntent(tag=IntentTag.DEFINITION, subject="truth")
+        result = ratify_intent(intent, weak, vocab=vocab, threshold=0.5)
+        assert result.outcome is RatificationOutcome.DEMOTED
+        assert result.intent.tag is IntentTag.UNKNOWN
+        # Score is cga_inner(weak, anchors) only — not cga_inner(subject, subject).
+        assert result.score < 0.5
 
     def test_demoted_under_extreme_threshold(self) -> None:
         vocab = _make_vocab({"x": 7})
         intent = DialogueIntent(tag=IntentTag.DEFINITION, subject="x")
-        # threshold is unreachable → guaranteed demotion to UNKNOWN
         result = ratify_intent(
             intent,
             np.zeros(32, dtype=np.float32),
@@ -84,6 +91,47 @@ class TestRatifyIntent:
         a = ratify_intent(intent, prompt, vocab=vocab)
         b = ratify_intent(intent, prompt, vocab=vocab)
         assert a == b
+
+    def test_correction_tag_anchors_ratify_without_passthrough(self) -> None:
+        """CORRECTION must ground via tag subspace, not PASSTHROUGH or empty anchors.
+
+        Teaching capture requires intent.tag remains CORRECTION after field
+        ratification. Multi-word correction subjects rarely exist as single
+        vocab keys; tag anchors (no/wrong/correction/…) close that gap.
+        """
+        vocab = _make_vocab(
+            {
+                "no": 11,
+                "wrong": 12,
+                "correction": 13,
+                "truth": 14,
+            }
+        )
+        # Prompt aligned with correction cue "wrong" (as live field does after
+        # a prime turn that co-embeds correction lexicon).
+        prompt = vocab.get_versor("wrong")
+        intent = DialogueIntent(
+            tag=IntentTag.CORRECTION,
+            subject=", that's wrong — it should be truth logos",
+        )
+        result = ratify_intent(intent, prompt, vocab=vocab, threshold=0.0)
+        assert result.outcome is RatificationOutcome.RATIFIED
+        assert result.intent.tag is IntentTag.CORRECTION
+        assert result.seed_tag is IntentTag.CORRECTION
+        assert result.score >= 0.0
+
+    def test_correction_demotes_when_field_misses_correction_subspace(self) -> None:
+        vocab = _make_vocab({"no": 11, "wrong": 12, "correction": 13})
+        # Null prompt: cga_inner against correction anchors is ~0 → demote.
+        # (Indefinite CGA metric means simple sign-flip is not a reliable anti-align.)
+        prompt = np.zeros(32, dtype=np.float32)
+        intent = DialogueIntent(
+            tag=IntentTag.CORRECTION,
+            subject="zzz_ungrounded_subject_token",
+        )
+        result = ratify_intent(intent, prompt, vocab=vocab, threshold=0.5)
+        assert result.outcome is RatificationOutcome.DEMOTED
+        assert result.intent.tag is IntentTag.UNKNOWN
 
 
 class TestRegionForIntent:

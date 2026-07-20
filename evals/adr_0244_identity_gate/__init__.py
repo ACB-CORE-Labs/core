@@ -109,7 +109,24 @@ def _score(check: IdentityCheck, manifold: IdentityManifold, versor: np.ndarray)
 
 
 def _legacy_score(check: IdentityCheck, manifold: IdentityManifold):
-    return check.check(_Trajectory(), manifold)  # no wave_field → legacy path
+    """Geometry-blind baseline after scalar-L2 path excision.
+
+    Pre-convergence this called ``check`` without ``wave_field`` and used the
+    legacy L2 heuristic (always neutral on empty trajectories). That path is
+    gone (:class:`MissingWaveStateError`). The ablation still needs a blind
+    control that cannot distinguish attack versors by geometry — a fixed
+    unflagged neutral score is that control, not a restored L2 oracle.
+    """
+    del check, manifold  # unused; baseline is intentionally input-independent
+    from core.physics.identity import IdentityScore
+
+    return IdentityScore(
+        score=0.5,
+        flagged=False,
+        deviation_axes=frozenset(),
+        trajectory_id="legacy_excised_baseline",
+        wave_mode_active=False,
+    )
 
 
 def run_identity_gate_ablation() -> dict[str, Any]:

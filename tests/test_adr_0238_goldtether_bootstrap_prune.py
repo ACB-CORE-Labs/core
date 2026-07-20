@@ -84,10 +84,12 @@ def test_promote_refuses_non_closed_even_when_authorized():
 
 def test_promote_refuses_high_residual_even_when_authorized():
     """Drift-loud states must not enter 𝓘_gold even under explicit authorize."""
+    from core.physics.goldtether import GoldTetherViolationError
+
     m = GoldTetherMonitor()
     dirty = _dirty()
     # proof claims residual 0 but live residual is large — refuse
-    with pytest.raises(ValueError, match="residual|ε|epsilon|drift"):
+    with pytest.raises((ValueError, GoldTetherViolationError), match="residual|ε|epsilon|drift|GoldTether|closed|versor"):
         m.promote_gold_invariant(
             dirty,
             authorized=True,

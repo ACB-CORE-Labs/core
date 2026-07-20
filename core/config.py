@@ -292,15 +292,12 @@ class RuntimeConfig:
     # wanting a hard identity-continuity guarantee opt in.
     strict_identity_continuity: bool = False
 
-    # ADR-0244 §2.2 / §4a — operator-preservation identity gate. When on, the
-    # per-turn identity check runs the metric-exact wave-field gate on the live
-    # versor (final_state.F): subspace-leakage + signed self-alignment via
-    # F aᵢ F̃, plus the boundary_ids intersection with the turn's safety/ethics
-    # violations, and a fail-closed IdentityGateRefusal folded into the typed
-    # refusal surface. OFF by default: the leakage threshold is provisional
-    # (reuses alignment_threshold) until calibrated to γ_id in D4 Phase 3, and
-    # the flag-off path is byte-identical to the pre-ADR-0244 advisory behavior
-    # (legacy scalar-L2 identity score, no geometric refusal).
+    # ADR-0244 §2.2 / §4a — live identity *refusal* on operator-preservation
+    # leakage / inversion / boundary breach (IdentityGateRefusal). Scoring always
+    # uses the metric-exact wave path on final_state.F; this flag only controls
+    # whether a flagged score becomes a typed refusal surface. OFF by default:
+    # γ_id separates geometric attack signal from benign traffic poorly on the
+    # current nominal axis frame (see ADR-0244 Phase 3 honesty notes).
     identity_wave_gate: bool = False
 
     # ADR-0246 §3.7 — the fuller induced-action admit surface (d_orth, d_stab vs

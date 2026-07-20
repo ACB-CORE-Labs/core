@@ -209,8 +209,10 @@ def test_pipeline_oov_geometric_context_hook() -> None:
     assert "unresolved_topology" in ctx
     assert isinstance(ctx["unresolved_topology"], tuple)
     assert len(ctx["unresolved_topology"]) >= 1
-    assert ctx.get("geometric_probe_performed") is False
-    assert "Hook for geometric anti-unification" in ctx.get("note", "")
+    # Probe runs when vault is scannable; empty vault yields False + empty neighbors.
+    assert isinstance(ctx.get("geometric_probe_performed"), bool)
+    assert "conformal_neighbors" in ctx
+    assert "Conformal anti-unification" in ctx.get("note", "")
     # Intent should be captured for context.
     assert ctx.get("intent_tag") in ("definition", "unknown", "recall")  # tolerant for classifier
     # 3-lang OOV bridge: node_depths always present (empty if no depth langs on nodes)

@@ -30,6 +30,7 @@ preserving honest refusal per ADR-0022 §2.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import Enum, unique
 
@@ -39,23 +40,51 @@ from algebra.cga import cga_inner
 from generate.admissibility import AdmissibilityRegion, region_from_relation_chain
 from generate.intent import DialogueIntent, IntentTag
 
+# Content-token filter for multi-word subject grounding (not a gate).
+_SUBJECT_STOPWORDS = frozenset(
+    {
+        "a",
+        "an",
+        "the",
+        "it",
+        "that",
+        "this",
+        "those",
+        "these",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "s",
+        "and",
+        "or",
+        "to",
+        "of",
+        "in",
+        "on",
+        "for",
+        "with",
+        "as",
+        "by",
+        "from",
+        "at",
+        "should",
+        "would",
+        "could",
+        "must",
+        "can",
+        "will",
+    }
+)
+
 
 @unique
 class RatificationOutcome(Enum):
     RATIFIED = "ratified"
     DEMOTED = "demoted"
-    # Generic PASSTHROUGH — emitted by ratify_intent() when no vocab-grounded
-    # anchor exists or when the seed is already UNKNOWN.  Preserved for callers
-    # that use RatificationOutcome.PASSTHROUGH directly (e.g. existing tests).
-    PASSTHROUGH = "passthrough"
-    # Specific PASSTHROUGH sub-values — emitted by _ratify_intent() in
-    # CognitiveTurnPipeline to distinguish the three cold-start conditions
-    # (ADR-0144 / ADR-0142 §Implementation debts, debt 1).  All four PASSTHROUGH
-    # variants are normalised to "passthrough" before being folded into
-    # trace_hash so pre-ADR-0144 hashes remain byte-identical.
-    PASSTHROUGH_NO_FIELD = "passthrough_no_field"
-    PASSTHROUGH_NO_VOCAB = "passthrough_no_vocab"
-    PASSTHROUGH_NO_VERSOR = "passthrough_no_versor"
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,37 +105,77 @@ class RatifiedIntent:
     seed_tag: IntentTag
 
 
-def _intent_anchor_versor(vocab, intent: DialogueIntent) -> np.ndarray | None:
-    """Return a vocab-grounded anchor versor for ``intent`` or ``None``.
+def _subject_anchor_tokens(subject: str) -> list[str]:
+    """Ground multi-word subjects as whole phrase plus content tokens.
 
-    The anchor is the prompt-side reference the prompt versor is
-    compared against.  v1 uses the intent's subject token when the
-    vocab carries it; absent that, the predicate anchor for the
-    intent tag (e.g. ``is`` for DEFINITION) is the fallback.
-
-    Returns ``None`` when no anchor is grounded — that signals
-    PASSTHROUGH (the ratifier has nothing to check against, so the
-    seed survives unchanged).  PASSTHROUGH is deliberately distinct
-    from RATIFIED so the trace can audit unratified turns.
+    Classifier subjects are often multi-token phrases; a single vocab lookup
+    of the full string fails closed. Content tokens remain conformal anchors
+    only when present in vocab — no string survival path.
     """
-    if not intent.subject:
-        return None
-    subject = intent.subject.lower()
+    raw = subject.lower().strip()
+    if not raw:
+        return []
+    tokens = [raw]
+    for part in re.split(r"[^\w]+", raw, flags=re.UNICODE):
+        if part and part not in _SUBJECT_STOPWORDS:
+            tokens.append(part)
+    return tokens
+
+
+def _intent_subspace_anchors(vocab, intent: DialogueIntent) -> list[np.ndarray]:
+    """Vocab-grounded intent-subspace anchors for conformal argmax scoring.
+
+    Anchors are candidate points on the manifold (subject, tag predicates,
+    relation). The prompt field is scored against these anchors only —
+    never against a string-derived subject self-inner product.
+    """
+    candidates: list[str] = []
+    if intent.subject:
+        candidates.extend(_subject_anchor_tokens(intent.subject))
+    if intent.secondary_subject:
+        candidates.extend(_subject_anchor_tokens(intent.secondary_subject))
+    if intent.object:
+        candidates.extend(_subject_anchor_tokens(intent.object))
+    if intent.relation:
+        candidates.append(intent.relation.strip().lower())
     match intent.tag:
         case IntentTag.DEFINITION:
-            candidates: tuple[str, ...] = (subject, "is")
+            candidates.extend(("is", "definition"))
         case IntentTag.CAUSE:
-            candidates = (subject, "causes", "because")
-        case IntentTag.TRANSITIVE_QUERY if intent.relation:
-            candidates = (subject, intent.relation)
+            candidates.extend(("causes", "because"))
+        case IntentTag.COMPARISON:
+            # Pack lexicon uses "compare"; "like"/"compared" may be absent.
+            candidates.extend(("compare", "like", "unlike", "compared", "contrast"))
+        case IntentTag.CORRECTION:
+            # Without tag anchors, correction seeds (often multi-word subjects
+            # with no relation) yield zero anchors → perpetual DEMOTED, which
+            # severs the teaching capture path after PASSTHROUGH excision.
+            candidates.extend(
+                ("no", "wrong", "actually", "correction", "incorrect")
+            )
+        case IntentTag.VERIFICATION:
+            candidates.extend(("is", "true", "verify"))
+        case IntentTag.RECALL:
+            candidates.extend(("remember", "recall"))
         case _:
-            candidates = (subject,)
+            pass
+    anchors: list[np.ndarray] = []
+    seen: set[str] = set()
     for token in candidates:
+        if not token or token in seen:
+            continue
+        seen.add(token)
         try:
-            return np.asarray(vocab.get_versor(token), dtype=np.float32)
+            anchors.append(np.asarray(vocab.get_versor(token), dtype=np.float32))
         except (KeyError, AttributeError):
             continue
-    return None
+    return anchors
+
+
+def _intent_anchor_versor(vocab, intent: DialogueIntent) -> np.ndarray | None:
+    """Return the first vocab-grounded intent-subspace anchor, or ``None``."""
+    anchors = _intent_subspace_anchors(vocab, intent)
+    return anchors[0] if anchors else None
 
 
 #: Default ratification threshold (Finding 3, audit 2026-05-20).
@@ -136,46 +205,50 @@ def ratify_intent(
 ) -> RatifiedIntent:
     """Ratify a seeded intent against the prompt versor.
 
-    The seed classifier (``generate.intent.classify_intent``) produced
-    ``intent`` syntactically.  This function checks whether the
-    prompt versor's geometric position is consistent with that
-    classification — concretely, whether ``cga_inner(prompt, anchor)
-    ≥ threshold`` where ``anchor`` is the vocab-grounded reference
-    for the seeded intent's subject/relation.
+    The seed classifier produces ``intent`` syntactically. This function
+    scores **only** the prompt field versor against the intent subspace
+    anchors in ``vocab`` via conformal argmax:
+
+        score = max_i cga_inner(prompt, anchor_i)
+
+    No subject self-inner boost, no string-grounded survival path.
 
     Outcomes:
 
-      * ``RATIFIED`` — the seed survives; the field agrees with the
-        regex.
-      * ``DEMOTED`` — the field disagrees; the intent is replaced
-        with ``IntentTag.UNKNOWN`` so the downstream pipeline routes
-        through the unknown-domain surface (ADR-0022 §2).
-      * ``PASSTHROUGH`` — no vocab-grounded anchor exists for the
-        seed; the seed survives unchanged but the trace records
-        that the field did not ratify it.
-
-    The pre-existing ``IntentTag.UNKNOWN`` seed is treated as
-    PASSTHROUGH (no demotion of an already-unknown intent).
+      * ``RATIFIED`` — prompt field correlates with the intent subspace
+        at or above ``threshold``.
+      * ``DEMOTED`` — field disagrees, seed is already ``UNKNOWN``, or
+        no grounded anchors exist; intent becomes ``IntentTag.UNKNOWN``.
     """
     if intent.tag is IntentTag.UNKNOWN:
         return RatifiedIntent(
             intent=intent,
-            outcome=RatificationOutcome.PASSTHROUGH,
+            outcome=RatificationOutcome.DEMOTED,
             score=0.0,
             threshold=threshold,
             seed_tag=intent.tag,
         )
-    anchor = _intent_anchor_versor(vocab, intent)
-    if anchor is None:
+    anchors = _intent_subspace_anchors(vocab, intent)
+    if not anchors:
+        demoted = DialogueIntent(
+            tag=IntentTag.UNKNOWN,
+            subject=intent.subject,
+            secondary_subject=intent.secondary_subject,
+            object=intent.object,
+            relation=intent.relation,
+            negated=intent.negated,
+            frame=intent.frame,
+        )
         return RatifiedIntent(
-            intent=intent,
-            outcome=RatificationOutcome.PASSTHROUGH,
+            intent=demoted,
+            outcome=RatificationOutcome.DEMOTED,
             score=0.0,
             threshold=threshold,
             seed_tag=intent.tag,
         )
     prompt = np.asarray(prompt_versor, dtype=np.float32)
-    score = float(cga_inner(prompt, anchor))
+    # Argmax over intent subspace only — prompt field vs each anchor.
+    score = max(float(cga_inner(prompt, a)) for a in anchors)
     if score >= threshold:
         return RatifiedIntent(
             intent=intent,

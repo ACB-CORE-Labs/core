@@ -56,10 +56,11 @@ def test_corridor_end_to_end_composes_real_compilers_through_readback_and_goldte
     assert egress["route"] == "readback_eligible"
     assert egress["energy_class"] in ("E3", "E4")
 
-    # A multi-mode superposition is NOT a closed versor — egress must not have
-    # silently gated on versor closure to reach admitted/readback_eligible.
-    assert egress["versor_closed"] is False
-    assert egress["versor_residual"] > _CLOSURE
+    # Multi-modality ingest uses Spin(4,1) sandwich transport with GoldTether
+    # unitary close (geometric sovereignty). Residual sits at the closure floor;
+    # admission is energy-routed, not "open superposition only".
+    assert egress["versor_closed"] is True
+    assert egress["versor_residual"] < _CLOSURE
 
     # E3/E4 readback carries no hedge prefix (ADR-0006): energy_modulated_surface
     # must not have silently repaired/altered the base surface for a hot state.

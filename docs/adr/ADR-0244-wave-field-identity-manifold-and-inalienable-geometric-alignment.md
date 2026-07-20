@@ -65,7 +65,7 @@ This ADR resolves these issues by completely reconstructing the Identity Manifol
 
 We completely solidify CORE's identity layer by establishing that **identity is an inalienable geometric property of the wave-field itself, defended via metric-exact spectral projection and topological charge conservation**.
 
-We implement this transition through a **dual-mode architecture** in `core/physics/identity.py`, maintaining 100% backwards compatibility with legacy heuristic fixtures while enabling optimal wave-field geometry when wave-packets are present.
+We implement this transition through a **wave-only geometry path** in `core/physics/identity.py`. Scalar-L2 dual-mode fallback has been **excised** (system convergence 2026-07-20): missing `ψ_traj` raises `MissingWaveStateError`; scoring always uses metric-exact Gram / operator-preservation geometry.
 
 ---
 
@@ -177,35 +177,19 @@ We implement a **Fibonacci-Word Background Scheduler** strictly isolated from th
 
 ---
 
-## 3\. Backwards Compatibility & Dual-Mode Fallback
+## 3\. Fail-Closed Wave Requirement (Dual-Mode Excised)
 
-To prevent any regression across existing test suites and fixtures, `IdentityCheck().check(trajectory)` operates in a **graceful dual-mode configuration**:
+**Supersedes the former dual-mode / scalar-L2 fallback.** Convergence (2026-07-20) removed `_axis_projection`, `_mean_frame_coherence`, and the blend `(0.75 * score) + (0.25 * directional_weight * coherence_term)` entirely.
 
-def check(self, trajectory, manifold: IdentityManifold | None \= None) \-\> IdentityScore:
+`IdentityCheck().check(trajectory, manifold, *, wave_field=...)` now requires an explicit Cl(4,1) `wave_field` (`ψ_traj`). Absence raises typed `MissingWaveStateError`. Malformed fields raise `ValueError`. Live *refusal* remains flag-gated via `RuntimeConfig.identity_wave_gate`; **scoring is always geometric**.
 
-    \# 1\. Check if the trajectory contains a wave-field representation (ADR-0244)
-
-    psi\_traj \= getattr(trajectory, "psi\_traj", None)
-
-    if psi\_traj is not None:
-
-        \# Execute metric-exact wave-field spectral projection
-
-        ...
-
-    else:
-
-        \# Fall back gracefully to legacy scalar-L2 heuristics (ADR-0010)
-
-        ...
-
-This ensures that legacy evaluation suites (such as `evals/adversarial_identity` and `evals/teaching_injection_resistance`) run without modification, while wave-capable serving paths automatically leverage the high-assurance geometric projection.
+Callers (e.g. `chat/runtime.py`) always pass `final_state.F`. Evaluation suites that previously relied on L2 must supply a wave field.
 
 ---
 
 ## 4\. Implementation Specification
 
-The conformed implementation in `core/physics/identity.py` combines both legacy and upgraded paths:
+The conformed implementation in `core/physics/identity.py` is wave-only (Gram / operator-preservation via `identity_manifold.py`):
 
 \# core/physics/identity.py
 
@@ -515,12 +499,15 @@ def axis_response(R, axes_psi, g_inv):
     return leak, align
 ```
 
-**Phase 2 gate — `core/physics/identity.py` (§2.2; dual-mode, fail-closed):**
+**Phase 2 gate — `core/physics/identity.py` (§2.2; wave-only, fail-closed):**
 
 ```python
 class IdentityGateRefusal(Exception):
     """Fail-closed refusal: leakage/orientation or boundary check failed and
     C_id could not recover alignment within its bound. Params unchanged."""
+
+class MissingWaveStateError(ValueError):
+    """Raised when wave_field / ψ_traj is absent (scalar-L2 path excised)."""
 
 def _wave_field_check(F_traj, axes_psi, g_inv) -> tuple[float, list, list]:
     F = np.ascontiguousarray(F_traj, dtype=np.float32)
@@ -531,14 +518,11 @@ def _wave_field_check(F_traj, axes_psi, g_inv) -> tuple[float, list, list]:
     if F.shape != (N_COMPONENTS,):
         raise ValueError(f"F_traj must be shape ({N_COMPONENTS},), got {F.shape}")
     leak, align = axis_response(F.astype(np.float64), axes_psi, g_inv)
-    # subspace-preservation score (RMS leakage over axes; each rotated axis is
-    # unit-norm, so the denominator is sqrt(n)); orientation carried separately.
     score = 1.0 - (sum(l * l for l in leak) / len(leak)) ** 0.5
     return score, leak, align
 
-# Malformed F_traj (NaN / wrong shape / wrong byte-order) raises — it never
-# falls through to the legacy scalar-L2 path (Sec 3's dual-mode fallback is
-# for ABSENT F_traj only, not malformed F_traj).
+# Absent F_traj → MissingWaveStateError. Malformed F_traj → ValueError.
+# No scalar-L2 fallback remains (convergence 2026-07-20).
 ```
 
 Egress condition (replaces §2.2 item 2's formula — `∧ ΔQ_top = 0` dropped per governance annotation item 1; operator-preservation per item 12):

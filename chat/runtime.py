@@ -2684,26 +2684,19 @@ class ChatRuntime:
         # --- end articulation fidelity ---
 
         reasoning_trajectory = _make_trajectory_from_result(result, self._context.turn)
-        # ADR-0244 §2.2 — operator-preservation identity gate (flag-gated). When
-        # on, the check runs the metric-exact wave-field gate on the live versor
-        # final_state.F; when off, wave_field=None selects the legacy scalar-L2
-        # path (byte-identical). The boundary_ids intersection needs the
-        # safety/ethics verdicts, which are computed below — it is supplemented
-        # after those run.
-        # ADR-0246 §3.7 — fuller admit surface, flag-gated + default-off. The
-        # policy is placeholder/uncalibrated (calibrated=False); it only acts
-        # when identity_wave_gate is also on (a wave_field exists).
+        # ADR-0244 §2.2 — metric-exact operator-preservation identity score always
+        # runs on the live versor final_state.F (scalar-L2 path excised). Live
+        # *refusal* remains flag-gated via identity_wave_gate below.
+        # ADR-0246 §3.7 — fuller admit surface, flag-gated + default-off.
         _admission_policy = (
             AdmissionPolicy.placeholder_default()
-            if self.config.identity_action_surface
+            if self.config.identity_action_surface and self.config.identity_wave_gate
             else None
         )
         identity_score = self._identity_check.check(
             reasoning_trajectory,
             self.identity_manifold,
-            wave_field=(
-                result.final_state.F if self.config.identity_wave_gate else None
-            ),
+            wave_field=result.final_state.F,
             admission_policy=_admission_policy,
             turn_id=self._context.turn,
             pack_id=self.identity_pack_id,

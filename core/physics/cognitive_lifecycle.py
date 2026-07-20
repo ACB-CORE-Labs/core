@@ -68,15 +68,23 @@ if TYPE_CHECKING:  # annotation-only: the monitor instance is caller-supplied
 
 import numpy as np
 
-from algebra.cl41 import N_COMPONENTS, geometric_product
+from algebra.cl41 import N_COMPONENTS, geometric_product, reverse
+from algebra.rotor import word_transition_rotor
+from algebra.versor import versor_condition
 from core.physics.energy import EnergyClass, EnergyProfile, FieldEnergyOperator
-from core.physics.sensorium_wave_feed import PacketLike, _coerce_packet, superpose_packets
+from core.physics.goldtether import GoldTetherViolationError, require_unitary
+from core.physics.sensorium_wave_feed import (
+    PacketLike,
+    _coerce_packet,
+    compile_packet_to_psi,
+    superpose_packets,
+)
 from core.physics.wave_energy_boundary import (
     CrystallizationDecision,
     crystallization_for_holographic_seal,
     energy_profile_from_wave,
 )
-from core.physics.wave_manifold import WaveManifold
+from core.physics.wave_manifold import WaveManifold, multivector_content_digest
 
 _NEAR_ZERO = 1e-12
 _UNIT_TOL = 1e-9
@@ -214,45 +222,180 @@ def assignment_component_index(assignment_mask: int) -> int:
 
 
 @dataclass(frozen=True, slots=True)
+class ModalityTransition:
+    """Provenance for a versor-sandwich modality transition (Spin(4,1))."""
+
+    psi_in_digest: str
+    psi_out_digest: str
+    rotor_digest: str
+    goldtether_residual: float
+    source_modality: str
+    target_modality: str
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "psi_in_digest": self.psi_in_digest,
+            "psi_out_digest": self.psi_out_digest,
+            "rotor_digest": self.rotor_digest,
+            "goldtether_residual": float(self.goldtether_residual),
+            "source_modality": self.source_modality,
+            "target_modality": self.target_modality,
+        }
+
+
+def modality_transition_sandwich(
+    psi_in: np.ndarray,
+    rotor: np.ndarray,
+    *,
+    source_modality: str = "",
+    target_modality: str = "",
+    epsilon_drift: float = _EPSILON_DRIFT,
+) -> tuple[np.ndarray, ModalityTransition]:
+    """Inter-modality transition: ψ_out = R · ψ_in · rev(R), R ∈ Spin(4,1).
+
+    Fail-closed GoldTether validation on the output (and on the rotor unit
+    residual). Digests are full SHA-256 over little-endian float64 bytes.
+    Maps the dossier's multimodal_lifecycle sandwich contract onto this module
+    (the real lifecycle owner; ``multimodal_lifecycle.py`` does not exist).
+    """
+    psi = _as_psi(psi_in, "ψ_in", error=IngressDegenerate)
+    R = np.asarray(rotor, dtype=np.float64)
+    if R.shape != (N_COMPONENTS,):
+        raise IngressDegenerate("bad_rotor_shape", shape=list(R.shape))
+    if float(versor_condition(R)) >= float(epsilon_drift):
+        raise GoldTetherViolationError(
+            float(versor_condition(R)),
+            float(epsilon_drift),
+            detail="modality rotor not unit versor",
+        )
+    # ψ_out = R ψ rev(R)
+    psi_out = geometric_product(geometric_product(R, psi), reverse(R)).astype(np.float64)
+    residual = float(require_unitary(psi_out, epsilon=float(epsilon_drift)))
+    transition = ModalityTransition(
+        psi_in_digest=multivector_content_digest(psi),
+        psi_out_digest=multivector_content_digest(psi_out),
+        rotor_digest=multivector_content_digest(R),
+        goldtether_residual=residual,
+        source_modality=str(source_modality),
+        target_modality=str(target_modality),
+    )
+    return psi_out, transition
+
+
+@dataclass(frozen=True, slots=True)
 class IngressWavePacket:
-    """Normalized ingress field ψ_context with provenance (ADR-0243 §2.1)."""
+    """Normalized ingress field ψ_context with provenance (ADR-0243 §2.1).
+
+    Multi-modality composition is sandwich-governed: each inter-modality step
+    is recorded in ``modality_transitions`` with full SHA-256 digests.
+    """
 
     psi: np.ndarray
     domain_id: str
     modality_ids: tuple[str, ...]
     packet_digest: str
+    modality_transitions: tuple[ModalityTransition, ...] = ()
 
     def __post_init__(self) -> None:
         arr = _as_psi(self.psi, "ψ_context", error=IngressDegenerate)
         arr = arr.copy()
         arr.setflags(write=False)
         object.__setattr__(self, "psi", arr)
+        object.__setattr__(
+            self,
+            "modality_transitions",
+            tuple(self.modality_transitions),
+        )
+
+
+def _construction_unitize(psi: np.ndarray, *, name: str) -> np.ndarray:
+    """Owned construction-boundary Euclidean unitize (not hot-path repair)."""
+    arr = np.asarray(psi, dtype=np.float64).reshape(-1)
+    if arr.shape != (N_COMPONENTS,):
+        raise IngressDegenerate("bad_shape", name=name, shape=list(arr.shape))
+    if not np.all(np.isfinite(arr)):
+        raise IngressDegenerate("non_finite", name=name)
+    norm = float(np.linalg.norm(arr))
+    if not np.isfinite(norm) or norm < _NEAR_ZERO:
+        raise IngressDegenerate("degenerate_packet", name=name, norm=norm)
+    return (arr / norm).astype(np.float64)
 
 
 def ingest_context(packets: Sequence[PacketLike], domain_id: str) -> IngressWavePacket:
-    """Superpose modality packets and normalize at the owned construction boundary.
+    """Compose modality packets into ψ_context with sandwich-governed multi-modality.
 
-    Delegates superposition to :func:`sensorium_wave_feed.superpose_packets`
-    (which refuses empty input). Normalization here is the ONE owned
-    construction boundary of the lifecycle (D-3) — a degenerate superposition
-    (destructive cancellation below ``1e-12``) is refused, never zero-filled.
+    * Empty input refuses (via superpose preflight / empty list).
+    * Degenerate linear cancellation (Σψ ≈ 0) refuses as construction failure.
+    * Single packet: construction-boundary unitize only.
+    * Multi-packet: successive Spin(4,1) sandwiches
+      ``ψ ← R_i · ψ · rev(R_i)`` with
+      ``R_i = word_transition_rotor(ψ, ψ_{i+1})``, each step fail-closed via
+      :func:`modality_transition_sandwich` (GoldTether + SHA-256 digests).
+
+    Normalization / unitize lives only at this owned construction boundary.
     """
     domain = str(domain_id).strip()
     if not domain:
         raise IngressDegenerate("empty_domain_id")
+    if not packets:
+        raise ValueError("superpose_packets: empty packet list")
+
+    # Preflight: refuse empty and destructive cancellation (Σψ ≈ 0).
     total = superpose_packets(packets)
-    norm = float(np.linalg.norm(total))
-    if not np.isfinite(norm) or norm < _NEAR_ZERO:
-        raise IngressDegenerate("degenerate_superposition", norm=norm, n_packets=len(packets))
-    psi = (total / norm).astype(np.float64)
-    modality_ids = tuple(_coerce_packet(p).modality_id for p in packets)
+    mass = float(np.linalg.norm(total))
+    if not np.isfinite(mass) or mass < _NEAR_ZERO:
+        raise IngressDegenerate(
+            "degenerate_superposition", norm=mass, n_packets=len(packets)
+        )
+
+    coerced = [_coerce_packet(p) for p in packets]
+    modality_ids = tuple(p.modality_id for p in coerced)
+    transitions: list[ModalityTransition] = []
+
+    # Seed from first packet at construction boundary.
+    psi = _construction_unitize(
+        compile_packet_to_psi(coerced[0]), name="packet[0]"
+    )
+
+    # Multi-modality: sandwich each subsequent packet into the field.
+    for i in range(1, len(coerced)):
+        target = _construction_unitize(
+            compile_packet_to_psi(coerced[i]), name=f"packet[{i}]"
+        )
+        try:
+            rotor = word_transition_rotor(psi, target)
+        except ValueError as exc:
+            raise IngressDegenerate(
+                "modality_rotor_refused",
+                source=modality_ids[i - 1],
+                target=modality_ids[i],
+                detail=str(exc),
+            ) from exc
+        psi, tr = modality_transition_sandwich(
+            psi,
+            rotor,
+            source_modality=modality_ids[i - 1],
+            target_modality=modality_ids[i],
+            epsilon_drift=_EPSILON_DRIFT,
+        )
+        transitions.append(tr)
+
+    # Final construction close: unit Euclidean density for energy path.
+    psi = _construction_unitize(psi, name="ψ_context")
+    digests = [tr.psi_out_digest for tr in transitions]
     return IngressWavePacket(
         psi=psi,
         domain_id=domain,
         modality_ids=modality_ids,
         packet_digest=_content_id(
-            {"psi": _psi_digest(psi), "domain": domain, "modalities": list(modality_ids)}
+            {
+                "psi": _psi_digest(psi),
+                "domain": domain,
+                "modalities": list(modality_ids),
+                "transitions": digests,
+            }
         ),
+        modality_transitions=tuple(transitions),
     )
 
 
@@ -1053,7 +1196,14 @@ def tether_reading(
         autonomy = float(monitor.autonomy)
         updated = False
     else:
-        residual, autonomy = monitor.update(arr)
+        # ``GoldTetherMonitor.update`` raises on R > ε after forcing autonomy
+        # to zero. Corridor tether readings must surface that fail-closed
+        # residual without aborting the lifecycle observation path.
+        try:
+            residual, autonomy = monitor.update(arr)
+        except GoldTetherViolationError as exc:
+            residual = float(exc.residual)
+            autonomy = float(monitor.autonomy)
         updated = True
     chiral_verdict = monitor.chiral_gate.observe(arr).verdict
     return TetherReading(
@@ -1198,6 +1348,8 @@ __all__ = [
     "compile_quadratic_well",
     "egress_gate",
     "ingest_context",
+    "modality_transition_sandwich",
+    "ModalityTransition",
     "propositional_entails",
     "relax_to_ground",
     "serving_cast",

@@ -1,6 +1,6 @@
 # ADR-0243: Wave-Field Cognitive Lifecycle — Comprehension, Resonant Reasoning, and Lifelong Learning
 
-**Status**: Accepted — ratified by Joshua Shay 2026-07-17 (via docs/audit/adr-0243-acceptance-packet-2026-07-17.md)  
+**Status**: Proposed (acceptance path: benchmark evidence \+ Joshua review)  
 **Date**: 2026-07-14  
 **Deciders**: Joshua Shay \+ multi-model R\&D  
 **Traceability**: Notion R\&D (Engineering Reference Vault Interconnection: `core_HA` Patterns)  
@@ -211,13 +211,13 @@ class CognitiveLifecycleEngine:
 
         \# path only. The np.dot / la.expm sketch below is HISTORICAL and
 
-        \# superseded (pin SD-B; convergence 2026-07-20).
+        \# SUPERSEDED (pin SD-B; convergence 2026-07-20). Multi-modality
+
+        \# ingress uses modality_transition_sandwich (R·ψ·rev(R) + GoldTether).
 
         \#
 
-        \# Schrödinger-style discrete step (wave_manifold): R = exp(B·Δt) via
-
-        \# closed-form / series bivector exp; sandwich ψ' = R ψ ~R.
+        \# Schrödinger propagator sketch (DO NOT IMPLEMENT):
 
         generator \= np.dot(H\_problem, self.I)  \# SUPERSEDED — do not implement
 
@@ -230,6 +230,8 @@ class CognitiveLifecycleEngine:
         for \_ in range(relaxation\_steps):
 
             psi \= np.dot(R, psi)
+
+            \# Enforce the null-cone amplitude normalization step
 
             norm \= np.linalg.norm(psi)
 
@@ -260,6 +262,8 @@ class CognitiveLifecycleEngine:
         psi\_arr \= np.asarray(psi\_steady, dtype=np.float64)
 
         \# SUPERSEDED flat residual — use geometric_product path in code:
+
+        \# rev(psi) proxied via conjugate transpose under I-metric
 
         psi\_rev \= np.dot(self.I.T, psi\_arr)
 

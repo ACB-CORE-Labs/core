@@ -1,10 +1,9 @@
-"""ADR-0244 §2.2/§4a — operator-preservation identity gate (dual-mode, fail-closed).
+"""ADR-0244 §2.2/§4a — operator-preservation identity gate (fail-closed).
 
-Pins the wave-field path added to ``IdentityCheck``: dual-mode dispatch, fail-closed
-validation of a malformed versor, the operator-preservation score, the
-``boundary_ids`` intersection predicate, the admit-or-abstain ``C_id``
-(``IdentityGateRefusal``), and byte-compatible legacy behavior when no wave field
-is supplied.
+Pins the wave-field path on ``IdentityCheck``: MissingWaveStateError on absent
+ψ, fail-closed validation of a malformed versor, the operator-preservation
+score, the ``boundary_ids`` intersection predicate, and admit-or-abstain
+``C_id`` (``IdentityGateRefusal``). Scalar-L2 dual-mode is excised.
 """
 
 from __future__ import annotations
@@ -18,6 +17,7 @@ from core.physics.identity import (
     IdentityGateRefusal,
     IdentityManifold,
     IdentityScore,
+    MissingWaveStateError,
     ValueAxis,
 )
 
@@ -54,13 +54,11 @@ class _Traj:
     frames = ()
 
 
-# --- dual-mode dispatch ---------------------------------------------------
+# --- fail-closed absent wave ------------------------------------------------
 
-def test_absent_wave_field_uses_legacy_path():
-    score = IdentityCheck().check(_Traj(), _wave_manifold())
-    assert score.wave_mode_active is False
-    assert score.leakage_norm == 0.0
-    assert score.min_self_alignment == 1.0
+def test_absent_wave_field_raises_missing_wave_state():
+    with pytest.raises(MissingWaveStateError, match="wave_field"):
+        IdentityCheck().check(_Traj(), _wave_manifold())
 
 
 def test_wave_field_activates_operator_preservation_path():
@@ -147,12 +145,15 @@ def test_boundary_violation_outside_manifold_is_ignored():
     assert score.flagged is False
 
 
-def test_boundary_predicate_works_on_legacy_path_too():
+def test_boundary_predicate_on_wave_path_without_axis_leakage():
     manifold = _wave_manifold(boundary_ids=frozenset({"no_identity_override"}))
     score = IdentityCheck().check(
-        _Traj(), manifold, violated_boundary_ids=frozenset({"no_identity_override"})
+        _Traj(),
+        manifold,
+        wave_field=_identity_versor(),
+        violated_boundary_ids=frozenset({"no_identity_override"}),
     )
-    assert score.wave_mode_active is False
+    assert score.wave_mode_active is True
     assert score.boundary_violations == frozenset({"no_identity_override"})
     assert score.flagged is True
 
@@ -197,11 +198,12 @@ def test_would_violate_catches_boundary_and_inversion():
     assert IdentityCheck.would_violate(breach) is True
 
 
-def test_legacy_identity_score_still_constructs_without_new_fields():
+def test_identity_score_constructs_with_geometric_defaults():
     score = IdentityScore(
         score=0.7, flagged=False, deviation_axes=frozenset(), trajectory_id="t"
     )
-    assert score.wave_mode_active is False
+    # Wave path is the only path; default wave_mode_active is True.
+    assert score.wave_mode_active is True
     assert score.boundary_violations == frozenset()
     assert IdentityCheck.would_violate(score) is False
 
