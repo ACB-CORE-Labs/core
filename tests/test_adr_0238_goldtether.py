@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -11,8 +12,10 @@ from algebra.versor import versor_condition
 from core.physics.goldtether import (
     AutonomyBand,
     GoldTetherMonitor,
+    GoldTetherViolationError,
     OperatingMode,
     coherence_residual,
+    require_unitary,
 )
 
 
@@ -41,10 +44,21 @@ def test_fail_closed_on_drift():
     dirty = np.zeros(32, dtype=np.float64)
     dirty[0] = 0.5
     dirty[1] = 0.5
-    r, auto = m.update(dirty, epistemic_elevation=True)
-    assert r > m.epsilon_drift
-    assert auto == 0.0
+    with pytest.raises(GoldTetherViolationError) as excinfo:
+        m.update(dirty, epistemic_elevation=True)
+    assert excinfo.value.residual > m.epsilon_drift
+    assert m.autonomy == 0.0
     assert m.may_relax_hitl() is False
+
+
+def test_require_unitary_rejects_above_epsilon():
+    dirty = np.zeros(32, dtype=np.float64)
+    dirty[0] = 0.5
+    dirty[1] = 0.5
+    with pytest.raises(GoldTetherViolationError):
+        require_unitary(dirty, epsilon=1e-6)
+    # Identity is admitted.
+    assert require_unitary(_id(), epsilon=1e-6) == 0.0
 
 
 def test_epistemic_elevation_raises_floor_and_autonomy():

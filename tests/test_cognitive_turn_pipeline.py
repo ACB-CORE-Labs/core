@@ -48,8 +48,10 @@ def test_pipeline_known_token_turn(pipeline: CognitiveTurnPipeline) -> None:
     assert len(result.input_tokens) >= 1
     assert len(result.filtered_tokens) >= 1
 
-    # Field layer
-    assert result.field_state_before is None   # first turn: no prior state
+    # Field layer — cold-start auto-compiles a Cl(4,1) wave-packet before
+    # intent ratification when prior session state is absent.
+    assert result.field_state_before is not None
+    assert result.field_state_before.F.shape == (32,)
     assert result.field_state_after is not None
     assert result.field_state_after.F.shape == (32,)
 

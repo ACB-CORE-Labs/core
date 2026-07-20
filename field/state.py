@@ -114,6 +114,12 @@ class FieldState:
     energy: EnergyProfile | None = None
     valence: ValenceBundle | None = None
 
+    def content_digest(self) -> str:
+        """Full 64-char SHA-256 of little-endian f64 ``F`` components."""
+        from core.physics.wave_manifold import multivector_content_digest
+
+        return multivector_content_digest(np.asarray(self.F, dtype=np.float64))
+
     def __post_init__(self) -> None:
         # Enforce copy + dtype + shape at the construction boundary.
         # frozen=True prevents reassignment, but ndarray contents are still

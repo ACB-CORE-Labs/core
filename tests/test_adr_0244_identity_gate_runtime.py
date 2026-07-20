@@ -1,11 +1,10 @@
 """ADR-0244 §2.2 — runtime wiring of the operator-preservation identity gate.
 
-Validates the flag-gated wiring in ``chat/runtime.py``:
-  * flag OFF (default) → legacy identity score, no wave telemetry (byte-identical
-    wire format);
-  * flag ON → the wave gate runs on the live versor ``final_state.F``, the score
-    is wave-mode with real leakage/orientation, and the telemetry serializer
-    surfaces the wave keys.
+Validates the wiring in ``chat/runtime.py`` after geometric convergence:
+  * identity scoring always uses the metric-exact wave path on ``final_state.F``
+    (scalar-L2 dual-mode excised);
+  * ``identity_wave_gate`` only controls live *refusal*, not scoring;
+  * wave telemetry keys are present whenever an identity score exists.
 
 The per-turn identity gate lives on the main generation path; a fresh empty-vault
 runtime routes ungrounded inputs to the disclosure path (``identity_score=None``),
@@ -36,18 +35,17 @@ def _main_path_events(flag: bool):
     return events
 
 
-def test_flag_off_scores_are_legacy_no_wave_telemetry():
+def test_flag_off_still_scores_wave_geometry():
+    """Scoring is always geometric; flag only gates refusal, not the score path."""
     for event in _main_path_events(False):
         score = event.identity_score
-        assert score.wave_mode_active is False
-        assert score.leakage_norm == 0.0
-        assert score.min_self_alignment == 1.0
+        assert score.wave_mode_active is True
+        assert 0.0 <= score.leakage_norm <= 1.0
+        assert -1.0 <= score.min_self_alignment <= 1.0
         payload = serialize_turn_event(event)
-        assert "identity_wave_mode" not in payload
-        assert "identity_leakage_norm" not in payload
-        assert "identity_min_self_alignment" not in payload
-        assert "identity_boundary_violations" not in payload
-        # legacy identity telemetry unchanged
+        assert payload.get("identity_wave_mode") is True
+        assert "identity_leakage_norm" in payload
+        assert "identity_min_self_alignment" in payload
         assert "identity_alignment" in payload
         assert "identity_flagged" in payload
 
@@ -66,8 +64,6 @@ def test_flag_on_activates_wave_gate_with_telemetry():
 
 
 def test_flag_off_is_deterministic_across_runs():
-    # The flag-off path is byte-identical run to run (the fast lane pins that it
-    # is also byte-identical to the pre-ADR-0244 baseline).
     first = [e.surface for e in _main_path_events(False)]
     second = [e.surface for e in _main_path_events(False)]
     assert first == second

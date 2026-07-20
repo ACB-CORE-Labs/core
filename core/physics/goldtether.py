@@ -2,20 +2,15 @@
 core/physics/goldtether.py
 
 GoldTether — Coherence Residual Monitor + Dynamic Autonomy Floor
-ADR-0238
+ADR-0238 / ADR-0241 wave residual path.
 
-Note (fidelity #19, RETIRED): an earlier draft borrowed grade-5 "pseudoscalar"
-vocabulary from Super-Blueprint §3.3 for the autonomy floor and read ``F[31]``
-into telemetry. That anchor is vacuous in odd-dim Cl(4,1) — field-state versors
-are even (``F[31] ≡ 0``) and ``I₅`` is central (``V·I₅·Ṽ = I₅`` for every
-versor), so no non-vacuous grade-5 transition invariant exists. The namesake is
-removed; the integrity-anchor role is carried by versor closure + the harmonized
-GoldTether residual + biography/identity holonomy. See
-``docs/research/third-door-blueprint-fidelity.md`` §5.
+Primary residual:
+    R = || ψ · reverse(ψ) − 1 ||_F
+via :meth:`WaveManifold.measure_unitary_residual` (dual-checked). Transitions
+with R > epsilon_drift raise :class:`GoldTetherViolationError` synchronously
+(:meth:`GoldTetherMonitor.update`, :func:`require_unitary`).
 
-Absolute mastery implementation on the live Cl(4,1) algebra kernel.
-All operators are pure where possible, dual-corrected, and enforce algebraic
-closure on versor-valued outputs.
+No flat ``np.dot`` residual path. No external I₅ matrix parameters.
 
 Distinct from Arena GoldTether (ADR-0199 / core.learning_arena.protocols).
 """
@@ -107,6 +102,25 @@ class AutonomyDecision:
     reason: str
 
 
+class GoldTetherViolationError(ValueError):
+    """Fail-closed rejection when unitary amplitude drift exceeds tolerance.
+
+    Raised synchronously when ``R_GoldTether > epsilon`` (default ``1e-6``).
+    Does not soft-warn or defer; the transition must not commit.
+    """
+
+    def __init__(self, residual: float, epsilon: float = 1e-6, *, detail: str = "") -> None:
+        self.residual = float(residual)
+        self.epsilon = float(epsilon)
+        msg = (
+            f"GoldTether violation: R={self.residual:.3e} exceeds "
+            f"epsilon={self.epsilon:.3e}"
+        )
+        if detail:
+            msg = f"{msg} ({detail})"
+        super().__init__(msg)
+
+
 def _as_mv(F: np.ndarray, name: str = "F") -> np.ndarray:
     arr = np.asarray(F, dtype=np.float64)
     if arr.shape != (N_COMPONENTS,):
@@ -117,12 +131,32 @@ def _as_mv(F: np.ndarray, name: str = "F") -> np.ndarray:
 def coherence_residual(F: np.ndarray) -> float:
     """Public one-shot residual for tests and harnesses.
 
-    R = || F · reverse(F) − 1 ||_F  (dual-checked against reverse(F)).
+    R_GoldTether = || ψ · reverse(ψ) − 1 ||_F  (dual-checked against reverse(ψ)).
+
+    ``||·||_F`` is |⟨ψ~ψ⟩₀ − 1| plus the Euclidean norm of non-scalar grades
+    (via :func:`algebra.versor.versor_unit_residual`).
 
     Canonical path (ADR-0241 Slice 2): :meth:`WaveManifold.measure_unitary_residual`
     — unitary wave amplitude drift, not a parallel residual implementation.
+    No flat ``np.dot`` products; no external I₅ matrix parameters.
     """
     return WaveManifold().measure_unitary_residual(_as_mv(F))
+
+
+def require_unitary(
+    F: np.ndarray,
+    *,
+    epsilon: float = 1e-6,
+    detail: str = "",
+) -> float:
+    """Return residual if ``R ≤ epsilon``; else raise :class:`GoldTetherViolationError`.
+
+    Synchronous fail-closed gate for state transitions.
+    """
+    r = float(coherence_residual(F))
+    if r > float(epsilon):
+        raise GoldTetherViolationError(r, float(epsilon), detail=detail)
+    return r
 
 
 @dataclass
@@ -169,6 +203,10 @@ class GoldTetherMonitor:
         """Compute the primary GoldTether residual. Always ≥ 0. Dual-corrected."""
         return coherence_residual(F)
 
+    def require_unitary(self, F: np.ndarray, *, detail: str = "") -> float:
+        """Fail-closed residual gate for this monitor's ``epsilon_drift``."""
+        return require_unitary(F, epsilon=float(self.epsilon_drift), detail=detail)
+
     def update(
         self,
         F: np.ndarray,
@@ -177,20 +215,31 @@ class GoldTetherMonitor:
         """
         Update monitor with new field state.
         Returns (residual, new_autonomy).
-        Dual-correction: residual is checked both ways inside residual().
+
+        If residual exceeds ``epsilon_drift``, autonomy is forced to zero, the
+        rejection is recorded in history, and :class:`GoldTetherViolationError`
+        is raised synchronously (no soft commit of elevated floor/autonomy).
         """
         r = self.residual(F)
 
         if r > self.epsilon_drift:
-            # Fail-closed: force autonomy to zero
+            # Fail-closed: force autonomy to zero, record, then reject.
             self.autonomy = 0.0
             self.floor = max(0.0, self.floor - self.floor_decay)
-        else:
-            if epistemic_elevation:
-                # Only proven elevation may raise the floor
-                self.floor = min(1.0, self.floor + self.floor_step)
-            # Autonomy may never exceed the floor
-            self.autonomy = min(self.autonomy + self.autonomy_step, self.floor)
+            self.history.append((float(r), float(self.floor), float(self.autonomy)))
+            if len(self.history) > self.max_history:
+                self.history.pop(0)
+            raise GoldTetherViolationError(
+                float(r),
+                float(self.epsilon_drift),
+                detail="GoldTetherMonitor.update rejected drifted field",
+            )
+
+        if epistemic_elevation:
+            # Only proven elevation may raise the floor
+            self.floor = min(1.0, self.floor + self.floor_step)
+        # Autonomy may never exceed the floor
+        self.autonomy = min(self.autonomy + self.autonomy_step, self.floor)
 
         self.history.append((float(r), float(self.floor), float(self.autonomy)))
         if len(self.history) > self.max_history:
@@ -343,11 +392,16 @@ class GoldTetherMonitor:
         cond = float(versor_condition(F_arr))
         # Closure residual only (geo distance to 𝓘_gold is expected for new axes).
         drift = float(coherence_residual(F_arr))
-        if cond >= _CLOSURE_TOL or drift > float(self.epsilon_drift):
+        if cond >= _CLOSURE_TOL:
             raise ValueError(
                 "promote_gold_invariant refused: not a closed versor "
-                f"(versor_condition={cond:.3e}) or residual/drift {drift:.3e} "
-                f"exceeds epsilon_drift={float(self.epsilon_drift)}"
+                f"(versor_condition={cond:.3e})"
+            )
+        if drift > float(self.epsilon_drift):
+            raise GoldTetherViolationError(
+                drift,
+                float(self.epsilon_drift),
+                detail="promote_gold_invariant refused high residual",
             )
         self.gold_invariants.append(F_arr.copy())
 

@@ -1,21 +1,20 @@
 """core.physics.identity — Identity as geometric structure, not prompt veneer.
 
-ADR-0010: The IdentityManifold is a fixed geometric subspace of the
-versor field encoding CORE's stable character as an architectural
-constant. Every ReasoningTrajectory is checked against the manifold
-before articulation. Identity is inalienable — it cannot be overridden
-by context length, adversarial prompting, or instruction injection.
+ADR-0010 / ADR-0244: The IdentityManifold is a fixed geometric subspace of
+the Cl(4,1) versor field. Trajectory alignment uses metric-exact Gram
+projection (``identity_manifold``) on an explicit wave-field ``ψ_traj``.
+
+Missing wave state raises :class:`MissingWaveStateError`. There is no
+scalar-L2 fallback. Live refusal remains flag-gated via
+``RuntimeConfig.identity_wave_gate``; scoring is always geometric.
 
 Theological grounding: John 1:1-2.
-The Word is not a description of God. It is God, expressed.
-CORE's identity is not a description of CORE. It is CORE, expressed geometrically.
 """
 
 from __future__ import annotations
 import functools
 import hashlib
 import json
-import math
 import warnings
 from dataclasses import dataclass
 from typing import Any, Dict, FrozenSet, List, Optional, Tuple
@@ -52,10 +51,9 @@ from core.physics.identity_action import (
 # signal, NOT real benign traffic — live ``final_state.F`` versors do not preserve
 # span(e1,e2,e3) (the shipped axes are nominal basis vectors, not dynamically
 # preserved eigenmodes), so benign leakage overlaps the attack range and the
-# calibration certifies ``flag_flip_authorized=False``. The wave gate therefore
-# stays flag-gated OFF in the runtime (``identity_wave_gate=False``); this bound
-# governs only the off-serve research/eval path until identity is made
-# dynamically load-bearing (ADR-0246 induced action).
+# calibration certifies ``flag_flip_authorized=False``. Scoring is always the
+# metric-exact wave path; live *refusal* remains flag-gated via
+# ``identity_wave_gate`` until identity is dynamically load-bearing (ADR-0246).
 _WAVE_LEAKAGE_BOUND: float = 0.2126624458513829
 # The orientation floor flags a value axis the versor has rotated *past
 # orthogonal* (toward inversion). It is a geometric invariant (a preserved axis
@@ -73,6 +71,15 @@ class IdentityGateRefusal(Exception):
     recover alignment within its bound. The live parameters are kept unchanged
     (no silent correction — this honors the safety-pack ``no_silent_correction``
     boundary).
+    """
+
+
+class MissingWaveStateError(ValueError):
+    """Fail-closed when IdentityCheck receives no trajectory wave-packet.
+
+    Convergence blueprint (ADR-0244 Gram path): identity alignment is defined
+    only for an explicit Cl(4,1) wave-field ``ψ_traj``. An absent field is not
+    a soft advisory case and must never fall back to scalar heuristics.
     """
 
 
@@ -211,28 +218,24 @@ class IdentityScore:
     flagged: bool         # True if any axis projection fell below alignment threshold
     deviation_axes: FrozenSet[str]  # ValueAxis IDs where deviation was detected
     trajectory_id: str
-    # ADR-0244 §2.2 / §4a — operator-preservation wave-field measures. Populated
-    # only on the wave path (``wave_mode_active=True``); legacy defaults preserve
-    # the pre-ADR-0244 IdentityScore shape and all downstream serialization
-    # (the telemetry serializer emits these keys only when the wave path ran).
-    wave_mode_active: bool = False
+    # ADR-0244 §2.2 / §4a — operator-preservation wave-field measures.
+    # Always True after geometric convergence (wave path is the only path).
+    wave_mode_active: bool = True
     # RMS subspace-leakage over the value axes (0.0 = every axis preserved).
     leakage_norm: float = 0.0
     # Minimum signed self-alignment ⟨aᵢ, F aᵢ F̃⟩₀ across axes (+1 preserved,
-    # −1 inverted); 1.0 in legacy mode.
+    # −1 inverted).
     min_self_alignment: float = 1.0
     # Committed boundary_ids the turn violated (intersection with the manifold's
     # boundary set); a non-empty set is a hard identity-boundary breach.
     boundary_violations: FrozenSet[str] = frozenset()
     # ADR-0246 §3.7 induced-action admit-surface measures. Populated only when the
-    # ``identity_action_surface`` policy runs (``action_surface_active=True``);
-    # legacy defaults keep the flag-off wave/legacy IdentityScore byte-identical.
+    # ``identity_action_surface`` policy runs (``action_surface_active=True``).
     action_surface_active: bool = False
     d_orth: float = 0.0
     d_stab: float = 0.0
     # ADR-0246 §4.1 — the full per-turn IdentityActionRecord (typed residual
-    # channels, digests, admit verdict). ``None`` unless the §3.7 surface ran
-    # (``action_surface_active=True``); legacy/flag-off callers are unaffected.
+    # channels, digests, admit verdict). ``None`` unless the §3.7 surface ran.
     action_record: "IdentityActionRecord | None" = None
 
     @property
@@ -337,37 +340,12 @@ class IdentityCheck:
         return max(0.0, min(1.0, float(value)))
 
     @staticmethod
-    def _mean_frame_coherence(trajectory) -> float:
-        frames = getattr(trajectory, "frames", None)
-        if not frames:
-            return 0.0
-        return sum(
-            float(getattr(frame, "coherence_magnitude", 0.0)) for frame in frames
-        ) / len(frames)
-
-    @staticmethod
-    def _axis_projection(axis, trajectory, scalar_score: float) -> float:
-        """Deterministically project trajectory evidence onto one value axis."""
-        direction = tuple(float(x) for x in getattr(axis, "direction", ()) or ())
-        if not direction:
-            return scalar_score
-        full_l2 = math.sqrt(sum(x * x for x in direction)) or 1.0
-        head_l2 = math.sqrt(sum(x * x for x in direction[:3]))
-        directional_weight = head_l2 / full_l2
-        frame_coherence = IdentityCheck._mean_frame_coherence(trajectory)
-        coherence_term = IdentityCheck._clamp01(0.5 + (frame_coherence / 2.0))
-        return IdentityCheck._clamp01(
-            (0.75 * scalar_score) + (0.25 * directional_weight * coherence_term)
-        )
-
-    @staticmethod
     def _validate_wave_field(wave_field) -> np.ndarray:
         """Coerce + fail-closed-validate the live versor (ADR-0244 §4a).
 
         A malformed wave field (wrong shape, non-finite, wrong byte-order) is a
-        typed ``ValueError`` — it never silently falls back to the legacy
-        scalar-L2 path. The dual-mode fallback (see :meth:`check`) is for an
-        ABSENT wave field only, not a malformed one.
+        typed ``ValueError``. An *absent* wave field is
+        :class:`MissingWaveStateError` at :meth:`check` (never a scalar fallback).
         """
         F = np.ascontiguousarray(wave_field, dtype=np.float32)
         if F.dtype.byteorder not in ("<", "="):
@@ -493,25 +471,27 @@ class IdentityCheck:
     ) -> IdentityScore:
         """Check a trajectory against the IdentityManifold (ADR-0010 / ADR-0244).
 
-        Dual-mode (ADR-0244 §3): when a ``wave_field`` (the live versor
-        ``final_state.F``) is supplied, run the metric-exact operator-preservation
-        gate; otherwise fall back to the legacy scalar-L2 heuristic. A *malformed*
-        wave field raises (fail-closed) — only an ABSENT one falls back.
+        Metric-exact operator-preservation only (Gram geometry in
+        :mod:`core.physics.identity_manifold`). Requires an explicit Cl(4,1)
+        ``wave_field`` (``ψ_traj``); absence raises
+        :class:`MissingWaveStateError`. Malformed fields raise ``ValueError``.
 
-        ``admission_policy`` (ADR-0246 §3.7, flag-gated behind
-        ``identity_action_surface``) is forwarded to the wave path only; ``None``
-        (default) keeps every caller byte-identical to the D4 gate. ``turn_id``/
-        ``pack_id`` (ADR-0246 §4.1) are cosmetic identifiers for the per-turn
-        record and default to ``0``/``""`` — omitting them changes nothing.
+        ``admission_policy`` (ADR-0246 §3.7) is optional; ``None`` keeps the
+        D4 wave gate without the induced-action surface. ``turn_id`` / ``pack_id``
+        are cosmetic identifiers for the per-turn action record.
 
-        ``violated_boundary_ids`` (the turn's safety/ethics violated boundaries)
-        is intersected with the manifold's committed ``boundary_ids``; a non-empty
-        intersection is a hard identity-boundary breach (governance annotation
-        item 7). Defaults empty so pre-ADR-0244 callers are byte-identical.
+        ``violated_boundary_ids`` is intersected with the manifold's committed
+        ``boundary_ids``; a non-empty intersection is a hard identity-boundary
+        breach.
         """
         resolved_manifold = manifold or self._manifold
         if resolved_manifold is None:
             raise TypeError("IdentityCheck.check() requires an IdentityManifold")
+        if wave_field is None:
+            raise MissingWaveStateError(
+                "IdentityCheck requires an explicit Cl(4,1) wave_field "
+                "(ψ_traj); scalar-L2 fallback is excised"
+            )
         trajectory_id = str(getattr(trajectory, "trajectory_id", "legacy_trajectory"))
         boundary_violations = (
             frozenset(violated_boundary_ids) & resolved_manifold.boundary_ids
@@ -522,27 +502,17 @@ class IdentityCheck:
                 flagged=bool(boundary_violations),
                 deviation_axes=frozenset(),
                 trajectory_id=trajectory_id,
+                wave_mode_active=True,
                 boundary_violations=boundary_violations,
             )
-        if wave_field is not None:
-            return self._wave_field_score(
-                wave_field, resolved_manifold, trajectory_id, boundary_violations,
-                admission_policy=admission_policy, turn_id=turn_id, pack_id=pack_id,
-            )
-        confidence = float(getattr(trajectory, "total_coherence_delta", 0.0))
-        confidence += self._mean_frame_coherence(trajectory)
-        score = self._clamp01(0.5 + (confidence / 2.0))
-        deviations = frozenset(
-            str(getattr(axis, "axis_id", getattr(axis, "name", "axis")))
-            for axis in resolved_manifold.value_axes
-            if self._axis_projection(axis, trajectory, score) < resolved_manifold.alignment_threshold
-        )
-        return IdentityScore(
-            score=score,
-            flagged=bool(deviations) or bool(boundary_violations),
-            deviation_axes=deviations,
-            trajectory_id=trajectory_id,
-            boundary_violations=boundary_violations,
+        return self._wave_field_score(
+            wave_field,
+            resolved_manifold,
+            trajectory_id,
+            boundary_violations,
+            admission_policy=admission_policy,
+            turn_id=turn_id,
+            pack_id=pack_id,
         )
 
     @staticmethod

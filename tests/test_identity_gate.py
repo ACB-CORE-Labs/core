@@ -4,16 +4,25 @@ from __future__ import annotations
 from dataclasses import dataclass
 import dataclasses
 
+import numpy as np
 import pytest
 
+from algebra.cl41 import N_COMPONENTS
 from core.physics.drive import ValueAxis
 from core.physics.identity import (
     IdentityCheck,
     IdentityManifold,
     IdentityScore,
+    MissingWaveStateError,
     TurnEvent,
 )
 from core.physics.reasoning import ReasoningTrajectory, TrajectoryOperator
+
+
+def _identity_wave() -> np.ndarray:
+    F = np.zeros(N_COMPONENTS, dtype=np.float32)
+    F[0] = 1.0
+    return F
 
 
 @dataclass(frozen=True)
@@ -58,38 +67,54 @@ def _make_trajectory(n_steps: int = 4) -> ReasoningTrajectory:
 
 class TestIdentityScore:
     def test_score_is_float_in_unit_interval(self):
-        score = IdentityCheck().check(_make_trajectory(), _make_manifold())
+        score = IdentityCheck().check(
+            _make_trajectory(), _make_manifold(), wave_field=_identity_wave()
+        )
         assert isinstance(score, IdentityScore)
         assert 0.0 <= score.score <= 1.0
 
     def test_flagged_is_bool(self):
-        score = IdentityCheck().check(_make_trajectory(), _make_manifold())
+        score = IdentityCheck().check(
+            _make_trajectory(), _make_manifold(), wave_field=_identity_wave()
+        )
         assert isinstance(score.flagged, bool)
 
     def test_value_alias_matches_score(self):
-        score = IdentityCheck().check(_make_trajectory(), _make_manifold())
+        score = IdentityCheck().check(
+            _make_trajectory(), _make_manifold(), wave_field=_identity_wave()
+        )
         assert score.value == score.score
 
     def test_alignment_is_float_in_unit_interval(self):
-        score = IdentityCheck().check(_make_trajectory(), _make_manifold())
+        score = IdentityCheck().check(
+            _make_trajectory(), _make_manifold(), wave_field=_identity_wave()
+        )
         assert 0.0 <= score.alignment <= 1.0
 
     def test_axes_evaluated_is_sorted_list(self):
-        score = IdentityCheck().check(_make_trajectory(), _make_manifold())
+        score = IdentityCheck().check(
+            _make_trajectory(), _make_manifold(), wave_field=_identity_wave()
+        )
         axes = score.axes_evaluated
         assert isinstance(axes, list)
         assert axes == sorted(axes)
 
     def test_deviation_axes_is_frozenset_of_str(self):
-        score = IdentityCheck().check(_make_trajectory(), _make_manifold())
+        score = IdentityCheck().check(
+            _make_trajectory(), _make_manifold(), wave_field=_identity_wave()
+        )
         assert isinstance(score.deviation_axes, frozenset)
         for axis_id in score.deviation_axes:
             assert isinstance(axis_id, str)
 
+    def test_missing_wave_field_raises(self):
+        with pytest.raises(MissingWaveStateError):
+            IdentityCheck().check(_make_trajectory(), _make_manifold())
+
     def test_legacy_constructor_emits_deprecation_warning(self):
         with pytest.deprecated_call(match=r"IdentityCheck\(manifold=\.\.\.\) is deprecated"):
             check = IdentityCheck(manifold=_make_manifold())
-        score = check.check(_make_trajectory())
+        score = check.check(_make_trajectory(), wave_field=_identity_wave())
         assert isinstance(score, IdentityScore)
 
 

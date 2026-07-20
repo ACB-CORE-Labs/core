@@ -15,14 +15,21 @@ Constraint: ChatRuntime.chat() and ChatResponse contract are unchanged.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections import OrderedDict
 
+import numpy as np
+
+from algebra.backend import versor_condition
+from algebra.cl41 import geometric_product, reverse, scalar_part
 from field.state import FieldState
 from core.cognition.leeway import build_leeway_record
 from core.cognition.result import CognitiveTurnResult
 from core.cognition.surface_resolution import resolve_surface
 from core.cognition.trace import compute_trace_hash, hash_admissibility_trace
+from core.physics.goldtether import coherence_residual
+from core.physics.wave_manifold import multivector_content_digest
 from core.reasoning.adapters import evidence_from_entailment_trace
 from generate.intent import classify_compound_intent
 from generate.intent_bridge import _is_useful_surface
@@ -31,6 +38,7 @@ from generate.intent_ratifier import (
     RatifiedIntent,
     ratify_intent,
 )
+from generate.problem_frame_contracts import ContractAssessment
 from generate.graph_planner import (
     GraphNode,
     PropositionGraph,
@@ -92,6 +100,13 @@ _SUBJECT_STOPWORDS: frozenset[str] = frozenset({
     "your", "their", "answer",
 })
 
+# Conformal atom unification (dossier Subsystem C.1).
+# Absolute "score > 1−ε" is only meaningful for normalized null-cone points
+# with self-inner ≈ 1. Pack versors can have cross-inner > 1, so we unify when
+# the mutual reverse-product matches both self-products within ε (exact same
+# geometric atom), else content-address by SHA-256 of components.
+_UNIFY_EPS = 1e-4
+
 # Finding 5 (audit 2026-05-20) — cap the speculative-subjects cache so a
 # long teaching session cannot grow it without bound.  64 is large enough
 # to cover every distinct teaching subject a single session realistically
@@ -100,17 +115,6 @@ _SUBJECT_STOPWORDS: frozenset[str] = frozenset({
 # subject re-encountered as SPECULATIVE refreshes its position; coherent
 # promotion removes it explicitly.
 _MAX_SPECULATIVE_SUBJECTS = 64
-
-# All PASSTHROUGH variants normalised to "passthrough" for trace_hash so
-# pre-ADR-0144 hashes remain byte-identical after _ratify_intent gains
-# specific sub-values (ADR-0144 / ADR-0142 §Implementation debts, debt 1).
-_PASSTHROUGH_OUTCOMES: frozenset[str] = frozenset({
-    "passthrough",
-    "passthrough_no_field",
-    "passthrough_no_vocab",
-    "passthrough_no_versor",
-})
-
 
 class CognitiveTurnPipeline:
     """Thin pipeline wrapper over ChatRuntime.
@@ -222,8 +226,12 @@ class CognitiveTurnPipeline:
                 from generate.exhaustion import RefusalReason as _ExhaustionRefusalReason
                 _recognition_refusal_reason = _ExhaustionRefusalReason.RECOGNITION_REFUSED.value
 
-        # 1. LISTEN — capture pre-turn field state
+        # 1. LISTEN — capture pre-turn field state. If absent, compile turn
+        # tokens into an initial Cl(4,1) wave-packet before intent ratification
+        # (Geometric Sovereignty — cold-start must compile a field first).
         field_state_before: FieldState | None = self._capture_field_state()
+        if field_state_before is None or getattr(field_state_before, "F", None) is None:
+            field_state_before = self._compile_turn_wave_packet(raw_tokens)
 
         # 1b. CLASSIFY — intent and proposition graph (deterministic, pre-chat)
         # ADR-0089 Phase C1 (Finding 4, audit 2026-05-20) — run the
@@ -398,9 +406,16 @@ class CognitiveTurnPipeline:
             realized_plan = realize_semantic(target, grounded_graph)
             effective_graph = grounded_graph
 
-        gate_fired = (
-            response.vault_hits == 0
-            and response.grounding_source not in ("vault", "pack", "teaching")
+        # Physical coherence only (vault_hits bookkeeping is not a gate).
+        # gate_fired True ⇒ residual failure ⇒ substrate realizer refused.
+        field_for_gate = self._capture_field_state()
+        F_gate = getattr(field_for_gate, "F", None) if field_for_gate is not None else None
+        if F_gate is None and field_state_before is not None:
+            F_gate = field_state_before.F
+        contract_assessment = self._geometry_contract_assessment(F_gate)
+        gate_fired = bool(
+            contract_assessment.missing_bindings
+            or contract_assessment.unresolved_hazards
         )
         canonical = response.register_canonical_surface
         pre_decoration = response.pre_decoration_surface
@@ -428,12 +443,8 @@ class CognitiveTurnPipeline:
         entailment_trace = self._maybe_entailment_trace(intent, triples)
 
         # === SHADOW COHERENCE GATE WIRING ===
-        # Graph + realizer already executed unconditionally above.
-        # Pass the effective (possibly grounded) graph so the gate can
-        # apply the strict supremacy test. Assessment=None for Phase A
-        # (assessments still live primarily in derivation organs). When
-        # the main spine carries ProblemFrame through the turn, this
-        # becomes the active contract backpressure site.
+        # Dual-competing: substrate supremacy requires fully grounded graph
+        # AND closed geometric contract (versor_condition + GoldTether residual).
         resolved = resolve_surface(
             canonical_surface=canonical,
             pre_decoration_surface=pre_decoration,
@@ -445,7 +456,7 @@ class CognitiveTurnPipeline:
             walk_surface=walk_surface,
             compose_surface=compose_surface,
             proposition_graph=effective_graph,
-            contract_assessment=None,
+            contract_assessment=contract_assessment,
         )
         surface = resolved.surface
         articulation_surface = resolved.articulation_surface
@@ -485,11 +496,41 @@ class CognitiveTurnPipeline:
         # Use pure build_node_depths for canonical extraction (nid-keyed).
         node_depths = build_node_depths(effective_graph.nodes) if effective_graph else {}
         if grounding_src == "oov" or has_pending:
+            # Active conformal neighborhood probe (exact cga_inner over vault).
+            probe_performed = False
+            probe_neighbors: list[dict[str, object]] = []
+            try:
+                from algebra.backend import cga_inner as _cga_inner
+
+                F_probe = getattr(self._capture_field_state(), "F", None)
+                vault = getattr(getattr(self.runtime, "session", None), "vault", None)
+                if F_probe is not None and vault is not None and hasattr(vault, "entries"):
+                    scores: list[tuple[float, str]] = []
+                    for entry in list(vault.entries())[:64]:
+                        versor = getattr(entry, "versor", None)
+                        if versor is None and isinstance(entry, (tuple, list)) and entry:
+                            versor = entry[0]
+                        if versor is None:
+                            continue
+                        try:
+                            s = float(_cga_inner(F_probe, versor))
+                        except Exception:
+                            continue
+                        label = str(getattr(entry, "id", "") or getattr(entry, "key", "") or "")
+                        scores.append((s, label))
+                    scores.sort(key=lambda item: item[0], reverse=True)
+                    probe_neighbors = [
+                        {"cga_inner": s, "ref": lab} for s, lab in scores[:5]
+                    ]
+                    probe_performed = True
+            except Exception:
+                probe_performed = False
             oov_geometric_context = {
                 "unresolved_topology": effective_graph.get_unresolved_topology() if effective_graph else (),
                 "intent_tag": getattr(intent, "tag", None).value if intent and getattr(intent, "tag", None) else "unknown",
-                "geometric_probe_performed": False,
-                "note": "Hook for geometric anti-unification: surrounding realized facts (via exact vault cga_inner) can infer relation type / SPECULATIVE var for the hole instead of lexical fallback.",
+                "geometric_probe_performed": probe_performed,
+                "conformal_neighbors": probe_neighbors,
+                "note": "Conformal anti-unification probe: vault neighbors via exact cga_inner.",
                 "node_depths": node_depths,
             }
         else:
@@ -619,16 +660,8 @@ class CognitiveTurnPipeline:
         admissibility_trace = response.admissibility_trace
         region_was_unconstrained = response.region_was_unconstrained
         admissibility_trace_hash = hash_admissibility_trace(admissibility_trace)
-        # Normalise all PASSTHROUGH sub-values to "passthrough" so the value
-        # stored in CognitiveTurnResult matches what goes into trace_hash
-        # (trace_hash_from_result invariant) and pre-ADR-0144 hashes remain
-        # byte-identical (ADR-0144 / ADR-0142 §Implementation debts, debt 1).
-        _ratification_outcome_raw = ratified.outcome.value
-        ratification_outcome = (
-            "passthrough"
-            if _ratification_outcome_raw in _PASSTHROUGH_OUTCOMES
-            else _ratification_outcome_raw
-        )
+        # Geometric ratification outcomes only (ratified | demoted).
+        ratification_outcome = ratified.outcome.value
         _trace_ratification_outcome = ratification_outcome
         # ADR-0024 Phase 2 + W-011 — refusal_reason precedence:
         # recognition wins (earlier-fail boundary) over generation.
@@ -749,46 +782,81 @@ class CognitiveTurnPipeline:
     # Internal helpers
     # ------------------------------------------------------------------
 
+    def _compile_turn_wave_packet(self, tokens: tuple[str, ...] | list[str]) -> FieldState:
+        """Compile turn tokens into an initial Cl(4,1) field on the manifold.
+
+        Uses the session inject/probe path (holonomy encode + normalize_to_versor
+        at the owned ingest boundary). Does not replace session state when
+        probe_ingest is available (chat() still owns commit).
+        """
+        session = getattr(self.runtime, "session", None)
+        if session is None:
+            raise RuntimeError(
+                "CognitiveTurnPipeline cannot compile a wave-packet without a session"
+            )
+        token_list = [str(t) for t in tokens]
+        if not token_list:
+            token_list = ["_empty_"]
+        if hasattr(session, "probe_ingest"):
+            return session.probe_ingest(token_list)
+        from ingest.gate import inject
+
+        vocab = getattr(session, "vocab", None)
+        if vocab is None:
+            raise RuntimeError(
+                "CognitiveTurnPipeline cannot compile a wave-packet without session.vocab"
+            )
+        return inject(token_list, vocab)
+
+    @staticmethod
+    def _geometry_contract_assessment(F) -> ContractAssessment:
+        """Build contract assessment from active versor + GoldTether residuals.
+
+        Closed only when versor_condition(F) < 1e-6 and R_GoldTether ≤ 1e-6.
+        """
+        if F is None:
+            return ContractAssessment(
+                candidate_organ="shadow_coherence_gate",
+                missing_bindings=("missing_wave_field",),
+                unresolved_hazards=(),
+                runnable=False,
+                explanation="no field versor available for geometric contract",
+            )
+        vc = float(versor_condition(F))
+        r_gt = float(coherence_residual(F))
+        missing: list[str] = []
+        hazards: list[str] = []
+        if vc >= 1e-6:
+            missing.append("versor_condition")
+        if r_gt > 1e-6:
+            hazards.append("goldtether_residual")
+        return ContractAssessment(
+            candidate_organ="shadow_coherence_gate",
+            missing_bindings=tuple(missing),
+            unresolved_hazards=tuple(hazards),
+            runnable=not missing and not hazards,
+            explanation=(
+                f"versor_condition={vc:.3e}; R_GoldTether={r_gt:.3e}"
+            ),
+        )
+
     def _ratify_intent(self, intent, field_state):
         """Field-ratify a seeded intent (ADR-0022 §TBD-1).
 
-        Emits specific PASSTHROUGH sub-values (ADR-0144 / ADR-0142 debt 1)
-        so the trace can distinguish which cold-start condition fired.
-        All sub-values normalise to "passthrough" for trace_hash.
+        Geometric Sovereignty: field must already be compiled (see :meth:`run`);
+        vocab and prompt versor are required for conformal ratification.
         """
-        if field_state is None:
-            return RatifiedIntent(
-                intent=intent,
-                outcome=RatificationOutcome.PASSTHROUGH_NO_FIELD,
-                score=0.0,
-                threshold=0.0,
-                seed_tag=intent.tag,
+        if field_state is None or getattr(field_state, "F", None) is None:
+            raise RuntimeError(
+                "intent ratification requires a compiled Cl(4,1) field state"
             )
-        # ChatRuntime exposes vocab via session, not directly.  The
-        # original ADR-0022 wiring used ``getattr(self.runtime, "vocab",
-        # None)`` which always returned None — silently routing every
-        # turn through PASSTHROUGH.  ADR-0023 §3 surfaced this via the
-        # ``passthrough_on_scored`` lane metric; the fix here is to
-        # resolve vocab through the session contract.
         session = getattr(self.runtime, "session", None)
         vocab = getattr(session, "vocab", None) if session is not None else None
         if vocab is None:
-            return RatifiedIntent(
-                intent=intent,
-                outcome=RatificationOutcome.PASSTHROUGH_NO_VOCAB,
-                score=0.0,
-                threshold=0.0,
-                seed_tag=intent.tag,
+            raise RuntimeError(
+                "intent ratification requires session.vocab"
             )
-        prompt_versor = getattr(field_state, "F", None)
-        if prompt_versor is None:
-            return RatifiedIntent(
-                intent=intent,
-                outcome=RatificationOutcome.PASSTHROUGH_NO_VERSOR,
-                score=0.0,
-                threshold=0.0,
-                seed_tag=intent.tag,
-            )
+        prompt_versor = field_state.F
         return ratify_intent(intent, prompt_versor, vocab=vocab)
 
     def _remember_speculative_subject(self, subject: str) -> None:
@@ -959,13 +1027,17 @@ class CognitiveTurnPipeline:
         Telemetry-only v1: the result is folded into ``operator_invocation`` and
         never changes the user-facing surface. Runs only when classification
         exposes a precise positive ``subject relation object`` shape.
+
+        Atoms are content-addressed by Cl(4,1) versor digests and unified by
+        conformal reverse-product score (no string ``atom_`` join).
         """
         if intent.tag is not IntentTag.VERIFICATION:
             return None
         if intent.negated or not intent.relation or not intent.object:
             return None
-        head = self._proof_atom(intent.subject)
-        tail = self._proof_atom(intent.object)
+        registry: list[tuple[str, np.ndarray]] = []
+        head = self._proof_atom(intent.subject, registry)
+        tail = self._proof_atom(intent.object, registry)
         if not head or not tail:
             return None
 
@@ -974,8 +1046,8 @@ class CognitiveTurnPipeline:
         for h, r, t in triples:
             if r.strip().lower() != relation:
                 continue
-            h_atom = self._proof_atom(h)
-            t_atom = self._proof_atom(t)
+            h_atom = self._proof_atom(h, registry)
+            t_atom = self._proof_atom(t, registry)
             if h_atom and t_atom:
                 premises.append(f"{h_atom} -> {t_atom}")
         if not premises:
@@ -1019,12 +1091,68 @@ class CognitiveTurnPipeline:
             return ""
         return f"entailment:{evidence_from_entailment_trace(trace).canonical_json()}"
 
+    def _resolve_surface_versor(self, text: str) -> np.ndarray | None:
+        """Resolve surface text to a vocab-grounded Cl(4,1) versor, or None."""
+        session = getattr(self.runtime, "session", None)
+        vocab = getattr(session, "vocab", None) if session is not None else None
+        if vocab is None or not text:
+            return None
+        tokens = [p for p in _SUBJECT_SPLIT_RE.split(text.lower()) if p]
+        # Prefer last non-stopword content token (subject-like), then any token.
+        ordered = [t for t in reversed(tokens) if t not in _SUBJECT_STOPWORDS] + tokens
+        for token in ordered:
+            try:
+                return np.asarray(vocab.get_versor(token), dtype=np.float64)
+            except (KeyError, AttributeError):
+                continue
+        return None
+
     @staticmethod
-    def _proof_atom(text: str) -> str:
-        parts = [p for p in _SUBJECT_SPLIT_RE.split(text.lower()) if p]
-        if not parts:
+    def _unify_score(a: np.ndarray, b: np.ndarray) -> float:
+        """⟨a, ~b⟩_0 — scalar part of geometric product with reversion."""
+        return float(scalar_part(geometric_product(a, reverse(b))))
+
+    @classmethod
+    def _atoms_unify(cls, a: np.ndarray, b: np.ndarray) -> bool:
+        """True when a and b are the same geometric atom under reverse-product.
+
+        Requires mutual score to match both self-products within ``_UNIFY_EPS``
+        (relative when |self| ≥ 1, absolute otherwise). Exact component match
+        short-circuits. Distinct pack versors with large cross-inner do not unify.
+        """
+        if a.shape != b.shape:
+            return False
+        if np.allclose(a, b, rtol=0.0, atol=1e-9):
+            return True
+        sa = cls._unify_score(a, a)
+        sb = cls._unify_score(b, b)
+        sab = cls._unify_score(a, b)
+        scale = max(1.0, abs(sa), abs(sb))
+        tol = _UNIFY_EPS * scale
+        return abs(sab - sa) <= tol and abs(sab - sb) <= tol
+
+    def _proof_atom(
+        self,
+        text: str,
+        registry: list[tuple[str, np.ndarray]] | None = None,
+    ) -> str:
+        """Content-addressed conformal atom id for entailment telemetry.
+
+        Two surfaces unify to the same atom iff their grounded versors match
+        under :meth:`_atoms_unify`. Ungrounded surfaces fail closed (empty id).
+        """
+        psi = self._resolve_surface_versor(text)
+        if psi is None:
             return ""
-        return "atom_" + "_".join(parts)
+        if registry is not None:
+            for atom_id, prior in registry:
+                if self._atoms_unify(psi, prior):
+                    return atom_id
+        digest = multivector_content_digest(psi)
+        atom_id = f"atom_{digest}"
+        if registry is not None:
+            registry.append((atom_id, psi.copy()))
+        return atom_id
 
     @staticmethod
     def _render_walk_surface(walk: WalkResult) -> str:

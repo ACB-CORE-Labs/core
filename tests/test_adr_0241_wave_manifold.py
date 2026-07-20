@@ -348,6 +348,21 @@ def test_phase_correlation_symmetric():
     assert abs(M.phase_correlation(a, b) - M.phase_correlation(b, a)) < 1e-12
 
 
+def test_resonant_mode_content_addressed_sha256():
+    """Stored modes carry full 64-char SHA-256 digests (little-endian f64)."""
+    from core.physics.wave_manifold import multivector_content_digest
+
+    M = WaveManifold()
+    a = _unit_rotor(0.2, plane=6)
+    M.register_resonant_mode(a)
+    digests = M.resonant_mode_digests
+    assert len(digests) == 1
+    assert len(digests[0]) == 64
+    assert digests[0] == multivector_content_digest(a)
+    assert digests[0] == M.content_digest(a)
+    assert all(c in "0123456789abcdef" for c in digests[0])
+
+
 def test_core_ha_package_absent():
     """core_ha deprecation: no live package tree in this repo (W6 hygiene)."""
     import importlib.util

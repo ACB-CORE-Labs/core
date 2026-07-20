@@ -23,7 +23,14 @@ from core.physics.reasoning import ReasoningTrajectory, TrajectoryOperator
 from core.physics.articulation import ArticulationPlan, ArticulationPlanner, OutputModality
 from core.physics.drive import DriveGradientMap, GradientField, ValueAxis
 from core.physics.exertion import ExertionMeter, FatigueIndex, CycleCost
-from core.physics.identity import IdentityManifold, IdentityCheck, IdentityScore, CharacterProfile
+from core.physics.identity import (
+    CharacterProfile,
+    IdentityCheck,
+    IdentityGateRefusal,
+    IdentityManifold,
+    IdentityScore,
+    MissingWaveStateError,
+)
 from core.physics.learning import PromotionDecision, VaultPromotionPolicy
 from core.physics.goldtether import (
     AutonomyBand,
@@ -31,9 +38,11 @@ from core.physics.goldtether import (
     CoherenceResidual,
     GoldPromotionProof,
     GoldTetherMonitor,
+    GoldTetherViolationError,
     OperatingMode,
     coherence_residual,
     propose_kappa_line_search,
+    require_unitary,
 )
 from core.physics.dynamic_manifold import (
     AxisClassification,
@@ -230,9 +239,11 @@ __all__ = [
     "DriveGradientMap", "GradientField", "ValueAxis",
     "ExertionMeter", "FatigueIndex", "CycleCost",
     "IdentityManifold", "IdentityCheck", "IdentityScore", "CharacterProfile",
+    "IdentityGateRefusal", "MissingWaveStateError",
     "PromotionDecision", "VaultPromotionPolicy",
     "AutonomyBand", "AutonomyDecision", "CoherenceResidual",
-    "GoldPromotionProof", "GoldTetherMonitor", "OperatingMode", "coherence_residual",
+    "GoldPromotionProof", "GoldTetherMonitor", "GoldTetherViolationError",
+    "OperatingMode", "coherence_residual", "require_unitary",
     "AxisClassification", "CartanIwasawaFactors", "ConformalProcrustesResult",
     "PrincipalAxis", "SignatureAwarePCAResult",
     "cartan_iwasawa_extract", "cartan_iwasawa_factorize",

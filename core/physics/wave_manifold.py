@@ -22,6 +22,7 @@ is unset. Helpers without a Rust path (``reverse``, ``scalar_part``,
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any, Sequence, Tuple
 
 import numpy as np
@@ -38,6 +39,22 @@ from algebra.versor import versor_unit_residual
 _CLOSURE_TOL = 1e-6
 _NEAR_ZERO = 1e-12
 _NONSIMPLE_TOL = 1e-6
+
+
+def multivector_content_digest(psi: np.ndarray) -> str:
+    """Full 64-char SHA-256 of little-endian float64 multivector components.
+
+    Canonical content address for Cl(4,1) wave state (Reconstruction-over-Storage).
+    """
+    arr = np.ascontiguousarray(np.asarray(psi, dtype=np.float64))
+    if arr.shape != (N_COMPONENTS,):
+        raise ValueError(
+            f"content digest requires shape ({N_COMPONENTS},); got {arr.shape}"
+        )
+    if not np.all(np.isfinite(arr)):
+        raise ValueError("content digest requires finite multivector components")
+    le = arr.astype(np.dtype("<f8"), copy=False)
+    return hashlib.sha256(le.tobytes()).hexdigest()
 
 
 class WaveSpectralLeakageError(ValueError):
@@ -193,13 +210,22 @@ class WaveManifold:
     Construction-closed rotors; dual-checked unitary residual; deterministic.
     Optional standing-wave mode registry for resonant recall (ADR-0241 §2.2);
     not a vault/store — reconstruction-over-storage, off-serving.
+
+    Stored modes are content-addressed by SHA-256 over little-endian float64
+    multivector bytes (:func:`multivector_content_digest`).
     """
 
     def __init__(self, epsilon_drift: float = 1e-6) -> None:
         self.epsilon_drift = float(epsilon_drift)
         self.n_dims = N_COMPONENTS
         # Standing-wave eigenmode registry (session-local; not durable memory).
-        self._resonant_modes: list[np.ndarray] = []
+        # Each entry is (digest, psi) so storage is content-addressed.
+        self._resonant_modes: list[tuple[str, np.ndarray]] = []
+
+    @staticmethod
+    def content_digest(psi: np.ndarray) -> str:
+        """SHA-256 hex digest of a Cl(4,1) multivector (little-endian f64)."""
+        return multivector_content_digest(psi)
 
     # --- Transport -----------------------------------------------------------
 
@@ -300,9 +326,13 @@ class WaveManifold:
     # --- Standing-wave registry / resonant recall (ADR-0241 §2.2) ------------
 
     def register_resonant_mode(self, psi_k: np.ndarray) -> int:
-        """Register a standing-wave mode. Returns mode index. Session-local only."""
+        """Register a standing-wave mode. Returns mode index. Session-local only.
+
+        Content-addressed by SHA-256 of little-endian float64 components.
+        """
         mode = _as_mv(psi_k, "ψ_k").copy()
-        self._resonant_modes.append(mode)
+        digest = multivector_content_digest(mode)
+        self._resonant_modes.append((digest, mode))
         return len(self._resonant_modes) - 1
 
     def clear_resonant_modes(self) -> None:
@@ -311,7 +341,12 @@ class WaveManifold:
 
     @property
     def resonant_modes(self) -> tuple[np.ndarray, ...]:
-        return tuple(m.copy() for m in self._resonant_modes)
+        return tuple(m.copy() for _d, m in self._resonant_modes)
+
+    @property
+    def resonant_mode_digests(self) -> tuple[str, ...]:
+        """SHA-256 digests parallel to :attr:`resonant_modes`."""
+        return tuple(d for d, _m in self._resonant_modes)
 
     def resonant_recall(
         self,
@@ -406,7 +441,7 @@ class WaveManifold:
         modes: Sequence[np.ndarray] | None,
     ) -> list[np.ndarray]:
         if modes is None:
-            return list(self._resonant_modes)
+            return [m.copy() for _d, m in self._resonant_modes]
         return [_as_mv(m, f"mode[{i}]") for i, m in enumerate(modes)]
 
     # --- Chiral spinor charge ------------------------------------------------
@@ -433,4 +468,4 @@ class WaveManifold:
         )
 
 
-__all__ = ["WaveManifold", "WaveSpectralLeakageError"]
+__all__ = ["WaveManifold", "WaveSpectralLeakageError", "multivector_content_digest"]

@@ -127,11 +127,25 @@ def test_ingest_context_superposes_normalizes_and_digests():
     ingress = ingest_context(packets, "demo")
     assert abs(float(np.linalg.norm(ingress.psi)) - 1.0) < 1e-12
     assert ingress.modality_ids == ("audio", "vision")
+    # Multi-modality path is sandwich-governed (not pure L2 superpose):
+    # one audio→vision transition with GoldTether residual + digests.
+    assert len(ingress.modality_transitions) == 1
+    tr = ingress.modality_transitions[0]
+    assert tr.source_modality == "audio"
+    assert tr.target_modality == "vision"
+    assert tr.goldtether_residual <= 1e-6
+    assert len(tr.psi_out_digest) == 64
     again = ingest_context(packets, "demo")
     assert ingress.packet_digest == again.packet_digest
     assert np.array_equal(ingress.psi, again.psi)
     with pytest.raises(ValueError):
         ingress.psi[0] = 5.0  # frozen read-only field
+
+
+def test_ingest_single_packet_has_no_modality_transitions():
+    ingress = ingest_context([fake_deterministic_packet("audio")], "demo")
+    assert ingress.modality_transitions == ()
+    assert ingress.modality_ids == ("audio",)
 
 
 def test_ingest_context_refuses_empty_and_degenerate():
