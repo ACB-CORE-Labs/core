@@ -137,50 +137,20 @@ def _proposal_id(candidate: CorrectionCandidate) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
-# Cached compiled HE morphology for the live teaching consumer (Stage 4).
-_HE_MORPH_CATALOG: tuple | None = None
-_HE_MORPH_LOAD_ATTEMPTED = False
-
-
-def _he_morph_catalog():
-    """Load compiled HE morphology once; fail closed on missing pack (None)."""
-    global _HE_MORPH_CATALOG, _HE_MORPH_LOAD_ATTEMPTED
-    if _HE_MORPH_LOAD_ATTEMPTED:
-        return _HE_MORPH_CATALOG
-    _HE_MORPH_LOAD_ATTEMPTED = True
-    try:
-        from generate.observed_he_morph_v0.records import load_observed_morphology
-
-        _HE_MORPH_CATALOG = load_observed_morphology("he_logos_micro_v1")
-    except Exception:
-        _HE_MORPH_CATALOG = None
-    return _HE_MORPH_CATALOG
-
-
 def _auto_he_morph_decision(proposal: PackMutationProposal):
     """Apply executable HE morph rule when correction text cites a catalog surface.
 
-    Live production path for Stage 4 — not optional test-only wiring.
+    Live production path — shares ``evaluate_logos_on_text`` with CognitiveTurn
+    and the four-arm ablation (same pure decision function).
     Returns None when no HE surface is present (no-op, English corrections unchanged).
     """
-    catalog = _he_morph_catalog()
-    if not catalog:
-        return None
-    text = proposal.correction_text or ""
-    # Prefer longest surface match present in the correction text.
-    hits = [s for s in catalog if s.surface and s.surface in text]
-    if not hits:
-        return None
-    hits.sort(key=lambda s: len(s.surface), reverse=True)
-    surface = hits[0]
-    from generate.observed_he_morph_v0.consumer import apply_he_morph_constraint
+    from generate.observed_he_morph_v0.authority import evaluate_logos_on_text
 
-    return apply_he_morph_constraint(
-        proposal_text=text,
-        lemma_key=str(proposal.subject or surface.lemma),
-        observed_catalog=catalog,
+    text = proposal.correction_text or ""
+    return evaluate_logos_on_text(
+        text=text,
         mode="executable",
-        he_surface=surface.surface,
+        lemma_key=str(proposal.subject or "") or None,
     )
 
 
