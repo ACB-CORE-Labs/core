@@ -28,6 +28,7 @@ def graph_to_role_graph(graph: MathProblemGraph) -> RoleGraph:
     - ``initial_state`` → ``contain(entity, qty)``
     - ``compare_multiplicative`` → ``compare(actor, reference, factor)``
       (actor is k× reference — S1 role order ``compare(b, a, k)``)
+    - ``compare_additive`` (direction more/less) → ``compare_add(actor, reference, delta)``
     - ``transfer`` → ``transfer(src, dst, qty)``
     - ``apply_rate`` → ``rate`` with rate value / denominator-as-count placeholder
     - ``unknown.entity is None`` → ``total`` over entities that hold ``unknown.unit``
@@ -79,6 +80,34 @@ def graph_to_role_graph(graph: MathProblemGraph) -> RoleGraph:
                             value=factor,
                             unit=None,
                         ),  # k
+                    ),
+                )
+            )
+        elif op.kind == "compare_additive":
+            assert isinstance(op.operand, Comparison)
+            if op.operand.delta is None:
+                continue
+            # delta is a Quantity on the Comparison (ADR-0123).
+            delta_qty = op.operand.delta
+            if not isinstance(delta_qty, Quantity):
+                continue
+            delta = float(delta_qty.value)
+            # direction "fewer" means actor is below reference → flip sign so
+            # compare_add always means b = a + delta with delta signed.
+            if op.operand.direction == "fewer":
+                delta = -delta
+            preds.append(
+                RolePredicate(
+                    kind="compare_add",
+                    args=(
+                        RoleTerm(kind="entity", name=op.actor),  # b
+                        RoleTerm(kind="entity", name=op.operand.reference_actor),  # a
+                        RoleTerm(
+                            kind="quantity",
+                            name="delta",
+                            value=delta,
+                            unit=delta_qty.unit,
+                        ),
                     ),
                 )
             )
@@ -150,7 +179,9 @@ def _entities_with_unit(graph: MathProblemGraph, unit: str) -> list[str]:
         if poss.quantity.unit == unit and poss.entity not in seen:
             seen.append(poss.entity)
     for op in graph.operations:
-        if op.kind == "compare_multiplicative" and isinstance(op.operand, Comparison):
+        if op.kind in ("compare_multiplicative", "compare_additive") and isinstance(
+            op.operand, Comparison
+        ):
             # compare-defined entity inherits the reference unit; include actor
             if op.actor not in seen:
                 seen.append(op.actor)

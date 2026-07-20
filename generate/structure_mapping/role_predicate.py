@@ -17,12 +17,13 @@ PredicateKind = Literal[
     "contain",
     "transfer",
     "compare",
+    "compare_add",
     "rate",
     "total",
 ]
 
 VALID_PREDICATE_KINDS: Final[frozenset[str]] = frozenset(
-    {"contain", "transfer", "compare", "rate", "total"}
+    {"contain", "transfer", "compare", "compare_add", "rate", "total"}
 )
 
 
@@ -61,6 +62,7 @@ class RolePredicate:
     - contain(entity, qty)
     - transfer(src, dst, qty)
     - compare(b, a, k)  — b is k× a (actor, reference, factor)
+    - compare_add(b, a, delta) — b = a + delta (actor, reference, gap)
     - rate(per_unit, count, total)
     - total(part_1, ..., part_n, sum_query)
     """
@@ -79,6 +81,8 @@ class RolePredicate:
             raise ValueError("transfer requires (src, dst, qty)")
         if self.kind == "compare" and len(self.args) != 3:
             raise ValueError("compare requires (b, a, k)")
+        if self.kind == "compare_add" and len(self.args) != 3:
+            raise ValueError("compare_add requires (b, a, delta)")
         if self.kind == "rate" and len(self.args) != 3:
             raise ValueError("rate requires (per_unit, count, total)")
         if self.kind == "total" and len(self.args) < 2:
