@@ -1,5 +1,9 @@
 {"case_id": "gsm8k-holdout-dev-v1-0101", "label": "S1", "note": "compare_mult then total; organ cohort"}
 {"case_id": "gsm8k-holdout-dev-v1-0108", "label": "S1", "note": "compare_mult then total; organ cohort"}
+{"case_id": "gsm8k-holdout-dev-v1-0148", "label": "S1", "note": "pure S1; SM-owned extract (organ parse frontier)"}
+{"case_id": "gsm8k-holdout-dev-v1-0228", "label": "S1", "note": "pure S1 b-seeded; SM-owned extract"}
+{"case_id": "gsm8k-holdout-dev-v1-0234", "label": "S1", "note": "pure S1 b-seeded; SM-owned extract"}
 {"case_id": "gsm8k-holdout-dev-v1-0268", "label": "S1", "note": "compare_mult then total; organ cohort"}
 {"case_id": "gsm8k-holdout-dev-v1-0411", "label": "S1", "note": "compare_mult then total; organ cohort"}
+{"case_id": "gsm8k-holdout-dev-v1-0441", "label": "S1", "note": "pure S1 b-seeded; SM-owned extract"}
 {"case_id": "gsm8k-holdout-dev-v1-0453", "label": "S1", "note": "compare_mult then total; organ cohort"}

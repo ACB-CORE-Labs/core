@@ -18,11 +18,17 @@ from typing import Final, Mapping
 # may be labeled S1 in extended JSONL if human-reviewed later.
 S1_HOLDOUT_CASE_IDS: Final[frozenset[str]] = frozenset(
     {
+        # Organ cohort (serving reader already solves)
         "gsm8k-holdout-dev-v1-0101",
         "gsm8k-holdout-dev-v1-0108",
         "gsm8k-holdout-dev-v1-0268",
         "gsm8k-holdout-dev-v1-0411",
         "gsm8k-holdout-dev-v1-0453",
+        # Increment 2 coverage gain via SM-owned pure-S1 extract (organ misses)
+        "gsm8k-holdout-dev-v1-0148",
+        "gsm8k-holdout-dev-v1-0228",
+        "gsm8k-holdout-dev-v1-0234",
+        "gsm8k-holdout-dev-v1-0441",
     }
 )
 
