@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from core.cognition.geometric_coherence import GeometricCoherenceVerdict
 from core.cognition.leeway import LeewayRecord
 from field.state import FieldState
 from generate.articulation import ArticulationPlan
@@ -150,6 +151,9 @@ class CognitiveTurnResult:
 
     # --- invariant bookkeeping ---
     versor_condition: float = 0.0   # must be < 1e-6
+    # Stage 3A — geometry-native turn coherence (orthogonal to vault EpistemicStatus).
+    # None only on pre-Stage-3 artifacts; live pipeline always populates.
+    geometric_coherence: GeometricCoherenceVerdict | None = None
     trace_hash: str = ""            # SHA-256 over deterministic key fields
 
     # --- response-governance leeway evidence (B4; observational, not in trace_hash) ---
