@@ -44,6 +44,8 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # the falsifiability claim blocks-on-regression rather than
         # detect-after-merge.
         "tests/test_pack_measurements_phase2.py",
+        # ADR-0253 dual-pack boundary — draft he/grc trees must not be serve imports.
+        "tests/test_pack_draft_serve_boundary.py",
     ),
     "runtime": (
         "tests/test_chat_runtime.py",
@@ -75,6 +77,7 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_teaching_coverage_cli.py",
     ),
     "packs": (
+        "tests/test_pack_draft_serve_boundary.py",
         "tests/test_core_semantic_seed_pack.py",
         "tests/test_adr_0127_pack_ratification.py",
         "tests/test_frame_registry_load.py",
@@ -95,6 +98,8 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_wave_a_multiplicative_aggregation_injector.py",
     ),
     "algebra": (
+        "tests/test_stage2_physics_hardening.py",
+        "tests/test_geometric_convergence_checklist.py",
         "tests/test_versor_closure.py",
         "tests/test_holonomy.py",
         "tests/test_holonomy_resonance.py",

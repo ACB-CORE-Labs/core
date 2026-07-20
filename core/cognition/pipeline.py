@@ -24,6 +24,8 @@ import numpy as np
 from algebra.backend import versor_condition
 from algebra.cl41 import geometric_product, reverse, scalar_part
 from field.state import FieldState
+from core.cognition.geometric_coherence import evaluate_geometric_coherence
+from core.cognition.inductive_closure import expand_relation_closure
 from core.cognition.leeway import build_leeway_record
 from core.cognition.result import CognitiveTurnResult
 from core.cognition.surface_resolution import resolve_surface
@@ -439,6 +441,27 @@ class CognitiveTurnPipeline:
         ):
             compose_surface = CognitiveTurnPipeline._render_compose_surface(compose_result)
 
+        # Stage 3C — bounded inductive closure over teaching-store relations.
+        # Provenance-preserving fixed-point; derived edges require geometric
+        # admissibility (closed Cl(4,1) versors when vocab can ground them).
+        def _geom_admissible(h: str, r: str, t: str) -> bool:
+            del r
+            hv = self._resolve_surface_versor(h)
+            tv = self._resolve_surface_versor(t)
+            if hv is None or tv is None:
+                # Ungrounded endpoints cannot be promoted as geometric facts.
+                return False
+            return (
+                float(versor_condition(hv)) < 1e-6
+                and float(versor_condition(tv)) < 1e-6
+            )
+
+        inductive_closure = expand_relation_closure(
+            triples,
+            budget=16,
+            geometric_admissible=_geom_admissible,
+        )
+
         entailment_trace = self._maybe_entailment_trace(intent, triples)
 
         # === SHADOW COHERENCE GATE WIRING ===
@@ -645,10 +668,34 @@ class CognitiveTurnPipeline:
         entailment_serialised = CognitiveTurnPipeline._serialize_entailment_trace(
             entailment_trace
         )
-        # Deterministic concatenation: walk, compose, then entailment. Empty
-        # strings are dropped so unaffected turns keep existing trace bytes.
+        # Stage 3C — inductive fixed-point provenance (before hash so replay
+        # includes multi-step derivation when teaching store has chains).
+        inductive_serialised = ""
+        if inductive_closure.derived or inductive_closure.contradictions:
+            inductive_serialised = json.dumps(
+                {
+                    "inductive_closure": {
+                        "n_derived": len(inductive_closure.derived),
+                        "n_contradictions": len(inductive_closure.contradictions),
+                        "steps_taken": inductive_closure.steps_taken,
+                        "fixed_point": inductive_closure.fixed_point,
+                        "truncated": inductive_closure.truncated,
+                        "derived": [d.as_dict() for d in inductive_closure.derived[:8]],
+                    }
+                },
+                sort_keys=True,
+                ensure_ascii=False,
+            )
+        # Deterministic concatenation: walk, compose, entailment, inductive.
+        # Empty strings are dropped so unaffected turns keep existing trace bytes.
         operator_invocation = "|".join(
-            s for s in (walk_serialised, compose_serialised, entailment_serialised)
+            s
+            for s in (
+                walk_serialised,
+                compose_serialised,
+                entailment_serialised,
+                inductive_serialised,
+            )
             if s
         )
         # ADR-0023 — admissibility trace + ratification provenance.
@@ -724,6 +771,15 @@ class CognitiveTurnPipeline:
             license_decision=getattr(accrual, "license", None),
         )
 
+        # Stage 3A — turn-level geometric coherence (orthogonal to vault COHERENT).
+        geo_F = F_gate
+        if geo_F is None and field_state_after is not None:
+            geo_F = getattr(field_state_after, "F", None)
+        geometric_coherence = evaluate_geometric_coherence(
+            geo_F,
+            identity_score=response.identity_score,
+        )
+
         return CognitiveTurnResult(
             input_text=text,
             input_tokens=raw_tokens,
@@ -762,6 +818,7 @@ class CognitiveTurnPipeline:
             dispatch_trace=getattr(response, "dispatch_trace", None),
             dropped_compound_clauses=dropped_compound_clauses,
             versor_condition=response.versor_condition,
+            geometric_coherence=geometric_coherence,
             trace_hash=trace_hash,
             leeway=leeway,
             # Phase A — Shadow Coherence Gate observability.

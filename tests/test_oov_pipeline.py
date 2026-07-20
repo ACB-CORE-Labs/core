@@ -381,8 +381,13 @@ def test_depth_canonical_direct():
     assert real_pg.get_node_depths()["n1"]["root"] == "א-מ-ן"
     from generate.problem_frame_contracts import ContractAssessment
     a = ContractAssessment(candidate_organ="t", runnable=True, explanation="base")
+    # Multi-root depth must fail closed (Stage 3) — not silent roots[0].
     en = enrich_assessments_with_depth((a,), depths)
-    assert "[root:א-מ-ן]" in (en[0].explanation or "")
+    assert en[0].runnable is False
+    assert "AMBIGUOUS_ROOTS" in (en[0].explanation or "")
+    # Single-root enrichment still annotates.
+    en_one = enrich_assessments_with_depth((a,), {"n1": {"language": "he", "root": "א-מ-ן"}})
+    assert "[root:א-מ-ן]" in (en_one[0].explanation or "")
     print("depth_canonical direct tests passed")
 
 

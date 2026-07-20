@@ -269,6 +269,13 @@ def test_malformed_depth_labels_cannot_elevate_runnable() -> None:
 
 
 def test_valid_depth_metadata_on_gold_does_not_change_answer() -> None:
+    """Multi-root labels must not change the operator answer (Stage 3 fail-closed).
+
+    With ≥2 unique roots, enrichment appends AMBIGUOUS_ROOTS provenance and does
+    **not** commit a silent ``[root:…]`` first-root note. Single-root decoration
+    with ``[root:…]`` is covered by
+    ``test_metadata_only_decorates_but_does_not_change_answer``.
+    """
     depths = {
         "p0": {"language": "he", "root": "א-מ-נ"},
         "p1": {"language": "grc", "root": "λογ"},
@@ -276,7 +283,8 @@ def test_valid_depth_metadata_on_gold_does_not_change_answer() -> None:
     op = run_operator(GOLD_0001)
     meta = run_metadata_only(GOLD_0001, depth_labels=depths)
     assert answers_match(op, meta)
-    assert meta.explanation_has_root_note is True
+    # Multi-root: fail-closed — no silent first-root [root:] commit.
+    assert meta.explanation_has_root_note is False
 
 
 def test_distractor_quantity_case_refuses() -> None:

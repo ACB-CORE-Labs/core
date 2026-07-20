@@ -137,6 +137,53 @@ def _proposal_id(candidate: CorrectionCandidate) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
+# Cached compiled HE morphology for the live teaching consumer (Stage 4).
+_HE_MORPH_CATALOG: tuple | None = None
+_HE_MORPH_LOAD_ATTEMPTED = False
+
+
+def _he_morph_catalog():
+    """Load compiled HE morphology once; fail closed on missing pack (None)."""
+    global _HE_MORPH_CATALOG, _HE_MORPH_LOAD_ATTEMPTED
+    if _HE_MORPH_LOAD_ATTEMPTED:
+        return _HE_MORPH_CATALOG
+    _HE_MORPH_LOAD_ATTEMPTED = True
+    try:
+        from generate.observed_he_morph_v0.records import load_observed_morphology
+
+        _HE_MORPH_CATALOG = load_observed_morphology("he_logos_micro_v1")
+    except Exception:
+        _HE_MORPH_CATALOG = None
+    return _HE_MORPH_CATALOG
+
+
+def _auto_he_morph_decision(proposal: PackMutationProposal):
+    """Apply executable HE morph rule when correction text cites a catalog surface.
+
+    Live production path for Stage 4 — not optional test-only wiring.
+    Returns None when no HE surface is present (no-op, English corrections unchanged).
+    """
+    catalog = _he_morph_catalog()
+    if not catalog:
+        return None
+    text = proposal.correction_text or ""
+    # Prefer longest surface match present in the correction text.
+    hits = [s for s in catalog if s.surface and s.surface in text]
+    if not hits:
+        return None
+    hits.sort(key=lambda s: len(s.surface), reverse=True)
+    surface = hits[0]
+    from generate.observed_he_morph_v0.consumer import apply_he_morph_constraint
+
+    return apply_he_morph_constraint(
+        proposal_text=text,
+        lemma_key=str(proposal.subject or surface.lemma),
+        observed_catalog=catalog,
+        mode="executable",
+        he_surface=surface.surface,
+    )
+
+
 class TeachingStore:
     """Bounded, append-only store for reviewed teaching examples.
 
@@ -154,7 +201,12 @@ class TeachingStore:
     def capacity(self) -> int:
         return self._capacity
 
-    def add(self, example: ReviewedTeachingExample) -> PackMutationProposal | None:
+    def add(
+        self,
+        example: ReviewedTeachingExample,
+        *,
+        he_morph_decision=None,
+    ) -> PackMutationProposal | None:
         """Store an accepted example and return a mutation proposal.
 
         Rejected examples are dropped silently. Returns None if the
@@ -167,6 +219,11 @@ class TeachingStore:
         conflicting prior are upgraded to ``EpistemicStatus.CONTESTED``
         — neither is admissible as evidence until a coherence judgment
         ratifies one of them.  See ``_detect_contradiction``.
+
+        Stage 4 observed-HE morph consumer (optional ``he_morph_decision``):
+        when the executable HE morph rule returns ABSTAIN or FAIL_CLOSED,
+        the proposal is forced to CONTESTED (abstention at the teaching
+        contradiction seam) without English-to-Hebrew pseudo-morphology.
         """
         if not example.accepted:
             return None
@@ -193,6 +250,16 @@ class TeachingStore:
             triple=triple,
             epistemic_status=example.epistemic_status,
         )
+
+        # Stage 4 HE morph constraint — live path auto-applies executable rule
+        # from compiled packs/data morphology (not tests-only optional wiring).
+        if he_morph_decision is None:
+            he_morph_decision = _auto_he_morph_decision(proposal)
+        if he_morph_decision is not None:
+            kind = getattr(he_morph_decision, "kind", None)
+            kind_val = getattr(kind, "value", kind)
+            if kind_val in ("abstain", "fail_closed"):
+                proposal = proposal.with_status(EpistemicStatus.CONTESTED)
 
         # Coherence judgment — detect (S, R, T) ↔ (S, R, ¬T) pairs and
         # transition both proposals to CONTESTED.  ADR-0021: CONTESTED is

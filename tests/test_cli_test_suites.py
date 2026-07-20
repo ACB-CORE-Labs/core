@@ -157,11 +157,16 @@ def test_core_test_suite_accepts_pytest_flags_without_separator(monkeypatch) -> 
     # (growing) packs file list: the contract under test is that a curated
     # suite expands to its files followed by the forwarded "-q", with no "--"
     # separator needed.
+    # Assert against the runtime suite map (core.cli_test.TEST_SUITES), which
+    # cli.cmd_test actually expands. core.cli._TEST_SUITES is a re-export of
+    # the same object — do not pin a second stale list.
+    from core.cli_test import TEST_SUITES
+
     assert calls[0] == (
         cli.sys.executable,
         "-m",
         "pytest",
-        *cli._TEST_SUITES["packs"],
+        *TEST_SUITES["packs"],
         "-q",
     )
 
