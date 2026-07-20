@@ -1,0 +1,128 @@
+"""Stage 4 — observed-HE morph constraint v0 four-arm ablation."""
+
+from __future__ import annotations
+
+from generate.observed_he_morph_v0 import (
+    PLURAL_ABSTAIN_RULE_V0,
+    apply_he_morph_constraint,
+    load_observed_morphology,
+    run_four_arm_ablation,
+)
+from generate.observed_he_morph_v0.consumer import DecisionKind
+from teaching.epistemic import EpistemicStatus
+from teaching.store import TeachingStore
+from teaching.review import ReviewedTeachingExample, ReviewOutcome
+from teaching.correction import CorrectionCandidate
+from generate.intent import DialogueIntent, IntentTag
+
+
+def test_load_compiled_he_morphology_with_provenance():
+    rows = load_observed_morphology("he_logos_micro_v1")
+    assert len(rows) >= 1
+    assert all(r.language == "he" for r in rows)
+    assert all(r.source_pack_id == "he_logos_micro_v1" for r in rows)
+    assert all(isinstance(r.source_span, tuple) and len(r.source_span) == 2 for r in rows)
+    assert any(r.number == "plural" for r in rows)
+    assert any(r.root for r in rows)
+
+
+def test_four_arm_ablation_sealed_metrics():
+    report = run_four_arm_ablation()
+    assert report.metadata_bit_identical_to_canonical is True
+    assert report.executable_changed_decision is True
+    assert report.wrong_count == 0
+    assert report.refusal_correct is True
+    assert report.provenance_complete is True
+    arms = {a.arm: a for a in report.arms}
+    assert arms["canonical"].decision.kind is DecisionKind.PASS
+    assert arms["metadata"].decision.kind is DecisionKind.PASS
+    assert arms["executable"].decision.kind is DecisionKind.ABSTAIN
+    assert arms["adversarial"].decision.kind is DecisionKind.FAIL_CLOSED
+
+
+def test_metadata_only_inert_vs_executable_effect():
+    catalog = load_observed_morphology("he_logos_micro_v1")
+    plural = next(s for s in catalog if s.number == "plural")
+    claim = f"{plural.lemma} must be singular only — exclusive singular identity"
+    meta = apply_he_morph_constraint(
+        proposal_text=claim,
+        lemma_key=plural.lemma,
+        observed_catalog=catalog,
+        mode="metadata",
+        he_surface=plural.surface,
+    )
+    exe = apply_he_morph_constraint(
+        proposal_text=claim,
+        lemma_key=plural.lemma,
+        observed_catalog=catalog,
+        mode="executable",
+        he_surface=plural.surface,
+    )
+    assert meta.kind is DecisionKind.PASS
+    assert exe.kind is DecisionKind.ABSTAIN
+    assert exe.rule_id == PLURAL_ABSTAIN_RULE_V0.rule_id
+    assert exe.constraints[0].payload["source_span"]
+
+
+def test_oov_and_invalid_fail_closed():
+    catalog = load_observed_morphology("he_logos_micro_v1")
+    oov = apply_he_morph_constraint(
+        proposal_text="x",
+        lemma_key="x",
+        observed_catalog=catalog,
+        mode="executable",
+        he_surface="zzz_not_in_pack",
+    )
+    assert oov.kind is DecisionKind.FAIL_CLOSED
+    assert oov.reason == "oov_he_surface"
+
+
+def test_teaching_store_consumer_seam_abstains_on_plural_rule():
+    """Live TeachingStore.add path: HE plural rule forces CONTESTED (abstain)."""
+    catalog = load_observed_morphology("he_logos_micro_v1")
+    plural = next(s for s in catalog if s.number == "plural")
+    store = TeachingStore(capacity=8)
+
+    # First proposal accepted
+    cand1 = CorrectionCandidate(
+        correction_text=f"{plural.lemma} is a logos utterance",
+        intent=DialogueIntent(tag=IntentTag.CORRECTION, subject=plural.lemma),
+        prior_surface="prior",
+        prior_turn=0,
+        candidate_id="c1",
+    )
+    rev1 = ReviewedTeachingExample(
+        candidate=cand1,
+        outcome=ReviewOutcome.ACCEPTED,
+        review_hash="h1",
+        epistemic_status=EpistemicStatus.SPECULATIVE,
+    )
+    p1 = store.add(rev1)
+    assert p1 is not None
+
+    # Second proposal: singular exclusivity — HE morph consumer abstains
+    decision = apply_he_morph_constraint(
+        proposal_text=f"{plural.lemma} must be singular only — exclusive singular identity",
+        lemma_key=plural.lemma,
+        observed_catalog=catalog,
+        mode="executable",
+        he_surface=plural.surface,
+    )
+    assert decision.kind is DecisionKind.ABSTAIN
+    # Consumer integration: when ABSTAIN, teaching path marks CONTESTED
+    cand2 = CorrectionCandidate(
+        correction_text=f"{plural.lemma} must be singular only — exclusive singular identity",
+        intent=DialogueIntent(tag=IntentTag.CORRECTION, subject=plural.lemma),
+        prior_surface="prior",
+        prior_turn=1,
+        candidate_id="c2",
+    )
+    rev2 = ReviewedTeachingExample(
+        candidate=cand2,
+        outcome=ReviewOutcome.ACCEPTED,
+        review_hash="h2",
+        epistemic_status=EpistemicStatus.SPECULATIVE,
+    )
+    p2 = store.add(rev2, he_morph_decision=decision)
+    assert p2 is not None
+    assert p2.epistemic_status is EpistemicStatus.CONTESTED

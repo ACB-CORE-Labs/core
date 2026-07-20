@@ -154,7 +154,12 @@ class TeachingStore:
     def capacity(self) -> int:
         return self._capacity
 
-    def add(self, example: ReviewedTeachingExample) -> PackMutationProposal | None:
+    def add(
+        self,
+        example: ReviewedTeachingExample,
+        *,
+        he_morph_decision=None,
+    ) -> PackMutationProposal | None:
         """Store an accepted example and return a mutation proposal.
 
         Rejected examples are dropped silently. Returns None if the
@@ -167,6 +172,11 @@ class TeachingStore:
         conflicting prior are upgraded to ``EpistemicStatus.CONTESTED``
         — neither is admissible as evidence until a coherence judgment
         ratifies one of them.  See ``_detect_contradiction``.
+
+        Stage 4 observed-HE morph consumer (optional ``he_morph_decision``):
+        when the executable HE morph rule returns ABSTAIN or FAIL_CLOSED,
+        the proposal is forced to CONTESTED (abstention at the teaching
+        contradiction seam) without English-to-Hebrew pseudo-morphology.
         """
         if not example.accepted:
             return None
@@ -193,6 +203,13 @@ class TeachingStore:
             triple=triple,
             epistemic_status=example.epistemic_status,
         )
+
+        # Stage 4 HE morph constraint — abstain/fail-closed → CONTESTED.
+        if he_morph_decision is not None:
+            kind = getattr(he_morph_decision, "kind", None)
+            kind_val = getattr(kind, "value", kind)
+            if kind_val in ("abstain", "fail_closed"):
+                proposal = proposal.with_status(EpistemicStatus.CONTESTED)
 
         # Coherence judgment — detect (S, R, T) ↔ (S, R, ¬T) pairs and
         # transition both proposals to CONTESTED.  ADR-0021: CONTESTED is
