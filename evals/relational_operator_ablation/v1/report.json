@@ -1,0 +1,1727 @@
+{
+  "conditions": [
+    "baseline",
+    "operator",
+    "depth",
+    "metadata_only",
+    "invalid"
+  ],
+  "counts": {
+    "baseline": {
+      "correct": 2,
+      "correct_rate": 0.25,
+      "coverage": 2,
+      "coverage_rate": 0.25,
+      "n": 8,
+      "refused": 6,
+      "refused_rate": 0.75,
+      "wrong": 0,
+      "wrong_rate": 0.0
+    },
+    "depth": {
+      "correct": 2,
+      "correct_rate": 0.25,
+      "coverage": 2,
+      "coverage_rate": 0.25,
+      "n": 8,
+      "refused": 6,
+      "refused_rate": 0.75,
+      "wrong": 0,
+      "wrong_rate": 0.0
+    },
+    "invalid": {
+      "correct": 0,
+      "correct_rate": 0.0,
+      "coverage": 0,
+      "coverage_rate": 0.0,
+      "n": 6,
+      "refused": 6,
+      "refused_rate": 1.0,
+      "wrong": 0,
+      "wrong_rate": 0.0
+    },
+    "metadata_only": {
+      "correct": 2,
+      "correct_rate": 0.25,
+      "coverage": 2,
+      "coverage_rate": 0.25,
+      "n": 8,
+      "refused": 6,
+      "refused_rate": 0.75,
+      "wrong": 0,
+      "wrong_rate": 0.0
+    },
+    "operator": {
+      "correct": 2,
+      "correct_rate": 0.25,
+      "coverage": 2,
+      "coverage_rate": 0.25,
+      "n": 8,
+      "refused": 6,
+      "refused_rate": 0.75,
+      "wrong": 0,
+      "wrong_rate": 0.0
+    }
+  },
+  "determinism": [
+    {
+      "case_id": "roa-v1-0001",
+      "operator_repeat_identical": true
+    },
+    {
+      "case_id": "roa-v1-0002",
+      "operator_repeat_identical": true
+    },
+    {
+      "case_id": "roa-v1-0003",
+      "operator_repeat_identical": true
+    },
+    {
+      "case_id": "roa-v1-0004",
+      "operator_repeat_identical": true
+    },
+    {
+      "case_id": "roa-v1-0005",
+      "operator_repeat_identical": true
+    },
+    {
+      "case_id": "roa-v1-0006",
+      "operator_repeat_identical": true
+    },
+    {
+      "case_id": "roa-v1-0007",
+      "operator_repeat_identical": true
+    },
+    {
+      "case_id": "roa-v1-0008",
+      "operator_repeat_identical": true
+    }
+  ],
+  "family": "proportional_change.decrease_to_fraction",
+  "findings": {
+    "baseline_wrong_zero": true,
+    "depth_executable_inactive_equals_operator": true,
+    "metadata_only_inert": true,
+    "operator_deterministic": true,
+    "operator_solves_gold_fraction_cases": true,
+    "operator_wrong_zero": true,
+    "scientific_note": "Depth executable mapping is intentionally inactive on English-only inputs (anti-circularity). Metadata-only he-root labels must not change answers. Operator geometric path and baseline scalar path should agree when both commit."
+  },
+  "inert_checks": [
+    {
+      "baseline_eq_operator_when_both_commit": true,
+      "case_id": "roa-v1-0001",
+      "metadata_has_root_note_when_runnable": true,
+      "operator_eq_depth": true,
+      "operator_eq_metadata": true
+    },
+    {
+      "baseline_eq_operator_when_both_commit": true,
+      "case_id": "roa-v1-0002",
+      "metadata_has_root_note_when_runnable": true,
+      "operator_eq_depth": true,
+      "operator_eq_metadata": true
+    },
+    {
+      "baseline_eq_operator_when_both_commit": null,
+      "case_id": "roa-v1-0003",
+      "metadata_has_root_note_when_runnable": null,
+      "operator_eq_depth": true,
+      "operator_eq_metadata": true
+    },
+    {
+      "baseline_eq_operator_when_both_commit": null,
+      "case_id": "roa-v1-0004",
+      "metadata_has_root_note_when_runnable": null,
+      "operator_eq_depth": true,
+      "operator_eq_metadata": true
+    },
+    {
+      "baseline_eq_operator_when_both_commit": null,
+      "case_id": "roa-v1-0005",
+      "metadata_has_root_note_when_runnable": null,
+      "operator_eq_depth": true,
+      "operator_eq_metadata": true
+    },
+    {
+      "baseline_eq_operator_when_both_commit": null,
+      "case_id": "roa-v1-0006",
+      "metadata_has_root_note_when_runnable": null,
+      "operator_eq_depth": true,
+      "operator_eq_metadata": true
+    },
+    {
+      "baseline_eq_operator_when_both_commit": null,
+      "case_id": "roa-v1-0007",
+      "metadata_has_root_note_when_runnable": null,
+      "operator_eq_depth": true,
+      "operator_eq_metadata": true
+    },
+    {
+      "baseline_eq_operator_when_both_commit": null,
+      "case_id": "roa-v1-0008",
+      "metadata_has_root_note_when_runnable": true,
+      "operator_eq_depth": true,
+      "operator_eq_metadata": true
+    }
+  ],
+  "lane": "relational_operator_ablation/v1",
+  "limitations": [
+    "n=8 sealed cases; not a full GSM8K claim.",
+    "Depth-as-executable is unproven for English arithmetic; recorded inactive.",
+    "percent_partition dual-track is out of family scope for this slice.",
+    "Chat CognitiveTurnPipeline still passes contract_assessment=None."
+  ],
+  "organ": "fraction_decrease",
+  "per_case": [
+    {
+      "baseline": {
+        "answer": 21.0,
+        "answer_unit": "degrees",
+        "case_id": "roa-v1-0001",
+        "condition": "baseline",
+        "depth": null,
+        "expected_answer": 21.0,
+        "explanation_has_root_note": false,
+        "frame_runnable": true,
+        "operator_bindings": 0,
+        "outcome": "correct",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:49:60"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": ""
+      },
+      "case_id": "roa-v1-0001",
+      "depth": {
+        "answer": 21.000000000007148,
+        "answer_unit": "degrees",
+        "case_id": "roa-v1-0001",
+        "condition": "depth",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_executable.fraction_decrease.v0_absent",
+          "reason": "No authored executable depth\u2192relation mapping for English surface; anti-circularity forbids inventing Greek case / Hebrew binyan from English.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "inactive_no_mapping"
+        },
+        "expected_answer": 21.0,
+        "explanation_has_root_note": false,
+        "frame_runnable": true,
+        "operator_bindings": 1,
+        "outcome": "correct",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:49:60"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": ""
+      },
+      "invalid": {
+        "case_id": "roa-v1-0001",
+        "condition": "invalid",
+        "note": "invalid condition reserved for refuse-gold/adversarial tags",
+        "outcome": "skipped_not_adversarial"
+      },
+      "metadata_only": {
+        "answer": 21.000000000007148,
+        "answer_unit": "degrees",
+        "case_id": "roa-v1-0001",
+        "condition": "metadata_only",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_metadata.enrich_assessments_with_depth.v1",
+          "reason": "Depth labels decorate ContractAssessment.explanation only; not executable.",
+          "source_pack_ids": [
+            "synthetic_metadata_only"
+          ],
+          "source_record_ids": [
+            "p0"
+          ],
+          "validity": "metadata_only"
+        },
+        "expected_answer": 21.0,
+        "explanation_has_root_note": true,
+        "frame_runnable": true,
+        "operator_bindings": 1,
+        "outcome": "correct",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded [root:\u05d0-\u05de-\u05e0]",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:49:60"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": ""
+      },
+      "operator": {
+        "answer": 21.000000000007148,
+        "answer_unit": "degrees",
+        "case_id": "roa-v1-0001",
+        "condition": "operator",
+        "depth": null,
+        "expected_answer": 21.0,
+        "explanation_has_root_note": false,
+        "frame_runnable": true,
+        "operator_bindings": 1,
+        "outcome": "correct",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:49:60"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": ""
+      },
+      "tags": [
+        "fraction_decrease",
+        "gold",
+        "train_sample_0005"
+      ]
+    },
+    {
+      "baseline": {
+        "answer": 20.0,
+        "answer_unit": "degrees",
+        "case_id": "roa-v1-0002",
+        "condition": "baseline",
+        "depth": null,
+        "expected_answer": 20.0,
+        "explanation_has_root_note": false,
+        "frame_runnable": true,
+        "operator_bindings": 0,
+        "outcome": "correct",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:44:55"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "2/3",
+          "versor_error": 0.0
+        },
+        "refusal_reason": ""
+      },
+      "case_id": "roa-v1-0002",
+      "depth": {
+        "answer": 20.00000000000606,
+        "answer_unit": "degrees",
+        "case_id": "roa-v1-0002",
+        "condition": "depth",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_executable.fraction_decrease.v0_absent",
+          "reason": "No authored executable depth\u2192relation mapping for English surface; anti-circularity forbids inventing Greek case / Hebrew binyan from English.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "inactive_no_mapping"
+        },
+        "expected_answer": 20.0,
+        "explanation_has_root_note": false,
+        "frame_runnable": true,
+        "operator_bindings": 1,
+        "outcome": "correct",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:44:55"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "2/3",
+          "versor_error": 0.0
+        },
+        "refusal_reason": ""
+      },
+      "invalid": {
+        "case_id": "roa-v1-0002",
+        "condition": "invalid",
+        "note": "invalid condition reserved for refuse-gold/adversarial tags",
+        "outcome": "skipped_not_adversarial"
+      },
+      "metadata_only": {
+        "answer": 20.00000000000606,
+        "answer_unit": "degrees",
+        "case_id": "roa-v1-0002",
+        "condition": "metadata_only",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_metadata.enrich_assessments_with_depth.v1",
+          "reason": "Depth labels decorate ContractAssessment.explanation only; not executable.",
+          "source_pack_ids": [
+            "synthetic_metadata_only"
+          ],
+          "source_record_ids": [
+            "p0"
+          ],
+          "validity": "metadata_only"
+        },
+        "expected_answer": 20.0,
+        "explanation_has_root_note": true,
+        "frame_runnable": true,
+        "operator_bindings": 1,
+        "outcome": "correct",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded [root:\u05d0-\u05de-\u05e0]",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:44:55"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "2/3",
+          "versor_error": 0.0
+        },
+        "refusal_reason": ""
+      },
+      "operator": {
+        "answer": 20.00000000000606,
+        "answer_unit": "degrees",
+        "case_id": "roa-v1-0002",
+        "condition": "operator",
+        "depth": null,
+        "expected_answer": 20.0,
+        "explanation_has_root_note": false,
+        "frame_runnable": true,
+        "operator_bindings": 1,
+        "outcome": "correct",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:44:55"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "2/3",
+          "versor_error": 0.0
+        },
+        "refusal_reason": ""
+      },
+      "tags": [
+        "fraction_decrease",
+        "gold",
+        "sibling"
+      ]
+    },
+    {
+      "baseline": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0003",
+        "condition": "baseline",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "diagnostic candidate is not runnable: delta_decrease_target_unbound",
+          "has_versor_binding": false,
+          "missing_bindings": [
+            "delta_decrease_target_unbound"
+          ],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:41:52"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: delta_decrease_target_unbound"
+      },
+      "case_id": "roa-v1-0003",
+      "depth": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0003",
+        "condition": "depth",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_executable.fraction_decrease.v0_absent",
+          "reason": "No authored executable depth\u2192relation mapping for English surface; anti-circularity forbids inventing Greek case / Hebrew binyan from English.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "inactive_no_mapping"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 1,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "Assessed via geometric algebra from frame-grounded scale",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:41:52"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: delta_decrease_target_unbound"
+      },
+      "invalid": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0003",
+        "condition": "invalid",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "invalid.control",
+          "reason": "Adversarial/invalid control case; refuse preferred over wrong.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "invalid"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 1,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "Assessed via geometric algebra from frame-grounded scale",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:41:52"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: delta_decrease_target_unbound"
+      },
+      "metadata_only": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0003",
+        "condition": "metadata_only",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_metadata.enrich_assessments_with_depth.v1",
+          "reason": "Depth labels decorate ContractAssessment.explanation only; not executable.",
+          "source_pack_ids": [
+            "synthetic_metadata_only"
+          ],
+          "source_record_ids": [
+            "p0"
+          ],
+          "validity": "metadata_only"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "diagnostic candidate is not runnable: delta_decrease_target_unbound",
+          "has_versor_binding": false,
+          "missing_bindings": [
+            "delta_decrease_target_unbound"
+          ],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:41:52"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: delta_decrease_target_unbound"
+      },
+      "operator": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0003",
+        "condition": "operator",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 1,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": "mention-0003",
+          "explanation": "Assessed via geometric algebra from frame-grounded scale",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0003"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:41:52"
+            ],
+            [
+              "unit",
+              "mention-0005"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: delta_decrease_target_unbound"
+      },
+      "tags": [
+        "adversarial",
+        "final_value",
+        "invalid"
+      ]
+    },
+    {
+      "baseline": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0004",
+        "condition": "baseline",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_required, unbound_base_quantity",
+          "has_versor_binding": false,
+          "missing_bindings": [
+            "decrease_relation_ambiguous",
+            "base_quantity_unbound",
+            "scale_unbound",
+            "state_entity_unbound",
+            "delta_decrease_target_required"
+          ],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_required, unbound_base_quantity"
+      },
+      "case_id": "roa-v1-0004",
+      "depth": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0004",
+        "condition": "depth",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_executable.fraction_decrease.v0_absent",
+          "reason": "No authored executable depth\u2192relation mapping for English surface; anti-circularity forbids inventing Greek case / Hebrew binyan from English.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "inactive_no_mapping"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_assessment",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_required, unbound_base_quantity"
+      },
+      "invalid": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0004",
+        "condition": "invalid",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "invalid.control",
+          "reason": "Adversarial/invalid control case; refuse preferred over wrong.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "invalid"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_assessment",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_required, unbound_base_quantity"
+      },
+      "metadata_only": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0004",
+        "condition": "metadata_only",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_metadata.enrich_assessments_with_depth.v1",
+          "reason": "Depth labels decorate ContractAssessment.explanation only; not executable.",
+          "source_pack_ids": [
+            "synthetic_metadata_only"
+          ],
+          "source_record_ids": [
+            "p0"
+          ],
+          "validity": "metadata_only"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_in_assess_contracts",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "operator_refused"
+      },
+      "operator": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0004",
+        "condition": "operator",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_assessment",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_required, unbound_base_quantity"
+      },
+      "tags": [
+        "adversarial",
+        "affine_confuser",
+        "invalid"
+      ]
+    },
+    {
+      "baseline": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0005",
+        "condition": "baseline",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_required, unbound_base_quantity",
+          "has_versor_binding": false,
+          "missing_bindings": [
+            "decrease_relation_ambiguous",
+            "base_quantity_unbound",
+            "scale_unbound",
+            "state_entity_unbound",
+            "delta_decrease_target_required"
+          ],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_required, unbound_base_quantity"
+      },
+      "case_id": "roa-v1-0005",
+      "depth": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0005",
+        "condition": "depth",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_executable.fraction_decrease.v0_absent",
+          "reason": "No authored executable depth\u2192relation mapping for English surface; anti-circularity forbids inventing Greek case / Hebrew binyan from English.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "inactive_no_mapping"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_assessment",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_required, unbound_base_quantity"
+      },
+      "invalid": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0005",
+        "condition": "invalid",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "invalid.control",
+          "reason": "Adversarial/invalid control case; refuse preferred over wrong.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "invalid"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_assessment",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_required, unbound_base_quantity"
+      },
+      "metadata_only": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0005",
+        "condition": "metadata_only",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_metadata.enrich_assessments_with_depth.v1",
+          "reason": "Depth labels decorate ContractAssessment.explanation only; not executable.",
+          "source_pack_ids": [
+            "synthetic_metadata_only"
+          ],
+          "source_record_ids": [
+            "p0"
+          ],
+          "validity": "metadata_only"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_in_assess_contracts",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "operator_refused"
+      },
+      "operator": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0005",
+        "condition": "operator",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_assessment",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_required, unbound_base_quantity"
+      },
+      "tags": [
+        "adversarial",
+        "percent_partition",
+        "invalid"
+      ]
+    },
+    {
+      "baseline": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0006",
+        "condition": "baseline",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, unbound_base_quantity",
+          "has_versor_binding": false,
+          "missing_bindings": [
+            "decrease_relation_ambiguous",
+            "base_quantity_unbound",
+            "scale_unbound",
+            "state_entity_unbound"
+          ],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, unbound_base_quantity"
+      },
+      "case_id": "roa-v1-0006",
+      "depth": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0006",
+        "condition": "depth",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_executable.fraction_decrease.v0_absent",
+          "reason": "No authored executable depth\u2192relation mapping for English surface; anti-circularity forbids inventing Greek case / Hebrew binyan from English.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "inactive_no_mapping"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "Assessed via geometric algebra from frame-grounded scale",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, unbound_base_quantity"
+      },
+      "invalid": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0006",
+        "condition": "invalid",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "invalid.control",
+          "reason": "Adversarial/invalid control case; refuse preferred over wrong.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "invalid"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "Assessed via geometric algebra from frame-grounded scale",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, unbound_base_quantity"
+      },
+      "metadata_only": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0006",
+        "condition": "metadata_only",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_metadata.enrich_assessments_with_depth.v1",
+          "reason": "Depth labels decorate ContractAssessment.explanation only; not executable.",
+          "source_pack_ids": [
+            "synthetic_metadata_only"
+          ],
+          "source_record_ids": [
+            "p0"
+          ],
+          "validity": "metadata_only"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, unbound_base_quantity",
+          "has_versor_binding": false,
+          "missing_bindings": [
+            "decrease_relation_ambiguous",
+            "base_quantity_unbound",
+            "scale_unbound",
+            "state_entity_unbound"
+          ],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, unbound_base_quantity"
+      },
+      "operator": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0006",
+        "condition": "operator",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "Assessed via geometric algebra from frame-grounded scale",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, unbound_base_quantity"
+      },
+      "tags": [
+        "adversarial",
+        "distractor_quantity",
+        "invalid"
+      ]
+    },
+    {
+      "baseline": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0007",
+        "condition": "baseline",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_unbound, unbound_base_quantity",
+          "has_versor_binding": false,
+          "missing_bindings": [
+            "decrease_relation_ambiguous",
+            "base_quantity_unbound",
+            "scale_unbound",
+            "state_entity_unbound",
+            "delta_decrease_target_unbound"
+          ],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_unbound, unbound_base_quantity"
+      },
+      "case_id": "roa-v1-0007",
+      "depth": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0007",
+        "condition": "depth",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_executable.fraction_decrease.v0_absent",
+          "reason": "No authored executable depth\u2192relation mapping for English surface; anti-circularity forbids inventing Greek case / Hebrew binyan from English.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "inactive_no_mapping"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_assessment",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_unbound, unbound_base_quantity"
+      },
+      "invalid": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0007",
+        "condition": "invalid",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "invalid.control",
+          "reason": "Adversarial/invalid control case; refuse preferred over wrong.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "invalid"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_assessment",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_unbound, unbound_base_quantity"
+      },
+      "metadata_only": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0007",
+        "condition": "metadata_only",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_metadata.enrich_assessments_with_depth.v1",
+          "reason": "Depth labels decorate ContractAssessment.explanation only; not executable.",
+          "source_pack_ids": [
+            "synthetic_metadata_only"
+          ],
+          "source_record_ids": [
+            "p0"
+          ],
+          "validity": "metadata_only"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_in_assess_contracts",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "operator_refused"
+      },
+      "operator": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0007",
+        "condition": "operator",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": false,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": null,
+          "explanation": "no_fraction_decrease_assessment",
+          "has_versor_binding": false,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [],
+          "scale_surface": null,
+          "versor_error": null
+        },
+        "refusal_reason": "diagnostic candidate is not runnable: decrease_relation_ambiguous, base_quantity_unbound, scale_unbound, state_entity_unbound, delta_decrease_target_unbound, unbound_base_quantity"
+      },
+      "tags": [
+        "adversarial",
+        "percent_change_vs_of",
+        "invalid"
+      ]
+    },
+    {
+      "baseline": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0008",
+        "condition": "baseline",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": true,
+        "operator_bindings": 0,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": "mention-0005",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0005"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:49:60"
+            ],
+            [
+              "unit",
+              "mention-0007"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": "baseline_hazard_surface"
+      },
+      "case_id": "roa-v1-0008",
+      "depth": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0008",
+        "condition": "depth",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_executable.fraction_decrease.v0_absent",
+          "reason": "No authored executable depth\u2192relation mapping for English surface; anti-circularity forbids inventing Greek case / Hebrew binyan from English.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "inactive_no_mapping"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": true,
+        "operator_bindings": 1,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": "mention-0005",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0005"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:49:60"
+            ],
+            [
+              "unit",
+              "mention-0007"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": "operator_refused"
+      },
+      "invalid": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0008",
+        "condition": "invalid",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "invalid.control",
+          "reason": "Adversarial/invalid control case; refuse preferred over wrong.",
+          "source_pack_ids": [],
+          "source_record_ids": [],
+          "validity": "invalid"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": true,
+        "operator_bindings": 1,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": "mention-0005",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0005"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:49:60"
+            ],
+            [
+              "unit",
+              "mention-0007"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": "operator_refused"
+      },
+      "metadata_only": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0008",
+        "condition": "metadata_only",
+        "depth": {
+          "evidence_spans": [],
+          "mapping_rule_id": "depth_metadata.enrich_assessments_with_depth.v1",
+          "reason": "Depth labels decorate ContractAssessment.explanation only; not executable.",
+          "source_pack_ids": [
+            "synthetic_metadata_only"
+          ],
+          "source_record_ids": [
+            "p0"
+          ],
+          "validity": "metadata_only"
+        },
+        "expected_answer": null,
+        "explanation_has_root_note": true,
+        "frame_runnable": true,
+        "operator_bindings": 1,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": "mention-0005",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded [root:\u05d0-\u05de-\u05e0]",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0005"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:49:60"
+            ],
+            [
+              "unit",
+              "mention-0007"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": "all fraction-decrease roles and delta target obligations are grounded [root:\u05d0-\u05de-\u05e0]"
+      },
+      "operator": {
+        "answer": null,
+        "answer_unit": null,
+        "case_id": "roa-v1-0008",
+        "condition": "operator",
+        "depth": null,
+        "expected_answer": null,
+        "explanation_has_root_note": false,
+        "frame_runnable": true,
+        "operator_bindings": 1,
+        "outcome": "refused",
+        "readback": {
+          "base_surface": "mention-0005",
+          "explanation": "all fraction-decrease roles and delta target obligations are grounded",
+          "has_versor_binding": true,
+          "missing_bindings": [],
+          "relation_type": "decrease_to_fraction",
+          "roles": [
+            [
+              "base_quantity",
+              "mention-0005"
+            ],
+            [
+              "scale",
+              "mention-0001"
+            ],
+            [
+              "state_entity",
+              "mention-0000"
+            ],
+            [
+              "transition",
+              "span:49:60"
+            ],
+            [
+              "unit",
+              "mention-0007"
+            ]
+          ],
+          "scale_surface": "3/4",
+          "versor_error": 2.220446049250313e-16
+        },
+        "refusal_reason": "operator_refused"
+      },
+      "tags": [
+        "adversarial",
+        "multi_fraction_hazard",
+        "invalid"
+      ]
+    }
+  ],
+  "report_sha256": "53df6d17df934f0c44f5d1063b16259f6d9db0b59834b7ca20f895eb5e5719c7",
+  "sample_size": 8,
+  "schema_version": 1
+}
