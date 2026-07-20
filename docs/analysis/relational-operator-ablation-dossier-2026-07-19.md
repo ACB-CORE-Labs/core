@@ -4,6 +4,14 @@
 **Worktree:** `/Users/kaizenpro/Projects/core-relational-operator-ablation`  
 **Date:** 2026-07-19
 
+**Document set on this branch:**
+
+| Doc | Role |
+|-----|------|
+| `docs/analysis/relational-operator-ablation-cartography-2026-07-19.md` | Phase 1 cartography, design-truth matrix, go/no-go |
+| `docs/analysis/relational-operator-ablation-dossier-2026-07-19.md` | This file — ablation implementation + measurement |
+| `docs/analysis/hebrew-koine-greek-logos-pack-capability-roadmap-2026-07-19.md` | Separate HE/GRC Logos audit (planning only; no pack build) |
+
 ---
 
 ## Executive verdict
@@ -12,6 +20,8 @@
 
 Narrow vertical slice only: family `proportional_change.decrease_to_fraction` / organ `fraction_decrease`.  
 Ancient-language → GSM8K arithmetic is **not** claimed and is **not** implemented (scientific NO-GO under anti-circularity).
+
+**Depth on English-only cases was intentionally inert** (no observed-morphology basis). That does not test observed Hebrew/Greek input or the broader Logos-pack thesis — see the HE/GRC roadmap for the audited next path (`feat/observed-he-morph-constraint-v0`).
 
 ---
 

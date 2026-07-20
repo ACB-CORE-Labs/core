@@ -6,6 +6,8 @@
 **Authority commit:** `d8d62b8e` (main tip at branch creation)  
 **Status:** Evidence ledger for Phase 1–2; implementation of the narrow GO slice is companion code under `generate/relational_operator_ablation.py` and `evals/relational_operator_ablation/`.
 
+**Related:** HE/GRC broader capability is **not** authorized by this ledger. See `docs/analysis/hebrew-koine-greek-logos-pack-capability-roadmap-2026-07-19.md` (verdict: READY ONLY FOR PREREQUISITE WIRING OR MIGRATION).
+
 ---
 
 ## 1. Executive decision (closed)
