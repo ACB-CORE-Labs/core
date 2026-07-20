@@ -939,10 +939,27 @@ class CognitiveTurnPipeline:
             return None, None, None
 
         manifold = getattr(self.runtime, "identity_manifold", None)
+        # ADR-0244 honest scope: with ``identity_wave_gate`` off, live
+        # final_state.F scores routinely show high leakage and axis inversion
+        # because value axes are not yet dynamically load-bearing. Those
+        # measures are observational telemetry, not teaching veto authority.
+        # Only committed ``boundary_violations`` (safety/ethics ∩ manifold)
+        # remain a hard geometric teaching reject while the gate is off.
+        # Syntactic identity-override detection remains active regardless.
+        review_score = identity_score
+        cfg = getattr(self.runtime, "config", None)
+        gate_on = bool(getattr(cfg, "identity_wave_gate", False))
+        if (
+            not gate_on
+            and identity_score is not None
+            and bool(getattr(identity_score, "wave_mode_active", False))
+            and not bool(getattr(identity_score, "boundary_violations", ()) or ())
+        ):
+            review_score = None
         reviewed = review_correction(
             candidate,
-            identity_score=identity_score,  # type: ignore[arg-type]
-            identity_manifold=manifold,
+            identity_score=review_score,  # type: ignore[arg-type]
+            identity_manifold=manifold if review_score is not None else None,
         )
         proposal = self.teaching_store.add(reviewed)
         return candidate, reviewed, proposal

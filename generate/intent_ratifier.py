@@ -30,6 +30,7 @@ preserving honest refusal per ADR-0022 §2.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import Enum, unique
 
@@ -38,6 +39,46 @@ import numpy as np
 from algebra.cga import cga_inner
 from generate.admissibility import AdmissibilityRegion, region_from_relation_chain
 from generate.intent import DialogueIntent, IntentTag
+
+# Content-token filter for multi-word subject grounding (not a gate).
+_SUBJECT_STOPWORDS = frozenset(
+    {
+        "a",
+        "an",
+        "the",
+        "it",
+        "that",
+        "this",
+        "those",
+        "these",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "s",
+        "and",
+        "or",
+        "to",
+        "of",
+        "in",
+        "on",
+        "for",
+        "with",
+        "as",
+        "by",
+        "from",
+        "at",
+        "should",
+        "would",
+        "could",
+        "must",
+        "can",
+        "will",
+    }
+)
 
 
 @unique
@@ -64,6 +105,23 @@ class RatifiedIntent:
     seed_tag: IntentTag
 
 
+def _subject_anchor_tokens(subject: str) -> list[str]:
+    """Ground multi-word subjects as whole phrase plus content tokens.
+
+    Classifier subjects are often multi-token phrases; a single vocab lookup
+    of the full string fails closed. Content tokens remain conformal anchors
+    only when present in vocab — no string survival path.
+    """
+    raw = subject.lower().strip()
+    if not raw:
+        return []
+    tokens = [raw]
+    for part in re.split(r"[^\w]+", raw, flags=re.UNICODE):
+        if part and part not in _SUBJECT_STOPWORDS:
+            tokens.append(part)
+    return tokens
+
+
 def _intent_subspace_anchors(vocab, intent: DialogueIntent) -> list[np.ndarray]:
     """Vocab-grounded intent-subspace anchors for conformal argmax scoring.
 
@@ -73,7 +131,11 @@ def _intent_subspace_anchors(vocab, intent: DialogueIntent) -> list[np.ndarray]:
     """
     candidates: list[str] = []
     if intent.subject:
-        candidates.append(intent.subject.lower())
+        candidates.extend(_subject_anchor_tokens(intent.subject))
+    if intent.secondary_subject:
+        candidates.extend(_subject_anchor_tokens(intent.secondary_subject))
+    if intent.object:
+        candidates.extend(_subject_anchor_tokens(intent.object))
     if intent.relation:
         candidates.append(intent.relation.strip().lower())
     match intent.tag:
@@ -82,7 +144,19 @@ def _intent_subspace_anchors(vocab, intent: DialogueIntent) -> list[np.ndarray]:
         case IntentTag.CAUSE:
             candidates.extend(("causes", "because"))
         case IntentTag.COMPARISON:
-            candidates.extend(("like", "unlike", "compared"))
+            # Pack lexicon uses "compare"; "like"/"compared" may be absent.
+            candidates.extend(("compare", "like", "unlike", "compared", "contrast"))
+        case IntentTag.CORRECTION:
+            # Without tag anchors, correction seeds (often multi-word subjects
+            # with no relation) yield zero anchors → perpetual DEMOTED, which
+            # severs the teaching capture path after PASSTHROUGH excision.
+            candidates.extend(
+                ("no", "wrong", "actually", "correction", "incorrect")
+            )
+        case IntentTag.VERIFICATION:
+            candidates.extend(("is", "true", "verify"))
+        case IntentTag.RECALL:
+            candidates.extend(("remember", "recall"))
         case _:
             pass
     anchors: list[np.ndarray] = []

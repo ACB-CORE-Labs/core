@@ -1196,7 +1196,14 @@ def tether_reading(
         autonomy = float(monitor.autonomy)
         updated = False
     else:
-        residual, autonomy = monitor.update(arr)
+        # ``GoldTetherMonitor.update`` raises on R > ε after forcing autonomy
+        # to zero. Corridor tether readings must surface that fail-closed
+        # residual without aborting the lifecycle observation path.
+        try:
+            residual, autonomy = monitor.update(arr)
+        except GoldTetherViolationError as exc:
+            residual = float(exc.residual)
+            autonomy = float(monitor.autonomy)
         updated = True
     chiral_verdict = monitor.chiral_gate.observe(arr).verdict
     return TetherReading(

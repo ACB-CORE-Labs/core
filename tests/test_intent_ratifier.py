@@ -92,6 +92,47 @@ class TestRatifyIntent:
         b = ratify_intent(intent, prompt, vocab=vocab)
         assert a == b
 
+    def test_correction_tag_anchors_ratify_without_passthrough(self) -> None:
+        """CORRECTION must ground via tag subspace, not PASSTHROUGH or empty anchors.
+
+        Teaching capture requires intent.tag remains CORRECTION after field
+        ratification. Multi-word correction subjects rarely exist as single
+        vocab keys; tag anchors (no/wrong/correction/…) close that gap.
+        """
+        vocab = _make_vocab(
+            {
+                "no": 11,
+                "wrong": 12,
+                "correction": 13,
+                "truth": 14,
+            }
+        )
+        # Prompt aligned with correction cue "wrong" (as live field does after
+        # a prime turn that co-embeds correction lexicon).
+        prompt = vocab.get_versor("wrong")
+        intent = DialogueIntent(
+            tag=IntentTag.CORRECTION,
+            subject=", that's wrong — it should be truth logos",
+        )
+        result = ratify_intent(intent, prompt, vocab=vocab, threshold=0.0)
+        assert result.outcome is RatificationOutcome.RATIFIED
+        assert result.intent.tag is IntentTag.CORRECTION
+        assert result.seed_tag is IntentTag.CORRECTION
+        assert result.score >= 0.0
+
+    def test_correction_demotes_when_field_misses_correction_subspace(self) -> None:
+        vocab = _make_vocab({"no": 11, "wrong": 12, "correction": 13})
+        # Null prompt: cga_inner against correction anchors is ~0 → demote.
+        # (Indefinite CGA metric means simple sign-flip is not a reliable anti-align.)
+        prompt = np.zeros(32, dtype=np.float32)
+        intent = DialogueIntent(
+            tag=IntentTag.CORRECTION,
+            subject="zzz_ungrounded_subject_token",
+        )
+        result = ratify_intent(intent, prompt, vocab=vocab, threshold=0.5)
+        assert result.outcome is RatificationOutcome.DEMOTED
+        assert result.intent.tag is IntentTag.UNKNOWN
+
 
 class TestRegionForIntent:
     def test_empty_vocab_yields_unconstrained_region(self) -> None:
