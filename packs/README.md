@@ -1,35 +1,32 @@
 # Runtime Pack Artifacts
 
-`packs/` contains ratified runtime pack artifacts and their narrow loaders:
-safety, identity, ethics, register, anchor-lens, modality packs, source-language
-packs, primitives, and companion validators.
+`packs/` holds runtime pack **artifacts**, **source language trees**, and **compilers/loaders**.
 
-This directory is not interchangeable with `packs/`:
+## Dual-pack boundary (ADR-0253 / Master Blueprint Stage 1)
 
-- `packs/` stores runtime governance/style/safety/modality artifacts and source
-  pack material such as `packs/en`, `packs/he`, `packs/grc`, and `packs/el`.
-- `packs/` stores linguistic pack schemas, compilers, loaders, and
-  reviewed semantic pack data under `packs/data/`.
-- `core_ingest/` prepares external candidate pressure; it does not ratify or
-  rewrite these packs.
+| Path | Role | Serve / runtime authority |
+|------|------|---------------------------|
+| `packs/data/<pack_id>/` | **Compiled runtime** language packs (`manifest.json`, `lexicon.jsonl`, checksummed companions) | **Yes** — only via `packs.compiler.load_pack` / `load_pack_entries` |
+| `packs/he`, `packs/grc`, `packs/en`, `packs/el`, … | **Source / draft** language material (lemmas, morphology, probes, pack.toml) | **No** — not importable serve authority; compile into `packs/data` first |
+| `packs/safety`, `packs/identity`, `packs/ethics`, `packs/register`, `packs/anchor_lens`, modality packs | Governance / style / modality artifacts | Yes — via their dedicated loaders |
+| `packs/primitives`, `packs/schema.py`, `packs/compiler.py`, `packs/loader.py` | Schemas, compilers, loaders | Tooling / load path only |
 
-Mutation rule: durable pack changes must be reviewed or proof-carrying and
-must use the relevant validator/ratification lane. Do not add ad hoc runtime
-pack writes.
+**Hard rule:** Durable pack mutation is reviewed or proof-carrying. Do not write ad hoc runtime pack files from serve.
 
+## Compilers (two different boundaries)
 
-# Language Packs
+| Compiler | Consumes | Produces |
+|----------|----------|----------|
+| `packs.compiler` | Reviewed pack data under `packs/data` | Runtime vocab / manifold structures |
+| `core_ingest.compiler` | External candidate pressure | Validation reports + provisional learning artifacts |
 
-`packs/` owns reviewed language-pack loading and compilation. It turns
-pack manifests, lexicon rows, morphology, grammar attractors, and alignment
-metadata into runtime vocab/manifold structures.
+The shared word “compiler” means deterministic lowering across a trust boundary; source material and outputs differ.
 
-This compiler is distinct from `core_ingest.compiler`:
+## Mutation
 
-- `packs.compiler` consumes reviewed pack data and builds linguistic
-  runtime structures.
-- `core_ingest.compiler` consumes external candidate pressure and produces
-  validation reports plus provisional learning artifacts.
+Durable changes must use the relevant validator/ratification lane. Session or speculative state must not masquerade as compiled pack COHERENT authority.
 
-The shared word "compiler" means "deterministic lowering across a boundary";
-the source material, trust boundary, and output structures are different.
+## Validation
+
+Architecture pin: `tests/test_pack_draft_serve_boundary.py`  
+Mapping: `docs/adr/MASTER-BLUEPRINT-2026-07-20-ADR-MAPPING.md`
