@@ -145,14 +145,18 @@ def run_four_arm_ablation(
     if not adv_ok:
         wrong += 1
 
-    # Provenance: executable arm carries constraint with source_span
+    # Provenance: executable arm carries typed constraint (rule_id, morph, pack, span)
     provenance_ok = False
     if d_exec.constraints:
-        payload = d_exec.constraints[0].payload
-        provenance_ok = (
-            "source_span" in payload
-            and "morphology_id" in payload
-            and "source_pack_id" in payload
+        c0 = d_exec.constraints[0]
+        provenance_ok = bool(
+            getattr(c0, "provenance_complete", False)
+            or (
+                c0.morphology_id
+                and c0.source_pack_id
+                and c0.rule_id
+                and c0.source_span
+            )
         )
 
     return AblationReport(

@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
+
+from core.semantic_primitives import LogosConstraint, ProvenanceSpan, ValidationError
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT_PACK = "he_logos_micro_v0"  # may not exist
@@ -41,18 +43,87 @@ class ObservedHebrewSurface:
 
 @dataclass(frozen=True, slots=True)
 class CanonicalConstraint:
-    """Language-independent constraint shared across consumers."""
+    """Language-independent constraint with typed provenance (no free meaning dict).
+
+    Fields are explicit; ``payload`` is a *derived read-only view* for
+    transitional digests only — new code must use typed attributes or
+    ``to_logos_constraint()``.
+    """
 
     constraint_id: str
     kind: str  # e.g. plurality_marked
-    payload: dict[str, Any]
+    rule_id: str
+    lemma: str
+    root: str
+    surface: str
+    morphology_id: str
+    source_pack_id: str
+    source_span: tuple[int, int]
+    language: str = "he"
+
+    def __post_init__(self) -> None:
+        if not self.constraint_id:
+            raise ValidationError("CanonicalConstraint.constraint_id required")
+        if not self.kind:
+            raise ValidationError("CanonicalConstraint.kind required")
+        if not self.rule_id:
+            raise ValidationError("CanonicalConstraint.rule_id required")
+        if not self.morphology_id:
+            raise ValidationError("CanonicalConstraint.morphology_id required")
+        if not self.source_pack_id:
+            raise ValidationError("CanonicalConstraint.source_pack_id required")
+        if len(self.source_span) != 2:
+            raise ValidationError("CanonicalConstraint.source_span must be (start, end)")
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "constraint_id": self.constraint_id,
             "kind": self.kind,
-            "payload": dict(self.payload),
+            "rule_id": self.rule_id,
+            "lemma": self.lemma,
+            "root": self.root,
+            "surface": self.surface,
+            "morphology_id": self.morphology_id,
+            "source_pack_id": self.source_pack_id,
+            "source_span": list(self.source_span),
+            "language": self.language,
         }
+
+    @property
+    def payload(self) -> Mapping[str, Any]:
+        """Derived provenance view (legacy digests / transitional access)."""
+        return {
+            "lemma": self.lemma,
+            "root": self.root,
+            "surface": self.surface,
+            "morphology_id": self.morphology_id,
+            "source_span": list(self.source_span),
+            "source_pack_id": self.source_pack_id,
+            "rule_id": self.rule_id,
+            "language": self.language,
+        }
+
+    def to_logos_constraint(self) -> LogosConstraint:
+        return LogosConstraint(
+            constraint_id=self.constraint_id,
+            kind=self.kind,
+            rule_id=self.rule_id,
+            lemma=self.lemma,
+            root=self.root,
+            surface=self.surface,
+            morphology_id=self.morphology_id,
+            source_pack_id=self.source_pack_id,
+            source_span=ProvenanceSpan(
+                start=int(self.source_span[0]),
+                end=int(self.source_span[1]),
+                text=self.surface,
+            ),
+            language=self.language,
+        )
+
+    @property
+    def provenance_complete(self) -> bool:
+        return self.to_logos_constraint().provenance_complete
 
 
 @dataclass(frozen=True, slots=True)

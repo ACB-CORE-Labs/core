@@ -207,3 +207,13 @@ class CognitiveTurnResult:
     # Never folded into trace_hash (observational only, like oov_geometric_context).
     node_depths: dict | None = None
     graph_anti_unify: dict | None = None
+
+    # --- Logos morph authority (observational + outcome-affecting when non-pass) ---
+    # Populated when observed HE surface is present in the turn input and the
+    # shared ``evaluate_logos_on_text`` path runs. Empty kind == not consulted.
+    # Never folded into trace_hash as a separate key (surface/refusal already
+    # capture the user-visible effect when morph blocks certification).
+    logos_decision_kind: str = ""
+    logos_decision_reason: str = ""
+    logos_rule_id: str = ""
+    logos_constraint_id: str = ""

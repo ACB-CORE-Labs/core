@@ -45,14 +45,14 @@ class PluralAbstainRuleV0(AuthoredMappingRule):
         return CanonicalConstraint(
             constraint_id=f"{self.rule_id}:{surface.morphology_id}",
             kind=self.constraint_kind,
-            payload={
-                "lemma": surface.lemma,
-                "root": surface.root,
-                "surface": surface.surface,
-                "morphology_id": surface.morphology_id,
-                "source_span": list(surface.source_span),
-                "source_pack_id": surface.source_pack_id,
-            },
+            rule_id=self.rule_id,
+            lemma=surface.lemma,
+            root=surface.root,
+            surface=surface.surface,
+            morphology_id=surface.morphology_id,
+            source_pack_id=surface.source_pack_id,
+            source_span=surface.source_span,
+            language=surface.language,
         )
 
 

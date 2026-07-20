@@ -482,13 +482,54 @@ class CognitiveTurnPipeline:
         )
         surface = resolved.surface
         articulation_surface = resolved.articulation_surface
+        authority_source = resolved.authority
+
+        # === LOGOS MORPH AUTHORITY (bulk live seam) ===
+        # Same pure decision function as teaching store + four-arm ablation.
+        # Executable morph may force abstain/refuse; never soft-pass a
+        # certified singular-exclusivity claim against observed plural HE.
+        # English-only turns with no HE surface → no-op (None).
+        logos_decision_kind = ""
+        logos_decision_reason = ""
+        logos_rule_id = ""
+        logos_constraint_id = ""
+        logos_decision = None
+        try:
+            from generate.observed_he_morph_v0.authority import (
+                decision_as_coherence_refusal,
+                evaluate_logos_on_text,
+                first_logos_constraint,
+                logos_blocks_certified_answer,
+            )
+
+            logos_decision = evaluate_logos_on_text(text=text, mode="executable")
+            if logos_decision is not None:
+                logos_decision_kind = logos_decision.kind.value
+                logos_decision_reason = logos_decision.reason
+                logos_rule_id = logos_decision.rule_id or ""
+                lc = first_logos_constraint(logos_decision)
+                if lc is not None:
+                    logos_constraint_id = lc.constraint_id
+                if logos_blocks_certified_answer(logos_decision):
+                    refusal = decision_as_coherence_refusal(logos_decision)
+                    surface = refusal.surface_message or refusal.message
+                    articulation_surface = surface
+                    authority_source = "logos_morph_constraint"
+        except Exception:
+            # Pack load / catalog failure must not crash the turn spine;
+            # English path continues without morph authority.
+            logos_decision = None
 
         # SUBSTRATE_BYPASS_HAZARD telemetry (data-driven roadmap).
         # Only populated when a graph existed yet substrate did not win.
         # This is *observability only* — never used to change control flow
         # after the fact, never folded into trace_hash in Phase A.
         substrate_hazard: tuple[str, ...] = ()
-        if effective_graph is not None and resolved.authority not in ("substrate_realizer", "realizer"):
+        if effective_graph is not None and authority_source not in (
+            "substrate_realizer",
+            "realizer",
+            "logos_morph_constraint",
+        ):
             reasons: list[str] = []
             if not effective_graph.is_fully_grounded():
                 reasons.append("unfilled_pending_slots")
@@ -501,6 +542,11 @@ class CognitiveTurnPipeline:
             if not _is_useful_surface(realized_plan.surface):
                 reasons.append("realizer_surface_not_useful")
             substrate_hazard = tuple(reasons)
+        if logos_decision is not None and logos_blocks_certified_answer(logos_decision):
+            substrate_hazard = substrate_hazard + (
+                f"logos_morph_{logos_decision.kind.value}",
+                logos_decision.reason,
+            )
 
         # Phase C (Geometric Anti-Unification) — read-only telemetry instrumentation.
         # Captures the graph-structural context around any OOV/pending "hole"
@@ -713,6 +759,10 @@ class CognitiveTurnPipeline:
         # recognition wins (earlier-fail boundary) over generation.
         _generation_refusal_reason = getattr(response, "refusal_reason", "") or ""
         refusal_reason = _recognition_refusal_reason or _generation_refusal_reason
+        # Logos morph abstain/fail-closed is answer-authority: surface the reason
+        # when morph blocked certification (does not override recognition refuse).
+        if not refusal_reason and logos_decision_kind in ("abstain", "fail_closed"):
+            refusal_reason = logos_decision_reason
 
         # Phase B — Quantized Topological Hashing for the cognitive spine.
         # Include the discrete (string-only) topological form of the
@@ -825,13 +875,19 @@ class CognitiveTurnPipeline:
             # authority_source makes the winner of the substrate vs legacy
             # decision first-class evidence (visible in trace, workbench,
             # evals). substrate_hazard is the precise bypass signal.
-            authority_source=resolved.authority,
+            # Logos morph may override to "logos_morph_constraint" when it
+            # blocks certified answers (same decision fn as teaching/ablation).
+            authority_source=authority_source,
             substrate_hazard=substrate_hazard,
             oov_geometric_context=oov_geometric_context,
             # 3-lang depth unification: surface the same data at top level on result
             # (extracted from pre-computed node_depths var or oov_geometric_context to keep single source)
             node_depths=node_depths if node_depths else None,
             graph_anti_unify=(oov_geometric_context or {}).get("graph_anti_unify") if oov_geometric_context else None,
+            logos_decision_kind=logos_decision_kind,
+            logos_decision_reason=logos_decision_reason,
+            logos_rule_id=logos_rule_id,
+            logos_constraint_id=logos_constraint_id,
         )
 
     # ------------------------------------------------------------------

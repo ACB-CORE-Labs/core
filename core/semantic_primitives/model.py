@@ -87,6 +87,62 @@ class ProvenanceSpan:
 
 
 @dataclass(frozen=True, slots=True)
+class LogosConstraint:
+    """Language-independent morph→constraint record with full provenance.
+
+    Used by the live Logos authority path (teaching + CognitiveTurn). Fields
+    are typed — not a free-form meaning dict. rule_id + morphology_id +
+    source_pack_id + source_span make the constraint falsifiable and replayable.
+    """
+
+    constraint_id: str
+    kind: str
+    rule_id: str
+    lemma: str
+    root: str
+    surface: str
+    morphology_id: str
+    source_pack_id: str
+    source_span: ProvenanceSpan
+    language: str = "he"
+
+    def __post_init__(self) -> None:
+        _require_nonempty(self.constraint_id, "LogosConstraint.constraint_id")
+        _require_nonempty(self.kind, "LogosConstraint.kind")
+        _require_nonempty(self.rule_id, "LogosConstraint.rule_id")
+        _require_nonempty(self.morphology_id, "LogosConstraint.morphology_id")
+        _require_nonempty(self.source_pack_id, "LogosConstraint.source_pack_id")
+        if not isinstance(self.source_span, ProvenanceSpan):
+            raise ValidationError(
+                "LogosConstraint.source_span must be a ProvenanceSpan"
+            )
+        _reject_dict_blob(self.kind, "LogosConstraint.kind")
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "constraint_id": self.constraint_id,
+            "kind": self.kind,
+            "rule_id": self.rule_id,
+            "lemma": self.lemma,
+            "root": self.root,
+            "surface": self.surface,
+            "morphology_id": self.morphology_id,
+            "source_pack_id": self.source_pack_id,
+            "source_span": [self.source_span.start, self.source_span.end],
+            "language": self.language,
+        }
+
+    @property
+    def provenance_complete(self) -> bool:
+        return bool(
+            self.rule_id
+            and self.morphology_id
+            and self.source_pack_id
+            and self.source_span.end >= self.source_span.start
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class Entity:
     """Persistent identity anchor with typed id, name, type, and frame bindings."""
 
