@@ -151,7 +151,31 @@ Post-edit: same smoke suite (off-serving code only; serving modules diff empty).
 
 ---
 
-## 6. Explicit non-claims / STOP gate
+## 6. Pure-S1 integrity fix (reviewer-critical)
+
+An early mapper draft accepted totals that *included* `{a,b}` among other parts
+and only blocked an independent contain on `b`. Combined with rebuild-from-binding
+solve, that could emit a certified **wrong** answer (drop third entity):
+
+```text
+# A=5, C=100, B=2×A, total all → classical 115; buggy pure rebuild → 15
+$ uv run python -c '...'  # see measure-s1-pure-gate-repro
+map=StructureMapRefuse reason=total_parts_not_exactly_a_b
+emit=False ans=None refuse=structure_map_refuse:total_parts_not_exactly_a_b mr=False
+REPRO FIXED
+```
+
+**Fix (shipped):**
+1. `map_to_s1` requires total part-set **exactly** `{a,b}` (`total_parts_not_exactly_a_b`).
+2. Any `contain` on an entity other than `a` is refused (`extra_contain_not_pure_s1:*` / `b_has_independent_contain_not_pure_s1`).
+3. `try_s1_structure_map_and_solve(graph=…)` additionally requires classical solve of the **original** graph to agree with the pure-S1 rebuild before emit (fail-closed backstop).
+
+Unit tests: `test_mapper_refuses_total_superset_with_extra_entity`,
+`test_mapper_refuses_extra_contain_even_if_total_were_ab_only`,
+`test_multi_entity_slice_never_emits_wrong_certified_answer`,
+`test_multi_entity_small_c_same_trap` (20 tests total).
+
+## 7. Explicit non-claims / STOP gate
 
 - **Not claimed**: geometric SME revival; S2–S4 coverage; serving cutover; sealed-test movement.
 - **Not claimed**: holdout non-S1 graph-level separability beyond the vacuous parse layer — only synthetic + other-corpus graphs.
@@ -160,7 +184,7 @@ Post-edit: same smoke suite (off-serving code only; serving modules diff empty).
 
 ---
 
-## 7. Inventory: proven vs assumed
+## 8. Inventory: proven vs assumed
 
 | Item | Status |
 | --- | --- |

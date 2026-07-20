@@ -234,6 +234,12 @@ def try_s1_structure_map_and_solve(
 
     Accepts either a surface graph or a prebuilt role graph. Never takes a
     gold structure label.
+
+    When the original ``MathProblemGraph`` is supplied, an additional
+    integrity gate runs after a successful binding solve: the original graph
+    must classically solve to the same answer as the pure-S1 rebuild. This
+    is a fail-closed backstop so a mapper bug that drops entities cannot
+    emit a certified wrong answer for a different problem.
     """
     if role_graph is None:
         if graph is None:
@@ -262,6 +268,56 @@ def try_s1_structure_map_and_solve(
         )
     assert isinstance(mapped, StructureMapResult)
     out = solve_s1_binding(mapped.binding)
+
+    # Original-graph integrity backstop (when available).
+    if (
+        out.emitted
+        and out.answer is not None
+        and graph is not None
+    ):
+        try:
+            original_trace = solve(graph)
+            original_verdict = verify(graph, original_trace)
+        except (SolveError, VerificationError, ValueError) as exc:
+            return S1SolveOutcome(
+                emitted=False,
+                answer=None,
+                refusal_reason=(
+                    f"original_graph_solve_failed:{type(exc).__name__}:{exc}"
+                ),
+                binding=out.binding,
+                derivation=out.derivation,
+                multi_register_certified=out.multi_register_certified,
+                classical_verified=False,
+                source_graph_hash=role_graph.source_graph_hash,
+            )
+        if not original_verdict.passed:
+            return S1SolveOutcome(
+                emitted=False,
+                answer=None,
+                refusal_reason="original_graph_verifier_rejected",
+                binding=out.binding,
+                derivation=out.derivation,
+                multi_register_certified=out.multi_register_certified,
+                classical_verified=False,
+                source_graph_hash=role_graph.source_graph_hash,
+            )
+        orig_ans = float(original_trace.answer_value)
+        if abs(orig_ans - float(out.answer)) > 1e-6 * max(1.0, abs(orig_ans)):
+            return S1SolveOutcome(
+                emitted=False,
+                answer=None,
+                refusal_reason=(
+                    f"original_graph_disagreement:original={orig_ans},"
+                    f"s1_rebuild={out.answer}"
+                ),
+                binding=out.binding,
+                derivation=out.derivation,
+                multi_register_certified=out.multi_register_certified,
+                classical_verified=out.classical_verified,
+                source_graph_hash=role_graph.source_graph_hash,
+            )
+
     return S1SolveOutcome(
         emitted=out.emitted,
         answer=out.answer,

@@ -282,3 +282,151 @@ def test_scoring_labels_isolated_and_loadable() -> None:
     assert sc["tp"] is True
     sc_fp = score_label("gsm8k-holdout-dev-v1-0101", False, labels)
     assert sc_fp["fn"] is True
+
+
+def _multi_entity_compare_total_graph(
+    *,
+    a_value: float = 5.0,
+    c_value: float = 100.0,
+    k: float = 2.0,
+) -> MathProblemGraph:
+    """A=a_value seeded, C=c_value seeded, B=k×A; unknown = total of all.
+
+    True answer is a_value + k*a_value + c_value (e.g. 5+10+100=115).
+    A buggy pure-S1 rebuild that drops C would emit a_value*(1+k) (=15).
+    """
+    return MathProblemGraph(
+        entities=("A", "B", "C"),
+        initial_state=(
+            InitialPossession(entity="A", quantity=Quantity(value=a_value, unit="x")),
+            InitialPossession(entity="C", quantity=Quantity(value=c_value, unit="x")),
+        ),
+        operations=(
+            Operation(
+                actor="B",
+                kind="compare_multiplicative",
+                operand=Comparison(
+                    reference_actor="A",
+                    delta=None,
+                    factor=k,
+                    direction="times",
+                ),
+            ),
+        ),
+        unknown=Unknown(entity=None, unit="x"),
+    )
+
+
+def test_mapper_refuses_total_superset_with_extra_entity() -> None:
+    """total parts must equal {a,b}; superset is not pure S1."""
+    g = _multi_entity_compare_total_graph()
+    rg = graph_to_role_graph(g)
+    # Converter should surface contain on C and total over A,B,C.
+    assert any(
+        p.kind == "contain" and p.args[0].name == "C" for p in rg.predicates
+    )
+    total_parts = None
+    for p in rg.of_kind("total"):
+        total_parts = {t.name for t in p.args[:-1] if t.kind == "entity"}
+    assert total_parts == {"A", "B", "C"}
+
+    mapped = map_to_s1(rg)
+    assert isinstance(mapped, StructureMapRefuse)
+    assert mapped.reason in (
+        "total_parts_not_exactly_a_b",
+        "extra_contain_not_pure_s1:C",
+    )
+
+
+def test_mapper_refuses_extra_contain_even_if_total_were_ab_only() -> None:
+    """Seed contain on a third entity is not pure S1."""
+    from generate.structure_mapping.role_predicate import (
+        RoleGraph,
+        RolePredicate,
+        RoleTerm,
+    )
+
+    # Hand-built role graph: total is exactly {A,B} but C is also seeded.
+    rg = RoleGraph(
+        predicates=(
+            RolePredicate(
+                kind="contain",
+                args=(
+                    RoleTerm(kind="entity", name="A"),
+                    RoleTerm(kind="quantity", name="qa", value=5.0, unit="x"),
+                ),
+            ),
+            RolePredicate(
+                kind="contain",
+                args=(
+                    RoleTerm(kind="entity", name="C"),
+                    RoleTerm(kind="quantity", name="qc", value=10.0, unit="x"),
+                ),
+            ),
+            RolePredicate(
+                kind="compare",
+                args=(
+                    RoleTerm(kind="entity", name="B"),
+                    RoleTerm(kind="entity", name="A"),
+                    RoleTerm(kind="quantity", name="factor", value=2.0, unit=None),
+                ),
+            ),
+            RolePredicate(
+                kind="total",
+                args=(
+                    RoleTerm(kind="entity", name="A"),
+                    RoleTerm(kind="entity", name="B"),
+                    RoleTerm(kind="quantity", name="sum_query", value=0.0, unit="x"),
+                ),
+            ),
+        )
+    )
+    mapped = map_to_s1(rg)
+    assert isinstance(mapped, StructureMapRefuse)
+    assert mapped.reason == "extra_contain_not_pure_s1:C"
+
+
+def test_multi_entity_slice_never_emits_wrong_certified_answer() -> None:
+    """Repro of skeptic finding: A=5,C=100,B=2×A,total must not emit 15.
+
+    Must refuse at map time (preferred) or refuse at integrity gate.
+    Must never emit 15 with multi_register_certified=True.
+    """
+    g = _multi_entity_compare_total_graph(a_value=5.0, c_value=100.0, k=2.0)
+    # True classical answer of the original graph.
+    from generate.math_solver import solve as classical_solve
+
+    true_ans = float(classical_solve(g).answer_value)
+    assert true_ans == pytest.approx(115.0)
+
+    out = try_s1_structure_map_and_solve(graph=g)
+    # Never emit the dropped-entity wrong answer.
+    assert not (out.emitted and out.answer is not None and abs(float(out.answer) - 15.0) < 1e-6)
+    # Prefer refuse; if ever emitted, must match original 115 (not wrong).
+    if out.emitted:
+        assert out.answer == pytest.approx(true_ans)
+    else:
+        assert out.refusal_reason is not None
+        assert (
+            "total_parts" in out.refusal_reason
+            or "extra_contain" in out.refusal_reason
+            or "original_graph" in out.refusal_reason
+            or "structure_map_refuse" in out.refusal_reason
+        )
+    # Certificate must not green-light a wrong answer.
+    if out.answer is not None and abs(float(out.answer) - 15.0) < 1e-6:
+        assert out.multi_register_certified is False
+        assert out.emitted is False
+
+
+def test_multi_entity_small_c_same_trap() -> None:
+    """Second repro: A=5,C=10,B=2×A → true 25; buggy rebuild 15."""
+    g = _multi_entity_compare_total_graph(a_value=5.0, c_value=10.0, k=2.0)
+    from generate.math_solver import solve as classical_solve
+
+    true_ans = float(classical_solve(g).answer_value)
+    assert true_ans == pytest.approx(25.0)
+    out = try_s1_structure_map_and_solve(graph=g)
+    assert out.emitted is False
+    assert out.answer is None
+    assert out.refusal_reason is not None
