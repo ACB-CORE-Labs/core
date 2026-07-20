@@ -38,7 +38,6 @@ from generate.intent_ratifier import (
     RatifiedIntent,
     ratify_intent,
 )
-from generate.problem_frame_contracts import ContractAssessment
 from generate.graph_planner import (
     GraphNode,
     PropositionGraph,
@@ -809,11 +808,15 @@ class CognitiveTurnPipeline:
         return inject(token_list, vocab)
 
     @staticmethod
-    def _geometry_contract_assessment(F) -> ContractAssessment:
+    def _geometry_contract_assessment(F):
         """Build contract assessment from active versor + GoldTether residuals.
 
         Closed only when versor_condition(F) < 1e-6 and R_GoldTether ≤ 1e-6.
+        Local import avoids chat → cognition → problem_frame_contracts cycles
+        (problem_frame_contracts imports chat.pack_resolver).
         """
+        from generate.problem_frame_contracts import ContractAssessment
+
         if F is None:
             return ContractAssessment(
                 candidate_organ="shadow_coherence_gate",
