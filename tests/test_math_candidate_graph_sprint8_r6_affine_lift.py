@@ -148,6 +148,16 @@ class TestConfuserRefusals:
         assert resolve_promotable_fraction_decrease(FINAL_VALUE_CONFUSER) is None
         assert _run(FINAL_VALUE_CONFUSER).answer is None
 
+    def test_scale_out_of_range_refuses_fraction_decrease(self):
+        """Geometric path must not promote scale>1 (negative decrease)."""
+        case = (
+            "In one hour, the river will decrease to 5/4 of its level. "
+            "If the current level is 40 feet, what will the level decrease by?"
+        )
+        assert resolve_promotable_fraction_decrease(case) is None
+        assert compose_fraction_decrease(case) is None
+        assert _run(case).answer is None
+
     def test_unequal_split_refuses_percent_partition(self):
         assert resolve_promotable_percent_partition(UNEQUAL_SPLIT_CONFUSER) is None
         assert _run(UNEQUAL_SPLIT_CONFUSER).answer is None
