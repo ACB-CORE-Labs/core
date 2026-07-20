@@ -38,12 +38,14 @@ def test_runtime_canonical_surface_has_base_precedence() -> None:
         pre_decoration_surface="pre-decoration",
         response_surface="runtime",
         response_articulation_surface="articulation",
+        contract_assessment=_closed_assessment(),
     )
 
     assert resolved.surface == "canonical"
     assert resolved.articulation_surface == "articulation"
     assert resolved.authority == "runtime_canonical"
     assert resolved.fold_sources == ()
+    assert resolved.authoritative is True
 
 
 def test_useful_realizer_requires_conjugate_coherence() -> None:
@@ -64,7 +66,7 @@ def test_useful_realizer_requires_conjugate_coherence() -> None:
 
 
 def test_realizer_shim_refused_when_conjugate_open() -> None:
-    """Failed geometric residual must not fall back to realizer authority."""
+    """Failed geometric residual → typed abstention (no fluent runtime answer)."""
     resolved = resolve_surface(
         response_surface="runtime",
         response_articulation_surface="runtime articulation",
@@ -73,11 +75,15 @@ def test_realizer_shim_refused_when_conjugate_open() -> None:
         gate_fired=False,
         contract_assessment=_open_assessment(),
     )
-    assert resolved.authority == "runtime"
-    assert resolved.surface == "runtime"
+    assert resolved.authority == "coherence_abstention"
+    assert resolved.authoritative is False
+    assert resolved.refusal is not None
+    assert "versor_condition" in resolved.refusal.violated_condition
+    assert "runtime" not in resolved.surface
 
 
 def test_gate_fired_keeps_runtime_surface_even_when_realizer_is_useful() -> None:
+    # Closed assessment + gate_fired: substrate blocked; runtime kept (geometry closed).
     resolved = resolve_surface(
         response_surface="runtime refusal",
         response_articulation_surface="runtime refusal articulation",
@@ -124,7 +130,11 @@ def test_walk_and_compose_fold_after_selected_authority() -> None:
 
 
 def test_folds_stand_alone_when_base_surface_is_empty() -> None:
-    resolved = resolve_surface(walk_surface="walk chain", compose_surface="compose transfer")
+    resolved = resolve_surface(
+        walk_surface="walk chain",
+        compose_surface="compose transfer",
+        contract_assessment=_closed_assessment(),
+    )
 
     assert resolved.surface == "walk chain — compose transfer"
     assert resolved.articulation_surface == "walk chain — compose transfer"
@@ -173,7 +183,7 @@ def test_substrate_supreme_requires_forward_and_conjugate() -> None:
 
 
 def test_substrate_refused_without_assessment() -> None:
-    """Assessment=None fails conjugate competitor (fail-closed)."""
+    """Assessment=None → typed ContractViolation; no certified answer."""
     g = _mk_grounded_graph()
     resolved = resolve_surface(
         response_surface="runtime",
@@ -184,7 +194,11 @@ def test_substrate_refused_without_assessment() -> None:
         proposition_graph=g,
         contract_assessment=None,
     )
-    assert resolved.authority == "runtime"
+    assert resolved.authority == "coherence_abstention"
+    assert resolved.authoritative is False
+    assert resolved.contract_violation is not None
+    assert resolved.contract_violation.violated_condition == "contract_assessment_present"
+    assert "runtime" not in resolved.surface.lower() or "cannot certify" in resolved.surface.lower()
 
 
 def test_pending_graph_withholds_substrate_even_if_conjugate_ok() -> None:
@@ -213,8 +227,9 @@ def test_open_geometric_contract_refuses_substrate_and_realizer() -> None:
         proposition_graph=g,
         contract_assessment=_open_assessment(),
     )
-    assert resolved.authority == "runtime"
-    assert resolved.surface == "runtime"
+    assert resolved.authority == "coherence_abstention"
+    assert resolved.authoritative is False
+    assert resolved.refusal is not None
 
 
 def test_gate_fired_still_blocks_substrate_even_for_grounded_graph() -> None:
@@ -243,3 +258,16 @@ def test_dual_competitors_helpers() -> None:
     assert _conjugate_coherence_ok(open_a) is False
     assert _substrate_supreme(g, open_a) is False
     assert _forward_surface_ok(_mk_pending_graph(), closed) is False
+
+
+def test_require_closed_geometry_false_preserves_legacy_runtime_on_open() -> None:
+    """Escape hatch for non-answer-authority callers only."""
+    resolved = resolve_surface(
+        response_surface="legacy runtime",
+        realized_surface="realizer",
+        realizer_useful=True,
+        contract_assessment=_open_assessment(),
+        require_closed_geometry=False,
+    )
+    assert resolved.authority == "runtime"
+    assert resolved.surface == "legacy runtime"
