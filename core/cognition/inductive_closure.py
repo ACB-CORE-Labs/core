@@ -106,8 +106,13 @@ def expand_relation_closure(
       * Cycle: if path would revisit a node, skip (no infinite loop).
       * Contradiction: two different tails for the same (head, relation)
         among base facts mark contradiction=True.
-      * Geometric admissibility: each *derived* relation is stamped
-        admissible only when ``geometric_admissible(h,r,t)`` is True.
+      * Geometric admissibility (Stage 3 exit gate): a candidate edge is
+        *promoted* into the expansion frontier (``work``) and into
+        ``derived`` **only** when ``geometric_admissible(h,r,t)`` is True.
+        Non-admissible candidates are excluded — they must not seed further
+        fixed-point steps (no ``admissible=False`` intermediates that still
+        expand). Base store facts remain visible in ``base`` with their
+        admissibility stamp, but only admissible base edges enter ``work``.
         Default requires non-empty distinct endpoints; pipeline supplies
         versor-grounded checks when session vocab is available.
       * Termination: no new triples or budget exhausted.
@@ -163,7 +168,10 @@ def expand_relation_closure(
                     )
 
     derived: list[DerivedRelation] = []
-    work = set(known)
+    # Frontier is geometry-gated: non-admissible base never seeds expansion.
+    work: set[tuple[str, str, str]] = {
+        dr.as_triple() for dr in base_list if dr.admissible
+    }
     steps_taken = 0
     fixed_point = False
     truncated = False
@@ -183,8 +191,11 @@ def expand_relation_closure(
                     key3 = (a, r, c)
                     if key3 in work:
                         continue
+                    # Promote only when geometrically admissible — never
+                    # park an inadmissible edge in work to seed hop k+1.
+                    if not bool(geom(a, r, c)):
+                        continue
                     path = (a, b, c)
-                    ok = bool(geom(a, r, c))
                     new_edges.append(
                         DerivedRelation(
                             head=a,
@@ -192,7 +203,7 @@ def expand_relation_closure(
                             tail=c,
                             path=path,
                             step=step,
-                            admissible=ok,
+                            admissible=True,
                             contradiction=False,
                         )
                     )

@@ -77,6 +77,11 @@ def test_inductive_closure_derives_two_hop():
 
 
 def test_inductive_derived_requires_geometric_admissibility():
+    """Non-admissible candidates must not be promoted into derived or work.
+
+    Stage 3 exit: multi-step paths close ONLY under geometric conditions.
+    Stamping admissible=False while still seeding further expansion is a leak.
+    """
     triples = (
         ("a", "is", "b"),
         ("b", "is", "c"),
@@ -89,8 +94,39 @@ def test_inductive_derived_requires_geometric_admissibility():
     res = expand_relation_closure(
         triples, budget=8, geometric_admissible=refuse_all
     )
-    assert any(d.head == "a" and d.tail == "c" for d in res.derived)
-    assert all(d.admissible is False for d in res.derived)
+    # Refuse-all: base stays store-visible but no derived promotion.
+    assert len(res.derived) == 0
+    assert not any(d.head == "a" and d.tail == "c" for d in res.derived)
+    assert all(b.admissible is False for b in res.base)
+
+
+def test_inductive_non_admissible_intermediate_does_not_seed_expansion():
+    """a→c rejected must not yield a→d solely via that intermediate.
+
+    Graph: a→b→c→d. Refuse a→c and b→d so the only multi-hop bridge to a→d
+    would be the non-admissible a→c path. Closure must not invent a→d.
+    """
+    triples = (
+        ("a", "is", "b"),
+        ("b", "is", "c"),
+        ("c", "is", "d"),
+    )
+
+    def geom(h: str, r: str, t: str) -> bool:
+        del r
+        # Block the two-hop bridges that would otherwise seed a→d.
+        if (h, t) in {("a", "c"), ("b", "d")}:
+            return False
+        return True
+
+    res = expand_relation_closure(
+        triples, budget=8, geometric_admissible=geom
+    )
+    derived_pairs = {(d.head, d.tail) for d in res.derived}
+    assert ("a", "c") not in derived_pairs
+    assert ("b", "d") not in derived_pairs
+    assert ("a", "d") not in derived_pairs
+    assert all(d.admissible for d in res.derived)
 
 
 def test_inductive_closure_detects_contradiction():
