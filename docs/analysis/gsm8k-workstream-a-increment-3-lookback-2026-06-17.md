@@ -28,7 +28,7 @@ No other runtime modules changed solver semantics, sealed lanes, graph construct
 - tests/test_gsm8k_frontier_report.py
 - tests/test_candidate_graph_recognizer_wiring.py
 - docs/analysis/gsm8k-workstream-a-increment-3-rate-followup-ratification-2026-06-17.md
-- docs/analysis/core-problem-solving-capability-roadmap-v2-2026-06-17.md (partial update at merge time)
+- docs/paradigm-archive/core-problem-solving-capability-roadmap-v2-2026-06-17.md (partial update at merge time)
 
 ## Measurement truth (pinned vs live)
 
@@ -115,3 +115,5 @@ See PR body for exact captured outputs at commit time.
 - Do not treat pinned `report.json` rate bucket as live-state without ephemeral runner corroboration.
 
 This lookback is truthful to merged #799 behavior, the stale pinned artifact, and ephemeral live measurement. No benchmark theater; no hidden rebaseline.
+
+> Paths to the six retired paradigm docs in this file were redirected to `docs/paradigm-archive/` (ADR-0252 §9) under the 2026-07-22 weekly-audit **T9 ruling**; the surrounding text is otherwise unchanged historical record.

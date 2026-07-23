@@ -7,10 +7,10 @@ git worktree add ../core-binding-graph-p1 -b feat/binding-graph-phase1 origin/ma
 cd ../core-binding-graph-p1
 ```
 
-**Scope.** Ship Phase 1 *only* of the binding graph layer proposed in `docs/implementation/semantic-symbolic-binding-graph-proposal.md` (PR #170, now on main). Phase 1 is **data-model-only**: frozen dataclasses + invariants + tests. **No runtime wiring, no adapter, no equation binding, no parser change.** Phases 2–5 are deferred to follow-up PRs.
+**Scope.** Ship Phase 1 *only* of the binding graph layer proposed in `docs/paradigm-archive/semantic-symbolic-binding-graph-proposal.md` (PR #170, now on main). Phase 1 is **data-model-only**: frozen dataclasses + invariants + tests. **No runtime wiring, no adapter, no equation binding, no parser change.** Phases 2–5 are deferred to follow-up PRs.
 
 **Reference docs (read these, only these):**
-1. `docs/implementation/semantic-symbolic-binding-graph-proposal.md` — your spec. The dataclass list under "Adds" is authoritative.
+1. `docs/paradigm-archive/semantic-symbolic-binding-graph-proposal.md` — your spec. The dataclass list under "Adds" is authoritative.
 2. `generate/math_symbolic_normalizer.py` (post-#167) — only to see the existing `Polynomial` dataclass style (frozen, terms-dict, variables-tuple). Match its idiom; do **not** import from it.
 
 **What to ship:**
@@ -47,3 +47,5 @@ cd ../core-binding-graph-p1
 **Exit criterion.** PR opens with CI green, all new tests pass, `pyright` clean on new files, ADR-0132 included. Runtime behavior byte-identical to main (no integration yet, by design).
 
 **Do not stack on another agent's branch.** Target main directly.
+
+> Paths to the six retired paradigm docs in this file were redirected to `docs/paradigm-archive/` (ADR-0252 §9) under the 2026-07-22 weekly-audit **T9 ruling**; the surrounding text is otherwise unchanged historical record.

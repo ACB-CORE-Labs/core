@@ -122,3 +122,78 @@ after merge) — all four verified clean and fully merged before removal:
   retired paradigm docs at their old `docs/analysis|implementation/` paths.
   Both are point-in-time records; either leave as history (default) or annotate
   with the archive location. No governance weight either way.
+
+---
+
+## Rulings & execution addendum (2026-07-22, same day)
+
+Shay ruled on T1–T9 (pillars: epistemic rigor / absolute provenance /
+fail-closed determinism). Execution status:
+
+| Item | Ruling | Status |
+|------|--------|--------|
+| T1 | Tests = executable SoT; contracts/AGENTS = governance SoT — register | **DONE** (this PR): INV-32/33/34 in `AGENTS.md` + new/updated sections in `docs/specs/runtime_contracts.md` (wave-only identity, dual-pack boundary, linguistic governance, morph authority) |
+| T2 | Re-baseline to `f94dbd40` with migration trace | **DONE + root cause found.** Baseline gen-21702 @ `f94dbd404575` (turn 14990, `engine_identity` parent==self `c9e5968a…`, scheme 2, schema v2, packs byte-identical across the gap → reconcile MATCH; no `MissingWaveStateError` exposure — identity consumes the live per-turn field and Shape B+ session persistence is opt-in-off). The warning churn's root cause was the suite itself writing the live store — see T10 |
+| T3 | Diff antigravity files vs #96; salvage or scrap | **DONE**: not #96 material — an un-ADR'd anchor-lens/Hamiltonian experiment (fail-open `except: pass`, unratified serving-physics mutation). Salvaged with full diff → `docs/analysis/antigravity-substrate-linguistic-anchors-salvage-2026-07-22.md`; worktree + branch scrapped |
+| T4 | Nuke /tmp demo worktrees | **DONE** (both removed; worktree list is now 5, all live) |
+| T5 | Hard prune all stale branches; stash unknowns | **DONE locally**: 178 local branches pruned, every tip SHA stashed in `docs/analysis/branch-prune-ledger-2026-07-22.md`. **Origin mirror (204 branches) pending**: bulk remote deletion was tool-permission blocked; operator command in the ledger doc |
+| T6 | No untracked logic in active workspaces | **DONE**: both scripts formalized → `rnd/sme-experiment-v2` @ `bed29a09`. Hazard found & fixed pre-commit: the extractor's glob read ALL of `evals/gsm8k_math/**` (practice/dev/train/public), exceeding the §5 `holdout_dev/v1`-only authorization — now scope-pinned |
+| T7 | Fold `modality_transition_sandwich` into canonical ADR-0243 | **DONE** (annotation folded; tombstone updated to point at it) |
+| T8 | Escalate #97 residuals into this ledger | **DONE** — R1–R6 below |
+| T9 | Global sweep of pre-archive paths | **DONE**: 6 references across 3 docs redirected to `docs/paradigm-archive/` with per-file provenance notes (ADR-0252 §9 retirement record + archive self-references left as deliberate history) |
+
+### New findings from the execution pass
+
+- [ ] **T10 (fixed in `fix/test-engine-state-isolation`, needs merge): the test
+  suite wrote the live life-store.** Module-scoped fixtures (e.g.
+  `tests/test_achat.py`) construct `ChatRuntime()` BEFORE the function-scoped
+  isolation fixture exists (pytest sets up wider scopes first), binding the
+  real `engine_state/`: smoke runs loaded it and committed generations
+  (turn_count 14989→14990 observed). Fix: session-scoped baseline fixture +
+  regression pin; `docs/issues/default-engine-state-test-hygiene.md` addendum.
+- [ ] **T11 (ruling needed): live-store provenance review.** Historical
+  `turn_count` (14990) includes an unknown number of pre-fix test turns and
+  the 465 persisted discovery candidates predate the isolation fix. Decide:
+  accept-as-lived vs audit/relabel candidates.
+- [ ] **T12 (pattern watch): experiment scaffolding scope over-reach.** The T6
+  glob hazard suggests a cheap architecture pin: `rnd`/scripts corpus readers
+  should be lint-checked against sealed/practice eval paths.
+
+### R1–R6 — PR #97 declared residuals (escalated per T8; source:
+`docs/analysis/logos-bulk-live-authority-residual-2026-07-20.md`)
+
+- [ ] **R1** — `generate/linguistic_pipeline` cue tables (English "sold"/"mkr"
+  hand maps) remain a parallel constraint producer on the governance demo
+  path; they consult no `packs/data/he_*` morphology and are not answer
+  authority. Migrate onto the Logos morph seam or retire.
+- [ ] **R2** — lexicon breadth: only `he_logos_micro_v1` observed surfaces; no
+  full HE/GRC tables, no binyan universals, no GRC case→role.
+- [ ] **R3** — legacy math / meaning_graph IR still parallel outside the Logos
+  morph seam; not migrated onto `semantic_primitives`.
+- [ ] **R4** — holonomy crown not robust; no LIVE claim.
+- [ ] **R5** — pack frames largely disconnected (sense disambiguation);
+  first-match pack semantics unchanged outside the morph rule.
+- [ ] **R6** — one rule type only (`he_morph_v0.plural_abstain`);
+  construct-state / prep+case / aspect deferred.
+- [ ] **T13 (main regression, serving-provenance — needs its own fix PR):
+  fast lane is red on main** (was 0-red 2026-07-16):
+  `tests/test_warmed_session_lane.py::TestPipelineOverrideGateInvariants::test_telemetry_consistency_rate_is_one`
+  fails at 0.9444 (17/18). Verified pre-existing on unmodified main (fails
+  plain AND state-isolated; unrelated to the T10 isolation fix). Root cause:
+  `CognitiveTurnPipeline.run()` emits `TurnEvent` inside `runtime.chat()`
+  (`core/cognition/pipeline.py:287`) and only THEN applies the PR #96
+  fail-closed surface resolution (`resolve_surface`, line 470) and the PR #97
+  logos morph override (~line 517) — so an overridden turn serves a surface
+  telemetry never saw. Introduced by `e0d1b475` (#96). Reproducer: warmed
+  case "What is doubt?" — TurnEvent carries the pack-grounded surface
+  ("To doubt means to think maybe not. pack-grounded (en_core_meta_v1).")
+  while the pipeline returns the typed refusal ("I cannot certify an answer:
+  the geometric coherence contract is open (goldtether_residual)."). Two
+  decisions for the fix PR: (1) restore single-point surface truth — emit
+  (or re-stamp) `TurnEvent` AFTER surface resolution; runtime_contracts'
+  selection policy + this lane must move in the same PR per the contract's
+  own rule; (2) rule whether an open goldtether residual should refuse a
+  pack-grounded, honestly-hedged definition at all (possible over-refusal —
+  the pack surface never claimed geometric certification). Note: smoke does
+  not cover this lane, and GitHub Actions are dead signals — nothing gates
+  fast-lane red on main right now.

@@ -425,16 +425,34 @@ Identity checks are telemetry/gating signals. A flagged identity score must not
 silently erase useful generation unless an explicit hard-block policy is
 configured and tested.
 
+**Wave-only, fail-closed (ADR-0244 §3, system convergence 2026-07-20 — INV-32).**
+Scoring is always metric-exact geometry (Gram / operator-preservation in
+`core/physics/identity_manifold.py`); the scalar-L2 dual-mode fallback is
+excised and must not be reintroduced.
+
 Canonical call style:
 
 ```python
-IdentityCheck().check(trajectory, manifold)
+IdentityCheck().check(trajectory, manifold, wave_field=final_state.F)
 ```
+
+- Absent `wave_field` (`ψ_traj`) raises typed `MissingWaveStateError` — never a
+  scalar fallback.
+- Malformed `wave_field` (NaN / wrong shape / wrong byte-order) raises
+  `ValueError`.
+- `admission_policy` (ADR-0246 §3.7) is optional; `None` keeps the D4 wave gate
+  without the induced-action surface.
+- Live *refusal* remains flag-gated via `RuntimeConfig.identity_wave_gate`
+  (default **off**; not authorized live) — the gate flag controls refusal only,
+  never the scoring path.
+
+Enforcement pins: `tests/test_stage2_physics_hardening.py` (excised symbols
+absent), `tests/test_adr_0244_identity_gate_runtime.py`.
 
 Legacy constructor injection:
 
 ```python
-IdentityCheck(manifold=manifold).check(trajectory)
+IdentityCheck(manifold=manifold).check(trajectory, wave_field=...)
 ```
 
 is supported temporarily and emits `DeprecationWarning`. New code must not use
@@ -933,3 +951,61 @@ direct pure-algebra modules. Pin: `tests/test_physics_backend_dispatch_hygiene.p
 | float64 wave residual pins | Stay on Python product when inputs are f64 (Rust f32 GP not parity-safe for 1e-9 pins yet) |
 | float32 field graphs | Rust f32 GP / residual when enabled |
 | MLX / UMA | Exploratory (ADR-0235); not serving until parity gates |
+
+## Dual-pack serve boundary (ADR-0253 — INV-33)
+
+Registered from the Master Blueprint Stage 1 governance freeze (2026-07-20);
+enforcement landed with Master Convergence Stages 1–4 (PR #95).
+
+| Tree | Role | Serve authority |
+|------|------|-----------------|
+| `packs/data/<pack_id>/` | Compiled runtime language packs (manifest + lexicon + checksums) | **Yes** — only via `packs.compiler.load_pack` |
+| `packs/he`, `packs/grc`, `packs/en`, `packs/el`, … | Source / draft language material (morphology, lemmas, probes) | **No** — serve entrypoints must not import these as Python packages |
+| `packs/safety`, `packs/identity`, `packs/ethics`, … | Governance / style modality packs | Via their dedicated loaders |
+
+- Draft trees compile into `packs/data/` before anything may serve from them.
+- Enforcement pin: `tests/test_pack_draft_serve_boundary.py` (static AST +
+  process import probe). The pin is a guard, not a substitute for compile-time
+  validation.
+
+## Linguistic governance fail-closed contract (PR #96 — INV-34)
+
+Cognition-pipeline failures are **typed, never silent**. The type authority is
+`core/cognition/fail_closed.py`:
+
+- `ContractViolation` / `CoherenceRefusal` / `FieldFailure` each require an
+  explicit failing `condition` and `reason` (`FailureClass` taxonomy;
+  `ResidualState` carries what remained unresolved).
+- A `ContractAssessment` of `None` is itself a typed violation
+  (`contract_assessment_none_violation`) — absence of assessment can never
+  read as an answer.
+- Unresolvable referents are refused, not filled; open geometry is a typed
+  `CoherenceRefusal`; multi-class root ambiguity keeps its
+  `AmbiguityManifold` rather than collapsing to a guess.
+- The articulation firewall flags hallucinated content (claim keys exclude raw
+  payload values).
+- No PASSTHROUGH path exists in the intent ratifier.
+
+Enforcement pin: `tests/test_linguistic_governance_phases.py` (Phases 1–4:
+typed primitives, pipeline gates, e2e trilingual refusal cases).
+
+## Observed-HE morph constraint authority (Stage 4 + PR #97)
+
+The Logos morph seam is **answer authority** on the turn and teaching paths,
+under complete provenance:
+
+- Morphology rows load only from compiled packs
+  (`load_observed_morphology(<pack_id>)`) and carry `language`,
+  `source_pack_id`, and `source_span` — provenance-complete or not loaded.
+- Rule surface v0 is `he_morph_v0.plural_abstain` only; it may **block**
+  singular-exclusivity claims (`executable_changed_decision=true`) and must
+  hold `wrong_count=0` with `refusal_correct=true`.
+- OOV / missing observed surfaces refuse; dual-run digests must be identical
+  (determinism).
+- Residual dual-system debt is declared in
+  `docs/analysis/logos-bulk-live-authority-residual-2026-07-20.md` and
+  ledgered in the 2026-07-22 weekly audit (R1–R6); the parallel
+  `generate/linguistic_pipeline` cue tables are **not** answer authority.
+
+Enforcement pin: `tests/test_observed_he_morph_constraint_v0.py` (four-arm
+ablation).

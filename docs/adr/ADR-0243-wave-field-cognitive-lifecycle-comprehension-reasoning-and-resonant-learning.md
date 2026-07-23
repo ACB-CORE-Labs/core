@@ -219,6 +219,12 @@ class CognitiveLifecycleEngine:
 
         \# closed-form / series bivector exp; sandwich ψ' = R ψ ~R.
 
+        \# Multi-modality ingress uses modality_transition_sandwich
+
+        \# (R·ψ·rev(R) + GoldTether). (Folded from the retired docs/research
+
+        \# copy under the 2026-07-22 weekly-audit T7 ruling.)
+
         generator \= np.dot(H\_problem, self.I)  \# SUPERSEDED — do not implement
 
         R \= la.expm(generator \* dt)
