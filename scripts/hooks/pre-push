@@ -1,0 +1,52 @@
+#!/bin/sh
+# CORE local-first pre-push gate (weekly-audit T13, 2026-07-22).
+#
+# Automates the AGENTS.md §Local-First CI Validation Protocol "Pre-Push Gate":
+#   (1) the `smoke` suite  — exact CI-gate parity, and
+#   (2) the warmed_session consistency lane pin — catches the T13
+#       telemetry-consistency regression class, which `smoke` does NOT cover
+#       (the #96 fail-closed resolve + #97 morph override escaped smoke and
+#       surfaced only in the warmed_session lane).
+# The full ~12k fast-lane stays an ASYNC CI concern by design — this gate is
+# deliberately targeted so it prevents the regression class without gridlocking
+# the push cycle.
+#
+# Install (per clone): scripts/hooks/install.sh   (sets core.hooksPath).
+# Emergency bypass:     git push --no-verify       (defeats the gate — avoid).
+
+set -u
+
+z40="0000000000000000000000000000000000000000"
+read_any=0
+only_deletes=1
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+    read_any=1
+    if [ "${local_sha}" != "${z40}" ] && [ -n "${local_sha}" ]; then
+        only_deletes=0
+    fi
+done
+
+# Fail-closed: run the gate unless we positively identified a deletion-only push.
+if [ "${read_any}" -eq 1 ] && [ "${only_deletes}" -eq 1 ]; then
+    echo "[pre-push] deletion-only push — nothing to validate."
+    exit 0
+fi
+
+echo "[pre-push] CORE local-first gate: smoke suite + warmed_session lane pin"
+
+echo "[pre-push] (1/2) smoke suite (core test --suite smoke) ..."
+if ! uv run core test --suite smoke -q; then
+    echo "[pre-push] BLOCKED: smoke suite failed. Fix before pushing." >&2
+    echo "[pre-push] (emergency bypass, discouraged: git push --no-verify)" >&2
+    exit 1
+fi
+
+echo "[pre-push] (2/2) warmed_session consistency lane ..."
+if ! uv run python -m pytest tests/test_warmed_session_lane.py -q; then
+    echo "[pre-push] BLOCKED: warmed_session lane failed (T13 regression class)." >&2
+    echo "[pre-push] (emergency bypass, discouraged: git push --no-verify)" >&2
+    exit 1
+fi
+
+echo "[pre-push] gate PASSED — push proceeding."
+exit 0
