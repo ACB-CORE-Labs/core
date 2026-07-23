@@ -1,0 +1,56 @@
+{
+  "artifact": "deduction-serve-arc-phase0-baseline",
+  "date": "2026-07-23",
+  "base_sha": "6a54d27a780b02833a1d92b8afcbb4167dac4cf6",
+  "purpose": "Pinned pre-arc baseline: the organs of the basic-logic workflow measured in isolation, before any serving wiring. wrong=0 across every lane. Band v1 = propositional + syllogism projectors.",
+  "reproduce": {
+    "comprehension_lanes": "uv run python -m evals.comprehension.<name>_runner",
+    "deductive_engine": "uv run python -m evals.deductive_logic.runner  (or read evals/deductive_logic/report.json)",
+    "proofwriter_owa": "uv run python -m evals.proofwriter_owa.score",
+    "smoke": "uv run core test --suite smoke -q"
+  },
+  "comprehension_lanes": {
+    "propositional":        {"total": 12, "correct": 12, "wrong": 0, "refused": 0,  "band_v1": true,  "projector": "to_deductive_logic"},
+    "syllogism":            {"total": 8,  "correct": 7,  "wrong": 0, "refused": 1,  "band_v1": true,  "projector": "to_syllogism"},
+    "set_membership":       {"total": 8,  "correct": 8,  "wrong": 0, "refused": 0,  "band_v1": false, "projector": "to_set_membership"},
+    "total_ordering":       {"total": 8,  "correct": 7,  "wrong": 0, "refused": 1,  "band_v1": false, "projector": "to_total_ordering"},
+    "relational_metric":    {"total": 15, "correct": 15, "wrong": 0, "refused": 0,  "band_v1": false, "projector": "to_relational_metric"},
+    "relational_predicate": {"total": 18, "correct": 18, "wrong": 0, "refused": 0,  "band_v1": false, "projector": "comprehend_relational (commit)"},
+    "relational_inference": {"total": 13, "correct": 13, "wrong": 0, "refused": 0,  "band_v1": false, "projector": "determine() one-hop"}
+  },
+  "deductive_engine": {
+    "source": "evals/deductive_logic/report.json",
+    "all_correct": true,
+    "wrong_is_zero": true,
+    "splits": {
+      "dev":         {"n": 200, "correct": 200, "wrong": 0, "refused": 0},
+      "holdout_v1":  {"n": 500, "correct": 500, "wrong": 0, "refused": 0},
+      "external_v1": {"n": 16,  "correct": 16,  "wrong": 0, "refused": 0}
+    },
+    "combined": {"n": 716, "correct": 716, "wrong": 0, "refused": 0}
+  },
+  "proofwriter_owa": {"total": 19, "correct": 9, "wrong": 0, "refused": 10, "coverage_gaps": 0},
+  "smoke": {"passed": 180, "failed": 0, "duration_s": 133.47},
+  "band_v1_input_boundary": {
+    "propositional": {
+      "reads": "argument in 'P1. P2. Therefore C.' declarative form; atoms must be SINGLE content tokens (e.g. p, q, r, or one-word propositions)",
+      "refuses": "multi-word English propositions such as 'the ground is wet' -> reader Refusal 'reserved_word_in_np' (a function word — is/the/are/not — inside a multi-token NP slot); interrogative propositional 'Is q true?' -> Refusal 'unreadable_member_query'",
+      "guard": "generate/meaning_graph/reader.py::_chunk + _RESERVED (lines 109-190)"
+    },
+    "syllogism": {
+      "reads": "categorical 'All/No/Some X are Y' with SINGLE-word class terms, BOTH declarative 'Therefore all X are Y' AND interrogative 'Are all X Y?'",
+      "note": "the syllogism reader is the more natural-language-ready of the two Band v1 projectors"
+    }
+  },
+  "crux_disconnection": {
+    "claim": "The organs decide a logic question correctly in isolation, but the serving path (ChatRuntime.chat) never routes to them.",
+    "isolation_decides": {
+      "If p then q. p. Therefore q.": "entailed (to_deductive_logic -> ROBDD oracle)",
+      "All mammals are animals. All whales are mammals. Therefore all whales are animals.": "valid=True (to_syllogism -> oracle)"
+    },
+    "serving_path_today": {
+      "same_inputs": "grounding_source='pack', surface is a token-gloss ('Pack-resident tokens — ... then, therefore ...'), refusal_reason=''",
+      "meaning": "the deductive engine is bypassed entirely; a logic argument is treated as a bag of vocabulary tokens to gloss, not a problem to decide"
+    }
+  }
+}
