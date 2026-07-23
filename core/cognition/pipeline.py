@@ -808,6 +808,16 @@ class CognitiveTurnPipeline:
         # ``source_turn_trace``.  See runtime.finalize_turn_trace_hash.
         self.runtime.finalize_turn_trace_hash(trace_hash)
 
+        # Weekly-audit T13 (2026-07-22) — back-stamp the pipeline's final
+        # *served* surface onto the same TurnEvent, sibling to the
+        # trace_hash back-stamp above.  ``resolve_surface`` + the logos-morph
+        # authority (above) can override the runtime-owned surface AFTER
+        # ``runtime.chat`` sealed the TurnEvent, so without this the
+        # telemetry record disagrees with the served bytes
+        # (warmed_session_consistency telemetry_consistency_rate < 1.0;
+        # breaks audit/replay trust — Absolute Provenance).
+        self.runtime.finalize_turn_surface(surface, articulation_surface)
+
         # B4 producer: capture the leeway the response path already decided —
         # observational only (reads the runtime's introspection-only accrual and
         # the response's reach level; never alters the surface, never gates).

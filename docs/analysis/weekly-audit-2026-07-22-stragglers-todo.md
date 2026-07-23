@@ -175,7 +175,15 @@ fail-closed determinism). Execution status:
   first-match pack semantics unchanged outside the morph rule.
 - [ ] **R6** — one rule type only (`he_morph_v0.plural_abstain`);
   construct-state / prep+case / aspect deferred.
-- [ ] **T13 (main regression, serving-provenance — needs its own fix PR):
+- [ ] **R7** (opened by the T13 fix, 2026-07-22) — the opt-in telemetry SINK
+  stream (`attach_telemetry_sink`) still receives the pre-override `TurnEvent`
+  (pre-resolution surface + empty `trace_hash`) — the same provisional-then-
+  back-stamped limitation `finalize_turn_trace_hash` already carries. A single
+  deferred sink emission at the pipeline serve boundary would repair BOTH
+  surface and `trace_hash` in the durable stream. Deferred (default sink is
+  `None`, so no live consumer is affected today); own PR when a sink consumer
+  lands.
+- [x] **T13 (main regression, serving-provenance — telemetry half FIXED):
   fast lane is red on main** (was 0-red 2026-07-16):
   `tests/test_warmed_session_lane.py::TestPipelineOverrideGateInvariants::test_telemetry_consistency_rate_is_one`
   fails at 0.9444 (17/18). Verified pre-existing on unmodified main (fails
@@ -197,3 +205,21 @@ fail-closed determinism). Execution status:
   the pack surface never claimed geometric certification). Note: smoke does
   not cover this lane, and GitHub Actions are dead signals — nothing gates
   fast-lane red on main right now.
+
+  **Resolution (2026-07-22, PR `fix/telemetry-serve-boundary`):**
+  - **(1) FIXED** — `ChatRuntime.finalize_turn_surface` back-stamps the
+    pipeline's resolved surface onto `turn_log[-1]`, a sibling to
+    `finalize_turn_trace_hash`, called from `pipeline.py` immediately after
+    the trace-hash back-stamp. Lane green: `telemetry_consistency_rate`
+    0.9444 → 1.0 (10/10 warmed_session tests pass). `trace_hash` byte-identity
+    preserved — it folds the pre-decoration surface, not the served surface.
+  - **(2) OPEN — needs Shay's ruling.** Orthogonal to the red (telemetry now
+    matches whatever is served, refusal or not). Recommend **AGAINST** a
+    query-type "definitional/epistemic" classifier bypass: that fails a
+    geometric coherence gate OPEN on a lexical cue — the fail-open / cue-table
+    pattern ADR-0252 retired and INV-34 / fail-closed forbid. Principled
+    alternative: route open-geometry-but-**pack-grounded** surfaces to the
+    existing hedge-injection arm (`authoritative=False`, honestly hedged),
+    discriminated by grounding *provenance* (structural), not question type.
+    Own focused PR + real-data (not synthetic) validation.
+  - Durable-sink residual tracked as **R7** above.
