@@ -19,6 +19,7 @@ The contract these tests pin:
 from __future__ import annotations
 
 from chat.deduction_surface import (
+    _UNVERIFIED_SHAPE_DISCLOSURE,
     deduction_grounded_surface,
     looks_like_deductive_argument,
 )
@@ -108,16 +109,68 @@ def test_invalid_categorical_argument_is_rejected() -> None:
     assert "doesn't follow" in surface
 
 
-def test_multiword_conditional_declines_reader_refusal() -> None:
-    """Natural-English multi-word propositions are out of Band v1's
-    single-token-atom scope; the reader refuses and the composer
-    surfaces that honestly rather than silently falling through."""
+def test_multiword_conditional_is_decided_band_v2_en() -> None:
+    """Natural-English multi-word propositions — Band v1's documented boundary
+    case (this exact text used to surface ``reserved_word_in_np``) — are now
+    DECIDED by the English-clause band (ADR-0257), authoritatively (the
+    ``en_conditional_single`` band holds an earned SERVE license), with the
+    verdict rendered over the user's own clauses."""
     surface = deduction_grounded_surface(
         "If it rains then the ground is wet. It rains. "
         "Therefore the ground is wet."
     )
     assert surface is not None
-    assert "reserved_word_in_np" in surface
+    assert "Your premises entail: the ground is wet" in surface
+    assert not surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+
+
+def test_contraposition_is_decided_band_v2_en() -> None:
+    """The other documented Band v1 boundary case (nested negation in a
+    conditional conclusion) — now decided: contraposition is ENTAILED."""
+    surface = deduction_grounded_surface("If p then q. Therefore if not q then not p.")
+    assert surface is not None
+    assert "Your premises entail: if not q then not p" in surface
+
+
+def test_english_modus_tollens_via_copular_negation() -> None:
+    surface = deduction_grounded_surface(
+        "If the alarm is armed then the light is on. The light is not on. "
+        "Therefore the alarm is not armed."
+    )
+    assert surface is not None
+    assert "Your premises entail: the alarm is not armed" in surface
+
+
+def test_english_unknown_is_scoped_to_the_opaque_reading() -> None:
+    """UNKNOWN is the one verdict that is NOT substitution-closed (internal
+    clause structure this band did not read could settle it), so its surface
+    must scope the claim to the opaque reading explicitly (ADR-0257 §3)."""
+    surface = deduction_grounded_surface(
+        "If it rains then the ground is wet. The ground is wet. Therefore it rains."
+    )
+    assert surface is not None
+    assert "Reading each clause as one indivisible claim" in surface
+    assert "don't settle" in surface
+
+
+def test_english_unearned_band_would_be_hedged() -> None:
+    """The en_* bands ride the SAME earned-license gate: strip the license and
+    the same sound answer is served DISCLOSED, never authoritatively."""
+    surface = deduction_grounded_surface(
+        "If it rains then the ground is wet. It rains. Therefore the ground is wet.",
+        license_lookup=lambda band: None,
+    )
+    assert surface is not None
+    assert surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+    assert "Your premises entail: the ground is wet" in surface
+
+
+def test_english_reader_refusal_keeps_prior_honest_surface() -> None:
+    """When the English band ALSO cannot read the argument, the pre-existing
+    honest surfaces are preserved verbatim — the band only widens."""
+    surface = deduction_grounded_surface("It never snows. Therefore it never snows.")
+    assert surface is not None
+    assert "can't parse" in surface
 
 
 def test_surface_is_deterministic() -> None:

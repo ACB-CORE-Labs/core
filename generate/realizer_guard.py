@@ -119,6 +119,16 @@ class RealizerGuardVerdict:
 
 _OK_VERDICT = RealizerGuardVerdict(status="ok", rule_id="", detail="")
 
+QUOTED_TEMPLATE_EXEMPT_VERDICT = RealizerGuardVerdict(status="ok", rule_id="", detail="")
+"""Verdict the runtime substitutes for surfaces OUTSIDE C1's regime: fixed,
+test-audited templates that quote the user's own clauses VERBATIM (deduction
+serving, ADR-0257) rather than slot-composing pack lemmas. The slot-type rules
+assume pack POS entries describe the composed slot's sense; a quoted clause
+carries the USER's sense (pack ``open``=VERB vs the copular-adjective reading
+in a quoted "the door is not open"), so applying them would reject honest
+quotations. Mirrors the empty-surface exemption in doctrine: the guard only
+verifies what the realizer COMPOSED."""
+
 
 def _tokens(surface: str) -> list[tuple[int, str]]:
     """Return ordered ``(start_index, token)`` pairs.

@@ -1,0 +1,26 @@
+{"id": "ds-en-0001", "text": "If it rains then the ground is wet. It rains. Therefore the ground is wet.", "gold": "entailed", "class": "modus_ponens"}
+{"id": "ds-en-0002", "text": "If the alarm is armed then the light is on. The light is not on. Therefore the alarm is not armed.", "gold": "entailed", "class": "modus_tollens"}
+{"id": "ds-en-0003", "text": "Either the door is open or the window is open. The door isn't open. Therefore the window is open.", "gold": "entailed", "class": "disjunctive_syllogism"}
+{"id": "ds-en-0004", "text": "If the pump runs then the tank fills. If the valve opens then the tank fills. The pump runs or the valve opens. Therefore the tank fills.", "gold": "entailed", "class": "constructive_dilemma"}
+{"id": "ds-en-0005", "text": "If it rains then the ground is wet. If the ground is wet then the match is cancelled. Therefore if it rains then the match is cancelled.", "gold": "entailed", "class": "hypothetical_syllogism"}
+{"id": "ds-en-0006", "text": "The oven is hot and the dough is ready. Therefore the dough is ready.", "gold": "entailed", "class": "conjunction_elimination"}
+{"id": "ds-en-0007", "text": "The kettle is boiling. The toast is ready. Therefore the kettle is boiling and the toast is ready.", "gold": "entailed", "class": "conjunction_introduction"}
+{"id": "ds-en-0008", "text": "The train is late. Therefore the train is late or the bus is early.", "gold": "entailed", "class": "disjunction_introduction"}
+{"id": "ds-en-0009", "text": "It is not the case that the store is open. Therefore the store is not open.", "gold": "entailed", "class": "sentential_negation"}
+{"id": "ds-en-0010", "text": "If the seal is broken then the tank is empty. If the tank is empty then the pump is dry. The pump is not dry. Therefore the seal is not broken.", "gold": "entailed", "class": "modus_tollens_chain"}
+{"id": "ds-en-0011", "text": "If the bell rings then the class is over. If the class is over then the hall is crowded. The bell rings. Therefore the hall is crowded.", "gold": "entailed", "class": "chained_modus_ponens"}
+{"id": "ds-en-0012", "text": "If the printer is jammed then the queue is stuck. The queue isn't stuck. Therefore the printer isn't jammed.", "gold": "entailed", "class": "contraction_modus_tollens"}
+{"id": "ds-en-0013", "text": "The Report Is Filed. Therefore the report is filed.", "gold": "entailed", "class": "case_normalization"}
+{"id": "ds-en-0014", "text": "If it rains then the ground is wet. It rains. Therefore the ground is not wet.", "gold": "refuted", "class": "consequent_denial"}
+{"id": "ds-en-0015", "text": "The gate is locked. Therefore the gate is not locked.", "gold": "refuted", "class": "self_contradiction"}
+{"id": "ds-en-0016", "text": "The cat is inside or the dog is inside. The cat is not inside. Therefore the dog is not inside.", "gold": "refuted", "class": "disjunct_denial"}
+{"id": "ds-en-0017", "text": "If it rains then the ground is wet. The ground is wet. Therefore it rains.", "gold": "unknown", "class": "affirming_consequent"}
+{"id": "ds-en-0018", "text": "If the oven is on then the kitchen is warm. The oven is not on. Therefore the kitchen is not warm.", "gold": "unknown", "class": "denying_antecedent"}
+{"id": "ds-en-0019", "text": "The key is lost or the lock is broken. Therefore the key is lost.", "gold": "unknown", "class": "bare_disjunct"}
+{"id": "ds-en-0020", "text": "The sky is clear. Therefore the sea is calm.", "gold": "unknown", "class": "unrelated_conclusion"}
+{"id": "ds-en-0021", "text": "The door is open. The door is not open. Therefore the moon is full.", "gold": "declined", "class": "inconsistent_premises"}
+{"id": "ds-en-0022", "text": "Socrates is a man. Therefore Socrates is a man.", "gold": "declined", "class": "membership_out_of_band"}
+{"id": "ds-en-0023", "text": "It never snows. Therefore it never snows.", "gold": "declined", "class": "unnormalizable_negation"}
+{"id": "ds-en-0024", "text": "The engine doesn't start. Therefore the engine doesn't start.", "gold": "declined", "class": "unnormalizable_negation_contraction"}
+{"id": "ds-en-0025", "text": "The fan spins and the light is on or the door is open. Therefore the door is open.", "gold": "declined", "class": "ambiguous_and_or"}
+{"id": "ds-en-0026", "text": "If the door is open then if the fan spins then the light is on. The door is open. Therefore the light is on.", "gold": "declined", "class": "nested_conditional_out_of_band"}

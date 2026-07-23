@@ -3,7 +3,7 @@
 {"id": "ds-v1-0003", "text": "If p then q. If q then r. Therefore if p then r.", "gold": "entailed", "class": "hypothetical_syllogism"}
 {"id": "ds-v1-0004", "text": "p or q. Not p. Therefore q.", "gold": "entailed", "class": "disjunctive_syllogism"}
 {"id": "ds-v1-0005", "text": "p or q. Not q. Therefore p.", "gold": "entailed", "class": "disjunctive_syllogism"}
-{"id": "ds-v1-0006", "text": "If p then q. Therefore if not q then not p.", "gold": "declined", "class": "out_of_band_nested_negation"}
+{"id": "ds-v1-0006", "text": "If p then q. Therefore if not q then not p.", "gold": "entailed", "class": "contraposition_formerly_out_of_band"}
 {"id": "ds-v1-0007", "text": "p. Therefore p.", "gold": "entailed", "class": "restatement"}
 {"id": "ds-v1-0008", "text": "If p then q. If r then q. p or r. Therefore q.", "gold": "entailed", "class": "constructive_dilemma"}
 {"id": "ds-v1-0009", "text": "If p then q. Not q. Therefore p.", "gold": "refuted", "class": "modus_tollens_negated_query"}
@@ -22,7 +22,7 @@
 {"id": "ds-v1-0022", "text": "p or q. Not p. Not q. Therefore p.", "gold": "declined", "class": "inconsistent_premises"}
 {"id": "ds-v1-0023", "text": "All mammals are animals. All whales are mammals. Therefore all whales are animals.", "gold": "valid", "class": "categorical_barbara"}
 {"id": "ds-v1-0024", "text": "No reptiles are mammals. All snakes are reptiles. Therefore no snakes are mammals.", "gold": "valid", "class": "categorical_celarent"}
-{"id": "ds-v1-0025", "text": "If it rains then the ground is wet. It rains. Therefore the ground is wet.", "gold": "declined", "class": "out_of_band_multiword_conditional"}
+{"id": "ds-v1-0025", "text": "If it rains then the ground is wet. It rains. Therefore the ground is wet.", "gold": "entailed", "class": "multiword_conditional_formerly_out_of_band"}
 {"id": "ds-v1-0026", "text": "Some students are poets. All poets are artists. Therefore some students are artists.", "gold": "valid", "class": "categorical_datisi"}
 {"id": "ds-v1-0028", "text": "All cats are animals. All dogs are animals. Therefore all dogs are cats.", "gold": "invalid", "class": "categorical_undistributed_middle"}
 {"id": "ds-v1-0027", "text": "If p then q. If q then r. If r then s. p. Therefore s.", "gold": "entailed", "class": "three_hop_chain"}

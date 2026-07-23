@@ -43,6 +43,26 @@ SHAPE_BANDS: tuple[str, ...] = (
     CATEGORICAL,
 )
 
+#: Band v2-EN (ADR-0257) — English-clause propositional arguments, read by
+#: ``generate.proof_chain.english`` (opaque clause-atoms). Namespaced ``en_``
+#: because a band's earned license certifies READER fidelity per shape
+#: (ADR-0256): the English reader is a different reader, so it must earn its
+#: own per-shape record even though the engine underneath is identical.
+EN_DISJUNCTIVE = "en_disjunctive"
+EN_CONDITIONAL_CHAIN = "en_conditional_chain"
+EN_CONDITIONAL_SINGLE = "en_conditional_single"
+EN_ATOMIC = "en_atomic"
+
+EN_SHAPE_BANDS: tuple[str, ...] = (
+    EN_DISJUNCTIVE,
+    EN_CONDITIONAL_CHAIN,
+    EN_CONDITIONAL_SINGLE,
+    EN_ATOMIC,
+)
+
+#: Every serving shape-band — the ratified ledger's full key set.
+ALL_SHAPE_BANDS: tuple[str, ...] = SHAPE_BANDS + EN_SHAPE_BANDS
+
 
 def classify_deduction_shape(premises: tuple[str, ...], query: str) -> str:
     """The structural shape-band of a projected propositional argument.
@@ -69,11 +89,17 @@ def classify_deduction_shape(premises: tuple[str, ...], query: str) -> str:
 
 
 __all__ = [
+    "ALL_SHAPE_BANDS",
     "ATOMIC",
     "CATEGORICAL",
     "CONDITIONAL_CHAIN",
     "CONDITIONAL_SINGLE",
     "DISJUNCTIVE",
+    "EN_ATOMIC",
+    "EN_CONDITIONAL_CHAIN",
+    "EN_CONDITIONAL_SINGLE",
+    "EN_DISJUNCTIVE",
+    "EN_SHAPE_BANDS",
     "SHAPE_BANDS",
     "classify_deduction_shape",
 ]

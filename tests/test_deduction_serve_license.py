@@ -29,6 +29,7 @@ from chat.deduction_surface import (
 )
 from core.reliability_gate import Action, Ceilings, license_for
 from generate.proof_chain.shape import (
+    ALL_SHAPE_BANDS,
     ATOMIC,
     CONDITIONAL_CHAIN,
     CONDITIONAL_SINGLE,
@@ -83,7 +84,7 @@ def test_every_band_earns_serve_wrong_zero() -> None:
     report = run()
     assert report["wrong_is_zero"] is True
     assert report["all_bands_serve_licensed"] is True
-    assert set(report["classes"]) == set(SHAPE_BANDS)
+    assert set(report["classes"]) == set(ALL_SHAPE_BANDS)
     for band, c in report["classes"].items():
         assert c["wrong"] == 0, band
         assert c["serve_licensed"] is True, band
@@ -97,7 +98,7 @@ def test_every_band_earns_serve_wrong_zero() -> None:
 
 def test_committed_ledger_verifies_and_earns_serve() -> None:
     ledger = load_ratified_ledger()
-    assert set(ledger) == set(SHAPE_BANDS)
+    assert set(ledger) == set(ALL_SHAPE_BANDS)
     ceilings = Ceilings.default()
     for band, tally in ledger.items():
         assert tally.wrong == 0, band

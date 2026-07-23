@@ -94,6 +94,7 @@ from chat.register_variation import decorate_surface
 from chat.atom_equivalence import atoms_for_graph_nodes, compare_atom_sets
 from generate.realizer_guard import (
     DISCLOSURE_SURFACE as _GUARD_DISCLOSURE_SURFACE,
+    QUOTED_TEMPLATE_EXEMPT_VERDICT as _GUARD_QUOTED_EXEMPT,
     check_surface as _check_realizer_surface,
 )
 from packs.anchor_lens.loader import AnchorLens, load_anchor_lens
@@ -2351,9 +2352,18 @@ class ChatRuntime:
         # for telemetry — the stub path normally leaves walk_surface as
         # _UNKNOWN_DOMAIN_SURFACE, so this swap strictly increases
         # observability under rejection.
-        guard_verdict_stub = _check_realizer_surface(
-            response_surface,
-            pos_lookup=self._pos_by_surface.get,
+        # Deduction surfaces (ADR-0257) are OUT of C1's regime: a fixed,
+        # test-audited template quoting the user's clauses verbatim, not a
+        # slot-composed articulation — pack POS describes the composed sense,
+        # not the user's quoted sense (e.g. pack ``open``=VERB rejecting an
+        # honest "the door is not open"). Exempt, like empty surfaces.
+        guard_verdict_stub = (
+            _GUARD_QUOTED_EXEMPT
+            if grounding_source == "deduction"
+            else _check_realizer_surface(
+                response_surface,
+                pos_lookup=self._pos_by_surface.get,
+            )
         )
         realizer_guard_status_stub = guard_verdict_stub.status
         realizer_guard_rule_stub = guard_verdict_stub.rule_id
@@ -2979,9 +2989,15 @@ class ChatRuntime:
         # candidate so the manifold-walk evidence is overwritten only
         # in the rejection branch (the contract says illegal
         # articulation evidence is the relevant telemetry).
-        guard_verdict_main = _check_realizer_surface(
-            response_surface,
-            pos_lookup=self._pos_by_surface.get,
+        # Same ADR-0257 exemption as the stub path: quoted deduction
+        # templates are not slot-composed articulations.
+        guard_verdict_main = (
+            _GUARD_QUOTED_EXEMPT
+            if warm_grounding_source == "deduction"
+            else _check_realizer_surface(
+                response_surface,
+                pos_lookup=self._pos_by_surface.get,
+            )
         )
         realizer_guard_status_main = guard_verdict_main.status
         realizer_guard_rule_main = guard_verdict_main.rule_id

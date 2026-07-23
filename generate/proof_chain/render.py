@@ -59,6 +59,43 @@ def render_entailment(
     return f"Given: {given}. I can't evaluate {query} from that as stated."
 
 
+def render_entailment_english(
+    trace: EntailmentTrace, premise_texts: tuple[str, ...], query_text: str
+) -> str:
+    """The user-facing surface for an English-clause (Band v2-EN) verdict.
+
+    Same four-outcome discipline as :func:`render_entailment`, but the visible
+    tokens are the user's own normalized clauses (``EnglishArgument`` texts),
+    not formula strings. The ONE deliberate divergence is the UNKNOWN template:
+    an opaque-atom "doesn't settle" is only true *of the reading* (internal
+    clause structure this band did not parse could settle it — ADR-0257 §3),
+    so the phrasing scopes the claim to that reading explicitly. ENTAILED /
+    REFUTED / inconsistent are substitution-closed — true under any deeper
+    reading — and are stated at full strength.
+    """
+    given = "; ".join(premise_texts)
+    if trace.outcome is Entailment.ENTAILED:
+        return f"Given: {given}. Your premises entail: {query_text}."
+    if trace.outcome is Entailment.REFUTED:
+        return (
+            f"Given: {given}. Your premises entail the opposite of "
+            f"{query_text} — it cannot hold."
+        )
+    if trace.outcome is Entailment.UNKNOWN:
+        return (
+            f"Given: {given}. Reading each clause as one indivisible claim, "
+            f"your premises don't settle whether {query_text} — it holds in "
+            f"some cases and fails in others."
+        )
+    # REFUSED
+    if trace.reason == INCONSISTENT_PREMISES:
+        return (
+            f"Given: {given}. Those premises are inconsistent — they "
+            f"can't all be true, so I won't assert anything from them."
+        )
+    return f"Given: {given}. I can't evaluate {query_text} from that as stated."
+
+
 def _categorical_clause(prop: dict) -> str:
     """One categorical proposition dict → its English clause."""
     template = _CATEGORICAL_PHRASE.get(prop.get("form", ""), "{s} ~ {p}")
