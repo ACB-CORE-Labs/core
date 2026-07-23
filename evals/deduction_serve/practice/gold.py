@@ -33,6 +33,7 @@ from core.learning_arena.protocols import Problem
 from generate.meaning_graph.projectors import to_deductive_logic, to_syllogism
 from generate.meaning_graph.reader import Comprehension, comprehend
 from generate.proof_chain.categorical import CategoricalError, decide_syllogism
+from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
 from generate.proof_chain.shape import (
     ATOMIC,
@@ -40,6 +41,10 @@ from generate.proof_chain.shape import (
     CONDITIONAL_CHAIN,
     CONDITIONAL_SINGLE,
     DISJUNCTIVE,
+    EN_ATOMIC,
+    EN_CONDITIONAL_CHAIN,
+    EN_CONDITIONAL_SINGLE,
+    EN_DISJUNCTIVE,
     classify_deduction_shape,
 )
 
@@ -112,15 +117,166 @@ _TEMPLATES: dict[str, tuple[tuple[str, Any], ...]] = {
 }
 
 
+# --- Band v2-EN (ADR-0257): English-clause synthetic corpus -------------------
+#
+# Deterministic copular-clause lexicon: 20 subjects × 12 states = 240 distinct
+# clauses ("the alarm is armed", …). Negation is the copular form the English
+# reader normalizes ("the alarm is not armed" → ``~atom``), so the corpus
+# exercises the negation machinery (modus tollens, disjunctive syllogism), not
+# just affirmative flows. Content is synthetic ON PURPOSE — the reader is
+# content-blind (opaque atoms), so the license certifies STRUCTURAL fidelity per
+# shape; hand-authored real-English cases live in the eval lane
+# (``evals/deduction_serve/v2_en``) to keep the synthetic corpus honest.
+
+_EN_SUBJECTS: tuple[str, ...] = (
+    "the alarm", "the door", "the light", "the valve", "the engine",
+    "the fan", "the screen", "the sensor", "the pump", "the relay",
+    "the switch", "the heater", "the camera", "the router", "the beacon",
+    "the latch", "the motor", "the buzzer", "the gate", "the lamp",
+)
+_EN_STATES: tuple[str, ...] = (
+    "on", "off", "open", "closed", "armed", "active",
+    "locked", "ready", "hot", "cold", "live", "set",
+)
+_EN_CLAUSE_COUNT = len(_EN_SUBJECTS) * len(_EN_STATES)
+
+
+def _en_clause(slot: int) -> str:
+    subject = _EN_SUBJECTS[slot % len(_EN_SUBJECTS)]
+    state = _EN_STATES[(slot // len(_EN_SUBJECTS)) % len(_EN_STATES)]
+    return f"{subject} is {state}"
+
+
+def _en_clauses(index: int, count: int) -> tuple[str, ...]:
+    """``count`` distinct clauses for case ``index`` — deterministic, no RNG."""
+    base = (index * 7) % (_EN_CLAUSE_COUNT - count)
+    return tuple(_en_clause(base + j) for j in range(count))
+
+
+def _en_neg(clause: str) -> str:
+    """The copular negation of a lexicon clause ("… is X" → "… is not X")."""
+    return clause.replace(" is ", " is not ", 1)
+
+
+#: English-band templates: (gold, text_builder, intended_premises, intended_query).
+#: The INTENDED formulas are the template's logical form over fixed placeholder
+#: atoms — the reader-independent gold ``assert_corpus_sound`` cross-checks
+#: against the truth-table oracle (INV-25: no reader, no ROBDD involvement).
+_EN_TEMPLATES: dict[str, tuple[tuple[str, Any, tuple[str, ...], str], ...]] = {
+    EN_CONDITIONAL_SINGLE: (
+        # Modus ponens.
+        ("entailed", lambda a, b, c: f"If {a} then {b}. {a.capitalize()}. Therefore {b}.",
+         ("pa implies pb", "pa"), "pb"),
+        # Modus tollens (copular negation).
+        ("entailed", lambda a, b, c: f"If {a} then {b}. {_en_neg(b).capitalize()}. Therefore {_en_neg(a)}.",
+         ("pa implies pb", "not pb"), "not pa"),
+        # Direct contradiction of the consequent.
+        ("refuted", lambda a, b, c: f"If {a} then {b}. {a.capitalize()}. Therefore {_en_neg(b)}.",
+         ("pa implies pb", "pa"), "not pb"),
+        # Affirming the consequent — classic non-sequitur.
+        ("unknown", lambda a, b, c: f"If {a} then {b}. {b.capitalize()}. Therefore {a}.",
+         ("pa implies pb", "pb"), "pa"),
+        # Denying the antecedent — classic non-sequitur.
+        ("unknown", lambda a, b, c: f"If {a} then {b}. {_en_neg(a).capitalize()}. Therefore {_en_neg(b)}.",
+         ("pa implies pb", "not pa"), "not pb"),
+        # No anchor at all.
+        ("unknown", lambda a, b, c: f"If {a} then {b}. Therefore {a}.",
+         ("pa implies pb",), "pa"),
+    ),
+    EN_CONDITIONAL_CHAIN: (
+        # Two-hop modus ponens.
+        ("entailed", lambda a, b, c: f"If {a} then {b}. If {b} then {c}. {a.capitalize()}. Therefore {c}.",
+         ("pa implies pb", "pb implies pc", "pa"), "pc"),
+        # Two-hop modus tollens (contraposition through the chain).
+        ("entailed", lambda a, b, c: f"If {a} then {b}. If {b} then {c}. {_en_neg(c).capitalize()}. Therefore {_en_neg(a)}.",
+         ("pa implies pb", "pb implies pc", "not pc"), "not pa"),
+        # Hypothetical syllogism — a conditional CONCLUSION.
+        ("entailed", lambda a, b, c: f"If {a} then {b}. If {b} then {c}. Therefore if {a} then {c}.",
+         ("pa implies pb", "pb implies pc"), "pa implies pc"),
+        # Chain contradiction.
+        ("refuted", lambda a, b, c: f"If {a} then {b}. If {b} then {c}. {a.capitalize()}. Therefore {_en_neg(c)}.",
+         ("pa implies pb", "pb implies pc", "pa"), "not pc"),
+        # Chain with no anchor.
+        ("unknown", lambda a, b, c: f"If {a} then {b}. If {b} then {c}. Therefore {c}.",
+         ("pa implies pb", "pb implies pc"), "pc"),
+    ),
+    EN_DISJUNCTIVE: (
+        # Disjunctive syllogism.
+        ("entailed", lambda a, b, c: f"{a.capitalize()} or {b}. {_en_neg(a).capitalize()}. Therefore {b}.",
+         ("pa or pb", "not pa"), "pb"),
+        # Disjunctive syllogism, "either" spelling, other disjunct.
+        ("entailed", lambda a, b, c: f"Either {a} or {b}. {_en_neg(b).capitalize()}. Therefore {a}.",
+         ("pa or pb", "not pb"), "pa"),
+        # Constructive dilemma.
+        ("entailed", lambda a, b, c: f"If {a} then {c}. If {b} then {c}. {a.capitalize()} or {b}. Therefore {c}.",
+         ("pa implies pc", "pb implies pc", "pa or pb"), "pc"),
+        # Eliminating one disjunct entails the other — its negation is refuted.
+        ("refuted", lambda a, b, c: f"{a.capitalize()} or {b}. {_en_neg(a).capitalize()}. Therefore {_en_neg(b)}.",
+         ("pa or pb", "not pa"), "not pb"),
+        # A bare disjunction settles neither disjunct.
+        ("unknown", lambda a, b, c: f"{a.capitalize()} or {b}. Therefore {a}.",
+         ("pa or pb",), "pa"),
+    ),
+    EN_ATOMIC: (
+        # Restatement.
+        ("entailed", lambda a, b, c: f"{a.capitalize()}. Therefore {a}.",
+         ("pa",), "pa"),
+        # Conjunction elimination (top-level "and" premise splits).
+        ("entailed", lambda a, b, c: f"{a.capitalize()} and {b}. Therefore {a}.",
+         ("pa", "pb"), "pa"),
+        # Disjunction introduction.
+        ("entailed", lambda a, b, c: f"{a.capitalize()}. Therefore {a} or {b}.",
+         ("pa",), "pa or pb"),
+        # Conjunction introduction (an "and" CONCLUSION).
+        ("entailed", lambda a, b, c: f"{a.capitalize()}. {b.capitalize()}. Therefore {a} and {b}.",
+         ("pa", "pb"), "pa and pb"),
+        # Direct self-contradiction.
+        ("refuted", lambda a, b, c: f"{a.capitalize()}. Therefore {_en_neg(a)}.",
+         ("pa",), "not pa"),
+        # Unrelated conclusion.
+        ("unknown", lambda a, b, c: f"{a.capitalize()}. Therefore {b}.",
+         ("pa",), "pb"),
+    ),
+}
+
+#: Ledger band order: the five v1 bands, then the four v2-EN bands.
+_ALL_BANDS: tuple[str, ...] = (
+    CONDITIONAL_SINGLE, CONDITIONAL_CHAIN, DISJUNCTIVE, ATOMIC, CATEGORICAL,
+    EN_CONDITIONAL_SINGLE, EN_CONDITIONAL_CHAIN, EN_DISJUNCTIVE, EN_ATOMIC,
+)
+
+
 def generate_problems(band: str, n: int) -> list[Problem]:
     """``n`` synthetic problems for ``band``, cycling its gold templates.
 
-    Deterministic: problem ``i`` uses template ``i % len(templates)`` and atoms
-    ``_atoms(i, 3)``. Each ``payload`` carries the raw ``text`` and the
-    by-construction ``gold`` the tether scores against.
+    Deterministic: problem ``i`` uses template ``i % len(templates)`` and
+    deterministic atom/clause selection. Each ``payload`` carries the raw
+    ``text`` and the by-construction ``gold`` the tether scores against;
+    English-band payloads additionally carry the template's ``intended``
+    logical form for the reader-independent oracle cross-check.
     """
-    templates = _TEMPLATES[band]
     problems: list[Problem] = []
+    if band in _EN_TEMPLATES:
+        templates = _EN_TEMPLATES[band]
+        for i in range(n):
+            gold, builder, intended_premises, intended_query = templates[i % len(templates)]
+            a, b, c = _en_clauses(i, 3)
+            problems.append(
+                Problem(
+                    problem_id=f"{band}-{i:04d}",
+                    class_name=band,
+                    payload={
+                        "text": builder(a, b, c),
+                        "gold": gold,
+                        "intended": {
+                            "premises": list(intended_premises),
+                            "query": intended_query,
+                        },
+                    },
+                )
+            )
+        return problems
+    templates = _TEMPLATES[band]
     for i in range(n):
         gold, builder = templates[i % len(templates)]
         a, b, c = _atoms(i, 3)
@@ -138,7 +294,7 @@ def generate_problems(band: str, n: int) -> list[Problem]:
 def all_gold_problems() -> list[Problem]:
     """The full deterministic corpus over every shape-band, in band order."""
     problems: list[Problem] = []
-    for band in (CONDITIONAL_SINGLE, CONDITIONAL_CHAIN, DISJUNCTIVE, ATOMIC, CATEGORICAL):
+    for band in _ALL_BANDS:
         problems.extend(generate_problems(band, CASES_PER_BAND))
     return problems
 
@@ -192,6 +348,11 @@ class DeductionSolver:
         text = problem.payload["text"]
         comp = comprehend(text)
         if not isinstance(comp, Comprehension):
+            # Band v2-EN fallback — mirrors the composer: the shared reader
+            # refused, but the English-clause argument reader may read it.
+            english = self._attempt_english(problem)
+            if english is not None:
+                return english
             return _DeductionAttempt(
                 committed=False, answer=None, reason=f"reader:{getattr(comp, 'reason', '')}",
                 case_id=problem.problem_id, shape=problem.class_name,
@@ -222,9 +383,27 @@ class DeductionSolver:
                 answer=_CATEGORICAL_TO_CLASS[outcome], reason="",
                 case_id=problem.problem_id, shape=CATEGORICAL,
             )
+        english = self._attempt_english(problem)
+        if english is not None:
+            return english
         return _DeductionAttempt(
             committed=False, answer=None, reason="unprojectable",
             case_id=problem.problem_id, shape=problem.class_name,
+        )
+
+    def _attempt_english(self, problem: Problem) -> _DeductionAttempt | None:
+        """Band v2-EN: the English-clause argument path, or ``None`` when the
+        English reader refuses (the caller then records the honest decline)."""
+        arg = read_english_argument(problem.payload["text"])
+        if not isinstance(arg, EnglishArgument):
+            return None
+        outcome = evaluate_entailment_with_trace(
+            arg.premise_formulas, arg.query_formula
+        ).outcome
+        return _DeductionAttempt(
+            committed=outcome is not Entailment.REFUSED,
+            answer=_OUTCOME_TO_CLASS[outcome], reason="",
+            case_id=problem.problem_id, shape=arg.band,
         )
 
 
@@ -260,9 +439,21 @@ def assert_corpus_sound() -> None:
     from evals.syllogism.oracle import oracle_answer
 
     for problem in all_gold_problems():
+        gold = problem.payload["gold"]
+        # Band v2-EN: the payload carries the template's INTENDED logical form —
+        # the oracle checks it directly, with no reader in the loop at all
+        # (stronger independence than the v1 path below, which needs the reader
+        # to project before the oracle can pronounce).
+        intended = problem.payload.get("intended")
+        if intended is not None:
+            oracle = oracle_entailment(tuple(intended["premises"]), intended["query"])
+            assert oracle == gold, (
+                f"{problem.problem_id}: oracle={oracle} gold={gold} "
+                f"intended={intended!r} text={problem.payload['text']!r}"
+            )
+            continue
         comp = comprehend(problem.payload["text"])
         assert isinstance(comp, Comprehension), problem.payload["text"]
-        gold = problem.payload["gold"]
         projected = to_deductive_logic(comp)
         if projected is not None:
             premises, query = projected

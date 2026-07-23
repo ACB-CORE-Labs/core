@@ -77,11 +77,52 @@ def test_flag_off_is_byte_identical_across_bands() -> None:
         assert "Pack-resident tokens" in resp.surface
 
 
-def test_out_of_regime_argument_refuses_honestly() -> None:
-    """A 'therefore' argument the reader can't parse into either band gets an
-    honest committed refusal surface, never a fluent-but-ungrounded answer or a
-    silent fall-through (INV-34 fail-closed)."""
+def test_natural_english_argument_is_decided_end_to_end() -> None:
+    """The Band v1 boundary case is now the Band v2-EN (ADR-0257) flagship:
+    a natural-English argument decided through the real REPL spine, with the
+    verdict rendered over the user's own clauses."""
     rt = _runtime(True)
     resp = rt.chat("If it rains then the ground is wet. It rains. Therefore the ground is wet.")
+    assert resp.grounding_source == "deduction"
+    assert "Your premises entail: the ground is wet" in resp.surface
+
+    tollens = rt.chat(
+        "If the seal is broken then the tank is empty. If the tank is empty then "
+        "the pump is dry. The pump is not dry. Therefore the seal is not broken."
+    )
+    assert tollens.grounding_source == "deduction"
+    assert "Your premises entail: the seal is not broken" in tollens.surface
+
+
+def test_quoted_clause_surface_is_exempt_from_realizer_guard() -> None:
+    """Regression (ADR-0257): the C1 slot-type guard must not reject a
+    deduction surface for quoting the user's own clause. The pack lists
+    ``open`` as VERB (its composed sense), which made R3 fire on the honest
+    quoted copular "the door is not open" and silently replace a CORRECT
+    entailment with the disclosure fallback. Deduction surfaces are exempt
+    (quoted template, not slot composition) — pinned cold AND warm, since the
+    guard runs on both dispatch paths."""
+    text = (
+        "Either the door is open or the window is open. The door isn't open. "
+        "Therefore the window is open."
+    )
+    cold = _runtime(True)
+    resp = cold.chat(text)
+    assert resp.grounding_source == "deduction"
+    assert "Your premises entail: the window is open" in resp.surface
+
+    warm = _runtime(True)
+    warm.chat("If p then q. p. Therefore q.")  # advance past the cold turn
+    resp_warm = warm.chat(text)
+    assert resp_warm.grounding_source == "deduction"
+    assert "Your premises entail: the window is open" in resp_warm.surface
+
+
+def test_out_of_regime_argument_refuses_honestly() -> None:
+    """A 'therefore' argument NO band can read (membership shape — reserved for
+    a future member_chain band) gets an honest committed refusal surface, never
+    a fluent-but-ungrounded answer or a silent fall-through (INV-34 fail-closed)."""
+    rt = _runtime(True)
+    resp = rt.chat("Socrates is a man. Therefore Socrates is mortal.")
     assert resp.grounding_source == "deduction"
     assert "can't parse" in resp.surface  # honest reader-refusal disclosure

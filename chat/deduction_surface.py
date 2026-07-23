@@ -17,6 +17,11 @@ Bands (docs/research/deduction-serve-arc-phase0-baseline-2026-07-23.md):
   be imported here: it is the sealed independence oracle the comprehension lane
   scores against, not a serving decider — importing it would collapse INV-25
   (independent gold).
+- Band v2-EN (ADR-0257) — natural-English propositional arguments over OPAQUE
+  clause-atoms ("If it rains then the ground is wet. It rains. Therefore the
+  ground is wet."), read by ``generate.proof_chain.english`` and decided by the
+  same engine. Tried strictly AFTER v1/v1b (a fallback tier), so every argument
+  those bands serve is served byte-identically; this band only widens coverage.
 
 Fail-closed (INV-34): once ``looks_like_deductive_argument`` fires, every path
 below returns a committed, honest surface — reader refusal, out-of-band shape,
@@ -34,8 +39,13 @@ from core.reliability_gate import LicenseDecision
 from generate.meaning_graph.projectors import to_deductive_logic, to_syllogism
 from generate.meaning_graph.reader import Comprehension, comprehend
 from generate.proof_chain.categorical import CategoricalError, decide_syllogism
+from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import evaluate_entailment_with_trace
-from generate.proof_chain.render import render_entailment, render_syllogism
+from generate.proof_chain.render import (
+    render_entailment,
+    render_entailment_english,
+    render_syllogism,
+)
 from generate.proof_chain.shape import CATEGORICAL, classify_deduction_shape
 
 #: An argument's conclusion clause starts a sentence with "therefore" — the
@@ -105,6 +115,13 @@ def deduction_grounded_surface(
         return None
     comp = comprehend(text)
     if not isinstance(comp, Comprehension):
+        # Band v2-EN fallback (ADR-0257): the shared reader could not read the
+        # argument (e.g. multi-word English clauses), but the English-clause
+        # argument reader may — a strict WIDENING: every argument the shared
+        # reader serves is still served by the branches below, byte-identical.
+        english = _english_band_surface(text, license_lookup)
+        if english is not None:
+            return english
         return _READER_REFUSAL_SURFACE.format(reason=comp.reason)
     # Band v1 — propositional argument.
     projected = to_deductive_logic(comp)
@@ -125,7 +142,24 @@ def deduction_grounded_surface(
             return _OUT_OF_BAND_SURFACE
         surface = render_syllogism(trace, structure, s_query)
         return _license_gate(surface, CATEGORICAL, license_lookup)
+    # Band v2-EN fallback — comprehended, but projectable by neither v1 shape.
+    english = _english_band_surface(text, license_lookup)
+    if english is not None:
+        return english
     return _OUT_OF_BAND_SURFACE
+
+
+def _english_band_surface(text: str, license_lookup: _LicenseLookup) -> str | None:
+    """Band v2-EN (ADR-0257): read *text* as an English-clause argument over
+    opaque atoms and decide it with the same verified ROBDD engine; ``None``
+    when the English reader refuses (the caller keeps its pre-existing honest
+    surface, so this band only ever widens what is decided, never narrows)."""
+    arg = read_english_argument(text)
+    if not isinstance(arg, EnglishArgument):
+        return None
+    trace = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula)
+    surface = render_entailment_english(trace, arg.premise_texts, arg.query_text)
+    return _license_gate(surface, arg.band, license_lookup)
 
 
 def _license_gate(surface: str, band: str, license_lookup: _LicenseLookup) -> str:

@@ -1,8 +1,8 @@
 {
   "aggregate": {
-    "correct": 28,
+    "correct": 54,
     "declined": 0,
-    "n": 28,
+    "n": 54,
     "wrong": 0
   },
   "all_correct": true,
@@ -13,16 +13,16 @@
     "v1": {
       "all_cases_correct": true,
       "by_gold": {
-        "declined": 6,
-        "entailed": 8,
+        "declined": 4,
+        "entailed": 10,
         "invalid": 1,
         "refuted": 5,
         "unknown": 5,
         "valid": 3
       },
       "correct_by_gold": {
-        "declined": 6,
-        "entailed": 8,
+        "declined": 4,
+        "entailed": 10,
         "invalid": 1,
         "refuted": 5,
         "unknown": 5,
@@ -34,6 +34,27 @@
         "wrong": 0
       },
       "n": 28
+    },
+    "v2_en": {
+      "all_cases_correct": true,
+      "by_gold": {
+        "declined": 6,
+        "entailed": 13,
+        "refuted": 3,
+        "unknown": 4
+      },
+      "correct_by_gold": {
+        "declined": 6,
+        "entailed": 13,
+        "refuted": 3,
+        "unknown": 4
+      },
+      "counts": {
+        "correct": 26,
+        "declined": 0,
+        "wrong": 0
+      },
+      "n": 26
     }
   },
   "wrong_is_zero": true
