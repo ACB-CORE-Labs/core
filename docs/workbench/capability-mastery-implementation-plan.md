@@ -30,7 +30,7 @@ Capability sprints 9–12 landed on main:
 | #824 | 11 | A2q calendar_grounded_piecewise_daily_hours_total + ClusterContract | 24/26/0 |
 | #825 | 12 | A2r nested_fraction_remainder_total, A2s loose_crayon_box_capacity | **26/24/0** |
 
-Lookback analyses through Sprint 12 are committed under `docs/analysis/gsm8k-capability-paradigm-sprint*-lookback-2026-06-17.md`.
+Lookback analyses through Sprint 12 are committed under `docs/paradigm-archive/gsm8k-capability-paradigm-sprint*-lookback-2026-06-17.md`.
 
 ## 3. Current capability baseline
 
@@ -82,8 +82,8 @@ Sprint 12 extended the contract-first discipline with two singleton contracts:
 
 See:
 
-- `docs/analysis/gsm8k-capability-paradigm-sprint11-lookback-2026-06-17.md`
-- `docs/analysis/gsm8k-capability-paradigm-sprint12-lookback-2026-06-17.md`
+- `docs/paradigm-archive/gsm8k-capability-paradigm-sprint11-lookback-2026-06-17.md`
+- `docs/paradigm-archive/gsm8k-capability-paradigm-sprint12-lookback-2026-06-17.md`
 
 ## 7. What is UI-live now
 
@@ -162,3 +162,5 @@ From repo root:
 ```bash
 uv run python -m core.cli test --suite smoke -q
 ```
+
+> Paths to the six retired paradigm docs in this file were redirected to `docs/paradigm-archive/` (ADR-0252 §9) under the 2026-07-22 weekly-audit **T9 ruling**; the surrounding text is otherwise unchanged historical record.

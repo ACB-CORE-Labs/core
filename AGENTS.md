@@ -119,6 +119,22 @@ This boundary is a set of failing-when-violated invariants, not a convention:
 - **INV-29** — only `vault/store.py` may transition an `epistemic_status`.
 - **INV-30** — the open-world `determine()` gear constructs only `Determined(answer=True)` or refuses; it can never assert `answer=False`. Closed-world entailed-negation must use a distinct closed-world type and entry point.
 
+### Convergence fail-closed invariants (2026-07)
+Registered from the Master Convergence stack (PR #95–#97; ADR-0244 §3, ADR-0253)
+under the 2026-07-22 weekly-audit T1 ruling. Full contracts:
+`docs/specs/runtime_contracts.md`.
+- **INV-32** — identity scoring is wave-only: `IdentityCheck.check` requires an
+  explicit Cl(4,1) `wave_field`; absence raises typed `MissingWaveStateError`,
+  malformed fields raise `ValueError`; no scalar-L2 fallback exists. Live
+  refusal stays flag-gated (`identity_wave_gate`, default off, not authorized).
+- **INV-33** — dual-pack serve boundary: serve entrypoints never import draft
+  language trees (`packs/he`, `packs/grc`, …) as Python packages; runtime packs
+  load only from `packs/data/<pack_id>/` via `packs.compiler.load_pack`.
+- **INV-34** — cognition-pipeline failures are typed, never silent
+  (`core/cognition/fail_closed.py`): every refusal carries an explicit failing
+  condition + reason; a `None` `ContractAssessment` is itself a typed
+  violation; unresolvable referents refuse rather than fill.
+
 ### Kernel substrate rule
 New derivation work should consume `KernelFacts` / `ProblemFrame` where the substrate can represent the meaning.
 Do not introduce new local prose parsers inside derivation organs unless explicitly marked as legacy exception with migration rationale.

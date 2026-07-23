@@ -23,5 +23,6 @@ convergence 2026-07-20):
 > Multi-modality ingress uses `modality_transition_sandwich`
 > (R·ψ·rev(R) + GoldTether).
 
-If that sentence should also live in the canonical ADR-0243 annotation,
-fold it in under a separate ruling (see the 2026-07-22 weekly audit TODO).
+That sentence was folded into the canonical ADR-0243 annotation under the
+2026-07-22 weekly-audit **T7 ruling** (same-day); nothing unique remains in
+this tombstone.
