@@ -144,17 +144,29 @@ fail-closed determinism). Execution status:
 
 ### New findings from the execution pass
 
-- [ ] **T10 (fixed in `fix/test-engine-state-isolation`, needs merge): the test
+- [x] **T10 (FIXED + MERGED — PR #100 @ `80100c18`): the test
   suite wrote the live life-store.** Module-scoped fixtures (e.g.
   `tests/test_achat.py`) construct `ChatRuntime()` BEFORE the function-scoped
   isolation fixture exists (pytest sets up wider scopes first), binding the
   real `engine_state/`: smoke runs loaded it and committed generations
   (turn_count 14989→14990 observed). Fix: session-scoped baseline fixture +
   regression pin; `docs/issues/default-engine-state-test-hygiene.md` addendum.
-- [ ] **T11 (ruling needed): live-store provenance review.** Historical
-  `turn_count` (14990) includes an unknown number of pre-fix test turns and
-  the 465 persisted discovery candidates predate the isolation fix. Decide:
-  accept-as-lived vs audit/relabel candidates.
+- [x] **T11 (RULED + EXECUTED 2026-07-22): live-store provenance reset.**
+  DECISIVE FINDING: candidates carry NO timestamp / run-id / test-prod field
+  (only a `source_turn_trace` hash + `review_state`), and gen-21701 == gen-21702
+  were byte-identical — "the 465" was the ENTIRE live candidate corpus, not a
+  separable tainted subset, so a surgical per-record quarantine (the original
+  `TEST_TAINTED` spec) was impossible. The candidates were inert (proposal /
+  contemplation only, never the serving surface). **Ruling (Shay): Option (a) —
+  clear, don't asterisk.** Executed via
+  `scripts/ops/reset_candidate_corpus_t11_20260722.py`: an ADR-0219 atomic
+  generation reset (begin → carry recognizers/session/identity+turn_count →
+  empty candidate ledger → commit `keep=1`). Result: candidates 465 → 0,
+  `turn_count` 14990 preserved, gen-21701/21702 physically GC'd, `current` →
+  gen-21703 @ `9a428d84`. Idle-tick discovery repopulates organically.
+  **`turn_count` itself left as-is** (honest lived count; the pre-fix test turns
+  are not separably identifiable, and resetting the counter would fabricate a
+  number — the candidate corpus was the provenance hazard, not the scalar).
 - [ ] **T12 (pattern watch): experiment scaffolding scope over-reach.** The T6
   glob hazard suggests a cheap architecture pin: `rnd`/scripts corpus readers
   should be lint-checked against sealed/practice eval paths.
@@ -183,8 +195,8 @@ fail-closed determinism). Execution status:
   surface and `trace_hash` in the durable stream. Deferred (default sink is
   `None`, so no live consumer is affected today); own PR when a sink consumer
   lands.
-- [x] **T13 (main regression, serving-provenance — telemetry half FIXED):
-  fast lane is red on main** (was 0-red 2026-07-16):
+- [x] **T13 (main regression, serving-provenance — telemetry FIXED + MERGED #101):
+  fast lane was red on main** (was 0-red 2026-07-16):
   `tests/test_warmed_session_lane.py::TestPipelineOverrideGateInvariants::test_telemetry_consistency_rate_is_one`
   fails at 0.9444 (17/18). Verified pre-existing on unmodified main (fails
   plain AND state-isolated; unrelated to the T10 isolation fix). Root cause:
@@ -206,20 +218,25 @@ fail-closed determinism). Execution status:
   not cover this lane, and GitHub Actions are dead signals — nothing gates
   fast-lane red on main right now.
 
-  **Resolution (2026-07-22, PR `fix/telemetry-serve-boundary`):**
+  **Resolution (2026-07-22, PR #101 `fix/telemetry-serve-boundary` @ `9a428d84`, MERGED):**
   - **(1) FIXED** — `ChatRuntime.finalize_turn_surface` back-stamps the
     pipeline's resolved surface onto `turn_log[-1]`, a sibling to
     `finalize_turn_trace_hash`, called from `pipeline.py` immediately after
     the trace-hash back-stamp. Lane green: `telemetry_consistency_rate`
     0.9444 → 1.0 (10/10 warmed_session tests pass). `trace_hash` byte-identity
     preserved — it folds the pre-decoration surface, not the served surface.
-  - **(2) OPEN — needs Shay's ruling.** Orthogonal to the red (telemetry now
-    matches whatever is served, refusal or not). Recommend **AGAINST** a
-    query-type "definitional/epistemic" classifier bypass: that fails a
-    geometric coherence gate OPEN on a lexical cue — the fail-open / cue-table
-    pattern ADR-0252 retired and INV-34 / fail-closed forbid. Principled
-    alternative: route open-geometry-but-**pack-grounded** surfaces to the
-    existing hedge-injection arm (`authoritative=False`, honestly hedged),
-    discriminated by grounding *provenance* (structural), not question type.
-    Own focused PR + real-data (not synthetic) validation.
+  - **(2) RULED (Shay, 2026-07-22): hedge-arm routing, own PR.** The query-type
+    "definitional/epistemic" classifier bypass is REJECTED — it fails a
+    geometric coherence gate OPEN on a lexical cue (fail-open / cue-table;
+    ADR-0252 + INV-34). Ruling: fix the READING, not the question — route
+    open-geometry-but-**pack-grounded** surfaces to the existing hedge-injection
+    arm (`authoritative=False`, honestly hedged), discriminated by grounding
+    *provenance* (structural), never by question type. Its own dedicated PR +
+    GSM8K-style (real-data) validation. Scoped next; deliberately NOT in the
+    telemetry PR or the infra PR.
+  - **(3) RULED (Shay, 2026-07-22): local pre-push gate — IMPLEMENTED.**
+    `scripts/hooks/pre-push` + `scripts/hooks/install.sh` (`core.hooksPath`) run
+    the smoke suite **plus** the warmed_session lane pin on every push — the
+    targeted gate (NOT the ~9-min full fast-lane, which stays async CI).
+    AGENTS.md §Local-First CI Validation Protocol updated. (This PR.)
   - Durable-sink residual tracked as **R7** above.

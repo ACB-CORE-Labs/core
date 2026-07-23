@@ -263,6 +263,7 @@ To optimize server resources and bypass external CI billing dependencies, all ag
   uv run core test --suite smoke -q
   ```
   Ensure all smoke tests pass (parity with the smoke gate is pinned by `test_cli_smoke_suite_covers_ci_smoke_gate`). Pushing broken code is a critical protocol violation.
+- **Automated pre-push hook (2026-07-22):** `sh scripts/hooks/install.sh` installs a `core.hooksPath` pre-push gate that runs the `smoke` suite **plus** the `warmed_session` consistency lane pin (`tests/test_warmed_session_lane.py`). The lane pin catches the T13 telemetry-consistency regression class that `smoke` does **not** cover (the #96 fail-closed resolve + #97 morph override escaped the smoke files and surfaced only in the warmed_session lane). The full ~12k fast-lane stays **async CI** by design; the hook is deliberately targeted so it blocks the regression class without gridlocking the push cycle. Emergency bypass (discouraged): `git push --no-verify`.
 - **Pre-Merge Gate:** Before proposing a merge or requesting a review on a PR, you **MUST** run the larger validation suite relevant to your changes (e.g. `uv run core test --suite cognition` or `uv run core test --suite algebra`).
 - **No Docker CI for merge:** Do not run, wait on, or re-provision Docker-container CI to green a merge. Fix and prove in-worktree; merge on local evidence.
 - **PR Documentation:** When creating a PR on Forgejo (via the Forgejo MCP tools), document the local test execution in the PR description, matching this format:
