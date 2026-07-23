@@ -1195,6 +1195,53 @@ class ChatRuntime:
                 cand, source_turn_trace=trace_hash
             )
 
+    def finalize_turn_surface(
+        self,
+        surface: str,
+        articulation_surface: str | None = None,
+    ) -> None:
+        """Back-stamp the pipeline's final *served* surface onto the turn.
+
+        Weekly-audit T13 (2026-07-22): ``ChatRuntime.chat`` seals a
+        ``TurnEvent`` with the runtime-owned surface, but
+        ``CognitiveTurnPipeline`` applies the Shadow-Coherence /
+        logos-morph surface authority AFTER ``chat`` returns.  The
+        telemetry record therefore captured a surface the user never
+        saw — ``TurnEvent.surface != pipeline.run().surface`` — breaking
+        the ``warmed_session_consistency`` telemetry-consistency invariant
+        and audit/replay trust (Absolute Provenance).
+
+        The pipeline owns the final surface decision, so — exactly like
+        ``finalize_turn_trace_hash`` back-stamps the pipeline-owned
+        ``trace_hash`` — it back-stamps the resolved surface here after
+        ``resolve_surface`` + logos-morph.  Mirrors that method's
+        contract: operates on the most recent ``TurnEvent`` (main or
+        refusal-stub path), no-ops when unchanged or when no turn exists.
+
+        NOTE: the opt-in external telemetry sink (``attach_telemetry_sink``)
+        still receives the pre-override event, the same provisional-then-
+        back-stamped limitation ``finalize_turn_trace_hash`` carries today
+        (default sink is ``None`` → no-op).  Deferring the single sink
+        emission to the pipeline serve boundary — which would repair both
+        surface and ``trace_hash`` in the durable stream — is tracked as a
+        follow-up (audit ledger R7), not bolted onto this red-fix.
+        """
+        if not self.turn_log:
+            return
+        from dataclasses import replace
+
+        last_event = self.turn_log[-1]
+        updates: dict[str, str] = {}
+        if surface != last_event.surface:
+            updates["surface"] = surface
+        if (
+            articulation_surface is not None
+            and articulation_surface != last_event.articulation_surface
+        ):
+            updates["articulation_surface"] = articulation_surface
+        if updates:
+            self.turn_log[-1] = replace(last_event, **updates)
+
     def first_admitted_recognizer(self):
         if not self.config.recognition_grounded_graph:
             return None
