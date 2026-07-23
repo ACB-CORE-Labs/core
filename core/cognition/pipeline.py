@@ -467,6 +467,10 @@ class CognitiveTurnPipeline:
         # === SHADOW COHERENCE GATE WIRING ===
         # Dual-competing: substrate supremacy requires fully grounded graph
         # AND closed geometric contract (versor_condition + GoldTether residual).
+        # Grounding provenance (pack/teaching/vault/oov/…) is read once here and
+        # reused for the OOV telemetry below; the gate consumes it to route an
+        # open-geometry-but-pack-grounded surface to the hedge arm (T13 dec. 2).
+        grounding_src = getattr(response, "grounding_source", "") or ""
         resolved = resolve_surface(
             canonical_surface=canonical,
             pre_decoration_surface=pre_decoration,
@@ -479,6 +483,7 @@ class CognitiveTurnPipeline:
             compose_surface=compose_surface,
             proposition_graph=effective_graph,
             contract_assessment=contract_assessment,
+            grounding_provenance=grounding_src,
         )
         surface = resolved.surface
         articulation_surface = resolved.articulation_surface
@@ -555,7 +560,7 @@ class CognitiveTurnPipeline:
         # Populated observationally; never affects surface, hash (yet), or
         # any durable mutation. Uses only what the substrate already produced.
         oov_geometric_context = None
-        grounding_src = getattr(response, "grounding_source", "") or ""
+        # grounding_src is computed above at the gate-wiring seam and reused here.
         has_pending = bool(effective_graph and any(
             (n.obj or "") in ("", "<pending>") or "..." in (n.obj or "")
             for n in effective_graph.nodes
