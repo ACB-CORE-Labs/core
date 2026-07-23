@@ -1123,6 +1123,46 @@ def cmd_teaching_coverage(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_teaching_discovery_yield(args: argparse.Namespace) -> int:
+    """2026-07-23 directive — candidates proposed per served turn, post-reset.
+
+    Pure read of the live ``engine_state`` checkpoint (or
+    ``CORE_ENGINE_STATE_DIR`` if set). Fails closed with a clear message
+    (exit 1) when no ``turn_count_baseline`` has ever been stamped —
+    see ``scripts/ops/stamp_discovery_yield_baseline_20260723.py``.
+    """
+    from engine_state import EngineStateStore
+    from teaching.discovery_yield import compute_discovery_yield
+
+    store = EngineStateStore()
+    result = compute_discovery_yield(store)
+    if result is None:
+        print(
+            "No discovery-yield baseline stamped yet — the manifest has no "
+            "turn_count_baseline. Run "
+            "scripts/ops/stamp_discovery_yield_baseline_20260723.py once "
+            "against the target store.",
+            file=sys.stderr,
+        )
+        return 1
+
+    if args.json:
+        print(json.dumps(result.as_dict(), indent=2, sort_keys=True))
+        return 0
+
+    print(f"turn_count               : {result.turn_count}")
+    print(f"turn_count_baseline      : {result.turn_count_baseline}")
+    print(f"served_turns_since_reset : {result.served_turns_since_reset}")
+    print(f"candidates_since_reset   : {result.candidates_since_reset}")
+    rate = (
+        f"{result.yield_rate:.4f}"
+        if result.yield_rate is not None
+        else "n/a (no served turns since reset)"
+    )
+    print(f"yield_rate               : {rate}")
+    return 0
+
+
 def cmd_teaching_refusal_taxonomy(args: argparse.Namespace) -> int:
     """ADR-0163 Phase A — categorise refused statements by shape.
 

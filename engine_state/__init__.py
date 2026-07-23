@@ -332,6 +332,7 @@ class EngineStateStore:
         engine_identity: str = "",
         parent_engine_identity: str = "",
         identity_scheme: int = 2,
+        turn_count_baseline: int | None = None,
     ) -> None:
         """Write the checkpoint manifest.
 
@@ -353,6 +354,15 @@ class EngineStateStore:
         ``schema_version`` (``core.engine_identity.ENGINE_IDENTITY_SCHEME`` is
         the canonical value; the literal default mirrors it to avoid an import
         cycle).
+
+        ``turn_count_baseline`` (discovery-yield telemetry, 2026-07-23) stamps
+        the ``turn_count`` value at the moment the discovery-candidate ledger
+        was last reset to empty. ``teaching.discovery_yield`` reads the delta
+        between the live ``turn_count`` and this baseline as the denominator
+        for candidates-proposed-per-served-turn. Additive-optional — does NOT
+        bump ``schema_version``. Absent on manifests written before this
+        directive or by callers that never reset the ledger; absence is read
+        as "no clean epoch marked yet", never coerced to 0.
         """
         manifest: dict = {
             "schema_version": _SCHEMA_VERSION,
@@ -364,6 +374,8 @@ class EngineStateStore:
             manifest["identity_scheme"] = identity_scheme
         if parent_engine_identity:
             manifest["parent_engine_identity"] = parent_engine_identity
+        if turn_count_baseline is not None:
+            manifest["turn_count_baseline"] = turn_count_baseline
         _atomic_write_text(
             self.path / "manifest.json",
             json.dumps(manifest, sort_keys=True, indent=2),
