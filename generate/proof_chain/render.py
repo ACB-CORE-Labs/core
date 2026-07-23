@@ -17,6 +17,14 @@ from generate.proof_chain.entail import (
     EntailmentTrace,
 )
 
+#: A/E/I/O categorical form → an English sentence template over (subject, predicate).
+_CATEGORICAL_PHRASE = {
+    "A": "all {s} are {p}",
+    "E": "no {s} are {p}",
+    "I": "some {s} are {p}",
+    "O": "some {s} are not {p}",
+}
+
 
 def render_entailment(
     trace: EntailmentTrace, premises: tuple[str, ...], query: str
@@ -51,4 +59,37 @@ def render_entailment(
     return f"Given: {given}. I can't evaluate {query} from that as stated."
 
 
-__all__ = ["render_entailment"]
+def _categorical_clause(prop: dict) -> str:
+    """One categorical proposition dict → its English clause."""
+    template = _CATEGORICAL_PHRASE.get(prop.get("form", ""), "{s} ~ {p}")
+    return template.format(s=prop.get("subject", "?"), p=prop.get("predicate", "?"))
+
+
+def render_syllogism(trace: EntailmentTrace, structure: dict, query: dict) -> str:
+    """The user-facing surface for a categorical (syllogism) verdict.
+
+    Deterministic templates over the argument's own clauses — no synthesis. The
+    ``EntailmentTrace`` is the propositional-lowering decision (``ENTAILED`` ⇒
+    valid; ``UNKNOWN``/``REFUTED`` ⇒ invalid; ``REFUSED`` ⇒ inconsistent).
+    """
+    premises = "; ".join(
+        _categorical_clause(p) for p in structure.get("premises", [])
+    )
+    conclusion = _categorical_clause(query.get("conclusion", {}))
+    if trace.outcome is Entailment.ENTAILED:
+        return f"Given: {premises}. That's valid — {conclusion} follows."
+    if trace.outcome is Entailment.REFUSED and trace.reason == INCONSISTENT_PREMISES:
+        return (
+            f"Given: {premises}. Those premises are inconsistent — they can't all "
+            f"be true, so I won't assert anything from them."
+        )
+    if trace.outcome is Entailment.REFUSED:
+        return f"Given: {premises}. I can't evaluate {conclusion} from that as stated."
+    # UNKNOWN or REFUTED — the conclusion is not forced by the premises.
+    return (
+        f"Given: {premises}. That doesn't follow — {conclusion} isn't guaranteed "
+        f"by those premises."
+    )
+
+
+__all__ = ["render_entailment", "render_syllogism"]

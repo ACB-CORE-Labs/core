@@ -1,4 +1,4 @@
-"""chat/deduction_surface.py — Phase 1 DEDUCTION composer (deduction-serve arc).
+"""chat/deduction_surface.py — DEDUCTION composer (deduction-serve arc).
 
 Wires the verified propositional-entailment engine (``generate.proof_chain``,
 716/716 wrong=0 on ``evals/deductive_logic``) into serving. When a prompt
@@ -8,18 +8,19 @@ strings, and decide with the sound+complete ROBDD entailment engine.
 Deterministic templates only (``generate.proof_chain.render``) — no LLM, no
 synthesis, matching every other composer in this package.
 
-Band v1 scope (docs/research/deduction-serve-arc-phase0-baseline-2026-07-23.md):
-propositional arguments with single-token atoms only. A categorical/syllogism
-"Therefore" argument is recognized as argument-shaped but declined as
-out-of-band — a production categorical decider is Band v1b, deferred.
-``evals.syllogism.oracle`` must never be imported here: it is the sealed
-independence oracle the comprehension lane scores against, not a serving
-decider — importing it would collapse INV-25 (independent gold).
+Bands (docs/research/deduction-serve-arc-phase0-baseline-2026-07-23.md):
+- Band v1  — propositional arguments with single-token atoms.
+- Band v1b (Phase 4) — categorical/syllogism arguments ("All M are P. All S are
+  M. Therefore all S are P."), projected by ``to_syllogism`` and decided by
+  ``generate.proof_chain.categorical`` (a propositional-lowering decider that
+  rides the same verified ROBDD engine). ``evals.syllogism.oracle`` must never
+  be imported here: it is the sealed independence oracle the comprehension lane
+  scores against, not a serving decider — importing it would collapse INV-25
+  (independent gold).
 
-Fail-closed (INV-34): once ``looks_like_deductive_argument`` fires, every
-path below returns a committed, honest surface — reader refusal, out-of-band
-shape, and all four ``EntailmentTrace`` outcomes (ENTAILED/REFUTED/UNKNOWN/
-REFUSED) — never a silent fall-through to a different composer.
+Fail-closed (INV-34): once ``looks_like_deductive_argument`` fires, every path
+below returns a committed, honest surface — reader refusal, out-of-band shape,
+and every decision outcome — never a silent fall-through to a different composer.
 """
 
 from __future__ import annotations
@@ -30,11 +31,12 @@ from typing import Callable
 
 from chat.deduction_serve_license import deduction_serve_license
 from core.reliability_gate import LicenseDecision
-from generate.meaning_graph.projectors import to_deductive_logic
+from generate.meaning_graph.projectors import to_deductive_logic, to_syllogism
 from generate.meaning_graph.reader import Comprehension, comprehend
+from generate.proof_chain.categorical import CategoricalError, decide_syllogism
 from generate.proof_chain.entail import evaluate_entailment_with_trace
-from generate.proof_chain.render import render_entailment
-from generate.proof_chain.shape import classify_deduction_shape
+from generate.proof_chain.render import render_entailment, render_syllogism
+from generate.proof_chain.shape import CATEGORICAL, classify_deduction_shape
 
 #: An argument's conclusion clause starts a sentence with "therefore" — the
 #: same shape ``generate.meaning_graph.reader`` recognizes per-clause
@@ -60,8 +62,8 @@ _READER_REFUSAL_SURFACE = (
     "decide it yet ({reason})."
 )
 _OUT_OF_BAND_SURFACE = (
-    "That reads as an argument, but right now I can only decide plain "
-    "propositional arguments (not categorical 'all/no/some' ones yet)."
+    "That reads as an argument, but its form is outside what I can decide yet "
+    "(I handle plain propositional and categorical 'all/no/some' arguments)."
 )
 
 #: Disclosed hedge prepended when a decided argument's shape-band has NOT earned
@@ -104,13 +106,33 @@ def deduction_grounded_surface(
     comp = comprehend(text)
     if not isinstance(comp, Comprehension):
         return _READER_REFUSAL_SURFACE.format(reason=comp.reason)
+    # Band v1 — propositional argument.
     projected = to_deductive_logic(comp)
-    if projected is None:
-        return _OUT_OF_BAND_SURFACE
-    premises, query = projected
-    trace = evaluate_entailment_with_trace(premises, query)
-    surface = render_entailment(trace, premises, query)
-    band = classify_deduction_shape(premises, query)
+    if projected is not None:
+        premises, query = projected
+        trace = evaluate_entailment_with_trace(premises, query)
+        surface = render_entailment(trace, premises, query)
+        return _license_gate(surface, classify_deduction_shape(premises, query), license_lookup)
+    # Band v1b — categorical / syllogism argument. Decided by the propositional-
+    # lowering categorical decider (rides the same verified ROBDD engine); a
+    # malformed categorical shape declines rather than guessing.
+    syllogism = to_syllogism(comp)
+    if syllogism is not None:
+        structure, s_query = syllogism
+        try:
+            trace = decide_syllogism(structure, s_query)
+        except CategoricalError:
+            return _OUT_OF_BAND_SURFACE
+        surface = render_syllogism(trace, structure, s_query)
+        return _license_gate(surface, CATEGORICAL, license_lookup)
+    return _OUT_OF_BAND_SURFACE
+
+
+def _license_gate(surface: str, band: str, license_lookup: _LicenseLookup) -> str:
+    """Serve *surface* authoritatively iff *band* holds a SERVE license; else
+    serve the same sound answer DISCLOSED (hedged). The one place the earned-
+    license posture is applied, shared by the propositional and categorical
+    bands (ADR-0256)."""
     decision = license_lookup(band)
     if decision is not None and decision.licensed:
         return surface  # earned SERVE — authoritative

@@ -30,11 +30,13 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from core.learning_arena.protocols import Problem
-from generate.meaning_graph.projectors import to_deductive_logic
+from generate.meaning_graph.projectors import to_deductive_logic, to_syllogism
 from generate.meaning_graph.reader import Comprehension, comprehend
+from generate.proof_chain.categorical import CategoricalError, decide_syllogism
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
 from generate.proof_chain.shape import (
     ATOMIC,
+    CATEGORICAL,
     CONDITIONAL_CHAIN,
     CONDITIONAL_SINGLE,
     DISJUNCTIVE,
@@ -88,6 +90,25 @@ _TEMPLATES: dict[str, tuple[tuple[str, Any], ...]] = {
         # (a bare atom either restates or contradicts); the band is 2/3 the size
         # of the others, still well above the volume floor.
     ),
+    # Categorical (syllogism). Terms are synthetic PLURAL class nouns (``x3s`` →
+    # the reader singularizes to ``x3``); ``a, b, c`` are the three distinct
+    # middle/subject/predicate classes. Gold is the unconditional validity (modern
+    # reading) of the standard form — cross-checked against the INDEPENDENT
+    # syllogism oracle in ``assert_corpus_sound``.
+    CATEGORICAL: (
+        # Barbara (AAA) — valid.
+        ("valid", lambda a, b, c: f"All {a}s are {b}s. All {c}s are {a}s. Therefore all {c}s are {b}s."),
+        # Celarent (EAE) — valid.
+        ("valid", lambda a, b, c: f"No {a}s are {b}s. All {c}s are {a}s. Therefore no {c}s are {b}s."),
+        # Darii (AII) — valid.
+        ("valid", lambda a, b, c: f"All {a}s are {b}s. Some {c}s are {a}s. Therefore some {c}s are {b}s."),
+        # Ferio (EIO) — valid.
+        ("valid", lambda a, b, c: f"No {a}s are {b}s. Some {c}s are {a}s. Therefore some {c}s are not {b}s."),
+        # Undistributed middle (AAA-2) — INVALID.
+        ("invalid", lambda a, b, c: f"All {b}s are {a}s. All {c}s are {a}s. Therefore all {c}s are {b}s."),
+        # Existential-import overreach — INVALID in the modern reading.
+        ("invalid", lambda a, b, c: f"All {a}s are {b}s. All {a}s are {c}s. Therefore some {c}s are {b}s."),
+    ),
 }
 
 
@@ -117,7 +138,7 @@ def generate_problems(band: str, n: int) -> list[Problem]:
 def all_gold_problems() -> list[Problem]:
     """The full deterministic corpus over every shape-band, in band order."""
     problems: list[Problem] = []
-    for band in (CONDITIONAL_SINGLE, CONDITIONAL_CHAIN, DISJUNCTIVE, ATOMIC):
+    for band in (CONDITIONAL_SINGLE, CONDITIONAL_CHAIN, DISJUNCTIVE, ATOMIC, CATEGORICAL):
         problems.extend(generate_problems(band, CASES_PER_BAND))
     return problems
 
@@ -143,15 +164,26 @@ _OUTCOME_TO_CLASS = {
     Entailment.REFUSED: "declined",
 }
 
+#: Categorical outcome mapping: a syllogism is VALID iff the conclusion is
+#: entailed; UNKNOWN/REFUTED ⇒ invalid; REFUSED ⇒ declined (inconsistent).
+_CATEGORICAL_TO_CLASS = {
+    Entailment.ENTAILED: "valid",
+    Entailment.REFUTED: "invalid",
+    Entailment.UNKNOWN: "invalid",
+    Entailment.REFUSED: "declined",
+}
+
 
 @dataclass(frozen=True, slots=True)
 class DeductionSolver:
     """The production serving pipeline as a ``DomainSolver``.
 
-    Runs exactly what ``chat/deduction_surface.py`` runs — ``comprehend`` →
-    ``to_deductive_logic`` → ``evaluate_entailment_with_trace`` — and commits
-    the decided outcome class. A reader refusal / non-projectable comprehension
-    is an uncommitted attempt (``refused``), never a guessed answer.
+    Runs exactly what ``chat/deduction_surface.py`` runs — the propositional
+    path (``to_deductive_logic`` → ``evaluate_entailment_with_trace``) then the
+    categorical path (``to_syllogism`` → ``decide_syllogism``) — and commits the
+    decided outcome class. A reader refusal / non-projectable comprehension /
+    engine REFUSED is an uncommitted attempt, never a guessed answer. Kept in
+    lock-step with the composer's dual path; the lane + license tests cover both.
     """
 
     domain_id: str = _DOMAIN_ID
@@ -164,21 +196,35 @@ class DeductionSolver:
                 committed=False, answer=None, reason=f"reader:{getattr(comp, 'reason', '')}",
                 case_id=problem.problem_id, shape=problem.class_name,
             )
+        # Band v1 — propositional.
         projected = to_deductive_logic(comp)
-        if projected is None:
+        if projected is not None:
+            premises, query = projected
+            outcome = evaluate_entailment_with_trace(premises, query).outcome
             return _DeductionAttempt(
-                committed=False, answer=None, reason="unprojectable",
-                case_id=problem.problem_id, shape=problem.class_name,
+                committed=outcome is not Entailment.REFUSED,
+                answer=_OUTCOME_TO_CLASS[outcome], reason="",
+                case_id=problem.problem_id, shape=classify_deduction_shape(premises, query),
             )
-        premises, query = projected
-        outcome = evaluate_entailment_with_trace(premises, query).outcome
-        answer = _OUTCOME_TO_CLASS[outcome]
-        # An engine REFUSED (inconsistent premises / out-of-regime) is an honest
-        # non-commitment, not a served verdict.
-        committed = outcome is not Entailment.REFUSED
+        # Band v1b — categorical / syllogism.
+        syllogism = to_syllogism(comp)
+        if syllogism is not None:
+            structure, s_query = syllogism
+            try:
+                outcome = decide_syllogism(structure, s_query).outcome
+            except CategoricalError:
+                return _DeductionAttempt(
+                    committed=False, answer=None, reason="categorical_malformed",
+                    case_id=problem.problem_id, shape=CATEGORICAL,
+                )
+            return _DeductionAttempt(
+                committed=outcome is not Entailment.REFUSED,
+                answer=_CATEGORICAL_TO_CLASS[outcome], reason="",
+                case_id=problem.problem_id, shape=CATEGORICAL,
+            )
         return _DeductionAttempt(
-            committed=committed, answer=answer, reason="",
-            case_id=problem.problem_id, shape=classify_deduction_shape(premises, query),
+            committed=False, answer=None, reason="unprojectable",
+            case_id=problem.problem_id, shape=problem.class_name,
         )
 
 
@@ -202,24 +248,37 @@ class ConstructionGoldTether:
 
 def assert_corpus_sound() -> None:
     """Belt-and-suspenders: every generated case's by-construction gold must
-    agree with the INDEPENDENT truth-table oracle over its projected form.
+    agree with an INDEPENDENT oracle over its projected form.
 
     Guards against a template authoring bug (a mis-stated gold) silently
     inflating the ledger. Raises ``AssertionError`` on any disagreement. Uses
-    the oracle (``evals.deductive_logic.oracle``), which shares no code with the
-    ROBDD serving engine (INV-25), as the construction-time check.
+    oracles that share no code with the ROBDD serving engine (INV-25): the
+    truth-table ``evals.deductive_logic.oracle`` for propositional bands, and
+    the finite-model ``evals.syllogism.oracle`` for the categorical band.
     """
     from evals.deductive_logic.oracle import oracle_entailment
+    from evals.syllogism.oracle import oracle_answer
 
     for problem in all_gold_problems():
         comp = comprehend(problem.payload["text"])
         assert isinstance(comp, Comprehension), problem.payload["text"]
+        gold = problem.payload["gold"]
         projected = to_deductive_logic(comp)
-        assert projected is not None, problem.payload["text"]
-        premises, query = projected
-        oracle = oracle_entailment(premises, query)
-        assert oracle == problem.payload["gold"], (
-            f"{problem.problem_id}: oracle={oracle} gold={problem.payload['gold']} "
+        if projected is not None:
+            premises, query = projected
+            oracle = oracle_entailment(premises, query)
+            assert oracle == gold, (
+                f"{problem.problem_id}: oracle={oracle} gold={gold} "
+                f"text={problem.payload['text']!r}"
+            )
+            continue
+        syllogism = to_syllogism(comp)
+        assert syllogism is not None, problem.payload["text"]
+        structure, s_query = syllogism
+        oracle_valid = oracle_answer(structure, s_query)["valid"]
+        oracle_class = "valid" if oracle_valid else "invalid"
+        assert oracle_class == gold, (
+            f"{problem.problem_id}: syllogism_oracle={oracle_class} gold={gold} "
             f"text={problem.payload['text']!r}"
         )
 

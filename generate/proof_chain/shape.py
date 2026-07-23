@@ -27,12 +27,20 @@ DISJUNCTIVE = "disjunctive"
 CONDITIONAL_CHAIN = "conditional_chain"
 CONDITIONAL_SINGLE = "conditional_single"
 ATOMIC = "atomic"
+#: Band v1b (Phase 4) — categorical/syllogism arguments. Distinct from the four
+#: propositional bands: a categorical argument is projected by ``to_syllogism``
+#: (not ``to_deductive_logic``) and decided by ``generate.proof_chain.categorical``
+#: (the propositional-lowering decider), so the serving composer assigns this band
+#: directly rather than by ``classify_deduction_shape`` (which reads propositional
+#: formula strings).
+CATEGORICAL = "categorical"
 
 SHAPE_BANDS: tuple[str, ...] = (
     DISJUNCTIVE,
     CONDITIONAL_CHAIN,
     CONDITIONAL_SINGLE,
     ATOMIC,
+    CATEGORICAL,
 )
 
 
@@ -62,6 +70,7 @@ def classify_deduction_shape(premises: tuple[str, ...], query: str) -> str:
 
 __all__ = [
     "ATOMIC",
+    "CATEGORICAL",
     "CONDITIONAL_CHAIN",
     "CONDITIONAL_SINGLE",
     "DISJUNCTIVE",

@@ -20,8 +20,9 @@
 {"id": "ds-v1-0020", "text": "If p then q. p. Not q. Therefore r.", "gold": "declined", "class": "inconsistent_premises"}
 {"id": "ds-v1-0021", "text": "p. Not p. Therefore p.", "gold": "declined", "class": "inconsistent_premises"}
 {"id": "ds-v1-0022", "text": "p or q. Not p. Not q. Therefore p.", "gold": "declined", "class": "inconsistent_premises"}
-{"id": "ds-v1-0023", "text": "All mammals are animals. All whales are mammals. Therefore all whales are animals.", "gold": "declined", "class": "out_of_band_categorical"}
-{"id": "ds-v1-0024", "text": "No reptiles are mammals. All snakes are reptiles. Therefore no snakes are mammals.", "gold": "declined", "class": "out_of_band_categorical"}
+{"id": "ds-v1-0023", "text": "All mammals are animals. All whales are mammals. Therefore all whales are animals.", "gold": "valid", "class": "categorical_barbara"}
+{"id": "ds-v1-0024", "text": "No reptiles are mammals. All snakes are reptiles. Therefore no snakes are mammals.", "gold": "valid", "class": "categorical_celarent"}
 {"id": "ds-v1-0025", "text": "If it rains then the ground is wet. It rains. Therefore the ground is wet.", "gold": "declined", "class": "out_of_band_multiword_conditional"}
-{"id": "ds-v1-0026", "text": "Some students are poets. All poets are artists. Therefore some students are artists.", "gold": "declined", "class": "out_of_band_categorical"}
+{"id": "ds-v1-0026", "text": "Some students are poets. All poets are artists. Therefore some students are artists.", "gold": "valid", "class": "categorical_datisi"}
+{"id": "ds-v1-0028", "text": "All cats are animals. All dogs are animals. Therefore all dogs are cats.", "gold": "invalid", "class": "categorical_undistributed_middle"}
 {"id": "ds-v1-0027", "text": "If p then q. If q then r. If r then s. p. Therefore s.", "gold": "entailed", "class": "three_hop_chain"}

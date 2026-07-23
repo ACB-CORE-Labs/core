@@ -42,8 +42,9 @@ from collections import Counter
 from pathlib import Path
 
 from chat.deduction_surface import looks_like_deductive_argument
-from generate.meaning_graph.projectors import to_deductive_logic
+from generate.meaning_graph.projectors import to_deductive_logic, to_syllogism
 from generate.meaning_graph.reader import Comprehension, comprehend
+from generate.proof_chain.categorical import CategoricalError, decide_syllogism
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
 
 _ROOT = Path(__file__).resolve().parent
@@ -59,6 +60,14 @@ _OUTCOME_TO_CLASS = {
     Entailment.REFUSED: "declined",
 }
 
+#: Categorical outcome → verdict class (matches the composer / arena mapping).
+_CATEGORICAL_TO_CLASS = {
+    Entailment.ENTAILED: "valid",
+    Entailment.REFUTED: "invalid",
+    Entailment.UNKNOWN: "invalid",
+    Entailment.REFUSED: "declined",
+}
+
 
 def _load(path: Path) -> list[dict]:
     with path.open(encoding="utf-8") as fh:
@@ -66,13 +75,14 @@ def _load(path: Path) -> list[dict]:
 
 
 def decide(text: str) -> str:
-    """Run the exact pipeline ``chat/deduction_surface.py`` runs in
-    serving and return the outcome class: entailed/refuted/unknown/declined.
+    """Run the exact decision pipeline ``chat/deduction_surface.py`` runs in
+    serving and return the outcome class: entailed/refuted/unknown (propositional),
+    valid/invalid (categorical), or declined.
 
     Mirrors ``deduction_grounded_surface`` call-for-call up to (but not
-    including) the prose render — the same production decision, typed
-    instead of rendered, so this lane's assertions are robust to wording
-    changes.
+    including) the prose render and the license gate — the same production
+    decision, typed instead of rendered, so this lane's assertions are robust
+    to wording changes.
     """
     if not looks_like_deductive_argument(text):
         return "declined"
@@ -80,11 +90,17 @@ def decide(text: str) -> str:
     if not isinstance(comp, Comprehension):
         return "declined"
     projected = to_deductive_logic(comp)
-    if projected is None:
-        return "declined"
-    premises, query = projected
-    trace = evaluate_entailment_with_trace(premises, query)
-    return _OUTCOME_TO_CLASS[trace.outcome]
+    if projected is not None:
+        premises, query = projected
+        return _OUTCOME_TO_CLASS[evaluate_entailment_with_trace(premises, query).outcome]
+    syllogism = to_syllogism(comp)
+    if syllogism is not None:
+        structure, s_query = syllogism
+        try:
+            return _CATEGORICAL_TO_CLASS[decide_syllogism(structure, s_query).outcome]
+        except CategoricalError:
+            return "declined"
+    return "declined"
 
 
 def build_report(cases: list[dict]) -> dict:

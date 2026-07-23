@@ -85,16 +85,27 @@ def test_inconsistent_premises_renders_typed_decline() -> None:
     assert "inconsistent" in surface
 
 
-def test_categorical_argument_declines_out_of_band() -> None:
-    """A syllogism-shaped "therefore" argument commits (argument-shaped)
-    but is honestly declined — Band v1 is propositional-only; the
-    production categorical decider is deferred (Band v1b)."""
+def test_categorical_argument_is_decided_band_v1b() -> None:
+    """A valid categorical syllogism is now DECIDED (Band v1b, Phase 4) — the
+    production categorical decider serves a validity verdict, no longer a
+    decline."""
     surface = deduction_grounded_surface(
         "All mammals are animals. All whales are mammals. "
         "Therefore all whales are animals."
     )
     assert surface is not None
-    assert "categorical" in surface
+    assert "valid" in surface
+    assert "follows" in surface
+
+
+def test_invalid_categorical_argument_is_rejected() -> None:
+    """An invalid syllogism (undistributed middle) is decided INVALID, not
+    declined and not falsely served as valid (wrong=0 on the categorical band)."""
+    surface = deduction_grounded_surface(
+        "All cats are animals. All dogs are animals. Therefore all dogs are cats."
+    )
+    assert surface is not None
+    assert "doesn't follow" in surface
 
 
 def test_multiword_conditional_declines_reader_refusal() -> None:

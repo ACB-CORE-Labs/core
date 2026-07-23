@@ -16,15 +16,18 @@ _V1 = _ROOT / "v1" / "cases.jsonl"
 
 def test_v1_lane_wrong_is_zero() -> None:
     report = build_report(_load(_V1))
-    assert report["n"] == 27
+    assert report["n"] == 28
     assert report["counts"]["wrong"] == 0
     assert report["all_cases_correct"] is True
-    # the sizeable, honest signal: non-trivial committed classes covered
+    # the sizeable, honest signal: non-trivial committed classes covered,
+    # including the categorical band (valid + invalid) added in Phase 4.
     cbg = report["correct_by_gold"]
     assert cbg.get("entailed", 0) >= 5
     assert cbg.get("refuted", 0) >= 5
     assert cbg.get("unknown", 0) >= 5
     assert cbg.get("declined", 0) >= 5
+    assert cbg.get("valid", 0) >= 3
+    assert cbg.get("invalid", 0) >= 1
 
 
 def test_runner_treats_wrong_verdict_as_the_only_real_failure() -> None:
