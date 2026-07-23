@@ -172,7 +172,10 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
     # exit criterion. ``wrong == 0`` is a hard gate (Obligation #4: refuse
     # rather than confabulate).
     "math": ("tests/test_adr_0126_train_sample_runner.py",),
-    "deductive": ("tests/test_deductive_logic_entail.py",),
+    "deductive": (
+        "tests/test_deductive_logic_entail.py",
+        "tests/test_deduction_serve_lane.py",
+    ),
     "full": ("tests/",),
 }
 

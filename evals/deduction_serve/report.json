@@ -1,0 +1,36 @@
+{
+  "aggregate": {
+    "correct": 27,
+    "declined": 0,
+    "n": 27,
+    "wrong": 0
+  },
+  "all_correct": true,
+  "arc": "deduction-serve",
+  "lane": "deduction_serve",
+  "schema_version": 1,
+  "splits": {
+    "v1": {
+      "all_cases_correct": true,
+      "by_gold": {
+        "declined": 9,
+        "entailed": 8,
+        "refuted": 5,
+        "unknown": 5
+      },
+      "correct_by_gold": {
+        "declined": 9,
+        "entailed": 8,
+        "refuted": 5,
+        "unknown": 5
+      },
+      "counts": {
+        "correct": 27,
+        "declined": 0,
+        "wrong": 0
+      },
+      "n": 27
+    }
+  },
+  "wrong_is_zero": true
+}

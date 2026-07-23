@@ -1,0 +1,27 @@
+{"id": "ds-v1-0001", "text": "If s then t. s. Therefore t.", "gold": "entailed", "class": "modus_ponens"}
+{"id": "ds-v1-0002", "text": "If s then t. Not t. Therefore not s.", "gold": "entailed", "class": "modus_tollens"}
+{"id": "ds-v1-0003", "text": "If p then q. If q then r. Therefore if p then r.", "gold": "entailed", "class": "hypothetical_syllogism"}
+{"id": "ds-v1-0004", "text": "p or q. Not p. Therefore q.", "gold": "entailed", "class": "disjunctive_syllogism"}
+{"id": "ds-v1-0005", "text": "p or q. Not q. Therefore p.", "gold": "entailed", "class": "disjunctive_syllogism"}
+{"id": "ds-v1-0006", "text": "If p then q. Therefore if not q then not p.", "gold": "declined", "class": "out_of_band_nested_negation"}
+{"id": "ds-v1-0007", "text": "p. Therefore p.", "gold": "entailed", "class": "restatement"}
+{"id": "ds-v1-0008", "text": "If p then q. If r then q. p or r. Therefore q.", "gold": "entailed", "class": "constructive_dilemma"}
+{"id": "ds-v1-0009", "text": "If p then q. Not q. Therefore p.", "gold": "refuted", "class": "modus_tollens_negated_query"}
+{"id": "ds-v1-0010", "text": "p or q. Not p. Therefore p.", "gold": "refuted", "class": "direct_negation"}
+{"id": "ds-v1-0011", "text": "If p then q. p. Therefore not q.", "gold": "refuted", "class": "modus_ponens_negated_query"}
+{"id": "ds-v1-0012", "text": "Not p. Therefore p.", "gold": "refuted", "class": "direct_negation"}
+{"id": "ds-v1-0013", "text": "If p then q. If q then r. p. Therefore not r.", "gold": "refuted", "class": "chain_negated_query"}
+{"id": "ds-v1-0014", "text": "p or q. Therefore p.", "gold": "unknown", "class": "underdetermined_disjunct"}
+{"id": "ds-v1-0015", "text": "If p then q. Therefore p.", "gold": "unknown", "class": "affirming_the_consequent_gap"}
+{"id": "ds-v1-0016", "text": "If p then q. Therefore q.", "gold": "unknown", "class": "antecedent_not_given"}
+{"id": "ds-v1-0017", "text": "p or q. Therefore q.", "gold": "unknown", "class": "underdetermined_disjunct"}
+{"id": "ds-v1-0018", "text": "If p then q. If r then q. Therefore p.", "gold": "unknown", "class": "common_consequent_gap"}
+{"id": "ds-v1-0019", "text": "p. Not p. Therefore q.", "gold": "declined", "class": "inconsistent_premises"}
+{"id": "ds-v1-0020", "text": "If p then q. p. Not q. Therefore r.", "gold": "declined", "class": "inconsistent_premises"}
+{"id": "ds-v1-0021", "text": "p. Not p. Therefore p.", "gold": "declined", "class": "inconsistent_premises"}
+{"id": "ds-v1-0022", "text": "p or q. Not p. Not q. Therefore p.", "gold": "declined", "class": "inconsistent_premises"}
+{"id": "ds-v1-0023", "text": "All mammals are animals. All whales are mammals. Therefore all whales are animals.", "gold": "declined", "class": "out_of_band_categorical"}
+{"id": "ds-v1-0024", "text": "No reptiles are mammals. All snakes are reptiles. Therefore no snakes are mammals.", "gold": "declined", "class": "out_of_band_categorical"}
+{"id": "ds-v1-0025", "text": "If it rains then the ground is wet. It rains. Therefore the ground is wet.", "gold": "declined", "class": "out_of_band_multiword_conditional"}
+{"id": "ds-v1-0026", "text": "Some students are poets. All poets are artists. Therefore some students are artists.", "gold": "declined", "class": "out_of_band_categorical"}
+{"id": "ds-v1-0027", "text": "If p then q. If q then r. If r then s. p. Therefore s.", "gold": "entailed", "class": "three_hop_chain"}
