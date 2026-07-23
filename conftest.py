@@ -29,6 +29,33 @@ import engine_state
 _USES_DEFAULT_ENGINE_STATE_MARKER = "uses_default_engine_state"
 
 
+@pytest.fixture(autouse=True, scope="session")
+def _isolate_engine_state_session_baseline(tmp_path_factory):
+    """Session-scoped floor under ``_isolate_engine_state_default``.
+
+    The per-test fixture below is function-scoped, and pytest sets up
+    higher-scoped fixtures FIRST — so a module-/session-scoped fixture that
+    constructs a bare ``ChatRuntime()`` (e.g. ``tests/test_achat.py``'s
+    module-scoped ``runtime``) bound the REAL repo ``engine_state/`` before
+    the per-test patch existed: it loaded the live life-store and committed
+    real generations into it (observed 2026-07-22: smoke advanced the live
+    store's ``turn_count`` 14989→14990 and re-stamped its revision).
+
+    This baseline is set up before fixtures of any narrower scope, so no
+    pytest-constructed default store can ever resolve to the repo dir. It is
+    deliberately unconditional: ``uses_default_engine_state`` opts out of the
+    per-test layer only — those tests verify default-dir RESOLUTION
+    semantics, which this baseline preserves; they too must never touch the
+    live life-store.
+    """
+    isolated = tmp_path_factory.mktemp("engine_state_session")
+    mp = pytest.MonkeyPatch()
+    mp.setattr(engine_state, "_DEFAULT_DIR", isolated)
+    mp.setenv("CORE_ENGINE_STATE_DIR", str(isolated))
+    yield
+    mp.undo()
+
+
 @pytest.fixture(autouse=True)
 def _isolate_engine_state_default(request, tmp_path_factory, monkeypatch):
     """Isolate the default engine-state checkpoint dir per test.

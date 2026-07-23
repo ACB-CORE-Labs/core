@@ -1,7 +1,9 @@
 # Issue — tests sharing the default `engine_state/` dir (reproducibility hazard)
 
-Status: open (hygiene; interim rule below, recommended fix deferred to a validated PR)
-Date: 2026-06-15
+Status: fix landed in two layers — per-test autouse fixture (recommended fix below,
+landed post-2026-06-15) + session-scoped baseline (2026-07-22, module-scope escape);
+nightly full lane is the final suite-wide confirmation. See 2026-07-22 addendum.
+Date: 2026-06-15 (addendum 2026-07-22)
 Relates: ADR-0146 (engine-state persistence), ADR-0219 (generation-dir checkpoint),
 ADR-0220 (identity/provenance reconcile — surfaced the symptom)
 
@@ -113,3 +115,39 @@ The brief is safe and immediately useful (documents the hazard + the rule). The
 fixture, though small in code, changes default behaviour suite-wide and so must
 be validated against the full suite — a deliberate cost that belongs in its own
 PR rather than riding on identity-doctrine or hygiene-doc work.
+
+## 2026-07-22 addendum — module-scope escape found and closed (session baseline)
+
+The recommended fixture above landed in the root `conftest.py`
+(`_isolate_engine_state_default`) and closed the per-test layer. The weekly
+audit (2026-07-22) then caught a **residual escape**: pytest sets up
+higher-scoped fixtures before function-scoped ones, so a module-/session-scoped
+fixture constructing a bare `ChatRuntime()` binds `engine_state._DEFAULT_DIR`
+*before* the per-test patch exists.
+
+**Observed evidence**: `tests/test_achat.py`'s module-scoped `runtime` fixture
+loaded the live repo `engine_state/` during smoke runs (emitting the ADR-0157
+revision-mismatch warning against the real checkpoint) and committed real
+generations — the live store's `turn_count` advanced 14989→14990 and
+`written_at_revision` was re-stamped to `f94dbd404575` by the suite itself.
+Content pollution was nil in that instance (recognizers/candidates byte-identical
+across the two test-written generations), but turn-count/lineage provenance was
+not test-free.
+
+**Fix**: `_isolate_engine_state_session_baseline` — a session-scoped autouse
+fixture (set up before fixtures of any narrower scope) that points
+`engine_state._DEFAULT_DIR` + `CORE_ENGINE_STATE_DIR` at a session temp dir.
+The per-test fixture continues to provide per-test freshness on top of it; the
+`uses_default_engine_state` marker still opts out of the per-test layer only
+(default-dir *resolution* semantics are preserved; the live store stays
+unreachable at every scope).
+
+**Regression pin**: `tests/test_conftest_engine_state_isolation.py::`
+`test_module_scoped_construction_cannot_bind_the_live_store` (req #4) —
+constructs a default store from a module-scoped fixture and fails if it
+resolves to the repo dir.
+
+**Residual (ledgered, weekly audit T-list)**: the live store's historical
+`turn_count` (14990) includes an unknown number of pre-fix test turns, and the
+465 persisted discovery candidates predate the fix — a provenance review of
+live-store contents is a separate, opt-in remediation ruling.

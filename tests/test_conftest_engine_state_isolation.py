@@ -7,7 +7,9 @@ decoration (CLAUDE.md "Schema-Defined Proof Obligations"):
 
 - drop the ``monkeypatch.setattr`` → ``test_default_dir_is_redirected_*`` fails,
 - drop the ``monkeypatch.setenv`` → ``test_env_var_matches_*`` fails,
-- drop the marker opt-out check → ``test_opt_out_marker_*`` fails.
+- drop the marker opt-out check → ``test_opt_out_marker_*`` fails,
+- drop the session-scoped baseline (``_isolate_engine_state_session_baseline``)
+  → ``test_module_scoped_construction_cannot_bind_the_live_store`` fails.
 """
 from __future__ import annotations
 
@@ -51,4 +53,41 @@ def test_opt_out_marker_skips_isolation() -> None:
     """
     assert "engine_state_default" not in str(engine_state._DEFAULT_DIR), (
         "uses_default_engine_state marker did not opt out of the isolation fixture"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Module-scope escape regression (weekly audit 2026-07-22)
+#
+# pytest sets up higher-scoped fixtures BEFORE function-scoped ones, so a
+# module-/session-scoped fixture constructing a bare ``ChatRuntime()`` (e.g.
+# tests/test_achat.py's module-scoped ``runtime``) binds its store before the
+# per-test autouse patch exists. Before the session baseline landed, that
+# bound the REAL repo engine_state/ — the live life-store — and smoke runs
+# loaded it and committed generations into it (observed 2026-07-22:
+# turn_count 14989→14990 written by the suite).
+# ---------------------------------------------------------------------------
+
+_REPO_LIFE_STORE = Path(engine_state.__file__).resolve().parents[1] / "engine_state"
+
+
+@pytest.fixture(scope="module")
+def _module_scoped_default_store():
+    """Constructed at module setup, before any function-scoped patch."""
+    from engine_state import EngineStateStore
+
+    return EngineStateStore()
+
+
+def test_module_scoped_construction_cannot_bind_the_live_store(
+    _module_scoped_default_store,
+) -> None:
+    """(req #4) fixtures of ANY scope must resolve inside an isolated dir."""
+    bound = Path(_module_scoped_default_store.path).resolve()
+    assert bound != _REPO_LIFE_STORE.resolve(), (
+        "module-scoped default store bound the live repo engine_state/ — the "
+        "session-scoped baseline fixture is missing or ordered too late"
+    )
+    assert "engine_state_session" in str(bound) or "engine_state_default" in str(bound), (
+        f"module-scoped store resolved outside every isolation layer: {bound}"
     )
