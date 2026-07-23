@@ -56,6 +56,13 @@ class IntentTag(Enum):
     # P3.4 — "Give me an example of X" / "Show an instance of X" —
     # reverse-chain composer surfaces chains where X is the object.
     EXAMPLE = "example"
+    # Deduction-serve arc, Phase 1 — a propositional-argument-shaped turn
+    # ("P1. P2. ... Therefore C.") committed to chat/deduction_surface.py's
+    # composer. Never produced by classify_intent/classify_compound_intent
+    # (that routing table is untouched — this tag is observability-only,
+    # set by the runtime when the deduction composer commits, so /explain
+    # reflects what actually happened on a deduction turn).
+    DEDUCTION = "deduction"
     UNKNOWN = "unknown"
 
 

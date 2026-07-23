@@ -465,6 +465,19 @@ class ChatResponse:
     #   "teaching" — answer drawn from a reviewed teaching-chain corpus
     #                (cold-start CAUSE/VERIFICATION — ADR-0052).
     #   "none"     — universal "insufficient grounding" disclosure on stub.
+    #   "deduction" — answer decided by the verified propositional
+    #                entailment engine (deduction-serve arc, Phase 1;
+    #                chat/deduction_surface.py). NOTE: this value is NOT
+    #                yet registered in core.epistemic_state.GroundingSource
+    #                (the Workbench-coupled closed Literal) or the Workbench
+    #                UI badge contract — epistemic_state_for_grounding_source
+    #                falls through to the honest EPISTEMIC_STATE_NEEDED
+    #                default for it. core chat REPL turns do not flow
+    #                through Workbench's CognitivePipelineRecord path, so
+    #                this is inert today; registering "deduction" as a
+    #                first-class GroundingSource + Workbench badge is
+    #                deferred to a follow-up if/when that visibility is
+    #                needed.
     # The string is preserved verbatim in TurnEvent for downstream audit.
     grounding_source: str = "none"
     # ADR-0071 (R4) — pre-decoration surface.  ``surface`` is the
@@ -1720,15 +1733,33 @@ class ChatRuntime:
         to a walk fragment.  CAUSE / VERIFICATION still return None
         when no teaching chain exists, preserving the discovery signal.
         """
-        if not allow_warm and gate_source != "empty_vault":
-            if attempts is not None:
-                for src in ("pack", "teaching", "partial", "oov"):
-                    attempts.append(DispatchAttempt(source=src, outcome="skipped", reason="warm_path_disabled"))
-            return None
         if self.config.output_language != "en":
             if attempts is not None:
                 for src in ("pack", "teaching", "partial", "oov"):
                     attempts.append(DispatchAttempt(source=src, outcome="skipped", reason="non_english_output"))
+            return None
+        # Deduction-serve arc, Phase 1 — checked BEFORE the empty-vault gate
+        # below (unlike pack/teaching/partial/oov, deduction serving is not a
+        # cold-start-only fallback: a user may ask a logic question at any
+        # point in a conversation, warm or cold vault). A pure function of
+        # the input text — no vault/field dependency — so it is safe to
+        # decide unconditionally of ``gate_source``/``allow_warm``.
+        if self.config.deduction_serving_enabled:
+            from chat.deduction_surface import deduction_grounded_surface
+            from generate.intent import DialogueIntent, IntentTag as _IntentTag
+
+            deduction_surface = deduction_grounded_surface(text)
+            if deduction_surface is not None:
+                self._last_intent = DialogueIntent(tag=_IntentTag.DEDUCTION, subject=text)  # W-013
+                if attempts is not None:
+                    attempts.append(DispatchAttempt(source="deduction", outcome="admitted", reason="deduction_composer_committed"))
+                return (deduction_surface, "deduction", ())
+            if attempts is not None:
+                attempts.append(DispatchAttempt(source="deduction", outcome="skipped", reason="not_argument_shaped"))
+        if not allow_warm and gate_source != "empty_vault":
+            if attempts is not None:
+                for src in ("pack", "teaching", "partial", "oov"):
+                    attempts.append(DispatchAttempt(source=src, outcome="skipped", reason="warm_path_disabled"))
             return None
         from generate.intent import IntentTag
         from generate.intent_bridge import classify_intent_from_input
