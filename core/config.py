@@ -371,17 +371,19 @@ class RuntimeConfig:
     # default); the engine never raises its own ceiling.
     estimation_enabled: bool = False
 
-    # Deduction-serve arc, Phase 1 — when on, ``chat/deduction_surface.py``
-    # intercepts propositional-argument-shaped turns ("P1. P2. ... Therefore
-    # C.") BEFORE generic intent dispatch and decides them with the verified
-    # ROBDD entailment engine (generate.proof_chain, 716/716 wrong=0) instead
-    # of the pack-token-gloss fallback. Band v1 scope: single-token
-    # propositional atoms only (docs/research/deduction-serve-arc-phase0-
-    # baseline-2026-07-23.md); categorical/syllogism arguments are recognized
-    # as argument-shaped but honestly declined as out-of-band. OFF by
-    # default: flag-off is byte-identical to pre-arc dispatch — the new
-    # composer is never called, so previously-UNKNOWN "therefore" prompts
-    # keep their existing pack-token-gloss surface exactly.
+    # Deduction-serve arc — when on, ``chat/deduction_surface.py`` intercepts
+    # propositional-argument-shaped turns ("P1. P2. ... Therefore C.") BEFORE
+    # generic intent dispatch and decides them with the verified ROBDD
+    # entailment engine (generate.proof_chain, 716/716 wrong=0) instead of the
+    # pack-token-gloss fallback. Band v1 scope: single-token propositional
+    # atoms only (docs/research/deduction-serve-arc-phase0-baseline-2026-07-23
+    # .md); categorical/syllogism arguments are recognized as argument-shaped
+    # but honestly declined as out-of-band. Phase 3 (ADR-0256): this is an
+    # enable for an EARNED path, not a direct-serve switch — a decided
+    # argument is served AUTHORITATIVELY only when its shape-band holds a SERVE
+    # license on the committed, SHA-sealed reliability ledger
+    # (chat/deduction_serve_license); an unearned band is served DISCLOSED
+    # (hedged). OFF by default: flag-off is byte-identical to pre-arc dispatch.
     deduction_serving_enabled: bool = False
 
     # ASK serving gate enable flag. When True, ASK serving is allowed.

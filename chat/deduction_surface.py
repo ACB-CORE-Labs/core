@@ -26,10 +26,15 @@ from __future__ import annotations
 
 import re
 
+from typing import Callable
+
+from chat.deduction_serve_license import deduction_serve_license
+from core.reliability_gate import LicenseDecision
 from generate.meaning_graph.projectors import to_deductive_logic
 from generate.meaning_graph.reader import Comprehension, comprehend
 from generate.proof_chain.entail import evaluate_entailment_with_trace
 from generate.proof_chain.render import render_entailment
+from generate.proof_chain.shape import classify_deduction_shape
 
 #: An argument's conclusion clause starts a sentence with "therefore" — the
 #: same shape ``generate.meaning_graph.reader`` recognizes per-clause
@@ -59,8 +64,22 @@ _OUT_OF_BAND_SURFACE = (
     "propositional arguments (not categorical 'all/no/some' ones yet)."
 )
 
+#: Disclosed hedge prepended when a decided argument's shape-band has NOT earned
+#: the SERVE license (ADR-0256). The ROBDD engine is sound — the answer is not
+#: guessed — but an unearned band means the FULL pipeline (crucially the reader)
+#: has no demonstrated track record on this shape, so committing it as verified
+#: would overstate the pipeline's earned trust. The answer is served, disclosed.
+_UNVERIFIED_SHAPE_DISCLOSURE = (
+    "(reasoned, but I haven't yet earned a verified track record on arguments "
+    "of this shape) "
+)
 
-def deduction_grounded_surface(text: str) -> str | None:
+_LicenseLookup = Callable[[str], LicenseDecision | None]
+
+
+def deduction_grounded_surface(
+    text: str, *, license_lookup: _LicenseLookup = deduction_serve_license,
+) -> str | None:
     """Return a deterministic DEDUCTION-tier surface, or ``None``.
 
     Returns ``None`` only when *text* is not argument-shaped at all
@@ -68,6 +87,17 @@ def deduction_grounded_surface(text: str) -> str | None:
     through to the pre-existing dispatch, byte-identical to before this
     composer existed. Once argument-shaped, every branch below commits to
     an honest surface; see the module docstring's fail-closed contract.
+
+    Earned-license gate (ADR-0256): a decided argument's rendered surface is
+    served AUTHORITATIVELY only when its propositional shape-band holds a
+    genuine ``Action.SERVE`` license on the committed, SHA-sealed reliability
+    ledger (``chat/deduction_serve_license``). A band that has not earned it —
+    including the forward-looking case of a future shape absent from the ledger,
+    or any deployment whose ledger is stripped — still gets the sound answer,
+    but DISCLOSED (hedged), never presented as a verified capability. This is
+    what makes deduction serving an *earned* capability, not merely a flagged
+    one. ``license_lookup`` is injectable for testing; it defaults to the real
+    ratified-ledger reader.
     """
     if not looks_like_deductive_argument(text):
         return None
@@ -79,7 +109,12 @@ def deduction_grounded_surface(text: str) -> str | None:
         return _OUT_OF_BAND_SURFACE
     premises, query = projected
     trace = evaluate_entailment_with_trace(premises, query)
-    return render_entailment(trace, premises, query)
+    surface = render_entailment(trace, premises, query)
+    band = classify_deduction_shape(premises, query)
+    decision = license_lookup(band)
+    if decision is not None and decision.licensed:
+        return surface  # earned SERVE — authoritative
+    return _UNVERIFIED_SHAPE_DISCLOSURE + surface  # sound, but disclosed
 
 
 __all__ = ["deduction_grounded_surface", "looks_like_deductive_argument"]

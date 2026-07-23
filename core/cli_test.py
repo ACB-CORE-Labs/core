@@ -175,6 +175,7 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
     "deductive": (
         "tests/test_deductive_logic_entail.py",
         "tests/test_deduction_serve_lane.py",
+        "tests/test_deduction_serve_license.py",
     ),
     "full": ("tests/",),
 }
