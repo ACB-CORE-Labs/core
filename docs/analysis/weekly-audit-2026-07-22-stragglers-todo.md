@@ -225,15 +225,21 @@ fail-closed determinism). Execution status:
     the trace-hash back-stamp. Lane green: `telemetry_consistency_rate`
     0.9444 → 1.0 (10/10 warmed_session tests pass). `trace_hash` byte-identity
     preserved — it folds the pre-decoration surface, not the served surface.
-  - **(2) RULED (Shay, 2026-07-22): hedge-arm routing, own PR.** The query-type
-    "definitional/epistemic" classifier bypass is REJECTED — it fails a
-    geometric coherence gate OPEN on a lexical cue (fail-open / cue-table;
-    ADR-0252 + INV-34). Ruling: fix the READING, not the question — route
-    open-geometry-but-**pack-grounded** surfaces to the existing hedge-injection
-    arm (`authoritative=False`, honestly hedged), discriminated by grounding
-    *provenance* (structural), never by question type. Its own dedicated PR +
-    GSM8K-style (real-data) validation. Scoped next; deliberately NOT in the
-    telemetry PR or the infra PR.
+  - **(2) RULED + IMPLEMENTED (PR #103, `feat/grounded-open-geometry-hedge-arm`, ADR-0254).**
+    Ruling: fix the READING, not the question — route open-geometry-but-**pack-grounded**
+    surfaces to a hedge arm (`authoritative=False`, honestly hedged), discriminated
+    by grounding *provenance* (structural), never by question type (the query-type
+    classifier bypass was REJECTED as a fail-open cue-table; ADR-0252 + INV-34).
+    Built: the decision lives **inside the gate** (`resolve_surface`) — predicate
+    `pack_grounded ∧ every open token ∈ {versor_condition, goldtether_residual}`.
+    `¬hazard` is enforced structurally by that residual allowlist: any unrecognized
+    open token (where a real safety/harm hazard lands), non-pack grounding, or
+    `None` assessment → unchanged hard refusal. New authority tag
+    `grounded_open_hedge`. Validation: RED→GREEN unit suite +
+    `warmed_session_consistency` real-data (the "What is doubt?" over-refusal now
+    hedges) + GSM8K `wrong=0` preserved + architectural invariants green.
+    **Deferred:** unifying the hedge marker with the ADR-0038 manifold
+    `preferred_hedge_soft` vocabulary (defer substrate-vocab commitment).
   - **(3) RULED (Shay, 2026-07-22): local pre-push gate — IMPLEMENTED.**
     `scripts/hooks/pre-push` + `scripts/hooks/install.sh` (`core.hooksPath`) run
     the smoke suite **plus** the warmed_session lane pin on every push — the

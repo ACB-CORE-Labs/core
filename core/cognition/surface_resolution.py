@@ -38,6 +38,22 @@ if TYPE_CHECKING:
 
 _ABSTENTION_AUTHORITY = "coherence_abstention"
 
+# --- T13 decision (2): grounded-open hedge arm --------------------------------
+# Grounding provenances whose surfaces are curated enough to hedge (serve
+# non-authoritatively) rather than hard-refuse when the geometric contract is
+# open. Mirrors the "grounded" test in chat.runtime (pack / teaching).
+_GROUNDED_PROVENANCES = frozenset({"pack", "teaching"})
+
+# The ONLY open tokens that are hedgeable: geometric-coherence residuals that a
+# pack surface never claimed to certify. Any token outside this set — where a
+# genuine safety/harm/imperative hazard would land — fails closed to a hard
+# refusal (INV-34). Deliberately excludes "missing_wave_field": the absence of
+# any field is a harder failure than an open-but-computed residual.
+_HEDGEABLE_GEOMETRIC_RESIDUALS = frozenset({"versor_condition", "goldtether_residual"})
+
+_GROUNDED_OPEN_HEDGE_AUTHORITY = "grounded_open_hedge"
+_GROUNDED_OPEN_HEDGE_PREFIX = "Grounded but not geometrically certified —"
+
 
 @dataclass(frozen=True, slots=True)
 class SurfaceResolution:
@@ -54,6 +70,11 @@ class SurfaceResolution:
     ``authoritative`` is True only when a certified answer may leave the
     system. Geometry-open and assessment-missing paths set this False and
     attach a typed refusal/violation.
+
+    ``hedged`` is True only on the grounded-open hedge arm (T13 decision 2):
+    a curated pack/teaching surface served non-authoritatively because the
+    geometric contract is open on a known coherence residual. It is mutually
+    exclusive with ``refusal``/``contract_violation`` and never authoritative.
     """
 
     surface: str
@@ -61,6 +82,7 @@ class SurfaceResolution:
     authority: str
     fold_sources: tuple[str, ...] = ()
     authoritative: bool = True
+    hedged: bool = False
     refusal: CoherenceRefusal | None = None
     contract_violation: ContractViolation | None = None
     proof_trace: ProofTrace | None = None
@@ -136,6 +158,80 @@ def _abstention_resolution(
     )
 
 
+def _is_pack_grounded(grounding_provenance: str) -> bool:
+    """Structural discriminator: is the surface curated pack/teaching grounded?
+
+    Purely provenance-based — it never inspects the question text. A lexical
+    "definitional/epistemic" cue-table would fail a geometric gate open on a
+    surface cue (fail-open; ADR-0252 / INV-34), which the ruling rejected.
+    """
+    return (grounding_provenance or "").strip().lower() in _GROUNDED_PROVENANCES
+
+
+def _grounded_open_hedge_admissible(
+    contract_assessment: "ContractAssessment",
+    grounding_provenance: str,
+) -> bool:
+    """True iff an open-geometry surface may hedge instead of hard-refuse.
+
+    Predicate (authorized): ``pack_grounded ∧ every open token is a known
+    geometric-coherence residual``. Fail-closed: an unrecognized open token —
+    where a genuine safety/harm/imperative hazard would appear — makes this
+    False, so the caller hard-refuses. ``¬hazard`` is thus enforced
+    *structurally* by the residual allowlist, not by question typing.
+    """
+    if not _is_pack_grounded(grounding_provenance):
+        return False
+    open_tokens = set(contract_assessment.missing_bindings) | set(
+        contract_assessment.unresolved_hazards
+    )
+    if not open_tokens:
+        # Defensive: the caller only reaches here when the conjugate is open.
+        return False
+    return open_tokens <= _HEDGEABLE_GEOMETRIC_RESIDUALS
+
+
+def _grounded_open_hedge_resolution(
+    *,
+    canonical_surface: str,
+    pre_decoration_surface: str,
+    response_surface: str,
+    response_articulation_surface: str,
+) -> SurfaceResolution:
+    """Serve the pack surface, honestly hedged and non-authoritative.
+
+    The surface is emitted (not refused) but ``authoritative=False`` and
+    ``hedged=True``: the pack grounding stands on its textual provenance while
+    explicitly disclaiming the open geometric certification. Walk/compose folds
+    are suppressed — a hedge never accretes deterministic inference authority.
+    """
+    base_surface, base_articulation, _authority = _base_runtime_surface(
+        canonical_surface=canonical_surface,
+        pre_decoration_surface=pre_decoration_surface,
+        response_surface=response_surface,
+        response_articulation_surface=response_articulation_surface,
+    )
+    surface = (
+        f"{_GROUNDED_OPEN_HEDGE_PREFIX} {base_surface}" if base_surface else base_surface
+    )
+    articulation = (
+        f"{_GROUNDED_OPEN_HEDGE_PREFIX} {base_articulation}"
+        if base_articulation
+        else base_articulation
+    )
+    return SurfaceResolution(
+        surface=surface,
+        articulation_surface=articulation,
+        authority=_GROUNDED_OPEN_HEDGE_AUTHORITY,
+        fold_sources=(),
+        authoritative=False,
+        hedged=True,
+        refusal=None,
+        contract_violation=None,
+        proof_trace=None,
+    )
+
+
 def resolve_surface(
     *,
     canonical_surface: str = "",
@@ -149,6 +245,7 @@ def resolve_surface(
     compose_surface: str = "",
     proposition_graph: "PropositionGraph | None" = None,
     contract_assessment: "ContractAssessment | None" = None,
+    grounding_provenance: str = "",
     require_closed_geometry: bool = True,
 ) -> SurfaceResolution:
     """Resolve the final turn surface under dual-competing Shadow Coherence Gate.
@@ -168,6 +265,14 @@ def resolve_surface(
     geometric contract yields a typed abstention — no runtime fluent answer
     is emitted as certified content. Walk/compose folds are suppressed on
     abstention paths.
+
+    **Grounded-open hedge arm (T13 decision 2).** When the conjugate is open
+    but the surface is ``pack``/``teaching`` grounded (``grounding_provenance``)
+    and every open token is a known geometric-coherence residual, the pack
+    surface is served *honestly hedged* (``authoritative=False``, ``hedged=True``)
+    instead of hard-refused. The discriminator is purely structural (provenance
+    + residual allowlist) — never question typing — and fails closed: an
+    unrecognized open token or non-pack grounding takes the unchanged refusal.
     """
 
     # --- Fail-closed: missing assessment never silently passes ---
@@ -185,6 +290,21 @@ def resolve_surface(
             return _abstention_resolution(
                 refusal=None,
                 violation=contract_assessment_none_violation(),
+            )
+        # --- T13 decision (2): grounded-open hedge arm ---
+        # A curated pack/teaching surface whose ONLY open tokens are known
+        # geometric-coherence residuals is served honestly hedged
+        # (authoritative=False) rather than hard-refused: the pack surface never
+        # claimed geometric certification. Structural predicate only (grounding
+        # provenance + residual allowlist); any unrecognized token or non-pack
+        # grounding falls through to the unchanged fail-closed refusal below.
+        if _grounded_open_hedge_admissible(contract_assessment, grounding_provenance):
+            del gate_fired  # hedge does not depend on the residual-failure flag
+            return _grounded_open_hedge_resolution(
+                canonical_surface=canonical_surface or "",
+                pre_decoration_surface=pre_decoration_surface or "",
+                response_surface=response_surface or "",
+                response_articulation_surface=response_articulation_surface or "",
             )
         refusal = open_geometry_refusal(
             missing_bindings=tuple(contract_assessment.missing_bindings),
