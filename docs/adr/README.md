@@ -19,3 +19,10 @@ The Master Architectural Specification lists ADR-0240–0253 with titles that
   [`MASTER-BLUEPRINT-2026-07-20-ADR-MAPPING.md`](./MASTER-BLUEPRINT-2026-07-20-ADR-MAPPING.md)
 - Governance freeze decision:  
   [`ADR-0253-master-blueprint-adr-collision-and-dual-pack-boundary.md`](./ADR-0253-master-blueprint-adr-collision-and-dual-pack-boundary.md)
+
+## Binding non-ADR notes in this directory
+
+- [`epistemic-taxonomy-ownership-stage3.md`](./epistemic-taxonomy-ownership-stage3.md)
+  — binding ownership note (Master Blueprint Stage 3A, 2026-07-20): the three
+  orthogonal epistemic axes (`EpistemicStatus` / `EpistemicState` /
+  `GeometricCoherenceVerdict`) must not be collapsed into one enum.

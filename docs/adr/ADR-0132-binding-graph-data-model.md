@@ -2,7 +2,7 @@
 
 **Status:** Accepted (Phase 1 only; Phases 2–5 deferred)
 **Date:** 2026-05-23
-**Parent proposal:** `docs/implementation/semantic-symbolic-binding-graph-proposal.md` (PR #170)
+**Parent proposal:** `docs/paradigm-archive/semantic-symbolic-binding-graph-proposal.md` (PR #170; originally at `docs/implementation/`, retired to the paradigm archive under ADR-0252 §9, 2026-07-19 — this ADR's Phase 1 data model remains Accepted)
 **Related:** ADR-0115..0118 (math parser/solver/verifier/realizer), ADR-0126
 (candidate-graph parser), ADR-0127 (units pack), ADR-0131 (math-expert
 rebench / proof corridor)
