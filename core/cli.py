@@ -721,6 +721,12 @@ def cmd_teaching_coverage(args: argparse.Namespace) -> int:
     return cli_teaching.cmd_teaching_coverage(args)
 
 
+def cmd_teaching_discovery_yield(args: argparse.Namespace) -> int:
+    from core import cli_teaching
+
+    return cli_teaching.cmd_teaching_discovery_yield(args)
+
+
 def cmd_teaching_refusal_taxonomy(args: argparse.Namespace) -> int:
     from core import cli_teaching
 
@@ -3331,6 +3337,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit machine-readable JSON",
     )
     teaching_coverage.set_defaults(func=cmd_teaching_coverage)
+
+    teaching_discovery_yield = teaching_sub.add_parser(
+        "discovery-yield",
+        help="candidates proposed per served turn, on clean post-reset traffic",
+    )
+    teaching_discovery_yield.add_argument(
+        "--json",
+        action="store_true",
+        help="emit machine-readable JSON",
+    )
+    teaching_discovery_yield.set_defaults(func=cmd_teaching_discovery_yield)
 
     teaching_refusal_taxonomy = teaching_sub.add_parser(
         "refusal-taxonomy",
