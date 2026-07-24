@@ -509,10 +509,22 @@ def read_verb_argument(text: str) -> VerbArgument | VerbRefusal:
     )
 
 
+def verb_forms_link(a: str, b: str) -> bool:
+    """Public view of this band's closed verb-agreement relation.
+
+    Exported so paths OUTSIDE the proof_chain package (the curriculum
+    composer, ADR-0262) can normalize a base form against a stated
+    third-person form using the SAME closed table and suffix rules the reader
+    uses — one agreement authority, not two.
+    """
+    return _verb_tokens_link(a, b)
+
+
 __all__ = [
     "MAX_ATOMS",
     "MAX_PREMISE_SENTENCES",
     "VerbArgument",
     "VerbRefusal",
     "read_verb_argument",
+    "verb_forms_link",
 ]

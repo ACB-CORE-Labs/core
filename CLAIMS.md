@@ -44,6 +44,7 @@ is a CI failure (`.github/workflows/lane-shas.yml`).
 | ADR-0131 | `math_teaching_corpus_v1` | Math teaching corpus replays deterministically; all chains pass exit criterion (correct_rate=1.0, wrong=0) | `evals/math_teaching_corpus/v1/report.json` | `eaf160d145da29f9050ede8d58bf111b0f651dd40aeae9201857d0b97e014dd4` |
 | ADR-0206 | `deductive_logic_v1` | Propositional entailment scored against an independent truth-table oracle; dev+holdout+external 716/716 correct, wrong=0, refused=0 | `evals/deductive_logic/report.json` | `97a230949016e38d5e3f37a69e4245b320575ee70e5af92ff7607f7b05f74b5f` |
 | ADR-0256 | `deduction_serve_v1` | Flag-gated deduction serving decides real English/member/fused/verb/existential arguments end-to-end under earned SERVE licenses; wrong=0 across all splits | `evals/deduction_serve/report.json` | `0b461a5a49c8f8260ca87d0c9c9f9a17232bd1fdedd982e34649eedf9cca30b5` |
+| ADR-0262 | `curriculum_serve_v1` | Flag-gated curriculum serving answers exam questions from a subject's RATIFIED chain corpus only; untaught facts return UNKNOWN (anti-recall probes enforced), wrong=0 | `evals/curriculum_serve/report.json` | `d9e7ba500f040b865870413a940ee9a49910ac22e1a89c9feec1a60bdd2513f1` |
 
 ## Verification
 

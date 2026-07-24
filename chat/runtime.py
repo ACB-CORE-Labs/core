@@ -1757,6 +1757,22 @@ class ChatRuntime:
                 return (deduction_surface, "deduction", ())
             if attempts is not None:
                 attempts.append(DispatchAttempt(source="deduction", outcome="skipped", reason="not_argument_shaped"))
+        # Generalization arc, Phase 2 (ADR-0262) — curriculum-grounded exam
+        # questions, checked beside deduction serving for the same reason: a
+        # pure function of the input text and the ratified curriculum, with no
+        # vault/field dependency, so warm/cold state cannot change the answer.
+        if self.config.curriculum_serving_enabled:
+            from chat.curriculum_surface import curriculum_grounded_surface
+            from generate.intent import DialogueIntent, IntentTag as _IntentTag
+
+            curriculum_surface = curriculum_grounded_surface(text)
+            if curriculum_surface is not None:
+                self._last_intent = DialogueIntent(tag=_IntentTag.DEDUCTION, subject=text)
+                if attempts is not None:
+                    attempts.append(DispatchAttempt(source="curriculum", outcome="admitted", reason="curriculum_composer_committed"))
+                return (curriculum_surface, "curriculum", ())
+            if attempts is not None:
+                attempts.append(DispatchAttempt(source="curriculum", outcome="skipped", reason="not_curriculum_question"))
         if not allow_warm and gate_source != "empty_vault":
             if attempts is not None:
                 for src in ("pack", "teaching", "partial", "oov"):

@@ -1,0 +1,40 @@
+{
+  "aggregate": {
+    "correct": 32,
+    "declined": 0,
+    "n": 32,
+    "wrong": 0
+  },
+  "all_correct": true,
+  "arc": "generalization",
+  "lane": "curriculum_serve",
+  "schema_version": 1,
+  "splits": {
+    "physics": {
+      "all_cases_correct": true,
+      "anti_recall_probes": 5,
+      "by_band": {
+        "curriculum_physics_causal": 14,
+        "curriculum_physics_modal": 12
+      },
+      "by_gold": {
+        "declined": 6,
+        "entailed": 14,
+        "unknown": 12
+      },
+      "correct_by_gold": {
+        "declined": 6,
+        "entailed": 14,
+        "unknown": 12
+      },
+      "counts": {
+        "correct": 32,
+        "declined": 0,
+        "wrong": 0
+      },
+      "domain": "physics",
+      "n": 32
+    }
+  },
+  "wrong_is_zero": true
+}

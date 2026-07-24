@@ -1,0 +1,32 @@
+{"id": "cs-phy-0001", "text": "Does force cause acceleration?", "gold": "entailed", "chains": ["physics-causal-001"], "class": "taught_edge_causal"}
+{"id": "cs-phy-0002", "text": "Does acceleration cause motion?", "gold": "entailed", "chains": ["physics-causal-002"], "class": "taught_edge_causal"}
+{"id": "cs-phy-0003", "text": "Does work cause energy?", "gold": "entailed", "chains": ["physics-causal-003"], "class": "taught_edge_causal"}
+{"id": "cs-phy-0004", "text": "Does charge cause field?", "gold": "entailed", "chains": ["physics-causal-004"], "class": "taught_edge_causal"}
+{"id": "cs-phy-0005", "text": "Does field cause force?", "gold": "entailed", "chains": ["physics-causal-005"], "class": "taught_edge_causal"}
+{"id": "cs-phy-0006", "text": "Does temperature reveal motion?", "gold": "entailed", "chains": ["physics-causal-006"], "class": "taught_edge_reveals"}
+{"id": "cs-phy-0007", "text": "Does entropy reveal energy?", "gold": "entailed", "chains": ["physics-causal-007"], "class": "taught_edge_reveals"}
+{"id": "cs-phy-0008", "text": "Does conservation require symmetry?", "gold": "entailed", "chains": ["physics-modal-001"], "class": "taught_edge_modal"}
+{"id": "cs-phy-0009", "text": "Does mass require force?", "gold": "entailed", "chains": ["physics-modal-002"], "class": "taught_edge_modal"}
+{"id": "cs-phy-0010", "text": "Does momentum require mass?", "gold": "entailed", "chains": ["physics-modal-003"], "class": "taught_edge_modal"}
+{"id": "cs-phy-0011", "text": "Does energy require conservation?", "gold": "entailed", "chains": ["physics-modal-004"], "class": "taught_edge_modal"}
+{"id": "cs-phy-0012", "text": "Does frequency require wave?", "gold": "entailed", "chains": ["physics-modal-005"], "class": "taught_edge_modal"}
+{"id": "cs-phy-0013", "text": "Does wave require field?", "gold": "entailed", "chains": ["physics-causal-008"], "class": "taught_edge_family_by_connective"}
+{"id": "cs-phy-0014", "text": "Does force cause motion?", "gold": "unknown", "chains": ["physics-causal-001", "physics-causal-002"], "class": "two_hop_not_composed"}
+{"id": "cs-phy-0015", "text": "Does charge cause acceleration?", "gold": "unknown", "chains": ["physics-causal-004", "physics-causal-005", "physics-causal-001"], "class": "three_hop_not_composed"}
+{"id": "cs-phy-0016", "text": "Does energy require symmetry?", "gold": "unknown", "chains": ["physics-modal-004", "physics-modal-001"], "class": "two_hop_modal_not_composed"}
+{"id": "cs-phy-0017", "text": "Does momentum require force?", "gold": "unknown", "chains": ["physics-modal-003", "physics-modal-002"], "class": "two_hop_modal_not_composed"}
+{"id": "cs-phy-0018", "text": "Does acceleration cause force?", "gold": "unknown", "chains": ["physics-causal-001"], "class": "reverse_direction"}
+{"id": "cs-phy-0019", "text": "Does motion cause acceleration?", "gold": "unknown", "chains": ["physics-causal-002"], "class": "reverse_direction"}
+{"id": "cs-phy-0020", "text": "Does entropy cause energy?", "gold": "unknown", "chains": ["physics-causal-007"], "class": "relation_not_interchangeable"}
+{"id": "cs-phy-0021", "text": "Does work cause motion?", "gold": "unknown", "chains": [], "class": "unlinked_pair"}
+{"id": "cs-phy-0022", "text": "Does temperature require symmetry?", "gold": "unknown", "chains": [], "class": "unlinked_pair"}
+{"id": "cs-phy-0023", "text": "Does mass require energy?", "gold": "unknown", "chains": [], "class": "anti_recall_true_but_untaught"}
+{"id": "cs-phy-0024", "text": "Does force cause work?", "gold": "unknown", "chains": [], "class": "anti_recall_true_but_untaught"}
+{"id": "cs-phy-0025", "text": "Does charge require field?", "gold": "unknown", "chains": ["physics-modal-007"], "class": "reverse_direction_modal"}
+{"id": "cs-phy-0026", "text": "Does field require charge?", "gold": "entailed", "chains": ["physics-modal-007"], "class": "taught_edge_modal"}
+{"id": "cs-phy-0027", "text": "Does gravity cause acceleration?", "gold": "declined", "chains": [], "class": "anti_recall_untaught_vocabulary"}
+{"id": "cs-phy-0028", "text": "Does current cause field?", "gold": "declined", "chains": [], "class": "anti_recall_untaught_vocabulary"}
+{"id": "cs-phy-0029", "text": "Does pressure require volume?", "gold": "declined", "chains": [], "class": "anti_recall_untaught_vocabulary"}
+{"id": "cs-phy-0030", "text": "Does force explain acceleration?", "gold": "declined", "chains": [], "class": "out_of_curriculum_relation"}
+{"id": "cs-phy-0031", "text": "Does force accelerate mass quickly?", "gold": "declined", "chains": [], "class": "question_shape_out_of_band"}
+{"id": "cs-phy-0032", "text": "Does the force cause acceleration?", "gold": "declined", "chains": [], "class": "question_shape_out_of_band"}

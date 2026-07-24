@@ -18,11 +18,11 @@ commit and SHA-verify on load.
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 from typing import Any
 
 from core.learning_arena.engine import run_practice
+from core.ratified_ledger import seal_artifact, tally_dict, write_sealed_ledger
 from core.reliability_gate import Action, Ceilings, ClassTally, license_for
 from evals.deduction_serve.practice.gold import (
     ConstructionGoldTether,
@@ -30,7 +30,6 @@ from evals.deduction_serve.practice.gold import (
     all_gold_problems,
     assert_corpus_sound,
 )
-from formation.hashing import sha256_of
 
 #: The committed sealed ledger lives next to its serving READER (chat/), mirroring
 #: the estimation ledger's topology (producer in evals/, artifact by the reader).
@@ -46,13 +45,7 @@ def build_ledger() -> dict[str, ClassTally]:
 
 
 def _tally_dict(tally: ClassTally) -> dict[str, Any]:
-    return {
-        "correct": tally.correct,
-        "wrong": tally.wrong,
-        "refused": tally.refused,
-        "t2_verified": tally.t2_verified,
-        "t2_agrees_gold": tally.t2_agrees_gold,
-    }
+    return tally_dict(tally)
 
 
 def run(ceilings: Ceilings | None = None) -> dict[str, Any]:
@@ -81,31 +74,30 @@ def run(ceilings: Ceilings | None = None) -> dict[str, Any]:
 
 
 def build_sealed_artifact() -> dict[str, Any]:
-    """The committed sealed-ledger dict (self-verifying ``content_sha256``)."""
-    ledger = build_ledger()
-    classes = {cls: _tally_dict(tally) for cls, tally in sorted(ledger.items())}
-    return {
-        "schema": "deduction_serve_ledger_v1",
-        "classes": classes,
-        "content_sha256": sha256_of(classes),
-        "note": (
+    """The committed sealed-ledger dict (self-verifying ``content_sha256``).
+
+    Formatting and hashing come from the shared bridge (ADR-0263) — byte
+    -identical to what this module wrote before the extraction, which is how
+    the refactor is proven safe: re-sealing must not move the artifact.
+    """
+    return seal_artifact(
+        build_ledger(),
+        schema="deduction_serve_ledger_v1",
+        note=(
             "Sealed-practice committed ledger for deduction serving (ADR-0256). "
             "Engine reads, never writes. Ceilings stay at safe defaults "
             "(theta_SERVE=0.99). A band earns SERVE by demonstrated pipeline "
             "reliability (reader+projector+engine) at volume >= 657 committed."
         ),
-        "provenance": "evals.deduction_serve.practice.runner.seal_ledger",
-    }
+        provenance="evals.deduction_serve.practice.runner.seal_ledger",
+    )
 
 
 def seal_ledger(path: Path = _SEALED_LEDGER_PATH) -> dict[str, Any]:
     """Regenerate + write the committed sealed ledger. Verifies corpus soundness
     against the independent oracle first (a mis-stated gold can never seal)."""
     assert_corpus_sound()
-    artifact = build_sealed_artifact()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(artifact, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    return artifact
+    return write_sealed_ledger(path, build_sealed_artifact())
 
 
 def main(argv: list[str] | None = None) -> int:

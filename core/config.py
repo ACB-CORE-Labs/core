@@ -386,6 +386,21 @@ class RuntimeConfig:
     # (hedged). OFF by default: flag-off is byte-identical to pre-arc dispatch.
     deduction_serving_enabled: bool = False
 
+    # Generalization arc, Phase 2 (ADR-0262) — when on, ``chat/curriculum_surface.py``
+    # answers exam-shaped polar questions ("Does force cause acceleration?") from the
+    # RATIFIED domain-chain curriculum of the subject the question's vocabulary
+    # belongs to, decided by the same argument bands the deduction composer uses.
+    # The curriculum is read OPEN-world: a relation it does not teach is UNKNOWN,
+    # never "no", so an untaught fact can never be decoded into a negative claim.
+    # Like ``deduction_serving_enabled`` this is an enable for an EARNED path, not a
+    # direct-serve switch — an answer is served AUTHORITATIVELY only when its
+    # (subject x relation family) band holds a SERVE license on the committed,
+    # SHA-sealed curriculum ledger; an unearned band is served DISCLOSED (hedged),
+    # which is the state of every band today (ADR-0262 SS5: the binding constraint is
+    # ratified curriculum volume, not machinery). OFF by default: flag-off is
+    # byte-identical to pre-arc dispatch.
+    curriculum_serving_enabled: bool = False
+
     # ASK serving gate enable flag. When True, ASK serving is allowed.
     # Default False (dark).
     ask_serving_enabled: bool = False
