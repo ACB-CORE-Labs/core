@@ -22,6 +22,11 @@ Bands (docs/research/deduction-serve-arc-phase0-baseline-2026-07-23.md):
   ground is wet."), read by ``generate.proof_chain.english`` and decided by the
   same engine. Tried strictly AFTER v1/v1b (a fallback tier), so every argument
   those bands serve is served byte-identically; this band only widens coverage.
+- Band v3-MEM (ADR-0258) — singular-membership arguments with universal
+  premises ("Socrates is a man. All men are mortal. Therefore Socrates is
+  mortal."), read by ``generate.proof_chain.member`` via per-individual
+  propositional lowering and decided by the same engine. Tried strictly AFTER
+  v2-EN (which guards these shapes out) — again a pure widening tier.
 
 Fail-closed (INV-34): once ``looks_like_deductive_argument`` fires, every path
 below returns a committed, honest surface — reader refusal, out-of-band shape,
@@ -41,9 +46,11 @@ from generate.meaning_graph.reader import Comprehension, comprehend
 from generate.proof_chain.categorical import CategoricalError, decide_syllogism
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import evaluate_entailment_with_trace
+from generate.proof_chain.member import MemberArgument, read_member_argument
 from generate.proof_chain.render import (
     render_entailment,
     render_entailment_english,
+    render_entailment_member,
     render_syllogism,
 )
 from generate.proof_chain.shape import CATEGORICAL, classify_deduction_shape
@@ -122,6 +129,9 @@ def deduction_grounded_surface(
         english = _english_band_surface(text, license_lookup)
         if english is not None:
             return english
+        member = _member_band_surface(text, license_lookup)
+        if member is not None:
+            return member
         return _READER_REFUSAL_SURFACE.format(reason=comp.reason)
     # Band v1 — propositional argument.
     projected = to_deductive_logic(comp)
@@ -146,6 +156,10 @@ def deduction_grounded_surface(
     english = _english_band_surface(text, license_lookup)
     if english is not None:
         return english
+    # Band v3-MEM fallback — the membership/universal shapes v2-EN guards out.
+    member = _member_band_surface(text, license_lookup)
+    if member is not None:
+        return member
     return _OUT_OF_BAND_SURFACE
 
 
@@ -159,6 +173,19 @@ def _english_band_surface(text: str, license_lookup: _LicenseLookup) -> str | No
         return None
     trace = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula)
     surface = render_entailment_english(trace, arg.premise_texts, arg.query_text)
+    return _license_gate(surface, arg.band, license_lookup)
+
+
+def _member_band_surface(text: str, license_lookup: _LicenseLookup) -> str | None:
+    """Band v3-MEM (ADR-0258): read *text* as a singular-membership argument,
+    lower per-individual, and decide with the same verified ROBDD engine;
+    ``None`` when the member reader refuses (the caller keeps its pre-existing
+    honest surface — this band only ever widens what is decided)."""
+    arg = read_member_argument(text)
+    if not isinstance(arg, MemberArgument):
+        return None
+    trace = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula)
+    surface = render_entailment_member(trace, arg.premise_texts, arg.query_text)
     return _license_gate(surface, arg.band, license_lookup)
 
 

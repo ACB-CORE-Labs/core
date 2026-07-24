@@ -96,6 +96,42 @@ def render_entailment_english(
     return f"Given: {given}. I can't evaluate {query_text} from that as stated."
 
 
+def render_entailment_member(
+    trace: EntailmentTrace, premise_texts: tuple[str, ...], query_text: str
+) -> str:
+    """The user-facing surface for a member-argument (Band v3-MEM) verdict.
+
+    Same discipline as :func:`render_entailment_english`; the UNKNOWN template
+    scopes itself to THIS band's reading (ADR-0258 §3): distinct names are
+    read as distinct individuals and class words at face value — co-reference
+    or an unlinked class identity could settle what the lowering leaves open,
+    so the claim is stated of the reading, disclosed as such. ENTAILED /
+    REFUTED / inconsistent survive any such refinement (instantiation is
+    sound and entailment is monotone) and are stated at full strength.
+    """
+    given = "; ".join(premise_texts)
+    if trace.outcome is Entailment.ENTAILED:
+        return f"Given: {given}. Your premises entail: {query_text}."
+    if trace.outcome is Entailment.REFUTED:
+        return (
+            f"Given: {given}. Your premises entail the opposite of "
+            f"{query_text} — it cannot hold."
+        )
+    if trace.outcome is Entailment.UNKNOWN:
+        return (
+            f"Given: {given}. Reading each name as one individual and each "
+            f"class word at face value, your premises don't settle whether "
+            f"{query_text} — it holds in some cases and fails in others."
+        )
+    # REFUSED
+    if trace.reason == INCONSISTENT_PREMISES:
+        return (
+            f"Given: {given}. Those premises are inconsistent — they "
+            f"can't all be true, so I won't assert anything from them."
+        )
+    return f"Given: {given}. I can't evaluate {query_text} from that as stated."
+
+
 def _categorical_clause(prop: dict) -> str:
     """One categorical proposition dict → its English clause."""
     template = _CATEGORICAL_PHRASE.get(prop.get("form", ""), "{s} ~ {p}")
@@ -129,4 +165,9 @@ def render_syllogism(trace: EntailmentTrace, structure: dict, query: dict) -> st
     )
 
 
-__all__ = ["render_entailment", "render_syllogism"]
+__all__ = [
+    "render_entailment",
+    "render_entailment_english",
+    "render_entailment_member",
+    "render_syllogism",
+]

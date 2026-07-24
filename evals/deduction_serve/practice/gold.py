@@ -35,6 +35,7 @@ from generate.meaning_graph.reader import Comprehension, comprehend
 from generate.proof_chain.categorical import CategoricalError, decide_syllogism
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
+from generate.proof_chain.member import MemberArgument, read_member_argument
 from generate.proof_chain.shape import (
     ATOMIC,
     CATEGORICAL,
@@ -45,6 +46,10 @@ from generate.proof_chain.shape import (
     EN_CONDITIONAL_CHAIN,
     EN_CONDITIONAL_SINGLE,
     EN_DISJUNCTIVE,
+    EN_MEMBER_ATOMIC,
+    EN_MEMBER_CHAIN,
+    EN_MEMBER_NEGATIVE,
+    EN_MEMBER_SINGLE,
     classify_deduction_shape,
 )
 
@@ -239,10 +244,155 @@ _EN_TEMPLATES: dict[str, tuple[tuple[str, Any, tuple[str, ...], str], ...]] = {
     ),
 }
 
-#: Ledger band order: the five v1 bands, then the four v2-EN bands.
+# --- Band v3-MEM (ADR-0258): member-argument synthetic corpus -----------------
+#
+# Names × class-noun (singular, plural) pairs × state adjectives. The class
+# lexicon deliberately exercises EVERY row-type of the reader's closed number
+# table — irregular (man/men, person/people, child/children, wolf/wolves,
+# mouse/mice, goose/geese), invariant (sheep, fish), and each regular suffix
+# rule (+s, +es, y↔ies) — so the earned license certifies the linking relation
+# itself, not just the sentence grammar. Content is synthetic ON PURPOSE
+# (same posture as the v2-EN corpus above); hand-authored real-English cases
+# live in ``evals/deduction_serve/v2_member``.
+
+_MEM_NAMES: tuple[str, ...] = (
+    "Rex", "Ada", "Kai", "Milo", "Nova", "Otis", "Pia", "Quinn", "Rio", "Sol",
+    "Tara", "Ugo", "Vera", "Wren", "Yara", "Zed", "Bo", "Cyra", "Dax", "Elio",
+)
+_MEM_CLASSES: tuple[tuple[str, str], ...] = (
+    ("man", "men"), ("person", "people"), ("child", "children"),
+    ("wolf", "wolves"), ("mouse", "mice"), ("goose", "geese"),
+    ("sheep", "sheep"), ("fish", "fish"),
+    ("cat", "cats"), ("dog", "dogs"), ("fox", "foxes"), ("pony", "ponies"),
+)
+_MEM_STATES: tuple[str, ...] = (
+    "mortal", "loyal", "wild", "tame", "swift", "calm",
+    "bold", "shy", "warm", "quiet", "brave", "free",
+)
+
+
+def _mem_case(index: int) -> tuple[str, str, tuple[str, str], tuple[str, str], tuple[str, str], str]:
+    """Deterministic (name1, name2, class1, class2, class3, state) for case
+    ``index`` — names and the three classes are always pairwise distinct."""
+    n1 = _MEM_NAMES[(index * 3) % len(_MEM_NAMES)]
+    n2 = _MEM_NAMES[(index * 3 + 1) % len(_MEM_NAMES)]
+    base = (index * 5) % (len(_MEM_CLASSES) - 2)
+    c1, c2, c3 = _MEM_CLASSES[base], _MEM_CLASSES[base + 1], _MEM_CLASSES[base + 2]
+    state = _MEM_STATES[(index * 7) % len(_MEM_STATES)]
+    return n1, n2, c1, c2, c3, state
+
+
+#: Member-band templates: (gold, text_builder, intended_premises, intended_query).
+#: Builders take ``(n1, n2, c1, c2, c3, st)`` from ``_mem_case``; the INTENDED
+#: formulas are the template's per-individual lowering over fixed placeholder
+#: atoms (``ma`` = first (individual, class) pair, …), cross-checked against
+#: the truth-table oracle with no reader in the loop (INV-25).
+_MEM_TEMPLATES: dict[str, tuple[tuple[str, Any, tuple[str, ...], str], ...]] = {
+    EN_MEMBER_SINGLE: (
+        # Instantiated modus ponens onto a state predicate.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. All {c1[1]} are {st}. Therefore {n1} is {st}.",
+         ("ma", "ma implies mb"), "mb"),
+        # Instantiated modus ponens onto a membership conclusion ("every" spelling).
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. Every {c1[0]} is a {c2[0]}. Therefore {n1} is a {c2[0]}.",
+         ("ma", "ma implies mb"), "mb"),
+        # Universal stated FIRST ("each" spelling) — order independence.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"Each {c1[0]} is {st}. {n1} is a {c1[0]}. Therefore {n1} is {st}.",
+         ("ma implies mb", "ma"), "mb"),
+        # Contradicting the instantiated consequent.
+        ("refuted",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. All {c1[1]} are {st}. Therefore {n1} is not {st}.",
+         ("ma", "ma implies mb"), "not mb"),
+        # Converse instantiation — affirming the consequent.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is {st}. All {c1[1]} are {st}. Therefore {n1} is a {c1[0]}.",
+         ("mb", "ma implies mb"), "ma"),
+        # The universal binds a DIFFERENT named individual than the conclusion's.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. All {c1[1]} are {st}. Therefore {n2} is {st}.",
+         ("ma", "ma implies mb", "mc implies md"), "md"),
+    ),
+    EN_MEMBER_CHAIN: (
+        # Two-hop instantiated chain onto a state.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. All {c1[1]} are {c2[1]}. All {c2[1]} are {st}. Therefore {n1} is {st}.",
+         ("ma", "ma implies mb", "mb implies mc"), "mc"),
+        # Two-hop chain onto a MEMBERSHIP conclusion — the conclusion's singular
+        # article form links to the chain's plural class.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. All {c1[1]} are {c2[1]}. All {c2[1]} are {c3[1]}. Therefore {n1} is a {c3[0]}.",
+         ("ma", "ma implies mb", "mb implies mc"), "mc"),
+        # Chain contradiction.
+        ("refuted",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. All {c1[1]} are {c2[1]}. All {c2[1]} are {st}. Therefore {n1} is not {st}.",
+         ("ma", "ma implies mb", "mb implies mc"), "not mc"),
+        # Broken chain — the individual's class never enters it.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. All {c2[1]} are {c3[1]}. All {c3[1]} are {st}. Therefore {n1} is {st}.",
+         ("ma", "mb implies mc", "mc implies md"), "md"),
+        # Reverse traversal — chains do not run backwards.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is {st}. All {c1[1]} are {c2[1]}. All {c2[1]} are {st}. Therefore {n1} is a {c1[0]}.",
+         ("mc", "ma implies mb", "mb implies mc"), "ma"),
+    ),
+    EN_MEMBER_NEGATIVE: (
+        # Instantiated E-form onto a state.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. No {c1[1]} are {st}. Therefore {n1} is not {st}.",
+         ("ma", "ma implies not mb"), "not mb"),
+        # Instantiated E-form onto a membership conclusion.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. No {c1[1]} are {c2[1]}. Therefore {n1} is not a {c2[0]}.",
+         ("ma", "ma implies not mb"), "not mb"),
+        # A-chain into an E-form.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. All {c1[1]} are {c2[1]}. No {c2[1]} are {st}. Therefore {n1} is not {st}.",
+         ("ma", "ma implies mb", "mb implies not mc"), "not mc"),
+        # Contradicting the E-form's instantiation.
+        ("refuted",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. No {c1[1]} are {st}. Therefore {n1} is {st}.",
+         ("ma", "ma implies not mb"), "mb"),
+        # Denied antecedent under an E-form — nothing follows.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is not a {c1[0]}. No {c1[1]} are {st}. Therefore {n1} is not {st}.",
+         ("not ma", "ma implies not mb"), "not mb"),
+    ),
+    EN_MEMBER_ATOMIC: (
+        # Membership restatement (the promoted ds-en-0022 shape).
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. Therefore {n1} is a {c1[0]}.",
+         ("ma",), "ma"),
+        # State restatement.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is {st}. Therefore {n1} is {st}.",
+         ("ma",), "ma"),
+        # Selection from two facts about one individual.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. {n1} is {st}. Therefore {n1} is {st}.",
+         ("ma", "mb"), "mb"),
+        # Self-contradiction (membership).
+        ("refuted",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. Therefore {n1} is not a {c1[0]}.",
+         ("ma",), "not ma"),
+        # Negated fact contradicted.
+        ("refuted",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is not {st}. Therefore {n1} is {st}.",
+         ("not ma",), "ma"),
+        # Unrelated conclusion.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]}. Therefore {n1} is {st}.",
+         ("ma",), "mb"),
+    ),
+}
+
+#: Ledger band order: the five v1 bands, the four v2-EN bands, then the four
+#: v3-MEM bands.
 _ALL_BANDS: tuple[str, ...] = (
     CONDITIONAL_SINGLE, CONDITIONAL_CHAIN, DISJUNCTIVE, ATOMIC, CATEGORICAL,
     EN_CONDITIONAL_SINGLE, EN_CONDITIONAL_CHAIN, EN_DISJUNCTIVE, EN_ATOMIC,
+    EN_MEMBER_SINGLE, EN_MEMBER_CHAIN, EN_MEMBER_NEGATIVE, EN_MEMBER_ATOMIC,
 )
 
 
@@ -256,6 +406,25 @@ def generate_problems(band: str, n: int) -> list[Problem]:
     logical form for the reader-independent oracle cross-check.
     """
     problems: list[Problem] = []
+    if band in _MEM_TEMPLATES:
+        templates = _MEM_TEMPLATES[band]
+        for i in range(n):
+            gold, builder, intended_premises, intended_query = templates[i % len(templates)]
+            problems.append(
+                Problem(
+                    problem_id=f"{band}-{i:04d}",
+                    class_name=band,
+                    payload={
+                        "text": builder(*_mem_case(i)),
+                        "gold": gold,
+                        "intended": {
+                            "premises": list(intended_premises),
+                            "query": intended_query,
+                        },
+                    },
+                )
+            )
+        return problems
     if band in _EN_TEMPLATES:
         templates = _EN_TEMPLATES[band]
         for i in range(n):
@@ -348,11 +517,15 @@ class DeductionSolver:
         text = problem.payload["text"]
         comp = comprehend(text)
         if not isinstance(comp, Comprehension):
-            # Band v2-EN fallback — mirrors the composer: the shared reader
-            # refused, but the English-clause argument reader may read it.
+            # Band v2-EN / v3-MEM fallbacks — mirror the composer: the shared
+            # reader refused, but the English-clause or member-argument reader
+            # may read it.
             english = self._attempt_english(problem)
             if english is not None:
                 return english
+            member = self._attempt_member(problem)
+            if member is not None:
+                return member
             return _DeductionAttempt(
                 committed=False, answer=None, reason=f"reader:{getattr(comp, 'reason', '')}",
                 case_id=problem.problem_id, shape=problem.class_name,
@@ -386,6 +559,9 @@ class DeductionSolver:
         english = self._attempt_english(problem)
         if english is not None:
             return english
+        member = self._attempt_member(problem)
+        if member is not None:
+            return member
         return _DeductionAttempt(
             committed=False, answer=None, reason="unprojectable",
             case_id=problem.problem_id, shape=problem.class_name,
@@ -396,6 +572,21 @@ class DeductionSolver:
         English reader refuses (the caller then records the honest decline)."""
         arg = read_english_argument(problem.payload["text"])
         if not isinstance(arg, EnglishArgument):
+            return None
+        outcome = evaluate_entailment_with_trace(
+            arg.premise_formulas, arg.query_formula
+        ).outcome
+        return _DeductionAttempt(
+            committed=outcome is not Entailment.REFUSED,
+            answer=_OUTCOME_TO_CLASS[outcome], reason="",
+            case_id=problem.problem_id, shape=arg.band,
+        )
+
+    def _attempt_member(self, problem: Problem) -> _DeductionAttempt | None:
+        """Band v3-MEM: the member-argument path, or ``None`` when the member
+        reader refuses (the caller then records the honest decline)."""
+        arg = read_member_argument(problem.payload["text"])
+        if not isinstance(arg, MemberArgument):
             return None
         outcome = evaluate_entailment_with_trace(
             arg.premise_formulas, arg.query_formula

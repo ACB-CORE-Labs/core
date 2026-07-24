@@ -118,11 +118,30 @@ def test_quoted_clause_surface_is_exempt_from_realizer_guard() -> None:
     assert "Your premises entail: the window is open" in resp_warm.surface
 
 
-def test_out_of_regime_argument_refuses_honestly() -> None:
-    """A 'therefore' argument NO band can read (membership shape — reserved for
-    a future member_chain band) gets an honest committed refusal surface, never
-    a fluent-but-ungrounded answer or a silent fall-through (INV-34 fail-closed)."""
+def test_member_argument_is_decided_end_to_end() -> None:
+    """The ADR-0258 flagship: the classic instantiation syllogism ("Socrates
+    is a man…"), decided through the real REPL spine via per-individual
+    lowering, rendered over the user's own sentences — including the A-chain
+    into an E-form."""
     rt = _runtime(True)
-    resp = rt.chat("Socrates is a man. Therefore Socrates is mortal.")
+    resp = rt.chat("Socrates is a man. All men are mortal. Therefore Socrates is mortal.")
+    assert resp.grounding_source == "deduction"
+    assert "Your premises entail: socrates is mortal" in resp.surface
+
+    negative = rt.chat(
+        "Tweety is a canary. All canaries are birds. No birds are reptiles. "
+        "Therefore Tweety is not a reptile."
+    )
+    assert negative.grounding_source == "deduction"
+    assert "Your premises entail: tweety is not a reptile" in negative.surface
+
+
+def test_out_of_regime_argument_refuses_honestly() -> None:
+    """A 'therefore' argument NO band can read (verb-phrase negation —
+    ADR-0257 scope-out #2, morphology work reserved for a future band) gets an
+    honest committed refusal surface, never a fluent-but-ungrounded answer or
+    a silent fall-through (INV-34 fail-closed)."""
+    rt = _runtime(True)
+    resp = rt.chat("The engine doesn't start. Therefore the engine is broken.")
     assert resp.grounding_source == "deduction"
     assert "can't parse" in resp.surface  # honest reader-refusal disclosure

@@ -60,8 +60,25 @@ EN_SHAPE_BANDS: tuple[str, ...] = (
     EN_ATOMIC,
 )
 
+#: Band v3-MEM (ADR-0258) — singular-membership arguments with universal
+#: premises ("Socrates is a man. All men are mortal. …"), read by
+#: ``generate.proof_chain.member`` via per-individual propositional lowering.
+#: Same ``en_`` license discipline: a different reader must earn its own
+#: per-shape record. Priority order: negative > chain > single > atomic.
+EN_MEMBER_NEGATIVE = "en_member_negative"
+EN_MEMBER_CHAIN = "en_member_chain"
+EN_MEMBER_SINGLE = "en_member_single"
+EN_MEMBER_ATOMIC = "en_member_atomic"
+
+EN_MEMBER_BANDS: tuple[str, ...] = (
+    EN_MEMBER_NEGATIVE,
+    EN_MEMBER_CHAIN,
+    EN_MEMBER_SINGLE,
+    EN_MEMBER_ATOMIC,
+)
+
 #: Every serving shape-band — the ratified ledger's full key set.
-ALL_SHAPE_BANDS: tuple[str, ...] = SHAPE_BANDS + EN_SHAPE_BANDS
+ALL_SHAPE_BANDS: tuple[str, ...] = SHAPE_BANDS + EN_SHAPE_BANDS + EN_MEMBER_BANDS
 
 
 def classify_deduction_shape(premises: tuple[str, ...], query: str) -> str:
@@ -99,6 +116,11 @@ __all__ = [
     "EN_CONDITIONAL_CHAIN",
     "EN_CONDITIONAL_SINGLE",
     "EN_DISJUNCTIVE",
+    "EN_MEMBER_ATOMIC",
+    "EN_MEMBER_BANDS",
+    "EN_MEMBER_CHAIN",
+    "EN_MEMBER_NEGATIVE",
+    "EN_MEMBER_SINGLE",
     "EN_SHAPE_BANDS",
     "SHAPE_BANDS",
     "classify_deduction_shape",

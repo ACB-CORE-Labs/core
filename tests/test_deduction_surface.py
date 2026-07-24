@@ -173,6 +173,64 @@ def test_english_reader_refusal_keeps_prior_honest_surface() -> None:
     assert "can't parse" in surface
 
 
+def test_membership_syllogism_is_decided_band_v3_mem() -> None:
+    """The classic instantiation syllogism — reserved by ADR-0257 §6.1, now
+    DECIDED by the member band (ADR-0258), authoritatively (the
+    ``en_member_single`` band holds an earned SERVE license), with the verdict
+    rendered over the user's own sentences."""
+    surface = deduction_grounded_surface(
+        "Socrates is a man. All men are mortal. Therefore Socrates is mortal."
+    )
+    assert surface is not None
+    assert "Your premises entail: socrates is mortal" in surface
+    assert not surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+
+
+def test_member_negative_universal_is_decided() -> None:
+    """The E-form ("no …") lowers to a negated instantiation and decides."""
+    surface = deduction_grounded_surface(
+        "Fido is a dog. No dogs are cats. Therefore Fido is not a cat."
+    )
+    assert surface is not None
+    assert "Your premises entail: fido is not a cat" in surface
+
+
+def test_member_unknown_is_scoped_to_the_instantiated_reading() -> None:
+    """Member-band UNKNOWN must scope itself (ADR-0258 §3): co-reference of
+    distinct names or an unlinked class identity could settle what the
+    lowering leaves open, so the claim is stated of the reading."""
+    surface = deduction_grounded_surface(
+        "Socrates is mortal. All men are mortal. Therefore Socrates is a man."
+    )
+    assert surface is not None
+    assert "Reading each name as one individual" in surface
+    assert "don't settle" in surface
+
+
+def test_member_unearned_band_would_be_hedged() -> None:
+    """The en_member_* bands ride the SAME earned-license gate: strip the
+    license and the same sound answer is served DISCLOSED, never
+    authoritatively."""
+    surface = deduction_grounded_surface(
+        "Socrates is a man. All men are mortal. Therefore Socrates is mortal.",
+        license_lookup=lambda band: None,
+    )
+    assert surface is not None
+    assert surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+    assert "Your premises entail: socrates is mortal" in surface
+
+
+def test_member_reader_refusal_keeps_prior_honest_surface() -> None:
+    """When the member band ALSO cannot read the argument (here: tense, a
+    deliberate ADR-0258 scope-out), the pre-existing honest surfaces are
+    preserved verbatim — the band only widens."""
+    surface = deduction_grounded_surface(
+        "Socrates was a man. All men are mortal. Therefore Socrates is mortal."
+    )
+    assert surface is not None
+    assert "can't parse" in surface
+
+
 def test_surface_is_deterministic() -> None:
     text = "If p then q. p. Therefore q."
     assert deduction_grounded_surface(text) == deduction_grounded_surface(text)
