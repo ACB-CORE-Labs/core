@@ -10,25 +10,25 @@ artifact is the sealed-practice output of
 is verified on load, so a hand-edited (un-ratified) ledger is rejected rather
 than silently trusted.
 
-Mirrors ``generate.determine.estimation_license`` exactly: immutable ratified
-data parsed once and cached; the gate (``license_for``) is pure; ceilings stay
-at the safe defaults (invariant #4 — the engine cannot raise its own bar).
+The load/verify/gate mechanics live in ``core.ratified_ledger`` (ADR-0263) —
+this module is the deduction-serve ADAPTER over that bridge: it names the
+artifact, keeps the memoization, and preserves its own public API. Ceilings
+stay at the safe defaults (invariant #4 — the engine cannot raise its own bar).
 """
 
 from __future__ import annotations
 
-import json
 from functools import lru_cache
 from pathlib import Path
 
-from core.reliability_gate import Action, Ceilings, ClassTally, LicenseDecision, license_for
-from formation.hashing import sha256_of
+from core.ratified_ledger import (
+    RatifiedLedgerError,
+    load_sealed_ledger,
+    serve_license,
+)
+from core.reliability_gate import Ceilings, ClassTally, LicenseDecision
 
 _LEDGER_PATH = Path(__file__).resolve().parent / "data" / "deduction_serve_ledger.json"
-
-
-class RatifiedLedgerError(ValueError):
-    """The committed deduction-serve ledger is missing, malformed, or tampered with."""
 
 
 @lru_cache(maxsize=1)
@@ -39,30 +39,7 @@ def load_ratified_ledger() -> dict[str, ClassTally]:
     recomputed ``content_sha256`` does not match the committed one (tamper-evidence:
     only the sealed-practice output is trusted, never a hand-edited ledger).
     """
-    try:
-        artifact = json.loads(_LEDGER_PATH.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:  # pragma: no cover - defensive
-        raise RatifiedLedgerError(f"cannot read ratified ledger: {exc}") from exc
-
-    classes = artifact.get("classes")
-    if not isinstance(classes, dict):
-        raise RatifiedLedgerError("ratified ledger has no 'classes' table")
-    if sha256_of(classes) != artifact.get("content_sha256"):
-        raise RatifiedLedgerError(
-            "ratified ledger content_sha256 mismatch — not the sealed-practice output"
-        )
-
-    ledger: dict[str, ClassTally] = {}
-    for cls, counts in classes.items():
-        ledger[cls] = ClassTally(
-            class_name=cls,
-            correct=int(counts.get("correct", 0)),
-            wrong=int(counts.get("wrong", 0)),
-            refused=int(counts.get("refused", 0)),
-            t2_verified=int(counts.get("t2_verified", 0)),
-            t2_agrees_gold=int(counts.get("t2_agrees_gold", 0)),
-        )
-    return ledger
+    return load_sealed_ledger(_LEDGER_PATH)
 
 
 def deduction_serve_license(
@@ -79,11 +56,7 @@ def deduction_serve_license(
     safe default ceilings.
     """
     ledger = ledger if ledger is not None else load_ratified_ledger()
-    tally = ledger.get(shape_band)
-    if tally is None:
-        return None
-    ceilings = ceilings if ceilings is not None else Ceilings.default()
-    return license_for(tally, Action.SERVE, ceilings)
+    return serve_license(shape_band, ledger, ceilings=ceilings)
 
 
 __all__ = ["RatifiedLedgerError", "deduction_serve_license", "load_ratified_ledger"]
