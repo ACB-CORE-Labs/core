@@ -1,8 +1,8 @@
 {
   "aggregate": {
-    "correct": 134,
+    "correct": 166,
     "declined": 0,
-    "n": 134,
+    "n": 166,
     "wrong": 0
   },
   "all_correct": true,
@@ -77,19 +77,40 @@
       },
       "n": 26
     },
+    "v2_exist": {
+      "all_cases_correct": true,
+      "by_gold": {
+        "declined": 11,
+        "entailed": 11,
+        "refuted": 4,
+        "unknown": 6
+      },
+      "correct_by_gold": {
+        "declined": 11,
+        "entailed": 11,
+        "refuted": 4,
+        "unknown": 6
+      },
+      "counts": {
+        "correct": 32,
+        "declined": 0,
+        "wrong": 0
+      },
+      "n": 32
+    },
     "v2_member": {
       "all_cases_correct": true,
       "by_gold": {
-        "declined": 6,
+        "declined": 5,
         "entailed": 12,
         "refuted": 3,
-        "unknown": 5
+        "unknown": 6
       },
       "correct_by_gold": {
-        "declined": 6,
+        "declined": 5,
         "entailed": 12,
         "refuted": 3,
-        "unknown": 5
+        "unknown": 6
       },
       "counts": {
         "correct": 26,

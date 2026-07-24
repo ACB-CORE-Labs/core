@@ -48,6 +48,7 @@ from generate.proof_chain.categorical import CategoricalError, decide_syllogism
 from generate.proof_chain.cond_member import CondMemberArgument, read_cond_member_argument
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
+from generate.proof_chain.exist import ExistArgument, read_exist_argument
 from generate.proof_chain.member import MemberArgument, read_member_argument
 from generate.proof_chain.verb import VerbArgument, read_verb_argument
 
@@ -71,6 +72,10 @@ _SPLITS: tuple[tuple[str, Path], ...] = (
     # content-disjoint discipline (verb agreement across +s/+es/y↔ies and the
     # irregular table on real verbs: writes, debates, cries, goes).
     ("v2_verb", _ROOT / "v2_verb" / "cases.jsonl"),
+    # Band v6-EX (ADR-0261) — hand-authored existential arguments, same
+    # content-disjoint discipline (the square of opposition on real nouns,
+    # incl. the no-existential-import subalterns and both contradictory pairs).
+    ("v2_exist", _ROOT / "v2_exist" / "cases.jsonl"),
 )
 
 _OUTCOME_TO_CLASS = {
@@ -153,9 +158,20 @@ def _decide_cond_member(text: str) -> str:
 
 
 def _decide_verb(text: str) -> str:
-    """Band v5-VP fallback (ADR-0260) — mirrors ``_verb_band_surface``."""
+    """Band v5-VP fallback (ADR-0260) — mirrors ``_verb_band_surface``;
+    chains into the Band v6-EX fallback exactly as the composer does."""
     arg = read_verb_argument(text)
     if not isinstance(arg, VerbArgument):
+        return _decide_exist(text)
+    outcome = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula).outcome
+    return _OUTCOME_TO_CLASS[outcome]
+
+
+def _decide_exist(text: str) -> str:
+    """Band v6-EX fallback (ADR-0261) — mirrors ``_exist_band_surface``, the
+    last tier: a refusal here is the pipeline's honest decline."""
+    arg = read_exist_argument(text)
+    if not isinstance(arg, ExistArgument):
         return "declined"
     outcome = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula).outcome
     return _OUTCOME_TO_CLASS[outcome]

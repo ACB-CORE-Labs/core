@@ -432,3 +432,60 @@ def test_verb_reader_refusal_keeps_prior_honest_surface() -> None:
     )
     assert surface is not None
     assert "Your premises entail" not in surface
+
+
+def test_existential_is_decided_band_v6_ex() -> None:
+    """ADR-0261: an existential premise carried through a universal to an
+    existential conclusion (Darii), authoritatively — the
+    ``en_exist_universal`` band holds an earned SERVE license."""
+    surface = deduction_grounded_surface(
+        "Every mammal is a vertebrate. Some whales are mammals. "
+        "Therefore some whales are vertebrates."
+    )
+    assert surface is not None
+    assert "Your premises entail: some whales are vertebrates" in surface
+    assert not surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+
+
+def test_existential_conclusion_does_not_close_the_domain() -> None:
+    """The mechanism this band adds: every NAMED individual fails the query,
+    yet the arbitrary element keeps the answer honestly unsettled instead of
+    claiming refutation."""
+    surface = deduction_grounded_surface(
+        "Vega is a star. Vega is not visible. Therefore some stars are visible."
+    )
+    assert surface is not None
+    assert "don't settle" in surface
+    assert "cannot hold" not in surface
+
+
+def test_existential_unknown_discloses_the_no_import_reading() -> None:
+    surface = deduction_grounded_surface(
+        "All unicorns are horned. Therefore some unicorns are horned."
+    )
+    assert surface is not None
+    assert "don't settle" in surface
+    assert 'as claiming a member exists' in surface
+
+
+def test_existential_unearned_band_would_be_hedged() -> None:
+    """The en_exist_* bands ride the SAME earned-license gate."""
+    surface = deduction_grounded_surface(
+        "Every mammal is a vertebrate. Some whales are mammals. "
+        "Therefore some whales are vertebrates.",
+        license_lookup=lambda band: None,
+    )
+    assert surface is not None
+    assert surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+    assert "Your premises entail: some whales are vertebrates" in surface
+
+
+def test_existential_reader_refusal_keeps_prior_honest_surface() -> None:
+    """When the existential band ALSO cannot read the argument (here: a
+    partitive), the pre-existing honest surface is preserved verbatim — the
+    last band only widens, like every band before it."""
+    surface = deduction_grounded_surface(
+        "Some of the sailors are brave. Therefore some sailors are brave."
+    )
+    assert surface is not None
+    assert "Your premises entail" not in surface

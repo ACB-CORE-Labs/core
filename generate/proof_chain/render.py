@@ -169,6 +169,45 @@ def render_entailment_verb(
     return f"Given: {given}. I can't evaluate {query_text} from that as stated."
 
 
+def render_entailment_exist(
+    trace: EntailmentTrace, premise_texts: tuple[str, ...], query_text: str
+) -> str:
+    """The user-facing surface for an existential (Band v6-EX) verdict.
+
+    Same discipline as :func:`render_entailment_verb`; the UNKNOWN template
+    additionally discloses the ONE reading choice existentials force
+    (ADR-0261 §3): "some" is read WITHOUT existential import, so a universal
+    says nothing about whether its class has members. That is precisely what
+    makes "all C are P, therefore some C are P" come out unsettled rather than
+    entailed, and a reader who expects the traditional square deserves to be
+    told which square this is. ENTAILED / REFUTED / inconsistent hold under
+    the classical reading too (adding existential-import premises only ADDS
+    premises, and entailment is monotone), so they are stated at full strength.
+    """
+    given = "; ".join(premise_texts)
+    if trace.outcome is Entailment.ENTAILED:
+        return f"Given: {given}. Your premises entail: {query_text}."
+    if trace.outcome is Entailment.REFUTED:
+        return (
+            f"Given: {given}. Your premises entail the opposite of "
+            f"{query_text} — it cannot hold."
+        )
+    if trace.outcome is Entailment.UNKNOWN:
+        return (
+            f"Given: {given}. Reading each name as one individual, each class "
+            f"word and verb phrase at face value, and \"some\" as claiming a "
+            f"member exists (so \"all\" does not), your premises don't settle "
+            f"whether {query_text} — it holds in some cases and fails in others."
+        )
+    # REFUSED
+    if trace.reason == INCONSISTENT_PREMISES:
+        return (
+            f"Given: {given}. Those premises are inconsistent — they "
+            f"can't all be true, so I won't assert anything from them."
+        )
+    return f"Given: {given}. I can't evaluate {query_text} from that as stated."
+
+
 def _categorical_clause(prop: dict) -> str:
     """One categorical proposition dict → its English clause."""
     template = _CATEGORICAL_PHRASE.get(prop.get("form", ""), "{s} ~ {p}")
@@ -205,6 +244,7 @@ def render_syllogism(trace: EntailmentTrace, structure: dict, query: dict) -> st
 __all__ = [
     "render_entailment",
     "render_entailment_english",
+    "render_entailment_exist",
     "render_entailment_member",
     "render_entailment_verb",
     "render_syllogism",
