@@ -27,7 +27,9 @@ default-off `curriculum_serving_enabled` flag:
 
 1. **Closed question grammar** — `Does <term> <relation> <term>?`. One shape.
    Anything else refuses `question_shape_out_of_band` rather than guessing
-   which token is the relation.
+   which token is the relation. **The commit gate is routability, not shape**
+   (§5.4): the composer claims a turn only when the question parses AND its
+   terms are vocabulary a served subject teaches.
 2. **Subject routing by vocabulary** — the question goes to the subject whose
    ratified pack vocabulary contains BOTH terms. No match is
    `untaught_vocabulary`; more than one is `ambiguous_reading`. The subject is
@@ -123,7 +125,32 @@ curriculum to teach a negative ("no X causes Y") or an exclusion. Until a
 corpus does, `refuted` is a verdict this path can render but never reach. The
 serving code handles it; the lane documents it.
 
-### 5.3 There is no biology domain-chain corpus
+### 5.3 The commit gate must be routability, not shape
+
+Shipped first as a shape gate (`Does …?`) with the deduction composer's
+fail-closed posture copied verbatim. That was wrong, and flipping the flag
+would have exposed it: `Does the build pass?` and `Does anyone know the time?`
+would have been taken away from the rest of dispatch and answered with a
+remark about curriculum gaps.
+
+The asymmetry is the lesson. The deduction composer may commit on shape
+because a sentence-initial "therefore" IS a signal of intent — text shaped
+that way is an argument. `Does …?` is one of the most common ways to open any
+English question and signals nothing. So the gate became
+`is_curriculum_question`: claim the turn only when the question parses to
+three tokens AND its terms are vocabulary some served subject teaches.
+Everything past the gate stays fail-closed, including `ambiguous_reading`
+(both terms taught, two subjects claim them) and `out_of_curriculum` (terms
+taught, relation unknown) — those are real curriculum questions with honest
+answers. A question whose vocabulary CORE has never been taught is simply not
+this composer's turn, and the DECIDER still records it as
+`declined`/`untaught_vocabulary` for the lane.
+
+**Generalizable rule:** a fail-closed composer is only as safe as its commit
+gate is narrow. Before copying a fail-closed posture, check whether the new
+gate carries the same evidence of intent as the one it was copied from.
+
+### 5.4 There is no biology domain-chain corpus
 
 The plan names "physics and biology" as Phase 2's two subjects because "OOD
 lanes, seed packs, and domain chains already exist". For biology only the first

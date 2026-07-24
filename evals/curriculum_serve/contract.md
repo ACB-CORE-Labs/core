@@ -61,6 +61,16 @@ disagrees with gold) MUST stay 0; a decline where gold expected a verdict is a
 coverage miss, tracked in `counts.declined`, never conflated with a
 confabulation. The runner requires `correct == n`.
 
+## Lane scope vs composer scope
+
+The lane scores the DECIDER (`decide_curriculum_question`), which records a
+verdict for every case including `untaught_vocabulary` ones. The COMPOSER
+(`curriculum_grounded_surface`) is narrower: it claims a turn only when the
+question is routable (ADR-0262 §5.3), so the anti-recall probes reach the rest
+of dispatch rather than being answered with a curriculum remark. Both
+statements hold at once — the curriculum path declines them, and it does not
+speak for them.
+
 ## What the lane deliberately does NOT do
 
 - **It does not compose chains.** `force causes acceleration` and
