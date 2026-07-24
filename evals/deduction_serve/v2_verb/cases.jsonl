@@ -1,0 +1,28 @@
+{"id": "ds-vb-0001", "text": "All poets write. Homer is a poet. Therefore Homer writes.", "gold": "entailed", "class": "verb_universal_modus_ponens"}
+{"id": "ds-vb-0002", "text": "Every senator debates policy. Cicero is a senator. Therefore Cicero debates policy.", "gold": "entailed", "class": "verb_universal_transitive"}
+{"id": "ds-vb-0003", "text": "Anselm is a monk. Each monk prays. Therefore Anselm prays.", "gold": "entailed", "class": "verb_universal_each_spelling"}
+{"id": "ds-vb-0004", "text": "Aristotle is a philosopher. All philosophers are scholars. All scholars read. Therefore Aristotle reads.", "gold": "entailed", "class": "verb_chain_membership"}
+{"id": "ds-vb-0005", "text": "All sparrows are birds. Jack is a sparrow. All birds build nests. Therefore Jack builds nests.", "gold": "entailed", "class": "verb_chain_transitive"}
+{"id": "ds-vb-0006", "text": "Miriam is a nun. No nuns marry. Therefore Miriam does not marry.", "gold": "entailed", "class": "verb_negative_e_form"}
+{"id": "ds-vb-0007", "text": "Felix is a tortoise. All tortoises are reptiles. No reptiles purr. Therefore Felix does not purr.", "gold": "entailed", "class": "verb_negative_chain"}
+{"id": "ds-vb-0008", "text": "Clara paints portraits. Clara is an artist. Therefore Clara paints portraits.", "gold": "entailed", "class": "verb_fact_selection"}
+{"id": "ds-vb-0009", "text": "Boris does not smoke. Therefore it is not the case that Boris smokes.", "gold": "entailed", "class": "verb_fact_negation_restated"}
+{"id": "ds-vb-0010", "text": "Every baby cries. Moses is a baby. Therefore Moses cries.", "gold": "entailed", "class": "verb_universal_ies_agreement"}
+{"id": "ds-vb-0011", "text": "All pilgrims go. Dante is a pilgrim. Therefore Dante goes.", "gold": "entailed", "class": "verb_universal_irregular_agreement"}
+{"id": "ds-vb-0012", "text": "All owls hunt. Hedwig is an owl. Therefore Hedwig does not hunt.", "gold": "refuted", "class": "verb_universal_contradiction"}
+{"id": "ds-vb-0013", "text": "Petra is a judge. No judges gossip. Therefore Petra gossips.", "gold": "refuted", "class": "verb_negative_contradiction"}
+{"id": "ds-vb-0014", "text": "Omar swims. Omar is an athlete. Therefore Omar does not swim.", "gold": "refuted", "class": "verb_fact_contradiction"}
+{"id": "ds-vb-0015", "text": "Ida is a farmer. All farmers are workers. All workers vote. Therefore Ida does not vote.", "gold": "refuted", "class": "verb_chain_contradiction"}
+{"id": "ds-vb-0016", "text": "All monks chant. Basil is a monk. Therefore Gregory chants.", "gold": "unknown", "class": "verb_wrong_individual"}
+{"id": "ds-vb-0017", "text": "Nina sings. All larks sing. Therefore Nina is a lark.", "gold": "unknown", "class": "verb_affirming_consequent"}
+{"id": "ds-vb-0018", "text": "Viktor cooks. Viktor is a chef. Therefore Viktor cooks stew.", "gold": "unknown", "class": "verb_arity_face_value"}
+{"id": "ds-vb-0019", "text": "Rosa is not a lawyer. No lawyers whistle. Therefore Rosa does not whistle.", "gold": "unknown", "class": "verb_negative_denied_antecedent"}
+{"id": "ds-vb-0020", "text": "Edgar does not dance. Therefore Edgar does not skate.", "gold": "unknown", "class": "verb_distinct_lemmas"}
+{"id": "ds-vb-0021", "text": "Caesar did not surrender. Therefore Caesar surrenders.", "gold": "declined", "class": "tense_out_of_band"}
+{"id": "ds-vb-0022", "text": "The old sailor whittles. The old sailor is a craftsman. Therefore the old sailor whittles.", "gold": "declined", "class": "multi_token_subject_out_of_band"}
+{"id": "ds-vb-0023", "text": "Nero fiddles in Rome. Nero is an emperor. Therefore Nero fiddles.", "gold": "declined", "class": "prepositional_out_of_band"}
+{"id": "ds-vb-0024", "text": "Hannah gives Samuel bread. Hannah is a mother. Therefore Hannah gives Samuel bread.", "gold": "declined", "class": "ditransitive_out_of_band"}
+{"id": "ds-vb-0025", "text": "If Noah builds then Noah is a carpenter. Noah builds. Therefore Noah is a carpenter.", "gold": "declined", "class": "verb_connective_out_of_band"}
+{"id": "ds-vb-0026", "text": "Someone sneezes. Ora is a doctor. Therefore Ora sneezes.", "gold": "declined", "class": "quantifier_out_of_band"}
+{"id": "ds-vb-0027", "text": "Jonah preaches. Therefore all prophets preach.", "gold": "declined", "class": "universal_conclusion_out_of_band"}
+{"id": "ds-vb-0028", "text": "The twins do not quarrel. Therefore the twins quarrel.", "gold": "declined", "class": "plural_do_not_out_of_band"}

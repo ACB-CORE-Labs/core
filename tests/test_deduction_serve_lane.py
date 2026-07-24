@@ -15,6 +15,7 @@ _V1 = _ROOT / "v1" / "cases.jsonl"
 _V2_EN = _ROOT / "v2_en" / "cases.jsonl"
 _V2_MEMBER = _ROOT / "v2_member" / "cases.jsonl"
 _V2_CONDMEM = _ROOT / "v2_condmem" / "cases.jsonl"
+_V2_VERB = _ROOT / "v2_verb" / "cases.jsonl"
 
 
 def test_v1_lane_wrong_is_zero() -> None:
@@ -87,6 +88,22 @@ def test_v2_condmem_lane_wrong_is_zero() -> None:
     assert cbg.get("refuted", 0) >= 4
     assert cbg.get("unknown", 0) >= 5
     assert cbg.get("declined", 0) >= 7
+
+
+def test_v2_verb_lane_wrong_is_zero() -> None:
+    """Band v5-VP (ADR-0260): hand-authored verb-predicate arguments —
+    universals discharged by membership facts across every closed agreement
+    rule (+s, +es, y↔ies, irregular go/goes), transitive objects at face
+    value, and eight distinct honest-decline shapes — decided wrong=0."""
+    report = build_report(_load(_V2_VERB))
+    assert report["n"] == 28
+    assert report["counts"]["wrong"] == 0
+    assert report["all_cases_correct"] is True
+    cbg = report["correct_by_gold"]
+    assert cbg.get("entailed", 0) >= 11
+    assert cbg.get("refuted", 0) >= 4
+    assert cbg.get("unknown", 0) >= 5
+    assert cbg.get("declined", 0) >= 8
 
 
 def test_runner_treats_wrong_verdict_as_the_only_real_failure() -> None:

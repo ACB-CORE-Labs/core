@@ -37,6 +37,7 @@ from generate.proof_chain.cond_member import CondMemberArgument, read_cond_membe
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
 from generate.proof_chain.member import MemberArgument, read_member_argument
+from generate.proof_chain.verb import VerbArgument, read_verb_argument
 from generate.proof_chain.shape import (
     ATOMIC,
     CATEGORICAL,
@@ -56,6 +57,10 @@ from generate.proof_chain.shape import (
     EN_MEMBER_NEGATIVE,
     EN_MEMBER_SINGLE,
     classify_deduction_shape,
+    EN_VERB_CHAIN,
+    EN_VERB_FACT,
+    EN_VERB_NEGATIVE,
+    EN_VERB_UNIVERSAL,
 )
 
 _DOMAIN_ID = "deductive_logic_serve"
@@ -501,13 +506,161 @@ _CM_TEMPLATES: dict[str, tuple[tuple[str, Any, tuple[str, ...], str], ...]] = {
 }
 
 
+# --- Band v5-VP (ADR-0260): verb-predicate synthetic corpus -------------------
+#
+# Reuses the v3-MEM name/class pools and adds a verb-forms pool that exercises
+# EVERY rule of the reader's closed verb-agreement relation — +s (bark/barks,
+# run/runs, live/lives), +es after sibilants (teach/teaches, push/pushes,
+# watch/watches, mix/mixes), y↔ies (study/studies, carry/carries, fly/flies),
+# and the irregular table (go/goes, have/has) — so the earned license
+# certifies the agreement linking itself, not just the sentence grammar.
+# Content is synthetic ON PURPOSE (same posture as the v2-EN / v3-MEM corpora);
+# hand-authored real-English cases live in ``evals/deduction_serve/v2_verb``.
+
+_VERB_FORMS: tuple[tuple[str, str], ...] = (
+    ("teach", "teaches"), ("bark", "barks"), ("study", "studies"),
+    ("go", "goes"), ("run", "runs"), ("push", "pushes"),
+    ("carry", "carries"), ("watch", "watches"), ("live", "lives"),
+    ("fly", "flies"), ("mix", "mixes"), ("have", "has"),
+)
+_VERB_OBJECTS: tuple[str, ...] = (
+    "logic", "music", "bread", "stones", "rivers", "wool",
+    "grain", "tools", "maps", "songs", "boats", "lamps",
+)
+
+
+def _verb_case(
+    index: int,
+) -> tuple[str, str, tuple[str, str], tuple[str, str], tuple[str, str], tuple[str, str], str]:
+    """Deterministic (name1, name2, class1, class2, verb1, verb2, object) for
+    case ``index`` — names, classes, and verbs are pairwise distinct."""
+    n1 = _MEM_NAMES[(index * 3) % len(_MEM_NAMES)]
+    n2 = _MEM_NAMES[(index * 3 + 1) % len(_MEM_NAMES)]
+    base = (index * 5) % (len(_MEM_CLASSES) - 1)
+    c1, c2 = _MEM_CLASSES[base], _MEM_CLASSES[base + 1]
+    vbase = (index * 7) % (len(_VERB_FORMS) - 1)
+    v1, v2 = _VERB_FORMS[vbase], _VERB_FORMS[vbase + 1]
+    ob = _VERB_OBJECTS[(index * 11) % len(_VERB_OBJECTS)]
+    return n1, n2, c1, c2, v1, v2, ob
+
+
+#: Verb-band templates: (gold, text_builder, intended_premises, intended_query).
+#: Builders take ``(n1, n2, c1, c2, v1, v2, ob)`` from ``_verb_case``; the
+#: INTENDED formulas are the template's per-individual lowering over fixed
+#: placeholder atoms (``ma``… membership, ``va``… verb), cross-checked against
+#: the truth-table oracle with no reader in the loop (INV-25). Every template's
+#: text is a shape the earlier bands REFUSE (quantifier-led verb universal,
+#: is-a + verb mix, or ``does not`` negation), so the arena exercises exactly
+#: the fall-through path serving uses.
+_VERB_TEMPLATES: dict[str, tuple[tuple[str, Any, tuple[str, ...], str], ...]] = {
+    EN_VERB_UNIVERSAL: (
+        # Instantiated modus ponens onto an intransitive verb.
+        ("entailed",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. All {c1[1]} {v1[0]}. Therefore {n1} {v1[1]}.",
+         ("ma", "ma implies vb"), "vb"),
+        # "every" spelling, singular class + 3sg verb, transitive.
+        ("entailed",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"Every {c1[0]} {v1[1]} {ob}. {n1} is a {c1[0]}. Therefore {n1} {v1[1]} {ob}.",
+         ("ma implies vb", "ma"), "vb"),
+        # "each" spelling, universal first — order independence.
+        ("entailed",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"Each {c1[0]} {v1[1]}. {n1} is a {c1[0]}. Therefore {n1} {v1[1]}.",
+         ("ma implies vb", "ma"), "vb"),
+        # Contradicting the instantiated verb.
+        ("refuted",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. All {c1[1]} {v1[0]}. Therefore {n1} does not {v1[0]}.",
+         ("ma", "ma implies vb"), "not vb"),
+        # The universal binds a DIFFERENT named individual than the conclusion's.
+        ("unknown",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. All {c1[1]} {v1[0]}. Therefore {n2} {v1[1]}.",
+         ("ma", "ma implies vb", "mc implies vd"), "vd"),
+        # Affirming the consequent — the verb fact does not yield membership.
+        ("unknown",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} {v1[1]}. All {c1[1]} {v1[0]}. Therefore {n1} is a {c1[0]}.",
+         ("vb", "ma implies vb"), "ma"),
+    ),
+    EN_VERB_CHAIN: (
+        # Membership chain discharging a verb universal.
+        ("entailed",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. All {c1[1]} are {c2[1]}. All {c2[1]} {v1[0]}. Therefore {n1} {v1[1]}.",
+         ("ma", "ma implies mb", "mb implies vc"), "vc"),
+        # Transitive, sentence order shuffled.
+        ("entailed",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"All {c1[1]} are {c2[1]}. {n1} is a {c1[0]}. All {c2[1]} {v1[0]} {ob}. Therefore {n1} {v1[1]} {ob}.",
+         ("ma implies mb", "ma", "mb implies vc"), "vc"),
+        # Chain contradiction.
+        ("refuted",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. All {c1[1]} are {c2[1]}. All {c2[1]} {v1[0]}. Therefore {n1} does not {v1[0]}.",
+         ("ma", "ma implies mb", "mb implies vc"), "not vc"),
+        # Broken chain — the subsumption points the wrong way.
+        ("unknown",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. All {c2[1]} are {c1[1]}. All {c2[1]} {v1[0]}. Therefore {n1} {v1[1]}.",
+         ("ma", "mb implies ma", "mb implies vc"), "vc"),
+        # Two verb universals — the wrong verb's rule cannot fire.
+        ("unknown",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. All {c1[1]} {v1[0]}. All {c2[1]} {v2[0]}. Therefore {n1} {v2[1]}.",
+         ("ma", "ma implies vb", "mc implies vd"), "vd"),
+    ),
+    EN_VERB_NEGATIVE: (
+        # Instantiated E-form onto an intransitive verb.
+        ("entailed",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. No {c1[1]} {v1[0]}. Therefore {n1} does not {v1[0]}.",
+         ("ma", "ma implies not vb"), "not vb"),
+        # A-chain into an E-form verb universal.
+        ("entailed",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. All {c1[1]} are {c2[1]}. No {c2[1]} {v1[0]}. Therefore {n1} does not {v1[0]}.",
+         ("ma", "ma implies mb", "mb implies not vc"), "not vc"),
+        # Transitive E-form.
+        ("entailed",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. No {c1[1]} {v1[0]} {ob}. Therefore {n1} does not {v1[0]} {ob}.",
+         ("ma", "ma implies not vb"), "not vb"),
+        # Contradicting the E-form's instantiation.
+        ("refuted",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is a {c1[0]}. No {c1[1]} {v1[0]}. Therefore {n1} {v1[1]}.",
+         ("ma", "ma implies not vb"), "vb"),
+        # Denied antecedent under an E-form — nothing follows.
+        ("unknown",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} is not a {c1[0]}. No {c1[1]} {v1[0]}. Therefore {n1} does not {v1[0]}.",
+         ("not ma", "ma implies not vb"), "not vb"),
+    ),
+    EN_VERB_FACT: (
+        # Negated fact restated through the sentential-not spelling (the
+        # ``does not`` form is what makes the earlier bands refuse).
+        ("entailed",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} does not {v1[0]}. Therefore it is not the case that {n1} {v1[1]}.",
+         ("not va",), "not va"),
+        # Selection beside an is-a anchor (the anchor forces the fall-through).
+        ("entailed",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} {v1[1]} {ob}. {n1} is a {c1[0]}. Therefore {n1} {v1[1]} {ob}.",
+         ("va", "mb"), "va"),
+        # Contradicting a stated verb fact.
+        ("refuted",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} {v1[1]}. {n1} is a {c1[0]}. Therefore {n1} does not {v1[0]}.",
+         ("va", "mb"), "not va"),
+        # Negated transitive fact contradicted.
+        ("refuted",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} does not {v1[0]} {ob}. Therefore {n1} {v1[1]} {ob}.",
+         ("not va",), "va"),
+        # Arity is read at face value — intransitive does not yield transitive.
+        ("unknown",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} {v1[1]}. {n1} is a {c1[0]}. Therefore {n1} {v1[1]} {ob}.",
+         ("va", "mb"), "vc"),
+        # Distinct verbs stay distinct.
+        ("unknown",
+         lambda n1, n2, c1, c2, v1, v2, ob: f"{n1} does not {v1[0]}. Therefore {n1} does not {v2[0]}.",
+         ("not va",), "not vb"),
+    ),
+}
+
+
 #: Ledger band order: the five v1 bands, the four v2-EN bands, the four
-#: v3-MEM bands, then the four v4-CM bands.
+#: v3-MEM bands, the four v4-CM bands, then the four v5-VP bands.
 _ALL_BANDS: tuple[str, ...] = (
     CONDITIONAL_SINGLE, CONDITIONAL_CHAIN, DISJUNCTIVE, ATOMIC, CATEGORICAL,
     EN_CONDITIONAL_SINGLE, EN_CONDITIONAL_CHAIN, EN_DISJUNCTIVE, EN_ATOMIC,
     EN_MEMBER_SINGLE, EN_MEMBER_CHAIN, EN_MEMBER_NEGATIVE, EN_MEMBER_ATOMIC,
     EN_CONDMEM_FUSED, EN_CONDMEM_DISJUNCTIVE, EN_CONDMEM_CHAIN, EN_CONDMEM_CONDITIONAL,
+    EN_VERB_NEGATIVE, EN_VERB_CHAIN, EN_VERB_UNIVERSAL, EN_VERB_FACT,
 )
 
 
@@ -521,6 +674,25 @@ def generate_problems(band: str, n: int) -> list[Problem]:
     logical form for the reader-independent oracle cross-check.
     """
     problems: list[Problem] = []
+    if band in _VERB_TEMPLATES:
+        templates = _VERB_TEMPLATES[band]
+        for i in range(n):
+            gold, builder, intended_premises, intended_query = templates[i % len(templates)]
+            problems.append(
+                Problem(
+                    problem_id=f"{band}-{i:04d}",
+                    class_name=band,
+                    payload={
+                        "text": builder(*_verb_case(i)),
+                        "gold": gold,
+                        "intended": {
+                            "premises": list(intended_premises),
+                            "query": intended_query,
+                        },
+                    },
+                )
+            )
+        return problems
     if band in _MEM_TEMPLATES or band in _CM_TEMPLATES:
         templates = _MEM_TEMPLATES[band] if band in _MEM_TEMPLATES else _CM_TEMPLATES[band]
         for i in range(n):
@@ -644,6 +816,9 @@ class DeductionSolver:
             cond_member = self._attempt_cond_member(problem)
             if cond_member is not None:
                 return cond_member
+            verb = self._attempt_verb(problem)
+            if verb is not None:
+                return verb
             return _DeductionAttempt(
                 committed=False, answer=None, reason=f"reader:{getattr(comp, 'reason', '')}",
                 case_id=problem.problem_id, shape=problem.class_name,
@@ -683,6 +858,9 @@ class DeductionSolver:
         cond_member = self._attempt_cond_member(problem)
         if cond_member is not None:
             return cond_member
+        verb = self._attempt_verb(problem)
+        if verb is not None:
+            return verb
         return _DeductionAttempt(
             committed=False, answer=None, reason="unprojectable",
             case_id=problem.problem_id, shape=problem.class_name,
@@ -723,6 +901,21 @@ class DeductionSolver:
         when the reader refuses (the caller then records the honest decline)."""
         arg = read_cond_member_argument(problem.payload["text"])
         if not isinstance(arg, CondMemberArgument):
+            return None
+        outcome = evaluate_entailment_with_trace(
+            arg.premise_formulas, arg.query_formula
+        ).outcome
+        return _DeductionAttempt(
+            committed=outcome is not Entailment.REFUSED,
+            answer=_OUTCOME_TO_CLASS[outcome], reason="",
+            case_id=problem.problem_id, shape=arg.band,
+        )
+
+    def _attempt_verb(self, problem: Problem) -> _DeductionAttempt | None:
+        """Band v5-VP: the verb-predicate argument path, or ``None`` when the
+        reader refuses (the caller then records the honest decline)."""
+        arg = read_verb_argument(problem.payload["text"])
+        if not isinstance(arg, VerbArgument):
             return None
         outcome = evaluate_entailment_with_trace(
             arg.premise_formulas, arg.query_formula

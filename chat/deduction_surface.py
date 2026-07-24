@@ -34,6 +34,13 @@ Bands (docs/research/deduction-serve-arc-phase0-baseline-2026-07-23.md):
   space, read by ``generate.proof_chain.cond_member``. Tried strictly AFTER
   v3-MEM (which guards these shapes out via ``mixed_structure_out_of_band``)
   — again a pure widening tier.
+- Band v5-VP (ADR-0260) — verb-predicate arguments ("All philosophers teach.
+  Socrates is a philosopher. Therefore Socrates teaches."), read by
+  ``generate.proof_chain.verb`` via per-individual lowering with a second
+  (individual, verb-group, object) atom family alongside v3-MEM's membership
+  atoms, decided by the same engine. Tried strictly AFTER v4-CM (the earlier
+  bands refuse quantifier-led verb universals, is-a + verb mixes, and
+  ``does not`` negation) — again a pure widening tier.
 
 Fail-closed (INV-34): once ``looks_like_deductive_argument`` fires, every path
 below returns a committed, honest surface — reader refusal, out-of-band shape,
@@ -59,8 +66,10 @@ from generate.proof_chain.render import (
     render_entailment,
     render_entailment_english,
     render_entailment_member,
+    render_entailment_verb,
     render_syllogism,
 )
+from generate.proof_chain.verb import VerbArgument, read_verb_argument
 from generate.proof_chain.shape import CATEGORICAL, classify_deduction_shape
 
 #: An argument's conclusion clause starts a sentence with "therefore" — the
@@ -143,6 +152,9 @@ def deduction_grounded_surface(
         cond_member = _cond_member_band_surface(text, license_lookup)
         if cond_member is not None:
             return cond_member
+        verb = _verb_band_surface(text, license_lookup)
+        if verb is not None:
+            return verb
         return _READER_REFUSAL_SURFACE.format(reason=comp.reason)
     # Band v1 — propositional argument.
     projected = to_deductive_logic(comp)
@@ -175,6 +187,10 @@ def deduction_grounded_surface(
     cond_member = _cond_member_band_surface(text, license_lookup)
     if cond_member is not None:
         return cond_member
+    # Band v5-VP fallback — the verb-predicate shapes every earlier band guards out.
+    verb = _verb_band_surface(text, license_lookup)
+    if verb is not None:
+        return verb
     return _OUT_OF_BAND_SURFACE
 
 
@@ -217,6 +233,21 @@ def _cond_member_band_surface(text: str, license_lookup: _LicenseLookup) -> str 
         return None
     trace = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula)
     surface = render_entailment_member(trace, arg.premise_texts, arg.query_text)
+    return _license_gate(surface, arg.band, license_lookup)
+
+
+def _verb_band_surface(text: str, license_lookup: _LicenseLookup) -> str | None:
+    """Band v5-VP (ADR-0260): read *text* as a verb-predicate argument
+    (membership atoms + verb atoms over one per-individual space), and decide
+    with the same verified ROBDD engine; ``None`` when the reader refuses (the
+    caller keeps its pre-existing honest surface — this band only ever widens
+    what is decided). Rendered by ``render_entailment_verb``, whose UNKNOWN
+    scoping extends the member phrasing to the verb reading."""
+    arg = read_verb_argument(text)
+    if not isinstance(arg, VerbArgument):
+        return None
+    trace = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula)
+    surface = render_entailment_verb(trace, arg.premise_texts, arg.query_text)
     return _license_gate(surface, arg.band, license_lookup)
 
 
