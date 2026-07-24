@@ -20,9 +20,12 @@ knowledge it was never given. The only verdicts reachable from a purely
 positive curriculum are therefore ENTAILED and UNKNOWN — a real limit of the
 present corpora, recorded in ADR-0262 §5 rather than papered over.
 
-Fail-closed (INV-34): once `looks_like_curriculum_question` fires, every path
-below returns a committed, honest surface — typed refusal or decided verdict —
-never a silent fall-through to a different composer.
+Fail-closed (INV-34) BEHIND A NARROW GATE: once `is_curriculum_question` fires,
+every path below returns a committed, honest surface — typed refusal or decided
+verdict — never a silent fall-through. The gate itself is deliberately narrow
+(routable, not merely `Does …?`-shaped): shape alone is not a signal of intent
+for a polar question, so claiming every one of them would hijack ordinary turns.
+See :func:`is_curriculum_question`.
 """
 
 from __future__ import annotations
@@ -80,12 +83,42 @@ class CurriculumRefusal:
 
 
 def looks_like_curriculum_question(text: str) -> bool:
-    """True iff *text* is a ``Does …?`` polar question.
+    """True iff *text* has the ``Does …?`` polar-question SHAPE.
 
-    A cheap, deterministic COMMIT gate — not a decision. The reader below
-    remains the sole authority on whether the question is actually readable.
+    A cheap syntactic pre-filter, NOT the commit gate — see
+    :func:`is_curriculum_question`, which is what decides whether this
+    composer claims a turn.
     """
     return bool(_QUESTION_RE.match(text or ""))
+
+
+def is_curriculum_question(text: str) -> bool:
+    """True iff *text* is a curriculum question this composer should CLAIM.
+
+    The deduction composer can commit on shape alone because its gate — a
+    sentence-initial "therefore" — is a genuine signal of intent: text shaped
+    that way IS an argument. ``Does …?`` carries no such signal; it is one of
+    the most common ways to open any English question. Committing on it would
+    take "Does the build pass?" away from the rest of dispatch and answer it
+    with a remark about curriculum gaps, which is worse than useless.
+
+    So the gate is *routability*, not shape: claim the turn only when the
+    question parses to three tokens AND its terms are vocabulary some served
+    subject actually teaches. Everything past that point stays fail-closed
+    (INV-34) — including ``ambiguous_reading``, where both terms ARE taught
+    and the only problem is that two subjects claim them, and
+    ``out_of_curriculum``, where the terms are taught and only the relation is
+    unknown. Those are real curriculum questions with honest answers. A
+    question whose vocabulary CORE has never been taught is simply not this
+    composer's turn.
+    """
+    query = read_curriculum_question(text)
+    if not isinstance(query, CurriculumQuery):
+        return False
+    domain = resolve_domain(query)
+    if isinstance(domain, CurriculumRefusal):
+        return domain.reason != "untaught_vocabulary"
+    return True
 
 
 def read_curriculum_question(text: str) -> CurriculumQuery | CurriculumRefusal:
@@ -229,11 +262,6 @@ _REFUSAL_SURFACE = {
         "That reads as a question about a subject I study, but not in a form I "
         "can decide yet (I read \"Does <term> <relation> <term>?\")."
     ),
-    "untaught_vocabulary": (
-        "I haven't been taught {detail} — so I can't decide anything about it "
-        "from what I know. That's a gap in my curriculum, not a claim about "
-        "the world."
-    ),
     "out_of_curriculum": (
         "I haven't been taught the relation \"{detail}\", so I can't decide "
         "that question from my curriculum."
@@ -273,11 +301,11 @@ def curriculum_grounded_surface(
 ) -> str | None:
     """Return a deterministic CURRICULUM-tier surface, or ``None``.
 
-    ``None`` only when *text* is not a ``Does …?`` question at all — the
-    caller then falls through to its pre-existing dispatch, byte-identical to
-    before this composer existed.
+    ``None`` when *text* is not a curriculum question this composer should
+    claim (:func:`is_curriculum_question`) — the caller then falls through to
+    its pre-existing dispatch, byte-identical to before this composer existed.
     """
-    if not looks_like_curriculum_question(text):
+    if not is_curriculum_question(text):
         return None
     decision = decide_curriculum_question(text)
     query = read_curriculum_question(text)
@@ -317,15 +345,6 @@ def _detail_of(text: str, decision: CurriculumDecision) -> str:
     query = read_curriculum_question(text)
     if not isinstance(query, CurriculumQuery):
         return ""
-    if decision.reason == "untaught_vocabulary":
-        untaught = [
-            term
-            for term in (query.subject, query.obj)
-            if not any(
-                term in load_curriculum(d).vocabulary for d in SERVED_DOMAINS
-            )
-        ]
-        return " or ".join(untaught) if untaught else f"{query.subject} / {query.obj}"
     if decision.reason == "out_of_curriculum":
         return query.verb
     if decision.reason == "ambiguous_reading":
@@ -354,6 +373,7 @@ __all__ = [
     "band_for",
     "curriculum_grounded_surface",
     "decide_curriculum_question",
+    "is_curriculum_question",
     "looks_like_curriculum_question",
     "read_curriculum_question",
     "resolve_domain",

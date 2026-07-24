@@ -18,6 +18,7 @@ from chat.curriculum_surface import (
     band_for,
     curriculum_grounded_surface,
     decide_curriculum_question,
+    is_curriculum_question,
     looks_like_curriculum_question,
     read_curriculum_question,
     resolve_domain,
@@ -115,14 +116,49 @@ def test_question_may_spell_the_relation_in_its_base_form() -> None:
 )
 def test_untaught_vocabulary_declines_rather_than_recalling(text: str) -> None:
     """Both are true physics and both are outside every mounted pack. The
-    system has no curriculum to decide them from, and says so."""
+    DECIDER declines — it has no curriculum to decide them from — and the
+    composer does not claim the turn at all, so the question reaches the rest
+    of dispatch instead of being answered with a remark about curriculum."""
     decision = decide_curriculum_question(text)
     assert decision.verdict == "declined"
     assert decision.reason == "untaught_vocabulary"
-    surface = curriculum_grounded_surface(text)
-    assert surface is not None
-    assert "haven't been taught" in surface
-    assert "not a claim about the world" in surface
+    assert curriculum_grounded_surface(text) is None
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Does the build pass?",              # ordinary question, untaught terms
+        "Does it rain often?",               # ordinary question, untaught terms
+        "Does anyone know the time?",        # not even the three-token shape
+        "Does force accelerate?",            # two tokens
+        "Does the force cause acceleration?",  # four tokens
+    ],
+)
+def test_ordinary_does_questions_are_not_claimed(text: str) -> None:
+    """The commit gate is ROUTABILITY, not shape. "Does …?" is one of the most
+    common ways to open any English question; claiming every one of them would
+    take ordinary turns away from the rest of dispatch and answer them with a
+    curriculum remark. Only questions whose vocabulary a served subject
+    actually teaches are this composer's turn."""
+    assert curriculum_grounded_surface(text) is None
+    assert not is_curriculum_question(text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Does force cause acceleration?",   # taught, decidable
+        "Does force explain acceleration?",  # taught terms, unknown relation
+        "Does force cause motion?",         # taught, unsettled
+    ],
+)
+def test_routable_questions_are_claimed_and_answered(text: str) -> None:
+    """Past the gate the composer stays fail-closed: every routable question
+    gets a committed, honest surface — including the one whose relation the
+    curriculum does not teach, since its TERMS plainly are curriculum terms."""
+    assert is_curriculum_question(text)
+    assert curriculum_grounded_surface(text) is not None
 
 
 # --- typed refusals ------------------------------------------------------------
