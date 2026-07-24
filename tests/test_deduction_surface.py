@@ -231,6 +231,66 @@ def test_member_reader_refusal_keeps_prior_honest_surface() -> None:
     assert "can't parse" in surface
 
 
+def test_conditional_membership_fusion_is_decided_band_v4_cm() -> None:
+    """The ADR-0258 §6.1 scope-out, now decided (ADR-0259): a conditional
+    whose clauses are membership facts, authoritatively (the
+    ``en_condmem_conditional`` band holds an earned SERVE license)."""
+    surface = deduction_grounded_surface(
+        "If Socrates is a man then Socrates is mortal. Socrates is a man. "
+        "Therefore Socrates is mortal."
+    )
+    assert surface is not None
+    assert "Your premises entail: socrates is mortal" in surface
+    assert not surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+
+
+def test_conditional_membership_fusion_genuinely_fuses() -> None:
+    """The mechanism this band adds: a bare universal's instantiated atom
+    unifies with a connective leaf's atom — neither mechanism alone decides
+    this argument."""
+    surface = deduction_grounded_surface(
+        "All men are mortal. If Socrates is a philosopher then Socrates is a man. "
+        "Socrates is a philosopher. Therefore Socrates is mortal."
+    )
+    assert surface is not None
+    assert "Your premises entail: socrates is mortal" in surface
+
+
+def test_cond_member_unknown_is_scoped_to_the_instantiated_reading() -> None:
+    surface = deduction_grounded_surface(
+        "If Socrates is a man then Socrates is mortal. Therefore Socrates is mortal."
+    )
+    assert surface is not None
+    assert "Reading each name as one individual" in surface
+    assert "don't settle" in surface
+
+
+def test_cond_member_unearned_band_would_be_hedged() -> None:
+    """The en_condmem_* bands ride the SAME earned-license gate: strip the
+    license and the same sound answer is served DISCLOSED, never
+    authoritatively."""
+    surface = deduction_grounded_surface(
+        "If Socrates is a man then Socrates is mortal. Socrates is a man. "
+        "Therefore Socrates is mortal.",
+        license_lookup=lambda band: None,
+    )
+    assert surface is not None
+    assert surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+    assert "Your premises entail: socrates is mortal" in surface
+
+
+def test_cond_member_reader_refusal_keeps_prior_honest_surface() -> None:
+    """When the conditional-membership band ALSO cannot read the argument
+    (here: a conditional nested inside another), the pre-existing honest
+    surface is preserved verbatim — the band only widens."""
+    surface = deduction_grounded_surface(
+        "If the door is open then if the window is open then the room is cold. "
+        "Therefore the room is cold."
+    )
+    assert surface is not None
+    assert "can't parse" in surface
+
+
 def test_surface_is_deterministic() -> None:
     text = "If p then q. p. Therefore q."
     assert deduction_grounded_surface(text) == deduction_grounded_surface(text)

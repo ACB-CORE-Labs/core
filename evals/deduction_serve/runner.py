@@ -45,6 +45,7 @@ from chat.deduction_surface import looks_like_deductive_argument
 from generate.meaning_graph.projectors import to_deductive_logic, to_syllogism
 from generate.meaning_graph.reader import Comprehension, comprehend
 from generate.proof_chain.categorical import CategoricalError, decide_syllogism
+from generate.proof_chain.cond_member import CondMemberArgument, read_cond_member_argument
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
 from generate.proof_chain.member import MemberArgument, read_member_argument
@@ -61,6 +62,10 @@ _SPLITS: tuple[tuple[str, Path], ...] = (
     # same content-disjoint discipline (incl. the number-link table on real
     # nouns: men, people, children, canaries, sheep).
     ("v2_member", _ROOT / "v2_member" / "cases.jsonl"),
+    # Band v4-CM (ADR-0259) — hand-authored conditional-membership arguments,
+    # same content-disjoint discipline (connectives composed over singular-
+    # membership clauses, incl. universal+connective fusion cases).
+    ("v2_condmem", _ROOT / "v2_condmem" / "cases.jsonl"),
 )
 
 _OUTCOME_TO_CLASS = {
@@ -124,9 +129,19 @@ def _decide_english(text: str) -> str:
 
 
 def _decide_member(text: str) -> str:
-    """Band v3-MEM fallback (ADR-0258) — mirrors ``_member_band_surface``."""
+    """Band v3-MEM fallback (ADR-0258) — mirrors ``_member_band_surface``;
+    chains into the Band v4-CM fallback exactly as the composer does."""
     arg = read_member_argument(text)
     if not isinstance(arg, MemberArgument):
+        return _decide_cond_member(text)
+    outcome = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula).outcome
+    return _OUTCOME_TO_CLASS[outcome]
+
+
+def _decide_cond_member(text: str) -> str:
+    """Band v4-CM fallback (ADR-0259) — mirrors ``_cond_member_band_surface``."""
+    arg = read_cond_member_argument(text)
+    if not isinstance(arg, CondMemberArgument):
         return "declined"
     outcome = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula).outcome
     return _OUTCOME_TO_CLASS[outcome]

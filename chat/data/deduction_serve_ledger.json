@@ -56,6 +56,34 @@
       "t2_verified": 0,
       "wrong": 0
     },
+    "en_condmem_chain": {
+      "correct": 720,
+      "refused": 0,
+      "t2_agrees_gold": 0,
+      "t2_verified": 0,
+      "wrong": 0
+    },
+    "en_condmem_conditional": {
+      "correct": 720,
+      "refused": 0,
+      "t2_agrees_gold": 0,
+      "t2_verified": 0,
+      "wrong": 0
+    },
+    "en_condmem_disjunctive": {
+      "correct": 720,
+      "refused": 0,
+      "t2_agrees_gold": 0,
+      "t2_verified": 0,
+      "wrong": 0
+    },
+    "en_condmem_fused": {
+      "correct": 720,
+      "refused": 0,
+      "t2_agrees_gold": 0,
+      "t2_verified": 0,
+      "wrong": 0
+    },
     "en_disjunctive": {
       "correct": 720,
       "refused": 0,
@@ -92,7 +120,7 @@
       "wrong": 0
     }
   },
-  "content_sha256": "3fa864444de56e9e316e8509d3b84648215af73e86540b10199d51182cb7d5ca",
+  "content_sha256": "6285a423957bc9a3a6a562515a338dfd6f36188ac00f45c1a6ea979c4e3cc710",
   "note": "Sealed-practice committed ledger for deduction serving (ADR-0256). Engine reads, never writes. Ceilings stay at safe defaults (theta_SERVE=0.99). A band earns SERVE by demonstrated pipeline reliability (reader+projector+engine) at volume >= 657 committed.",
   "provenance": "evals.deduction_serve.practice.runner.seal_ledger",
   "schema": "deduction_serve_ledger_v1"
