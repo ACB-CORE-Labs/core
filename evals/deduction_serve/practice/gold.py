@@ -36,6 +36,7 @@ from generate.proof_chain.categorical import CategoricalError, decide_syllogism
 from generate.proof_chain.cond_member import CondMemberArgument, read_cond_member_argument
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
+from generate.proof_chain.exist import ExistArgument, read_exist_argument
 from generate.proof_chain.member import MemberArgument, read_member_argument
 from generate.proof_chain.verb import VerbArgument, read_verb_argument
 from generate.proof_chain.shape import (
@@ -52,6 +53,10 @@ from generate.proof_chain.shape import (
     EN_CONDMEM_DISJUNCTIVE,
     EN_CONDMEM_FUSED,
     EN_DISJUNCTIVE,
+    EN_EXIST_CHAIN,
+    EN_EXIST_NEGATIVE,
+    EN_EXIST_UNIVERSAL,
+    EN_EXIST_WITNESS,
     EN_MEMBER_ATOMIC,
     EN_MEMBER_CHAIN,
     EN_MEMBER_NEGATIVE,
@@ -653,14 +658,183 @@ _VERB_TEMPLATES: dict[str, tuple[tuple[str, Any, tuple[str, ...], str], ...]] = 
 }
 
 
+# --- Band v6-EX (ADR-0261): existential synthetic corpus ----------------------
+#
+# Reuses the v3-MEM name/class/state pools and the v5-VP verb pool, and adds
+# nothing new to the lexicon: this band's novelty is the LOWERING (a Skolem
+# witness per existential premise, one arbitrary element per existential
+# conclusion), not the vocabulary. The templates deliberately include both
+# subaltern moods ("all C are P, therefore some C are P" ⇒ UNKNOWN, no
+# existential import) and both contradictory pairs (A refutes O, E refutes I),
+# so the earned license certifies the square of opposition as this band reads
+# it. Content is synthetic ON PURPOSE (same posture as every earlier corpus);
+# hand-authored real-English cases live in ``evals/deduction_serve/v2_exist``.
+
+
+def _exist_case(
+    index: int,
+) -> tuple[str, tuple[str, str], tuple[str, str], tuple[str, str], tuple[str, str], str]:
+    """Deterministic (name, class1, class2, class3, verb, state) for case
+    ``index`` — the three classes are pairwise distinct."""
+    n1 = _MEM_NAMES[(index * 3) % len(_MEM_NAMES)]
+    base = (index * 5) % (len(_MEM_CLASSES) - 2)
+    c1, c2, c3 = _MEM_CLASSES[base], _MEM_CLASSES[base + 1], _MEM_CLASSES[base + 2]
+    v1 = _VERB_FORMS[(index * 7) % len(_VERB_FORMS)]
+    st = _MEM_STATES[(index * 11) % len(_MEM_STATES)]
+    return n1, c1, c2, c3, v1, st
+
+
+#: Existential-band templates: (gold, text_builder, intended_premises,
+#: intended_query). Builders take ``(n1, c1, c2, c3, v1, st)`` from
+#: ``_exist_case``; the INTENDED formulas are the template's lowering over
+#: fixed placeholder atoms — ``m*`` at the named individual, ``w*``/``x*`` at
+#: the first/second witness, ``k*`` at the arbitrary element — cross-checked
+#: against the truth-table oracle with no reader in the loop (INV-25). A
+#: universal contributes ONE implication per domain element, and an
+#: existential conclusion one disjunct per domain element; the intended forms
+#: mirror that exactly, so a lowering that drops (or invents) a domain element
+#: shows up as a disagreement rather than passing silently.
+_EXIST_TEMPLATES: dict[str, tuple[tuple[str, Any, tuple[str, ...], str], ...]] = {
+    EN_EXIST_WITNESS: (
+        # I-form conversion — "some C are S" ⇒ "some S are C". A state word
+        # (never in the shared reader's morphology) stands in for the second
+        # term here and in the two other otherwise-all-class templates below:
+        # a text whose every term IS in that lexicon is read by the CATEGORICAL
+        # band (v1b) long before this one, and the arena must exercise the
+        # fall-through path serving actually takes, not a shape v1b keeps.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"Some {c1[1]} are {st}. Therefore some {st} are {c1[1]}.",
+         ("wa and wb",), "(wb and wa) or (kb and ka)"),
+        # A named individual IS a witness.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"{n1} is a {c1[0]}. {n1} is {st}. Therefore some {c1[1]} are {st}.",
+         ("ma", "mb"), "(ma and mb) or (ka and kb)"),
+        # O-form restatement.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"Some {c1[1]} are not {st}. Therefore some {c1[1]} are not {st}.",
+         ("wa and (not wb)",), "(wa and (not wb)) or (ka and (not kb))"),
+        # The witness is anonymous — a stated singular fact still contradicts.
+        ("refuted",
+         lambda n1, c1, c2, c3, v1, st: f"Some {c1[1]} are {st}. {n1} is not {st}. Therefore {n1} is {st}.",
+         ("wa and wb", "not mb"), "mb"),
+        # The witness never transfers to a named individual (the anti-leak case).
+        ("unknown",
+         lambda n1, c1, c2, c3, v1, st: f"Some {c1[1]} are {st}. {n1} is a {c1[0]}. Therefore {n1} is {st}.",
+         ("wa and wb", "ma"), "mb"),
+        # Two existentials do not compose — distinct witnesses stay distinct.
+        ("unknown",
+         lambda n1, c1, c2, c3, v1, st: f"Some {c1[1]} are {c2[1]}. Some {c1[1]} are {c3[1]}. Therefore some {c2[1]} are {c3[1]}.",
+         ("wa and wb", "xa and xc"), "(wb and wc) or (xb and xc) or (kb and kc)"),
+    ),
+    EN_EXIST_UNIVERSAL: (
+        # Darii — the universal fires at the witness.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"All {c1[1]} are {st}. Some {c2[1]} are {c1[1]}. Therefore some {c2[1]} are {st}.",
+         ("wa implies wb", "ka implies kb", "wc and wa"), "(wc and wb) or (kc and kb)"),
+        # "every" spelling, singular class forms — number linking at the witness.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"Every {c1[0]} is a {c2[0]}. Some {c1[1]} are {st}. Therefore some {c2[1]} are {st}.",
+         ("wa implies wb", "ka implies kb", "wa and wc"), "(wb and wc) or (kb and kc)"),
+        # The named individual supplies the existential witness.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"{n1} is a {c1[0]}. All {c1[1]} are {st}. Therefore some {c1[1]} are {st}.",
+         ("ma", "ma implies mb", "ka implies kb"), "(ma and mb) or (ka and kb)"),
+        # Verb universal discharged at the witness.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"All {c1[1]} {v1[0]}. Some {c2[1]} are {c1[1]}. Therefore some {c2[1]} {v1[0]}.",
+         ("wa implies wv", "ka implies kv", "wc and wa"), "(wc and wv) or (kc and kv)"),
+        # NO existential import — the subaltern does not follow.
+        ("unknown",
+         lambda n1, c1, c2, c3, v1, st: f"All {c1[1]} are {st}. Therefore some {c1[1]} are {st}.",
+         ("ka implies kb",), "ka and kb"),
+        # Undistributed middle with an existential premise.
+        ("unknown",
+         lambda n1, c1, c2, c3, v1, st: f"All {c2[1]} are {c1[1]}. Some {c3[1]} are {c1[1]}. Therefore some {c3[1]} are {c2[1]}.",
+         ("wa implies wb", "ka implies kb", "wc and wb"), "(wc and wa) or (kc and ka)"),
+        # A-form and O-form are contradictories — the A refutes the O.
+        ("refuted",
+         lambda n1, c1, c2, c3, v1, st: f"All {c1[1]} are {st}. Therefore some {c1[1]} are not {st}.",
+         ("ka implies kb",), "ka and (not kb)"),
+        # Universal instantiated at the named individual contradicts the query.
+        ("refuted",
+         lambda n1, c1, c2, c3, v1, st: f"{n1} is a {c1[0]}. All {c1[1]} are {st}. Some {c2[1]} are {c1[1]}. Therefore {n1} is not {st}.",
+         ("ma", "ma implies mb", "wa implies wb", "wc and wa"), "not mb"),
+    ),
+    EN_EXIST_CHAIN: (
+        # Two-hop chain carrying the witness to the conclusion.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"Some {c1[1]} are {c2[1]}. All {c2[1]} are {c3[1]}. All {c3[1]} are {st}. Therefore some {c1[1]} are {st}.",
+         ("wa and wb", "wb implies wc", "kb implies kc", "wc implies wd", "kc implies kd"),
+         "(wa and wd) or (ka and kd)"),
+        # Chain from a named individual to an existential conclusion.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"{n1} is a {c1[0]}. All {c1[1]} are {c2[1]}. All {c2[1]} are {st}. Therefore some {c2[1]} are {st}.",
+         ("ma", "ma implies mb", "ka implies kb", "mb implies mc", "kb implies kc"),
+         "(mb and mc) or (kb and kc)"),
+        # Membership chain into a verb universal.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"Some {c1[1]} are {c2[1]}. All {c2[1]} are {c3[1]}. All {c3[1]} {v1[0]}. Therefore some {c1[1]} {v1[0]}.",
+         ("wa and wb", "wb implies wc", "kb implies kc", "wc implies wv", "kc implies kv"),
+         "(wa and wv) or (ka and kv)"),
+        # Broken chain — the subsumption points the wrong way.
+        ("unknown",
+         lambda n1, c1, c2, c3, v1, st: f"Some {c1[1]} are {c2[1]}. All {c3[1]} are {c2[1]}. All {c3[1]} are {st}. Therefore some {c1[1]} are {st}.",
+         ("wa and wb", "wc implies wb", "kc implies kb", "wc implies wd", "kc implies kd"),
+         "(wa and wd) or (ka and kd)"),
+        # Reverse traversal — chains do not run backwards.
+        ("unknown",
+         lambda n1, c1, c2, c3, v1, st: f"Some {c1[1]} are {st}. All {c2[1]} are {c1[1]}. All {c3[1]} are {c2[1]}. Therefore some {c3[1]} are {st}.",
+         ("wa and wb", "wc implies wa", "kc implies ka", "wd implies wc", "kd implies kc"),
+         "(wd and wb) or (kd and kb)"),
+        # Chain into a contradicted singular conclusion.
+        ("refuted",
+         lambda n1, c1, c2, c3, v1, st: f"{n1} is a {c1[0]}. All {c1[1]} are {c2[1]}. All {c2[1]} are {st}. Some {c3[1]} are {c1[1]}. Therefore {n1} is not {st}.",
+         ("ma", "ma implies mb", "wa implies wb", "mb implies mc", "wb implies wc", "wd and wa"),
+         "not mc"),
+    ),
+    EN_EXIST_NEGATIVE: (
+        # Ferio — E-form plus I-form yields the O-form.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"No {c1[1]} are {st}. Some {c2[1]} are {c1[1]}. Therefore some {c2[1]} are not {st}.",
+         ("wa implies not wb", "ka implies not kb", "wc and wa"),
+         "(wc and (not wb)) or (kc and (not kb))"),
+        # E-form plus a named individual yields the O-form.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"{n1} is a {c1[0]}. No {c1[1]} are {st}. Therefore some {c1[1]} are not {st}.",
+         ("ma", "ma implies not mb", "ka implies not kb"),
+         "(ma and (not mb)) or (ka and (not kb))"),
+        # Verb E-form with the plural "do not" conclusion.
+        ("entailed",
+         lambda n1, c1, c2, c3, v1, st: f"No {c1[1]} {v1[0]}. Some {c2[1]} are {c1[1]}. Therefore some {c2[1]} do not {v1[0]}.",
+         ("wa implies not wv", "ka implies not kv", "wc and wa"),
+         "(wc and (not wv)) or (kc and (not kv))"),
+        # E-form and I-form are contradictories — the E refutes the I.
+        ("refuted",
+         lambda n1, c1, c2, c3, v1, st: f"No {c1[1]} are {st}. Therefore some {c1[1]} are {st}.",
+         ("ka implies not kb",), "ka and kb"),
+        # E-form instantiated at the named individual contradicts the query.
+        ("refuted",
+         lambda n1, c1, c2, c3, v1, st: f"{n1} is a {c1[0]}. No {c1[1]} are {st}. Some {c2[1]} are {c1[1]}. Therefore {n1} is {st}.",
+         ("ma", "ma implies not mb", "wa implies not wb", "wc and wa"), "mb"),
+        # The E-form binds a class the witness never enters.
+        ("unknown",
+         lambda n1, c1, c2, c3, v1, st: f"Some {c1[1]} are {c2[1]}. No {c3[1]} are {st}. Therefore some {c1[1]} are not {st}.",
+         ("wa and wb", "wc implies not wd", "kc implies not kd"),
+         "(wa and (not wd)) or (ka and (not kd))"),
+    ),
+}
+
+
 #: Ledger band order: the five v1 bands, the four v2-EN bands, the four
-#: v3-MEM bands, the four v4-CM bands, then the four v5-VP bands.
+#: v3-MEM bands, the four v4-CM bands, the four v5-VP bands, then the four
+#: v6-EX bands.
 _ALL_BANDS: tuple[str, ...] = (
     CONDITIONAL_SINGLE, CONDITIONAL_CHAIN, DISJUNCTIVE, ATOMIC, CATEGORICAL,
     EN_CONDITIONAL_SINGLE, EN_CONDITIONAL_CHAIN, EN_DISJUNCTIVE, EN_ATOMIC,
     EN_MEMBER_SINGLE, EN_MEMBER_CHAIN, EN_MEMBER_NEGATIVE, EN_MEMBER_ATOMIC,
     EN_CONDMEM_FUSED, EN_CONDMEM_DISJUNCTIVE, EN_CONDMEM_CHAIN, EN_CONDMEM_CONDITIONAL,
     EN_VERB_NEGATIVE, EN_VERB_CHAIN, EN_VERB_UNIVERSAL, EN_VERB_FACT,
+    EN_EXIST_NEGATIVE, EN_EXIST_CHAIN, EN_EXIST_UNIVERSAL, EN_EXIST_WITNESS,
 )
 
 
@@ -674,6 +848,25 @@ def generate_problems(band: str, n: int) -> list[Problem]:
     logical form for the reader-independent oracle cross-check.
     """
     problems: list[Problem] = []
+    if band in _EXIST_TEMPLATES:
+        templates = _EXIST_TEMPLATES[band]
+        for i in range(n):
+            gold, builder, intended_premises, intended_query = templates[i % len(templates)]
+            problems.append(
+                Problem(
+                    problem_id=f"{band}-{i:04d}",
+                    class_name=band,
+                    payload={
+                        "text": builder(*_exist_case(i)),
+                        "gold": gold,
+                        "intended": {
+                            "premises": list(intended_premises),
+                            "query": intended_query,
+                        },
+                    },
+                )
+            )
+        return problems
     if band in _VERB_TEMPLATES:
         templates = _VERB_TEMPLATES[band]
         for i in range(n):
@@ -819,6 +1012,9 @@ class DeductionSolver:
             verb = self._attempt_verb(problem)
             if verb is not None:
                 return verb
+            exist = self._attempt_exist(problem)
+            if exist is not None:
+                return exist
             return _DeductionAttempt(
                 committed=False, answer=None, reason=f"reader:{getattr(comp, 'reason', '')}",
                 case_id=problem.problem_id, shape=problem.class_name,
@@ -861,6 +1057,9 @@ class DeductionSolver:
         verb = self._attempt_verb(problem)
         if verb is not None:
             return verb
+        exist = self._attempt_exist(problem)
+        if exist is not None:
+            return exist
         return _DeductionAttempt(
             committed=False, answer=None, reason="unprojectable",
             case_id=problem.problem_id, shape=problem.class_name,
@@ -916,6 +1115,22 @@ class DeductionSolver:
         reader refuses (the caller then records the honest decline)."""
         arg = read_verb_argument(problem.payload["text"])
         if not isinstance(arg, VerbArgument):
+            return None
+        outcome = evaluate_entailment_with_trace(
+            arg.premise_formulas, arg.query_formula
+        ).outcome
+        return _DeductionAttempt(
+            committed=outcome is not Entailment.REFUSED,
+            answer=_OUTCOME_TO_CLASS[outcome], reason="",
+            case_id=problem.problem_id, shape=arg.band,
+        )
+
+
+    def _attempt_exist(self, problem: Problem) -> _DeductionAttempt | None:
+        """Band v6-EX: the existential argument path, or ``None`` when the
+        reader refuses (the caller then records the honest decline)."""
+        arg = read_exist_argument(problem.payload["text"])
+        if not isinstance(arg, ExistArgument):
             return None
         outcome = evaluate_entailment_with_trace(
             arg.premise_formulas, arg.query_formula

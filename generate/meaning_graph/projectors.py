@@ -71,12 +71,23 @@ def to_syllogism(comp: Comprehension) -> tuple[dict[str, Any], dict[str, Any]] |
     the single categorical query is the conclusion. Returns ``None`` when the
     comprehension is not exactly one categorical conclusion over >=1 premise — the
     caller treats that as a refusal (nothing honestly askable of this oracle).
+
+    Refuse-don't-drop (ADR-0261 §5): a relation this projection cannot express —
+    a singular ``member`` fact, a negated relation — makes the WHOLE projection
+    refuse, exactly as its propositional sibling ``to_deductive_logic`` already
+    does. Filtering such a relation out instead would hand the oracle a
+    STRICTLY WEAKER argument than the user wrote and then answer it: "Aristotle
+    is a philosopher. All philosophers are scholars. Therefore some scholars
+    are philosophers." loses its only witness and comes back "that doesn't
+    follow" — a wrong served answer, not a decline. Refusing lets the later
+    reader bands (v3-MEM onward), which read singular facts, decide it.
     """
     graph = comp.meaning_graph
+    if any(r.predicate not in _PRED_FORM or r.negated for r in graph.relations):
+        return None
     premises = [
         {"form": _PRED_FORM[r.predicate], "subject": r.arguments[0], "predicate": r.arguments[1]}
         for r in graph.relations
-        if r.predicate in _PRED_FORM and not r.negated
     ]
     conclusions = [q for q in comp.queries if q.predicate in _PRED_FORM and not q.negated]
     if not premises or len(comp.queries) != 1 or len(conclusions) != 1:

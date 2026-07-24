@@ -179,3 +179,30 @@ def test_verb_predicate_is_decided_end_to_end() -> None:
     )
     assert resp.grounding_source == "deduction"
     assert "Your premises entail: socrates teaches" in resp.surface
+
+
+def test_existential_is_decided_end_to_end() -> None:
+    """The ADR-0261 flagship: a witness carried through a universal to an
+    existential conclusion, decided through the real REPL spine."""
+    rt = _runtime(True)
+    resp = rt.chat(
+        "Every mammal is a vertebrate. Some whales are mammals. "
+        "Therefore some whales are vertebrates."
+    )
+    assert resp.grounding_source == "deduction"
+    assert "Your premises entail: some whales are vertebrates" in resp.surface
+
+
+def test_singular_premise_is_not_dropped_by_the_categorical_band() -> None:
+    """ADR-0261 §5 regression: the categorical projector used to FILTER a
+    singular ``member`` premise out and answer from what was left, serving
+    "that doesn't follow" for an argument that does. It now refuses, and the
+    existential band decides the real argument."""
+    rt = _runtime(True)
+    resp = rt.chat(
+        "Aristotle is a philosopher. All philosophers are scholars. "
+        "Therefore some scholars are philosophers."
+    )
+    assert resp.grounding_source == "deduction"
+    assert "Your premises entail: some scholars are philosophers" in resp.surface
+    assert "doesn't follow" not in resp.surface

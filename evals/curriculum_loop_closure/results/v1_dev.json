@@ -3,7 +3,7 @@
   "cases": [
     {
       "case": "positive_basic",
-      "proposal_id": "23d88e439bdb9394",
+      "proposal_id": "61a80836bd55e1e0",
       "source": "curriculum:epistemology_v1",
       "status": "pass"
     },
@@ -16,7 +16,7 @@
       "rejections": [
         {
           "checker_id": "curriculum_eval_checker_v1",
-          "finding_id": "53a976ad596075fb",
+          "finding_id": "53a976ad596075fb67655dc7b83db158ef068a7f4ad8315b54795cc8c2476720",
           "non_target_turns_changed": [
             1,
             3
@@ -34,14 +34,14 @@
       "case": "determinism",
       "equal": true,
       "first_ids": [
-        "23d88e439bdb9394",
-        "f4b7d702a799268e",
-        "61a1038fd4cc6cfe"
+        "61a80836bd55e1e0",
+        "293dd9d42c8fa1ac",
+        "0cd932d9ccad4883"
       ],
       "second_ids": [
-        "23d88e439bdb9394",
-        "f4b7d702a799268e",
-        "61a1038fd4cc6cfe"
+        "61a80836bd55e1e0",
+        "293dd9d42c8fa1ac",
+        "0cd932d9ccad4883"
       ],
       "status": "pass"
     }
@@ -49,5 +49,5 @@
   "failed": 0,
   "lane": "curriculum_loop_closure",
   "passed": 5,
-  "sha256": "cbac54a3722cf3b941c3c5223335171265a942efb53d03bc08128d2d0f3ce298"
+  "sha256": "533c4e2317c3e22b5f33d59817a954753ad201e2354b826171822a8ea183c706"
 }

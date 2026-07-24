@@ -9,7 +9,8 @@ The **production serving decider** — the exact pipeline
 → `to_syllogism` + the categorical decider (Band v1b, ADR-0256) →
 `read_english_argument` (Band v2-EN, ADR-0257) → `read_member_argument`
 (Band v3-MEM, ADR-0258) → `read_cond_member_argument` (Band v4-CM,
-ADR-0259) → `read_verb_argument` (Band v5-VP, ADR-0260) — with
+ADR-0259) → `read_verb_argument` (Band v5-VP, ADR-0260) →
+`read_exist_argument` (Band v6-EX, ADR-0261) — with
 `evaluate_entailment_with_trace` (the ROBDD engine,
 ADR-0201/ADR-0218) deciding every band.
 `evals/deduction_serve/runner.py::decide` calls these functions directly
@@ -34,6 +35,11 @@ against wording-only changes.
   universals discharged by membership facts across every closed agreement
   rule (+s, +es, y↔ies, irregular go/goes), transitive objects at face
   value, and eight typed decline shapes.
+- `v2_exist/` — hand-authored existential arguments (ADR-0261): the square
+  of opposition (Darii, Ferio, both contradictory pairs, the
+  no-existential-import subaltern), witnesses that never transfer to a
+  named individual, the arbitrary element that keeps an existential
+  conclusion's domain open, and eleven typed decline shapes.
 
 This is **distinct** from two existing lanes that sound similar:
 
@@ -102,15 +108,34 @@ decides for that exact text.
   in the shared tokenizer's expansion table, so v5's `n't` guard refuses
   identically) or structure v5 also guards out; the full lane's prior
   splits stayed byte-stable.
+- **Existential quantifiers** — refused by every band until Band v6-EX
+  (ADR-0261) decided them (`v2_exist/`). ONE case promoted: `ds-mem-0020`
+  (`"Some men are wise. Socrates is a man. Therefore Socrates is wise."`),
+  declined (`quantifier_out_of_band`) since ADR-0258, is now read — and its
+  honest verdict is **UNKNOWN**, since an anonymous witness never transfers
+  to a named individual. Promoted declined → unknown, renamed
+  `exist_witness_does_not_transfer`. The other splits stayed byte-stable.
+- **Band boundary with v1b** — a purely categorical some-syllogism whose
+  every term is in the shared reader's morphology lexicon is decided by the
+  CATEGORICAL band, which is tried first and answers in its own
+  `valid`/`invalid` vocabulary; v6-EX's territory is everything else
+  (unknown vocabulary, singular facts, verb predicates, >3 terms). The
+  `v2_exist/` corpus is authored on that fall-through path deliberately, so
+  the split measures the band it names. Related: `to_syllogism` now REFUSES
+  rather than dropping a premise it cannot express (ADR-0261 §5.1) — before
+  that fix it answered a strictly weaker argument than the user wrote, which
+  is how a wrong served verdict got past a licensed band.
 - **Still-open declines** (honest, typed): verb-phrase contraction
   negation (`ds-en-0023/0024`), ambiguous `and`/`or` scope (`ds-en-0025`),
-  nested conditionals (`ds-en-0026`), existential quantifiers / bare
-  plurals / definite descriptions / relative clauses / tense
-  (`ds-mem-0020…0023/0025/0026`), a universal clause nested inside a
-  connective, compound conclusions (`ds-cm-0020…0026`), and the verb
-  band's own scope-outs — `did not` tense, multi-token subjects,
-  prepositional/ditransitive shapes, connective×verb composition
-  (`ds-vb-0021…0028`).
+  nested conditionals (`ds-en-0026`), bare plurals / definite descriptions /
+  relative clauses / tense (`ds-mem-0021…0023/0025/0026`), a universal
+  clause nested inside a connective, compound conclusions
+  (`ds-cm-0020…0026`), the verb band's own scope-outs — `did not` tense,
+  multi-token subjects, prepositional/ditransitive shapes, connective×verb
+  composition (`ds-vb-0021…0028`) — and the existential band's:
+  partitives, singular agreement under a plural subject,
+  connective×existential composition, proportional quantifiers, universal
+  conclusions (`ds-ex-0022…0032`).
 
 ## Reproduce
 

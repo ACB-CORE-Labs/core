@@ -41,6 +41,15 @@ Bands (docs/research/deduction-serve-arc-phase0-baseline-2026-07-23.md):
   atoms, decided by the same engine. Tried strictly AFTER v4-CM (the earlier
   bands refuse quantifier-led verb universals, is-a + verb mixes, and
   ``does not`` negation) — again a pure widening tier.
+- Band v6-EX (ADR-0261) — existential arguments ("All wolves are mammals. Some
+  wolves are tame. Therefore some mammals are tame."), read by
+  ``generate.proof_chain.exist``: v5-VP's lowering over a domain widened with
+  one Skolem witness per existential premise and one ARBITRARY element per
+  existential conclusion (what keeps the domain open, so an existential is
+  refuted only by a genuine universal). Tried LAST, strictly after v5-VP — the
+  earlier fallback bands refuse every ``some``-led sentence, and the
+  categorical band v1b, which reads some-syllogisms in its own synthetic
+  regime, is tried well before this one and keeps them. A pure widening tier.
 
 Fail-closed (INV-34): once ``looks_like_deductive_argument`` fires, every path
 below returns a committed, honest surface — reader refusal, out-of-band shape,
@@ -61,10 +70,12 @@ from generate.proof_chain.categorical import CategoricalError, decide_syllogism
 from generate.proof_chain.cond_member import CondMemberArgument, read_cond_member_argument
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import evaluate_entailment_with_trace
+from generate.proof_chain.exist import ExistArgument, read_exist_argument
 from generate.proof_chain.member import MemberArgument, read_member_argument
 from generate.proof_chain.render import (
     render_entailment,
     render_entailment_english,
+    render_entailment_exist,
     render_entailment_member,
     render_entailment_verb,
     render_syllogism,
@@ -155,6 +166,9 @@ def deduction_grounded_surface(
         verb = _verb_band_surface(text, license_lookup)
         if verb is not None:
             return verb
+        exist = _exist_band_surface(text, license_lookup)
+        if exist is not None:
+            return exist
         return _READER_REFUSAL_SURFACE.format(reason=comp.reason)
     # Band v1 — propositional argument.
     projected = to_deductive_logic(comp)
@@ -191,6 +205,10 @@ def deduction_grounded_surface(
     verb = _verb_band_surface(text, license_lookup)
     if verb is not None:
         return verb
+    # Band v6-EX fallback — the existential shapes every earlier band guards out.
+    exist = _exist_band_surface(text, license_lookup)
+    if exist is not None:
+        return exist
     return _OUT_OF_BAND_SURFACE
 
 
@@ -248,6 +266,21 @@ def _verb_band_surface(text: str, license_lookup: _LicenseLookup) -> str | None:
         return None
     trace = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula)
     surface = render_entailment_verb(trace, arg.premise_texts, arg.query_text)
+    return _license_gate(surface, arg.band, license_lookup)
+
+
+def _exist_band_surface(text: str, license_lookup: _LicenseLookup) -> str | None:
+    """Band v6-EX (ADR-0261): read *text* as an existential argument (witness
+    and arbitrary-element domain widening over v5-VP's two atom families), and
+    decide with the same verified ROBDD engine; ``None`` when the reader
+    refuses (the caller keeps its pre-existing honest surface — this band only
+    ever widens what is decided). Rendered by ``render_entailment_exist``,
+    whose UNKNOWN scoping discloses the no-existential-import reading."""
+    arg = read_exist_argument(text)
+    if not isinstance(arg, ExistArgument):
+        return None
+    trace = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula)
+    surface = render_entailment_exist(trace, arg.premise_texts, arg.query_text)
     return _license_gate(surface, arg.band, license_lookup)
 
 

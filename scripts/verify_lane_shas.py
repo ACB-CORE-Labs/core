@@ -51,7 +51,7 @@ PINNED_SHAS: dict[str, str] = {
     "public_demo": "7d8ba0dbae9287cfe0bf15d231fa78a75abc627121c14900439293e01e1cc1d3",
     "math_teaching_corpus_v1": "eaf160d145da29f9050ede8d58bf111b0f651dd40aeae9201857d0b97e014dd4",
     "deductive_logic_v1": "97a230949016e38d5e3f37a69e4245b320575ee70e5af92ff7607f7b05f74b5f",
-    "deduction_serve_v1": "f4fa7331bbee40c898be9ea2a8cabf36f28c8a19a7500433e0fa966c05905a8a",
+    "deduction_serve_v1": "0b461a5a49c8f8260ca87d0c9c9f9a17232bd1fdedd982e34649eedf9cca30b5",
 }
 
 

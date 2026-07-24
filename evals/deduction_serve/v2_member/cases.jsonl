@@ -17,7 +17,7 @@
 {"id": "ds-mem-0017", "text": "Plato is a man. All men are mortal. Therefore Zeus is mortal.", "gold": "unknown", "class": "wrong_individual"}
 {"id": "ds-mem-0018", "text": "Rex is a dog. All cats are animals. Therefore Rex is an animal.", "gold": "unknown", "class": "broken_chain"}
 {"id": "ds-mem-0019", "text": "Milo is a child. All children are curious. Therefore Milo is happy.", "gold": "unknown", "class": "unrelated_predicate"}
-{"id": "ds-mem-0020", "text": "Some men are wise. Socrates is a man. Therefore Socrates is wise.", "gold": "declined", "class": "existential_out_of_band"}
+{"id": "ds-mem-0020", "text": "Some men are wise. Socrates is a man. Therefore Socrates is wise.", "gold": "unknown", "class": "exist_witness_does_not_transfer"}
 {"id": "ds-mem-0021", "text": "Dogs are loyal. Rex is a dog. Therefore Rex is loyal.", "gold": "declined", "class": "bare_plural_out_of_band"}
 {"id": "ds-mem-0022", "text": "Socrates is the philosopher. All philosophers are wise. Therefore Socrates is wise.", "gold": "declined", "class": "definite_description_out_of_band"}
 {"id": "ds-mem-0023", "text": "Socrates is a man. All men are mortal. Therefore all men are mortal.", "gold": "declined", "class": "universal_conclusion_out_of_band"}

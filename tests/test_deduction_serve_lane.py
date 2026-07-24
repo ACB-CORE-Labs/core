@@ -16,6 +16,7 @@ _V2_EN = _ROOT / "v2_en" / "cases.jsonl"
 _V2_MEMBER = _ROOT / "v2_member" / "cases.jsonl"
 _V2_CONDMEM = _ROOT / "v2_condmem" / "cases.jsonl"
 _V2_VERB = _ROOT / "v2_verb" / "cases.jsonl"
+_V2_EXIST = _ROOT / "v2_exist" / "cases.jsonl"
 
 
 def test_v1_lane_wrong_is_zero() -> None:
@@ -58,10 +59,13 @@ def test_v2_member_lane_wrong_is_zero() -> None:
     """Band v3-MEM (ADR-0258): hand-authored membership/universal arguments —
     real nouns exercising every number-link row-type (irregular, invariant,
     each regular suffix rule) — decided with wrong=0 across all four verdicts
-    and six distinct honest-decline shapes. (``ds-mem-0024``, a bare
+    and five distinct honest-decline shapes. (``ds-mem-0024``, a bare
     conditional with no anchor, was promoted declined->unknown when Band
     v4-CM landed — ADR-0259; it is genuinely UNKNOWN, not entailed, since the
-    antecedent is never asserted.)"""
+    antecedent is never asserted. ``ds-mem-0020``, the ADR-0258 existential
+    scope-out, was promoted declined->unknown when Band v6-EX landed —
+    ADR-0261; genuinely UNKNOWN, since an anonymous witness never transfers to
+    a named individual.)"""
     report = build_report(_load(_V2_MEMBER))
     assert report["n"] == 26
     assert report["counts"]["wrong"] == 0
@@ -69,8 +73,8 @@ def test_v2_member_lane_wrong_is_zero() -> None:
     cbg = report["correct_by_gold"]
     assert cbg.get("entailed", 0) >= 12
     assert cbg.get("refuted", 0) >= 3
-    assert cbg.get("unknown", 0) >= 5
-    assert cbg.get("declined", 0) >= 6
+    assert cbg.get("unknown", 0) >= 6
+    assert cbg.get("declined", 0) >= 5
 
 
 def test_v2_condmem_lane_wrong_is_zero() -> None:
@@ -104,6 +108,23 @@ def test_v2_verb_lane_wrong_is_zero() -> None:
     assert cbg.get("refuted", 0) >= 4
     assert cbg.get("unknown", 0) >= 5
     assert cbg.get("declined", 0) >= 8
+
+
+def test_v2_exist_lane_wrong_is_zero() -> None:
+    """Band v6-EX (ADR-0261): hand-authored existential arguments — the full
+    square of opposition (Darii, Ferio, both contradictory pairs, the
+    no-existential-import subaltern), witnesses that never transfer to a named
+    individual, the arbitrary element that keeps the domain open, and eleven
+    distinct honest-decline shapes — decided wrong=0."""
+    report = build_report(_load(_V2_EXIST))
+    assert report["n"] == 32
+    assert report["counts"]["wrong"] == 0
+    assert report["all_cases_correct"] is True
+    cbg = report["correct_by_gold"]
+    assert cbg.get("entailed", 0) >= 11
+    assert cbg.get("refuted", 0) >= 4
+    assert cbg.get("unknown", 0) >= 6
+    assert cbg.get("declined", 0) >= 11
 
 
 def test_runner_treats_wrong_verdict_as_the_only_real_failure() -> None:

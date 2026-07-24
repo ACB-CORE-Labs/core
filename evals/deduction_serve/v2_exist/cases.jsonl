@@ -1,0 +1,32 @@
+{"id": "ds-ex-0001", "text": "Every mammal is a vertebrate. Some whales are mammals. Therefore some whales are vertebrates.", "gold": "entailed", "class": "exist_darii"}
+{"id": "ds-ex-0002", "text": "Some philosophers are Greeks. Zeno is a Greek. Therefore some Greeks are philosophers.", "gold": "entailed", "class": "exist_i_conversion"}
+{"id": "ds-ex-0003", "text": "Socrates is a philosopher. Socrates is wise. Therefore some philosophers are wise.", "gold": "entailed", "class": "exist_named_witness"}
+{"id": "ds-ex-0004", "text": "Mars is a planet. No planets are stars. Some wanderers are planets. Therefore some wanderers are not stars.", "gold": "entailed", "class": "exist_ferio"}
+{"id": "ds-ex-0005", "text": "All metals conduct heat. Some alloys are metals. Therefore some alloys conduct heat.", "gold": "entailed", "class": "exist_verb_universal"}
+{"id": "ds-ex-0006", "text": "No reptiles nurse young. Some lizards are reptiles. Therefore some lizards do not nurse young.", "gold": "entailed", "class": "exist_verb_negative"}
+{"id": "ds-ex-0007", "text": "Some canaries are songbirds. All songbirds are perchers. All perchers are agile. Therefore some canaries are agile.", "gold": "entailed", "class": "exist_chain"}
+{"id": "ds-ex-0008", "text": "Aristotle is a philosopher. All philosophers are scholars. Therefore some scholars are philosophers.", "gold": "entailed", "class": "exist_named_witness_refuse_dont_drop"}
+{"id": "ds-ex-0009", "text": "Some tortoises are ancient. Therefore some tortoises are ancient.", "gold": "entailed", "class": "exist_i_restatement"}
+{"id": "ds-ex-0010", "text": "Some hermits are not sociable. Therefore some hermits are not sociable.", "gold": "entailed", "class": "exist_o_restatement"}
+{"id": "ds-ex-0011", "text": "Every goose is a bird. Some geese are gray. Therefore some birds are gray.", "gold": "entailed", "class": "exist_irregular_number_link"}
+{"id": "ds-ex-0012", "text": "No fish are mammals. Therefore some fish are mammals.", "gold": "refuted", "class": "exist_e_refutes_i"}
+{"id": "ds-ex-0013", "text": "Every square is a rectangle. Therefore some squares are not rectangles.", "gold": "refuted", "class": "exist_a_refutes_o"}
+{"id": "ds-ex-0014", "text": "Bede is a monk. No monks are talkative. Some scribes are monks. Therefore Bede is talkative.", "gold": "refuted", "class": "exist_e_form_at_named"}
+{"id": "ds-ex-0015", "text": "Nile is a river. All rivers are wet. Some rivers are wide. Therefore Nile is not wet.", "gold": "refuted", "class": "exist_universal_at_named"}
+{"id": "ds-ex-0016", "text": "Some sailors are brave. Magellan is a sailor. Therefore Magellan is brave.", "gold": "unknown", "class": "exist_witness_does_not_transfer"}
+{"id": "ds-ex-0017", "text": "All unicorns are horned. Therefore some unicorns are horned.", "gold": "unknown", "class": "exist_no_existential_import"}
+{"id": "ds-ex-0018", "text": "Some auks are flightless. Some auks are colorful. Therefore some flightless are colorful.", "gold": "unknown", "class": "exist_two_witnesses"}
+{"id": "ds-ex-0019", "text": "Vega is a star. Vega is not visible. Therefore some stars are visible.", "gold": "unknown", "class": "exist_domain_stays_open"}
+{"id": "ds-ex-0020", "text": "Some poems are sonnets. No plays rhyme. Therefore some poems do not rhyme.", "gold": "unknown", "class": "exist_unrelated_e_form"}
+{"id": "ds-ex-0021", "text": "Some larks sing. Therefore some larks sing sweetly.", "gold": "unknown", "class": "exist_arity_at_face_value"}
+{"id": "ds-ex-0022", "text": "Some of the sailors are brave. Therefore some sailors are brave.", "gold": "declined", "class": "partitive_out_of_band"}
+{"id": "ds-ex-0023", "text": "Some sailors were brave. Therefore some sailors are brave.", "gold": "declined", "class": "tense_out_of_band"}
+{"id": "ds-ex-0024", "text": "Some sailors did not return. Therefore some sailors return.", "gold": "declined", "class": "tense_out_of_band_verb"}
+{"id": "ds-ex-0025", "text": "If some sailors are brave then the ship sails. Some sailors are brave. Therefore the ship sails.", "gold": "declined", "class": "mixed_structure_out_of_band"}
+{"id": "ds-ex-0026", "text": "Most sailors are brave. Therefore some sailors are brave.", "gold": "declined", "class": "quantifier_out_of_band"}
+{"id": "ds-ex-0027", "text": "Some sailors are brave. Therefore all sailors are brave.", "gold": "declined", "class": "universal_conclusion_out_of_band"}
+{"id": "ds-ex-0028", "text": "Some sailors does not sail. Therefore some sailors sail.", "gold": "declined", "class": "agreement_out_of_band"}
+{"id": "ds-ex-0029", "text": "Some old sailors whittle driftwood. Therefore some sailors whittle driftwood.", "gold": "declined", "class": "multi_token_subject_out_of_band"}
+{"id": "ds-ex-0030", "text": "Some sailors who fish are brave. Therefore some sailors are brave.", "gold": "declined", "class": "relative_clause_out_of_band"}
+{"id": "ds-ex-0031", "text": "Some sailors are the crew. Therefore some crew are sailors.", "gold": "declined", "class": "definite_description_out_of_band"}
+{"id": "ds-ex-0032", "text": "Some sailors are brave. Do some sailors sing?", "gold": "declined", "class": "question_sentence"}

@@ -68,6 +68,20 @@ def test_to_syllogism_none_for_membership_only() -> None:
     assert to_syllogism(_comp("Rhea is a raven.")) is None
 
 
+def test_to_syllogism_refuses_rather_than_dropping_an_unreadable_premise() -> None:
+    """ADR-0261 §5. A singular ``member`` premise alongside categorical ones
+    used to be FILTERED OUT, leaving a strictly weaker argument that the
+    oracle then answered: this text's only witness vanished and serving
+    replied "that doesn't follow" — a wrong answer, not a decline. Refusing
+    hands the argument to the reader bands that can hold a singular fact."""
+    comp = _comp(
+        "Aristotle is a philosopher. All philosophers are scholars. "
+        "Therefore some scholars are philosophers."
+    )
+    assert any(r.predicate == "member" for r in comp.meaning_graph.relations)
+    assert to_syllogism(comp) is None
+
+
 # --------------------------------------------------------------------------- #
 # to_total_ordering
 # --------------------------------------------------------------------------- #

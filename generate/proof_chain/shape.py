@@ -113,9 +113,33 @@ EN_VERB_BANDS: tuple[str, ...] = (
     EN_VERB_FACT,
 )
 
+#: Band v6-EX (ADR-0261) — existential arguments ("All wolves are mammals.
+#: Some wolves are tame. Therefore some mammals are tame."), read by
+#: ``generate.proof_chain.exist``: v5-VP's per-individual lowering over a
+#: domain widened with one Skolem witness per existential premise and one
+#: arbitrary element per existential conclusion. Same ``en_`` license
+#: discipline: a different reader must earn its own per-shape record.
+#: Priority order: negative > chain > universal > witness.
+EN_EXIST_NEGATIVE = "en_exist_negative"
+EN_EXIST_CHAIN = "en_exist_chain"
+EN_EXIST_UNIVERSAL = "en_exist_universal"
+EN_EXIST_WITNESS = "en_exist_witness"
+
+EN_EXIST_BANDS: tuple[str, ...] = (
+    EN_EXIST_NEGATIVE,
+    EN_EXIST_CHAIN,
+    EN_EXIST_UNIVERSAL,
+    EN_EXIST_WITNESS,
+)
+
 #: Every serving shape-band — the ratified ledger's full key set.
 ALL_SHAPE_BANDS: tuple[str, ...] = (
-    SHAPE_BANDS + EN_SHAPE_BANDS + EN_MEMBER_BANDS + EN_CONDMEM_BANDS + EN_VERB_BANDS
+    SHAPE_BANDS
+    + EN_SHAPE_BANDS
+    + EN_MEMBER_BANDS
+    + EN_CONDMEM_BANDS
+    + EN_VERB_BANDS
+    + EN_EXIST_BANDS
 )
 
 
@@ -159,6 +183,11 @@ __all__ = [
     "EN_CONDMEM_DISJUNCTIVE",
     "EN_CONDMEM_FUSED",
     "EN_DISJUNCTIVE",
+    "EN_EXIST_BANDS",
+    "EN_EXIST_CHAIN",
+    "EN_EXIST_NEGATIVE",
+    "EN_EXIST_UNIVERSAL",
+    "EN_EXIST_WITNESS",
     "EN_MEMBER_ATOMIC",
     "EN_MEMBER_BANDS",
     "EN_MEMBER_CHAIN",
