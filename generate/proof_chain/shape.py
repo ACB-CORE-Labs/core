@@ -95,9 +95,27 @@ EN_CONDMEM_BANDS: tuple[str, ...] = (
     EN_CONDMEM_CONDITIONAL,
 )
 
+#: Band v5-VP (ADR-0260) — verb-predicate arguments ("All philosophers teach.
+#: Socrates is a philosopher. Therefore Socrates teaches."), read by
+#: ``generate.proof_chain.verb`` via per-individual lowering with a second
+#: (individual, verb-group, object) atom family alongside v3-MEM's membership
+#: atoms. Same ``en_`` license discipline: a different reader must earn its
+#: own per-shape record. Priority order: negative > chain > universal > fact.
+EN_VERB_NEGATIVE = "en_verb_negative"
+EN_VERB_CHAIN = "en_verb_chain"
+EN_VERB_UNIVERSAL = "en_verb_universal"
+EN_VERB_FACT = "en_verb_fact"
+
+EN_VERB_BANDS: tuple[str, ...] = (
+    EN_VERB_NEGATIVE,
+    EN_VERB_CHAIN,
+    EN_VERB_UNIVERSAL,
+    EN_VERB_FACT,
+)
+
 #: Every serving shape-band — the ratified ledger's full key set.
 ALL_SHAPE_BANDS: tuple[str, ...] = (
-    SHAPE_BANDS + EN_SHAPE_BANDS + EN_MEMBER_BANDS + EN_CONDMEM_BANDS
+    SHAPE_BANDS + EN_SHAPE_BANDS + EN_MEMBER_BANDS + EN_CONDMEM_BANDS + EN_VERB_BANDS
 )
 
 
@@ -147,6 +165,11 @@ __all__ = [
     "EN_MEMBER_NEGATIVE",
     "EN_MEMBER_SINGLE",
     "EN_SHAPE_BANDS",
+    "EN_VERB_BANDS",
+    "EN_VERB_CHAIN",
+    "EN_VERB_FACT",
+    "EN_VERB_NEGATIVE",
+    "EN_VERB_UNIVERSAL",
     "SHAPE_BANDS",
     "classify_deduction_shape",
 ]

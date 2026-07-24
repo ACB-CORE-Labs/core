@@ -9,7 +9,8 @@ The **production serving decider** — the exact pipeline
 → `to_syllogism` + the categorical decider (Band v1b, ADR-0256) →
 `read_english_argument` (Band v2-EN, ADR-0257) → `read_member_argument`
 (Band v3-MEM, ADR-0258) → `read_cond_member_argument` (Band v4-CM,
-ADR-0259) — with `evaluate_entailment_with_trace` (the ROBDD engine,
+ADR-0259) → `read_verb_argument` (Band v5-VP, ADR-0260) — with
+`evaluate_entailment_with_trace` (the ROBDD engine,
 ADR-0201/ADR-0218) deciding every band.
 `evals/deduction_serve/runner.py::decide` calls these functions directly
 (typed outcome, not rendered prose) — the same production decision the
@@ -29,6 +30,10 @@ against wording-only changes.
   membership sentence reading, incl. genuine universal+connective fusion
   cases (a bare universal's instantiated atom unifying with a connective
   leaf's atom).
+- `v2_verb/` — hand-authored verb-predicate arguments (ADR-0260): verb
+  universals discharged by membership facts across every closed agreement
+  rule (+s, +es, y↔ies, irregular go/goes), transitive objects at face
+  value, and eight typed decline shapes.
 
 This is **distinct** from two existing lanes that sound similar:
 
@@ -91,12 +96,21 @@ decides for that exact text.
   — the first promotion in this corpus that does not land on `entailed`,
   because the promoted band's own correct answer for THIS text is a
   non-commitment, not a new capability to showcase.
-- **Still-open declines** (honest, typed): verb-phrase negation
-  (`ds-en-0023/0024`), ambiguous `and`/`or` scope (`ds-en-0025`), nested
-  conditionals (`ds-en-0026`), existential quantifiers / bare plurals /
-  definite descriptions / relative clauses / tense
+- **Verb predicates** — refused by every band until Band v5-VP (ADR-0260)
+  decided them (`v2_verb/`). NO existing case promoted: every remaining
+  decline in the older splits uses contraction negation ("doesn't" — not
+  in the shared tokenizer's expansion table, so v5's `n't` guard refuses
+  identically) or structure v5 also guards out; the full lane's prior
+  splits stayed byte-stable.
+- **Still-open declines** (honest, typed): verb-phrase contraction
+  negation (`ds-en-0023/0024`), ambiguous `and`/`or` scope (`ds-en-0025`),
+  nested conditionals (`ds-en-0026`), existential quantifiers / bare
+  plurals / definite descriptions / relative clauses / tense
   (`ds-mem-0020…0023/0025/0026`), a universal clause nested inside a
-  connective, compound conclusions (`ds-cm-0020…0026`).
+  connective, compound conclusions (`ds-cm-0020…0026`), and the verb
+  band's own scope-outs — `did not` tense, multi-token subjects,
+  prepositional/ditransitive shapes, connective×verb composition
+  (`ds-vb-0021…0028`).
 
 ## Reproduce
 

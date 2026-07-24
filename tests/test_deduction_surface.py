@@ -371,3 +371,64 @@ def test_runtime_decides_full_propositional_gold_corpus_wrong_zero() -> None:
             continue
         wrong.append(f"{case['text']!r} -> gold={gold} surface={surface!r}")
     assert not wrong, "\n".join(wrong)
+
+
+def test_verb_predicate_is_decided_band_v5_vp() -> None:
+    """The ADR-0258 §6.3 verb-predicate scope-out, now decided (ADR-0260):
+    a verb universal discharged by a membership fact, authoritatively (the
+    ``en_verb_universal`` band holds an earned SERVE license)."""
+    surface = deduction_grounded_surface(
+        "All philosophers teach. Socrates is a philosopher. "
+        "Therefore Socrates teaches."
+    )
+    assert surface is not None
+    assert "Your premises entail: socrates teaches" in surface
+    assert not surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+
+
+def test_verb_universal_discharged_by_membership_chain() -> None:
+    """The mechanism this band adds: the membership atom minted by copula
+    sentences unifies with a verb universal's instantiated antecedent across
+    an is-a chain — neither v3-MEM (refuses verb sentences) nor v2-EN
+    (refuses quantifier leads and is-a clauses) alone decides this."""
+    surface = deduction_grounded_surface(
+        "Felix is a tortoise. All tortoises are reptiles. All reptiles crawl. "
+        "Therefore Felix crawls."
+    )
+    assert surface is not None
+    assert "Your premises entail: felix crawls" in surface
+
+
+def test_verb_unknown_is_scoped_to_the_verb_reading() -> None:
+    surface = deduction_grounded_surface(
+        "Viktor cooks. Viktor is a chef. Therefore Viktor cooks stew."
+    )
+    assert surface is not None
+    assert "verb phrase at face value" in surface
+    assert "don't settle" in surface
+
+
+def test_verb_unearned_band_would_be_hedged() -> None:
+    """The en_verb_* bands ride the SAME earned-license gate: strip the
+    license and the same sound answer is served DISCLOSED, never
+    authoritatively."""
+    surface = deduction_grounded_surface(
+        "All philosophers teach. Socrates is a philosopher. "
+        "Therefore Socrates teaches.",
+        license_lookup=lambda band: None,
+    )
+    assert surface is not None
+    assert surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+    assert "Your premises entail: socrates teaches" in surface
+
+
+def test_verb_reader_refusal_keeps_prior_honest_surface() -> None:
+    """When the verb band ALSO cannot read the argument (here: a
+    ditransitive), the pre-existing honest surface is preserved verbatim —
+    the band only widens."""
+    surface = deduction_grounded_surface(
+        "Hannah gives Samuel bread. Hannah is a mother. "
+        "Therefore Hannah gives Samuel bread."
+    )
+    assert surface is not None
+    assert "Your premises entail" not in surface

@@ -166,3 +166,16 @@ def test_out_of_regime_argument_refuses_honestly() -> None:
     resp = rt.chat("The engine doesn't start. Therefore the engine is broken.")
     assert resp.grounding_source == "deduction"
     assert "can't parse" in resp.surface  # honest reader-refusal disclosure
+
+
+def test_verb_predicate_is_decided_end_to_end() -> None:
+    """The ADR-0260 flagship: a verb universal discharged by a membership
+    fact, decided through the real REPL spine — closed 3sg agreement linking
+    the universal's base form to the conclusion's inflected form."""
+    rt = _runtime(True)
+    resp = rt.chat(
+        "All philosophers teach. Socrates is a philosopher. "
+        "Therefore Socrates teaches."
+    )
+    assert resp.grounding_source == "deduction"
+    assert "Your premises entail: socrates teaches" in resp.surface

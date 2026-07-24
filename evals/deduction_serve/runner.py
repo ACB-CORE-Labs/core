@@ -49,6 +49,7 @@ from generate.proof_chain.cond_member import CondMemberArgument, read_cond_membe
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
 from generate.proof_chain.member import MemberArgument, read_member_argument
+from generate.proof_chain.verb import VerbArgument, read_verb_argument
 
 _ROOT = Path(__file__).resolve().parent
 
@@ -66,6 +67,10 @@ _SPLITS: tuple[tuple[str, Path], ...] = (
     # same content-disjoint discipline (connectives composed over singular-
     # membership clauses, incl. universal+connective fusion cases).
     ("v2_condmem", _ROOT / "v2_condmem" / "cases.jsonl"),
+    # Band v5-VP (ADR-0260) — hand-authored verb-predicate arguments, same
+    # content-disjoint discipline (verb agreement across +s/+es/y↔ies and the
+    # irregular table on real verbs: writes, debates, cries, goes).
+    ("v2_verb", _ROOT / "v2_verb" / "cases.jsonl"),
 )
 
 _OUTCOME_TO_CLASS = {
@@ -142,6 +147,15 @@ def _decide_cond_member(text: str) -> str:
     """Band v4-CM fallback (ADR-0259) — mirrors ``_cond_member_band_surface``."""
     arg = read_cond_member_argument(text)
     if not isinstance(arg, CondMemberArgument):
+        return _decide_verb(text)
+    outcome = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula).outcome
+    return _OUTCOME_TO_CLASS[outcome]
+
+
+def _decide_verb(text: str) -> str:
+    """Band v5-VP fallback (ADR-0260) — mirrors ``_verb_band_surface``."""
+    arg = read_verb_argument(text)
+    if not isinstance(arg, VerbArgument):
         return "declined"
     outcome = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula).outcome
     return _OUTCOME_TO_CLASS[outcome]

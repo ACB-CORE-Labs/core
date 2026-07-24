@@ -132,6 +132,43 @@ def render_entailment_member(
     return f"Given: {given}. I can't evaluate {query_text} from that as stated."
 
 
+def render_entailment_verb(
+    trace: EntailmentTrace, premise_texts: tuple[str, ...], query_text: str
+) -> str:
+    """The user-facing surface for a verb-predicate (Band v5-VP) verdict.
+
+    Same discipline as :func:`render_entailment_member`; the UNKNOWN template
+    additionally scopes the verb reading (ADR-0260 §3): each verb phrase is
+    read at face value — an unlinked agreement form or an unstated relation
+    between a verb and a class word could settle what the lowering leaves
+    open, so the claim is stated of the reading, disclosed as such. ENTAILED /
+    REFUTED / inconsistent survive any such refinement (instantiation is
+    sound and entailment is monotone) and are stated at full strength.
+    """
+    given = "; ".join(premise_texts)
+    if trace.outcome is Entailment.ENTAILED:
+        return f"Given: {given}. Your premises entail: {query_text}."
+    if trace.outcome is Entailment.REFUTED:
+        return (
+            f"Given: {given}. Your premises entail the opposite of "
+            f"{query_text} — it cannot hold."
+        )
+    if trace.outcome is Entailment.UNKNOWN:
+        return (
+            f"Given: {given}. Reading each name as one individual and each "
+            f"class word and verb phrase at face value, your premises don't "
+            f"settle whether {query_text} — it holds in some cases and fails "
+            f"in others."
+        )
+    # REFUSED
+    if trace.reason == INCONSISTENT_PREMISES:
+        return (
+            f"Given: {given}. Those premises are inconsistent — they "
+            f"can't all be true, so I won't assert anything from them."
+        )
+    return f"Given: {given}. I can't evaluate {query_text} from that as stated."
+
+
 def _categorical_clause(prop: dict) -> str:
     """One categorical proposition dict → its English clause."""
     template = _CATEGORICAL_PHRASE.get(prop.get("form", ""), "{s} ~ {p}")
@@ -169,5 +206,6 @@ __all__ = [
     "render_entailment",
     "render_entailment_english",
     "render_entailment_member",
+    "render_entailment_verb",
     "render_syllogism",
 ]
