@@ -383,8 +383,18 @@ class RuntimeConfig:
     # argument is served AUTHORITATIVELY only when its shape-band holds a SERVE
     # license on the committed, SHA-sealed reliability ledger
     # (chat/deduction_serve_license); an unearned band is served DISCLOSED
-    # (hedged). OFF by default: flag-off is byte-identical to pre-arc dispatch.
-    deduction_serving_enabled: bool = False
+    # (hedged).
+    #
+    # RATIFIED ON 2026-07-24 by Shay — default flipped False -> True. The
+    # evidence at ratification: 25 shape-bands each holding SERVE at 720/720
+    # wrong=0 on the SHA-sealed ledger (theta_SERVE=0.99, n >= 657 committed),
+    # the deduction-serve lane at 166/166 wrong=0 across six hand-authored
+    # splits, and a commit gate (`looks_like_deductive_argument`) narrow by
+    # construction — a sentence-initial "therefore" IS an argument, so the
+    # composer cannot claim turns that are not. Rollback is flipping this back:
+    # flag-off remains byte-identical to pre-arc dispatch and leaves no residue
+    # (pinned by ``test_flag_off_preserves_pack_token_gloss_byte_identity``).
+    deduction_serving_enabled: bool = True
 
     # Generalization arc, Phase 2 (ADR-0262) — when on, ``chat/curriculum_surface.py``
     # answers exam-shaped polar questions ("Does force cause acceleration?") from the
