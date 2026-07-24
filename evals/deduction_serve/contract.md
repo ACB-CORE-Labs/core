@@ -1,17 +1,28 @@
-# Deduction-serve lane contract (v1)
+# Deduction-serve lane contract
 
 ## What this lane scores
 
 The **production serving decider** — the exact pipeline
 `chat/deduction_surface.py::deduction_grounded_surface` runs on a
 `core chat` turn: `looks_like_deductive_argument` (commit gate) →
-`comprehend` (reader) → `to_deductive_logic` (projector) →
-`evaluate_entailment_with_trace` (the ROBDD engine, ADR-0201/ADR-0218).
+`comprehend` (reader) → the band cascade — `to_deductive_logic` (Band v1)
+→ `to_syllogism` + the categorical decider (Band v1b, ADR-0256) →
+`read_english_argument` (Band v2-EN, ADR-0257) → `read_member_argument`
+(Band v3-MEM, ADR-0258) — with `evaluate_entailment_with_trace` (the
+ROBDD engine, ADR-0201/ADR-0218) deciding every band.
 `evals/deduction_serve/runner.py::decide` calls these functions directly
 (typed outcome, not rendered prose) — the same production decision the
 composer makes, without re-deriving the presentation step
-(`generate.proof_chain.render.render_entailment`), so this lane's pinned
-bytes stay stable against wording-only changes.
+(`generate.proof_chain.render`), so this lane's pinned bytes stay stable
+against wording-only changes.
+
+## Splits
+
+- `v1/` — the original corpus (single-token propositional + categorical).
+- `v2_en/` — hand-authored REAL-English clause arguments (ADR-0257);
+  content disjoint from the synthetic practice lexicon.
+- `v2_member/` — hand-authored membership/universal arguments (ADR-0258),
+  incl. real nouns across every number-link row-type.
 
 This is **distinct** from two existing lanes that sound similar:
 
@@ -48,22 +59,25 @@ corpus, since every committed case reads as an argument by design).
   `correct` — the lane rewards honest recognition of the boundary, not
   just committed accuracy.
 
-## Known Band v1 boundaries this corpus documents
+## Band-boundary history this corpus documents
 
-Discovered while authoring v1 (each is a genuine reader-grammar limit,
-not a lane bug):
+Boundaries are DISCOVERED as declines, then PROMOTED to decided gold when
+a later band earns the shape (the corpus keeps the case, renamed
+`…_formerly_out_of_band`):
 
-- **Nested negation inside `if/then`** — `generate/meaning_graph/reader.py`'s
-  `_parse_propositional` accepts `not P` only as a top-level clause;
-  `"if not q then not p"` fails `_chunk`'s reserved-word guard (`not` is in
-  `_RESERVED`) when it appears *inside* an if/then slot. `ds-v1-0006`
-  documents this (`out_of_band_nested_negation`).
-- **Multi-word English propositions** — `ds-v1-0025`
-  (`out_of_band_multiword_conditional`), matching the Phase 0 baseline's
-  band-boundary finding.
-- **Categorical/syllogism shapes** — `ds-v1-0023/0024/0026`
-  (`out_of_band_categorical`); Band v1b (a production categorical decider)
-  is deferred.
+- **Nested negation inside `if/then`** — a shared-reader grammar limit
+  (`not` is reserved inside if/then slots); `ds-v1-0006` declined until
+  Band v2-EN decided it (promoted, ADR-0257).
+- **Multi-word English propositions** — `ds-v1-0025` declined until Band
+  v2-EN (promoted, ADR-0257).
+- **Categorical/syllogism shapes** — `ds-v1-0023/0024/0026`, decided by
+  Band v1b since ADR-0256.
+- **`is a` membership** — `ds-en-0022` declined until Band v3-MEM decided
+  it (promoted, ADR-0258).
+- **Still-open declines** (honest, typed): verb-phrase negation
+  (`ds-en-0023/0024`), ambiguous `and`/`or` scope (`ds-en-0025`), nested
+  conditionals (`ds-en-0026`), existential quantifiers / bare plurals /
+  definite descriptions / relative clauses / tense (`ds-mem-0020…0026`).
 
 ## Reproduce
 

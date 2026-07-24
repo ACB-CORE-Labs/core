@@ -47,6 +47,7 @@ from generate.meaning_graph.reader import Comprehension, comprehend
 from generate.proof_chain.categorical import CategoricalError, decide_syllogism
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
+from generate.proof_chain.member import MemberArgument, read_member_argument
 
 _ROOT = Path(__file__).resolve().parent
 
@@ -56,6 +57,10 @@ _SPLITS: tuple[tuple[str, Path], ...] = (
     # deliberately disjoint from the synthetic practice lexicon, so the earned
     # license's structural-fidelity claim is checked against natural prose).
     ("v2_en", _ROOT / "v2_en" / "cases.jsonl"),
+    # Band v3-MEM (ADR-0258) — hand-authored membership/universal arguments,
+    # same content-disjoint discipline (incl. the number-link table on real
+    # nouns: men, people, children, canaries, sheep).
+    ("v2_member", _ROOT / "v2_member" / "cases.jsonl"),
 )
 
 _OUTCOME_TO_CLASS = {
@@ -109,9 +114,19 @@ def decide(text: str) -> str:
 
 
 def _decide_english(text: str) -> str:
-    """Band v2-EN fallback (ADR-0257) — mirrors ``_english_band_surface``."""
+    """Band v2-EN fallback (ADR-0257) — mirrors ``_english_band_surface``;
+    chains into the Band v3-MEM fallback exactly as the composer does."""
     arg = read_english_argument(text)
     if not isinstance(arg, EnglishArgument):
+        return _decide_member(text)
+    outcome = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula).outcome
+    return _OUTCOME_TO_CLASS[outcome]
+
+
+def _decide_member(text: str) -> str:
+    """Band v3-MEM fallback (ADR-0258) — mirrors ``_member_band_surface``."""
+    arg = read_member_argument(text)
+    if not isinstance(arg, MemberArgument):
         return "declined"
     outcome = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula).outcome
     return _OUTCOME_TO_CLASS[outcome]

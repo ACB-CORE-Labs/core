@@ -1,0 +1,26 @@
+{"id": "ds-mem-0001", "text": "Socrates is a man. All men are mortal. Therefore Socrates is mortal.", "gold": "entailed", "class": "instantiated_modus_ponens"}
+{"id": "ds-mem-0002", "text": "Ada is a person. All people are mortal. Therefore Ada is mortal.", "gold": "entailed", "class": "irregular_plural_link"}
+{"id": "ds-mem-0003", "text": "Rex is a dog. All dogs are mammals. All mammals are animals. Therefore Rex is an animal.", "gold": "entailed", "class": "membership_chain"}
+{"id": "ds-mem-0004", "text": "Fido is a dog. No dogs are cats. Therefore Fido is not a cat.", "gold": "entailed", "class": "negative_universal"}
+{"id": "ds-mem-0005", "text": "Every child is curious. Milo is a child. Therefore Milo is curious.", "gold": "entailed", "class": "universal_first"}
+{"id": "ds-mem-0006", "text": "Tweety is a canary. All canaries are birds. No birds are reptiles. Therefore Tweety is not a reptile.", "gold": "entailed", "class": "chain_into_negative"}
+{"id": "ds-mem-0007", "text": "Dolly is a sheep. All sheep are woolly. Therefore Dolly is woolly.", "gold": "entailed", "class": "invariant_plural"}
+{"id": "ds-mem-0008", "text": "Rex isn't a cat. Therefore Rex is not a cat.", "gold": "entailed", "class": "contraction_restatement"}
+{"id": "ds-mem-0009", "text": "Each planet is round. Mars is a planet. Therefore Mars is round.", "gold": "entailed", "class": "each_spelling"}
+{"id": "ds-mem-0010", "text": "Rex is a guard dog. All guard dogs are loyal. Therefore Rex is loyal.", "gold": "entailed", "class": "multi_token_class"}
+{"id": "ds-mem-0011", "text": "Plato is a man. Aristotle is a man. All men are mortal. Therefore Aristotle is mortal.", "gold": "entailed", "class": "two_individuals"}
+{"id": "ds-mem-0012", "text": "It is not the case that Rex is a cat. Therefore Rex is not a cat.", "gold": "entailed", "class": "sentential_negation"}
+{"id": "ds-mem-0013", "text": "Socrates is a man. All men are mortal. Therefore Socrates is not mortal.", "gold": "refuted", "class": "consequent_denial"}
+{"id": "ds-mem-0014", "text": "Fido is a dog. No dogs are cats. Therefore Fido is a cat.", "gold": "refuted", "class": "negative_universal_denial"}
+{"id": "ds-mem-0015", "text": "Rex is loyal. Therefore Rex is not loyal.", "gold": "refuted", "class": "self_contradiction"}
+{"id": "ds-mem-0016", "text": "Socrates is mortal. All men are mortal. Therefore Socrates is a man.", "gold": "unknown", "class": "converse_instantiation"}
+{"id": "ds-mem-0017", "text": "Plato is a man. All men are mortal. Therefore Zeus is mortal.", "gold": "unknown", "class": "wrong_individual"}
+{"id": "ds-mem-0018", "text": "Rex is a dog. All cats are animals. Therefore Rex is an animal.", "gold": "unknown", "class": "broken_chain"}
+{"id": "ds-mem-0019", "text": "Milo is a child. All children are curious. Therefore Milo is happy.", "gold": "unknown", "class": "unrelated_predicate"}
+{"id": "ds-mem-0020", "text": "Some men are wise. Socrates is a man. Therefore Socrates is wise.", "gold": "declined", "class": "existential_out_of_band"}
+{"id": "ds-mem-0021", "text": "Dogs are loyal. Rex is a dog. Therefore Rex is loyal.", "gold": "declined", "class": "bare_plural_out_of_band"}
+{"id": "ds-mem-0022", "text": "Socrates is the philosopher. All philosophers are wise. Therefore Socrates is wise.", "gold": "declined", "class": "definite_description_out_of_band"}
+{"id": "ds-mem-0023", "text": "Socrates is a man. All men are mortal. Therefore all men are mortal.", "gold": "declined", "class": "universal_conclusion_out_of_band"}
+{"id": "ds-mem-0024", "text": "If Socrates is a man then Socrates is mortal. Therefore Socrates is mortal.", "gold": "declined", "class": "mixed_structure_out_of_band"}
+{"id": "ds-mem-0025", "text": "Rex is a dog that barks. All dogs are loyal. Therefore Rex is loyal.", "gold": "declined", "class": "relative_clause_out_of_band"}
+{"id": "ds-mem-0026", "text": "Socrates was a man. All men are mortal. Therefore Socrates is mortal.", "gold": "declined", "class": "tense_out_of_band"}

@@ -19,7 +19,7 @@
 {"id": "ds-en-0019", "text": "The key is lost or the lock is broken. Therefore the key is lost.", "gold": "unknown", "class": "bare_disjunct"}
 {"id": "ds-en-0020", "text": "The sky is clear. Therefore the sea is calm.", "gold": "unknown", "class": "unrelated_conclusion"}
 {"id": "ds-en-0021", "text": "The door is open. The door is not open. Therefore the moon is full.", "gold": "declined", "class": "inconsistent_premises"}
-{"id": "ds-en-0022", "text": "Socrates is a man. Therefore Socrates is a man.", "gold": "declined", "class": "membership_out_of_band"}
+{"id": "ds-en-0022", "text": "Socrates is a man. Therefore Socrates is a man.", "gold": "entailed", "class": "membership_formerly_out_of_band"}
 {"id": "ds-en-0023", "text": "It never snows. Therefore it never snows.", "gold": "declined", "class": "unnormalizable_negation"}
 {"id": "ds-en-0024", "text": "The engine doesn't start. Therefore the engine doesn't start.", "gold": "declined", "class": "unnormalizable_negation_contraction"}
 {"id": "ds-en-0025", "text": "The fan spins and the light is on or the door is open. Therefore the door is open.", "gold": "declined", "class": "ambiguous_and_or"}
