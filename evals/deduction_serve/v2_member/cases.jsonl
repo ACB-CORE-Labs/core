@@ -21,6 +21,6 @@
 {"id": "ds-mem-0021", "text": "Dogs are loyal. Rex is a dog. Therefore Rex is loyal.", "gold": "declined", "class": "bare_plural_out_of_band"}
 {"id": "ds-mem-0022", "text": "Socrates is the philosopher. All philosophers are wise. Therefore Socrates is wise.", "gold": "declined", "class": "definite_description_out_of_band"}
 {"id": "ds-mem-0023", "text": "Socrates is a man. All men are mortal. Therefore all men are mortal.", "gold": "declined", "class": "universal_conclusion_out_of_band"}
-{"id": "ds-mem-0024", "text": "If Socrates is a man then Socrates is mortal. Therefore Socrates is mortal.", "gold": "declined", "class": "mixed_structure_out_of_band"}
+{"id": "ds-mem-0024", "text": "If Socrates is a man then Socrates is mortal. Therefore Socrates is mortal.", "gold": "unknown", "class": "conditional_no_anchor_formerly_out_of_band"}
 {"id": "ds-mem-0025", "text": "Rex is a dog that barks. All dogs are loyal. Therefore Rex is loyal.", "gold": "declined", "class": "relative_clause_out_of_band"}
 {"id": "ds-mem-0026", "text": "Socrates was a man. All men are mortal. Therefore Socrates is mortal.", "gold": "declined", "class": "tense_out_of_band"}

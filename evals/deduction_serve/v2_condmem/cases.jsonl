@@ -1,0 +1,26 @@
+{"id": "ds-cm-0001", "text": "If Socrates is a man then Socrates is mortal. Socrates is a man. Therefore Socrates is mortal.", "gold": "entailed", "class": "conditional_modus_ponens"}
+{"id": "ds-cm-0002", "text": "If the museum is open then the ticket booth is staffed. The ticket booth is not staffed. Therefore the museum is not open.", "gold": "entailed", "class": "conditional_modus_tollens"}
+{"id": "ds-cm-0003", "text": "Either the witness is lying or the suspect is guilty. The witness is not lying. Therefore the suspect is guilty.", "gold": "entailed", "class": "either_disjunctive_syllogism"}
+{"id": "ds-cm-0004", "text": "The key is in the drawer or the key is on the hook. The key is not in the drawer. Therefore the key is on the hook.", "gold": "entailed", "class": "plain_or_disjunctive_syllogism"}
+{"id": "ds-cm-0005", "text": "If the alarm is triggered then the guard is alerted. If the sensor is triggered then the guard is alerted. The alarm is triggered or the sensor is triggered. Therefore the guard is alerted.", "gold": "entailed", "class": "constructive_dilemma"}
+{"id": "ds-cm-0006", "text": "If the pressure is high then the valve is open. If the valve is open then the tank is draining. The pressure is high. Therefore the tank is draining.", "gold": "entailed", "class": "two_hop_chain"}
+{"id": "ds-cm-0007", "text": "If Nova is a suspect then Nova is a person of interest. If Nova is a person of interest then Nova is a flight risk. Nova is a suspect. Therefore Nova is a flight risk.", "gold": "entailed", "class": "two_hop_chain_membership"}
+{"id": "ds-cm-0008", "text": "All engineers are employees. If Dax is an employee then Dax is insured. Dax is an engineer. Therefore Dax is insured.", "gold": "entailed", "class": "universal_connective_fusion"}
+{"id": "ds-cm-0009", "text": "If Dax is an employee then Dax is insured. All contractors are employees. Dax is a contractor. Therefore Dax is insured.", "gold": "entailed", "class": "fusion_reversed_order"}
+{"id": "ds-cm-0010", "text": "All students are learners. Priya is a student. If Priya is a learner then Priya is curious. Therefore Priya is curious.", "gold": "entailed", "class": "fusion_universal_first_order"}
+{"id": "ds-cm-0011", "text": "If the reactor is critical then the reactor is unstable. The reactor is critical. Therefore the reactor is not unstable.", "gold": "refuted", "class": "conditional_direct_contradiction"}
+{"id": "ds-cm-0012", "text": "If the code compiles then the code is buildable. If the code is buildable then the code is deployable. The code compiles. Therefore the code is not deployable.", "gold": "refuted", "class": "chain_contradiction"}
+{"id": "ds-cm-0013", "text": "All interns are trainees. If Kai is a trainee then Kai is supervised. Kai is an intern. Therefore Kai is not supervised.", "gold": "refuted", "class": "fusion_chain_contradiction"}
+{"id": "ds-cm-0014", "text": "The switch is on or the switch is off. The switch is not on. Therefore the switch is not off.", "gold": "refuted", "class": "disjunct_elimination_denial"}
+{"id": "ds-cm-0015", "text": "If it is raining then the ground is wet. The ground is wet. Therefore it is raining.", "gold": "unknown", "class": "affirming_the_consequent"}
+{"id": "ds-cm-0016", "text": "If the server is overloaded then the response is slow. The server is not overloaded. Therefore the response is not slow.", "gold": "unknown", "class": "denying_the_antecedent"}
+{"id": "ds-cm-0017", "text": "If the bridge is closed then the traffic is rerouted. Therefore the bridge is closed.", "gold": "unknown", "class": "no_anchor"}
+{"id": "ds-cm-0018", "text": "The door is locked or the door is unlocked. Therefore the door is locked.", "gold": "unknown", "class": "bare_disjunction"}
+{"id": "ds-cm-0019", "text": "All senators are legislators. If Elio is a legislator then Elio is a committee member. Priya is a senator. Therefore Elio is a committee member.", "gold": "unknown", "class": "fusion_wrong_individual"}
+{"id": "ds-cm-0020", "text": "If the door is open then if the window is open then the room is cold. Therefore the room is cold.", "gold": "declined", "class": "nested_conditional"}
+{"id": "ds-cm-0021", "text": "The car is red and the car is fast or the car is loud. Therefore the car is fast.", "gold": "declined", "class": "ambiguous_and_or"}
+{"id": "ds-cm-0022", "text": "If Nora is a pilot then Nora is licensed. Nora is a pilot. Therefore Nora is licensed and Nora is trained.", "gold": "declined", "class": "compound_conclusion_out_of_band"}
+{"id": "ds-cm-0023", "text": "If someone is a suspect then someone is questioned. Therefore someone is questioned.", "gold": "declined", "class": "quantifier_out_of_band"}
+{"id": "ds-cm-0024", "text": "If Elio is a manager then dogs are loyal. Elio is a manager. Therefore dogs are loyal.", "gold": "declined", "class": "bare_plural_out_of_band"}
+{"id": "ds-cm-0025", "text": "If Elio is a manager then Elio is the boss. Elio is a manager. Therefore Elio is the boss.", "gold": "declined", "class": "definite_description_out_of_band"}
+{"id": "ds-cm-0026", "text": "If Elio is a manager then the car that speeds is dangerous. Elio is a manager. Therefore the car that speeds is dangerous.", "gold": "declined", "class": "relative_clause_out_of_band"}

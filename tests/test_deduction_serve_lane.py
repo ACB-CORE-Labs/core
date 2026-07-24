@@ -14,6 +14,7 @@ from evals.deduction_serve.runner import _ROOT, _load, build_report
 _V1 = _ROOT / "v1" / "cases.jsonl"
 _V2_EN = _ROOT / "v2_en" / "cases.jsonl"
 _V2_MEMBER = _ROOT / "v2_member" / "cases.jsonl"
+_V2_CONDMEM = _ROOT / "v2_condmem" / "cases.jsonl"
 
 
 def test_v1_lane_wrong_is_zero() -> None:
@@ -56,7 +57,10 @@ def test_v2_member_lane_wrong_is_zero() -> None:
     """Band v3-MEM (ADR-0258): hand-authored membership/universal arguments —
     real nouns exercising every number-link row-type (irregular, invariant,
     each regular suffix rule) — decided with wrong=0 across all four verdicts
-    and seven distinct honest-decline shapes."""
+    and six distinct honest-decline shapes. (``ds-mem-0024``, a bare
+    conditional with no anchor, was promoted declined->unknown when Band
+    v4-CM landed — ADR-0259; it is genuinely UNKNOWN, not entailed, since the
+    antecedent is never asserted.)"""
     report = build_report(_load(_V2_MEMBER))
     assert report["n"] == 26
     assert report["counts"]["wrong"] == 0
@@ -64,7 +68,24 @@ def test_v2_member_lane_wrong_is_zero() -> None:
     cbg = report["correct_by_gold"]
     assert cbg.get("entailed", 0) >= 12
     assert cbg.get("refuted", 0) >= 3
-    assert cbg.get("unknown", 0) >= 4
+    assert cbg.get("unknown", 0) >= 5
+    assert cbg.get("declined", 0) >= 6
+
+
+def test_v2_condmem_lane_wrong_is_zero() -> None:
+    """Band v4-CM (ADR-0259): hand-authored conditional-membership arguments
+    — v2-EN's connective grammar composed over v3-MEM's singular-membership
+    sentence reading, including genuine universal+connective fusion cases —
+    decided with wrong=0 across all four verdicts and seven distinct honest-
+    decline shapes."""
+    report = build_report(_load(_V2_CONDMEM))
+    assert report["n"] == 26
+    assert report["counts"]["wrong"] == 0
+    assert report["all_cases_correct"] is True
+    cbg = report["correct_by_gold"]
+    assert cbg.get("entailed", 0) >= 10
+    assert cbg.get("refuted", 0) >= 4
+    assert cbg.get("unknown", 0) >= 5
     assert cbg.get("declined", 0) >= 7
 
 

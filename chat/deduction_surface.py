@@ -27,6 +27,13 @@ Bands (docs/research/deduction-serve-arc-phase0-baseline-2026-07-23.md):
   mortal."), read by ``generate.proof_chain.member`` via per-individual
   propositional lowering and decided by the same engine. Tried strictly AFTER
   v2-EN (which guards these shapes out) — again a pure widening tier.
+- Band v4-CM (ADR-0259) — conditional-membership fusion arguments ("If
+  Socrates is a man then Socrates is mortal. Socrates is a man. Therefore
+  Socrates is mortal."), composing v2-EN's connective grammar with v3-MEM's
+  singular-membership sentence reading over one shared per-individual atom
+  space, read by ``generate.proof_chain.cond_member``. Tried strictly AFTER
+  v3-MEM (which guards these shapes out via ``mixed_structure_out_of_band``)
+  — again a pure widening tier.
 
 Fail-closed (INV-34): once ``looks_like_deductive_argument`` fires, every path
 below returns a committed, honest surface — reader refusal, out-of-band shape,
@@ -44,6 +51,7 @@ from core.reliability_gate import LicenseDecision
 from generate.meaning_graph.projectors import to_deductive_logic, to_syllogism
 from generate.meaning_graph.reader import Comprehension, comprehend
 from generate.proof_chain.categorical import CategoricalError, decide_syllogism
+from generate.proof_chain.cond_member import CondMemberArgument, read_cond_member_argument
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import evaluate_entailment_with_trace
 from generate.proof_chain.member import MemberArgument, read_member_argument
@@ -132,6 +140,9 @@ def deduction_grounded_surface(
         member = _member_band_surface(text, license_lookup)
         if member is not None:
             return member
+        cond_member = _cond_member_band_surface(text, license_lookup)
+        if cond_member is not None:
+            return cond_member
         return _READER_REFUSAL_SURFACE.format(reason=comp.reason)
     # Band v1 — propositional argument.
     projected = to_deductive_logic(comp)
@@ -160,6 +171,10 @@ def deduction_grounded_surface(
     member = _member_band_surface(text, license_lookup)
     if member is not None:
         return member
+    # Band v4-CM fallback — the conditional-membership shapes v3-MEM guards out.
+    cond_member = _cond_member_band_surface(text, license_lookup)
+    if cond_member is not None:
+        return cond_member
     return _OUT_OF_BAND_SURFACE
 
 
@@ -183,6 +198,22 @@ def _member_band_surface(text: str, license_lookup: _LicenseLookup) -> str | Non
     honest surface — this band only ever widens what is decided)."""
     arg = read_member_argument(text)
     if not isinstance(arg, MemberArgument):
+        return None
+    trace = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula)
+    surface = render_entailment_member(trace, arg.premise_texts, arg.query_text)
+    return _license_gate(surface, arg.band, license_lookup)
+
+
+def _cond_member_band_surface(text: str, license_lookup: _LicenseLookup) -> str | None:
+    """Band v4-CM (ADR-0259): read *text* as a conditional-membership argument
+    (v2-EN connectives over v3-MEM singular-membership leaves), and decide
+    with the same verified ROBDD engine; ``None`` when the reader refuses (the
+    caller keeps its pre-existing honest surface — this band only ever widens
+    what is decided). Reuses ``render_entailment_member`` unchanged: its
+    UNKNOWN scoping is exactly as accurate here (every clause is read all the
+    way to individual+class; connectives add no new hidden structure)."""
+    arg = read_cond_member_argument(text)
+    if not isinstance(arg, CondMemberArgument):
         return None
     trace = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula)
     surface = render_entailment_member(trace, arg.premise_texts, arg.query_text)

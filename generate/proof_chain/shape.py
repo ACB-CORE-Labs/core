@@ -77,8 +77,28 @@ EN_MEMBER_BANDS: tuple[str, ...] = (
     EN_MEMBER_ATOMIC,
 )
 
+#: Band v4-CM (ADR-0259) — conditional-membership fusion arguments, composing
+#: v2-EN's connective grammar with v3-MEM's singular-membership sentence
+#: reading ("If Socrates is a man then Socrates is mortal. …"), read by
+#: ``generate.proof_chain.cond_member``. Same ``en_`` license discipline: a
+#: different reader must earn its own per-shape record. Priority order:
+#: fused > disjunctive > chain > conditional.
+EN_CONDMEM_FUSED = "en_condmem_fused"
+EN_CONDMEM_DISJUNCTIVE = "en_condmem_disjunctive"
+EN_CONDMEM_CHAIN = "en_condmem_chain"
+EN_CONDMEM_CONDITIONAL = "en_condmem_conditional"
+
+EN_CONDMEM_BANDS: tuple[str, ...] = (
+    EN_CONDMEM_FUSED,
+    EN_CONDMEM_DISJUNCTIVE,
+    EN_CONDMEM_CHAIN,
+    EN_CONDMEM_CONDITIONAL,
+)
+
 #: Every serving shape-band — the ratified ledger's full key set.
-ALL_SHAPE_BANDS: tuple[str, ...] = SHAPE_BANDS + EN_SHAPE_BANDS + EN_MEMBER_BANDS
+ALL_SHAPE_BANDS: tuple[str, ...] = (
+    SHAPE_BANDS + EN_SHAPE_BANDS + EN_MEMBER_BANDS + EN_CONDMEM_BANDS
+)
 
 
 def classify_deduction_shape(premises: tuple[str, ...], query: str) -> str:
@@ -115,6 +135,11 @@ __all__ = [
     "EN_ATOMIC",
     "EN_CONDITIONAL_CHAIN",
     "EN_CONDITIONAL_SINGLE",
+    "EN_CONDMEM_BANDS",
+    "EN_CONDMEM_CHAIN",
+    "EN_CONDMEM_CONDITIONAL",
+    "EN_CONDMEM_DISJUNCTIVE",
+    "EN_CONDMEM_FUSED",
     "EN_DISJUNCTIVE",
     "EN_MEMBER_ATOMIC",
     "EN_MEMBER_BANDS",

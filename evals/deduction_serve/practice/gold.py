@@ -33,6 +33,7 @@ from core.learning_arena.protocols import Problem
 from generate.meaning_graph.projectors import to_deductive_logic, to_syllogism
 from generate.meaning_graph.reader import Comprehension, comprehend
 from generate.proof_chain.categorical import CategoricalError, decide_syllogism
+from generate.proof_chain.cond_member import CondMemberArgument, read_cond_member_argument
 from generate.proof_chain.english import EnglishArgument, read_english_argument
 from generate.proof_chain.entail import Entailment, evaluate_entailment_with_trace
 from generate.proof_chain.member import MemberArgument, read_member_argument
@@ -45,6 +46,10 @@ from generate.proof_chain.shape import (
     EN_ATOMIC,
     EN_CONDITIONAL_CHAIN,
     EN_CONDITIONAL_SINGLE,
+    EN_CONDMEM_CHAIN,
+    EN_CONDMEM_CONDITIONAL,
+    EN_CONDMEM_DISJUNCTIVE,
+    EN_CONDMEM_FUSED,
     EN_DISJUNCTIVE,
     EN_MEMBER_ATOMIC,
     EN_MEMBER_CHAIN,
@@ -387,12 +392,122 @@ _MEM_TEMPLATES: dict[str, tuple[tuple[str, Any, tuple[str, ...], str], ...]] = {
     ),
 }
 
-#: Ledger band order: the five v1 bands, the four v2-EN bands, then the four
-#: v3-MEM bands.
+# --- Band v4-CM (ADR-0259): conditional-membership synthetic corpus ----------
+#
+# Reuses the v3-MEM case generator (``_mem_case``) directly — same names/
+# classes/states pool, no new lexicon needed. Composes v2-EN's connective
+# grammar with v3-MEM's singular-membership sentence reading over the SAME
+# per-individual atom space; the FUSED templates specifically exercise a bare
+# universal instantiation UNIFYING (via the closed morphology relation) with
+# an atom a connective's leaf also produced — the mechanism this band adds.
+
+_CM_TEMPLATES: dict[str, tuple[tuple[str, Any, tuple[str, ...], str], ...]] = {
+    EN_CONDMEM_CONDITIONAL: (
+        # Modus ponens over membership atoms.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is {st}. {n1} is a {c1[0]}. Therefore {n1} is {st}.",
+         ("ca implies cb", "ca"), "cb"),
+        # Modus tollens.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is {st}. {n1} is not {st}. Therefore {n1} is not a {c1[0]}.",
+         ("ca implies cb", "not cb"), "not ca"),
+        # Direct contradiction of the consequent.
+        ("refuted",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is {st}. {n1} is a {c1[0]}. Therefore {n1} is not {st}.",
+         ("ca implies cb", "ca"), "not cb"),
+        # Affirming the consequent — classic non-sequitur.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is {st}. {n1} is {st}. Therefore {n1} is a {c1[0]}.",
+         ("ca implies cb", "cb"), "ca"),
+        # Denying the antecedent — classic non-sequitur.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is {st}. {n1} is not a {c1[0]}. Therefore {n1} is not {st}.",
+         ("ca implies cb", "not ca"), "not cb"),
+        # No anchor at all.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is {st}. Therefore {n1} is a {c1[0]}.",
+         ("ca implies cb",), "ca"),
+    ),
+    EN_CONDMEM_DISJUNCTIVE: (
+        # Disjunctive syllogism over membership atoms.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]} or {n1} is a {c2[0]}. {n1} is not a {c1[0]}. Therefore {n1} is a {c2[0]}.",
+         ("ca or cb", "not ca"), "cb"),
+        # "either" spelling, other disjunct.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"Either {n1} is a {c1[0]} or {n1} is a {c2[0]}. {n1} is not a {c2[0]}. Therefore {n1} is a {c1[0]}.",
+         ("ca or cb", "not cb"), "ca"),
+        # Constructive dilemma.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is {st}. If {n1} is a {c2[0]} then {n1} is {st}. {n1} is a {c1[0]} or {n1} is a {c2[0]}. Therefore {n1} is {st}.",
+         ("ca implies cc", "cb implies cc", "ca or cb"), "cc"),
+        # Eliminating one disjunct entails the other's negation is refuted.
+        ("refuted",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]} or {n1} is a {c2[0]}. {n1} is not a {c1[0]}. Therefore {n1} is not a {c2[0]}.",
+         ("ca or cb", "not ca"), "not cb"),
+        # A bare disjunction settles neither disjunct.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"{n1} is a {c1[0]} or {n1} is a {c2[0]}. Therefore {n1} is a {c1[0]}.",
+         ("ca or cb",), "ca"),
+    ),
+    EN_CONDMEM_CHAIN: (
+        # Two-hop modus ponens across two connective sentences.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is a {c2[0]}. If {n1} is a {c2[0]} then {n1} is {st}. {n1} is a {c1[0]}. Therefore {n1} is {st}.",
+         ("ca implies cb", "cb implies cc", "ca"), "cc"),
+        # Two-hop modus tollens.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is a {c2[0]}. If {n1} is a {c2[0]} then {n1} is {st}. {n1} is not {st}. Therefore {n1} is not a {c1[0]}.",
+         ("ca implies cb", "cb implies cc", "not cc"), "not ca"),
+        # Two-hop chain onto a MEMBERSHIP conclusion (not a state).
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is a {c2[0]}. If {n1} is a {c2[0]} then {n1} is a {c3[0]}. {n1} is a {c1[0]}. Therefore {n1} is a {c3[0]}.",
+         ("ca implies cb", "cb implies cc", "ca"), "cc"),
+        # Chain contradiction.
+        ("refuted",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is a {c2[0]}. If {n1} is a {c2[0]} then {n1} is {st}. {n1} is a {c1[0]}. Therefore {n1} is not {st}.",
+         ("ca implies cb", "cb implies cc", "ca"), "not cc"),
+        # Chain with no anchor.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is a {c2[0]}. If {n1} is a {c2[0]} then {n1} is {st}. Therefore {n1} is {st}.",
+         ("ca implies cb", "cb implies cc"), "cc"),
+    ),
+    EN_CONDMEM_FUSED: (
+        # The mechanism: a bare universal's instantiated atom UNIFIES (via
+        # the closed morphology relation) with a connective leaf's atom —
+        # neither mechanism alone would decide this.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"All {c1[1]} are {c2[1]}. If {n1} is a {c2[0]} then {n1} is {st}. {n1} is a {c1[0]}. Therefore {n1} is {st}.",
+         ("ca implies cb", "cb implies cc", "ca"), "cc"),
+        # Reversed sentence order — connective first, universal second.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"If {n1} is a {c1[0]} then {n1} is {st}. All {c2[1]} are {c1[1]}. {n1} is a {c2[0]}. Therefore {n1} is {st}.",
+         ("ca implies cb", "cc implies ca", "cc"), "cb"),
+        # Universal first, singular second, connective third.
+        ("entailed",
+         lambda n1, n2, c1, c2, c3, st: f"All {c1[1]} are {c2[1]}. {n1} is a {c1[0]}. If {n1} is a {c2[0]} then {n1} is {st}. Therefore {n1} is {st}.",
+         ("ca implies cb", "ca", "cb implies cc"), "cc"),
+        # Fused chain contradiction.
+        ("refuted",
+         lambda n1, n2, c1, c2, c3, st: f"All {c1[1]} are {c2[1]}. If {n1} is a {c2[0]} then {n1} is {st}. {n1} is a {c1[0]}. Therefore {n1} is not {st}.",
+         ("ca implies cb", "cb implies cc", "ca"), "not cc"),
+        # The universal binds a DIFFERENT individual than the connective and
+        # query concern — instantiating it for one individual must not leak
+        # into another's conclusion.
+        ("unknown",
+         lambda n1, n2, c1, c2, c3, st: f"All {c1[1]} are {st}. If {n2} is a {c2[0]} then {n2} is a {c1[0]}. {n1} is a {c1[0]}. Therefore {n2} is {st}.",
+         ("ca implies cb", "cc implies cd", "ce implies ca", "cc"), "cb"),
+    ),
+}
+
+
+#: Ledger band order: the five v1 bands, the four v2-EN bands, the four
+#: v3-MEM bands, then the four v4-CM bands.
 _ALL_BANDS: tuple[str, ...] = (
     CONDITIONAL_SINGLE, CONDITIONAL_CHAIN, DISJUNCTIVE, ATOMIC, CATEGORICAL,
     EN_CONDITIONAL_SINGLE, EN_CONDITIONAL_CHAIN, EN_DISJUNCTIVE, EN_ATOMIC,
     EN_MEMBER_SINGLE, EN_MEMBER_CHAIN, EN_MEMBER_NEGATIVE, EN_MEMBER_ATOMIC,
+    EN_CONDMEM_FUSED, EN_CONDMEM_DISJUNCTIVE, EN_CONDMEM_CHAIN, EN_CONDMEM_CONDITIONAL,
 )
 
 
@@ -406,8 +521,8 @@ def generate_problems(band: str, n: int) -> list[Problem]:
     logical form for the reader-independent oracle cross-check.
     """
     problems: list[Problem] = []
-    if band in _MEM_TEMPLATES:
-        templates = _MEM_TEMPLATES[band]
+    if band in _MEM_TEMPLATES or band in _CM_TEMPLATES:
+        templates = _MEM_TEMPLATES[band] if band in _MEM_TEMPLATES else _CM_TEMPLATES[band]
         for i in range(n):
             gold, builder, intended_premises, intended_query = templates[i % len(templates)]
             problems.append(
@@ -526,6 +641,9 @@ class DeductionSolver:
             member = self._attempt_member(problem)
             if member is not None:
                 return member
+            cond_member = self._attempt_cond_member(problem)
+            if cond_member is not None:
+                return cond_member
             return _DeductionAttempt(
                 committed=False, answer=None, reason=f"reader:{getattr(comp, 'reason', '')}",
                 case_id=problem.problem_id, shape=problem.class_name,
@@ -562,6 +680,9 @@ class DeductionSolver:
         member = self._attempt_member(problem)
         if member is not None:
             return member
+        cond_member = self._attempt_cond_member(problem)
+        if cond_member is not None:
+            return cond_member
         return _DeductionAttempt(
             committed=False, answer=None, reason="unprojectable",
             case_id=problem.problem_id, shape=problem.class_name,
@@ -587,6 +708,21 @@ class DeductionSolver:
         reader refuses (the caller then records the honest decline)."""
         arg = read_member_argument(problem.payload["text"])
         if not isinstance(arg, MemberArgument):
+            return None
+        outcome = evaluate_entailment_with_trace(
+            arg.premise_formulas, arg.query_formula
+        ).outcome
+        return _DeductionAttempt(
+            committed=outcome is not Entailment.REFUSED,
+            answer=_OUTCOME_TO_CLASS[outcome], reason="",
+            case_id=problem.problem_id, shape=arg.band,
+        )
+
+    def _attempt_cond_member(self, problem: Problem) -> _DeductionAttempt | None:
+        """Band v4-CM: the conditional-membership argument path, or ``None``
+        when the reader refuses (the caller then records the honest decline)."""
+        arg = read_cond_member_argument(problem.payload["text"])
+        if not isinstance(arg, CondMemberArgument):
             return None
         outcome = evaluate_entailment_with_trace(
             arg.premise_formulas, arg.query_formula

@@ -136,6 +136,27 @@ def test_member_argument_is_decided_end_to_end() -> None:
     assert "Your premises entail: tweety is not a reptile" in negative.surface
 
 
+def test_conditional_membership_fusion_is_decided_end_to_end() -> None:
+    """The ADR-0259 flagship: a conditional whose clauses are membership
+    facts, decided through the real REPL spine — including the genuine
+    fusion case where a bare universal's instantiated atom unifies with a
+    connective leaf's atom."""
+    rt = _runtime(True)
+    resp = rt.chat(
+        "If Socrates is a man then Socrates is mortal. Socrates is a man. "
+        "Therefore Socrates is mortal."
+    )
+    assert resp.grounding_source == "deduction"
+    assert "Your premises entail: socrates is mortal" in resp.surface
+
+    fused = rt.chat(
+        "All men are mortal. If Socrates is a philosopher then Socrates is a man. "
+        "Socrates is a philosopher. Therefore Socrates is mortal."
+    )
+    assert fused.grounding_source == "deduction"
+    assert "Your premises entail: socrates is mortal" in fused.surface
+
+
 def test_out_of_regime_argument_refuses_honestly() -> None:
     """A 'therefore' argument NO band can read (verb-phrase negation —
     ADR-0257 scope-out #2, morphology work reserved for a future band) gets an
