@@ -36,13 +36,14 @@ is a CI failure (`.github/workflows/lane-shas.yml`).
 | --- | --- | --- | --- | --- |
 | ADR-0092 | `reviewer_registry` | Reviewer registry schema validates + bootstrap entry self-seals | `evals/reviewer_registry/results/v1_dev.json` | `681a2aab5aa4ffd58cd837ce5673c8b2a9545b570117aec3c02726a12f6876e6` |
 | ADR-0093 | `domain_contract_validation` | All ratified packs satisfy the 9 ADR-0091 contract predicates | `evals/domain_contract_validation/results/v1_dev.json` | `98ace04e3f02bbc5a8ad655bb6593c3f1ee64cb67014f1122fe6c3c85f48d22f` |
-| ADR-0095 | `miner_loop_closure` | Miner-sourced proposals route through single reviewed teaching path | `evals/miner_loop_closure/results/v1_dev.json` | `9f071733abe7dcacf759f928548ce738fb639af3fd6e4c621a651b306d7e77ce` |
+| ADR-0095 | `miner_loop_closure` | Miner-sourced proposals route through single reviewed teaching path | `evals/miner_loop_closure/results/v1_dev.json` | `537094fe21d7e6cfbaf42bfc32b82d669fa9bb05a132d2bc93c72b3ceb7762a6` |
 | ADR-0096 | `fabrication_control_summary` | Phantom endpoints / cross-pack non-bridges / sibling collapses refuse | `evals/fabrication_control/results/v1_summary.json` | `01e1b6b711141f2b4a14551d7df3ea482d8d6dd7b364a25c509f4f8d08cda8a8` |
-| ADR-0098 | `demo_composition` | Demos compose from shipped modules; no parallel mechanism | `evals/demo_composition/results/v1_dev.json` | `e2ba2314d8768459fb6a8db082a4bbcf4107b5161d869804a4b2a33c3724081a` |
+| ADR-0098 | `demo_composition` | Demos compose from shipped modules; no parallel mechanism | `evals/demo_composition/results/v1_dev.json` | `f0611a2ce41721dd40767fc6a83a08470d3c7fd7fc8f1ae8ba003abf8a25ec97` |
 | ADR-0099 | `public_demo` | Public showcase runs deterministically under 30s; all claims supported | `evals/public_demo/results/v1_dev.json` | `7d8ba0dbae9287cfe0bf15d231fa78a75abc627121c14900439293e01e1cc1d3` |
-| ADR-0104 | `curriculum_loop_closure` | Curriculum-sourced proposals route through single reviewed teaching path | `evals/curriculum_loop_closure/results/v1_dev.json` | `b46d56b2d209172cc3ffaf3776dc8dcfe55093f13587c5cb67372be6dfa23e8d` |
+| ADR-0104 | `curriculum_loop_closure` | Curriculum-sourced proposals route through single reviewed teaching path | `evals/curriculum_loop_closure/results/v1_dev.json` | `cb94ca0042d78ec2624129ff6493d52e767b69feea32d2997b85d88f1c0883af` |
 | ADR-0131 | `math_teaching_corpus_v1` | Math teaching corpus replays deterministically; all chains pass exit criterion (correct_rate=1.0, wrong=0) | `evals/math_teaching_corpus/v1/report.json` | `eaf160d145da29f9050ede8d58bf111b0f651dd40aeae9201857d0b97e014dd4` |
 | ADR-0206 | `deductive_logic_v1` | Propositional entailment scored against an independent truth-table oracle; dev+holdout+external 716/716 correct, wrong=0, refused=0 | `evals/deductive_logic/report.json` | `97a230949016e38d5e3f37a69e4245b320575ee70e5af92ff7607f7b05f74b5f` |
+| ADR-0256 | `deduction_serve_v1` | Flag-gated deduction serving decides real English/member/fused arguments end-to-end under earned SERVE licenses; wrong=0 across all splits | `evals/deduction_serve/report.json` | `b530ed99c414a6d1bdd239752b0e1c6c8c03893f402198def29122b9c2a8a8be` |
 
 ## Verification
 

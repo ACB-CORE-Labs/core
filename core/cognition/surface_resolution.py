@@ -24,8 +24,6 @@ from typing import TYPE_CHECKING
 from core.cognition.fail_closed import (
     CoherenceRefusal,
     ContractViolation,
-    FailureClass,
-    ResidualState,
     contract_assessment_none_violation,
     open_geometry_refusal,
 )
@@ -86,6 +84,15 @@ class SurfaceResolution:
     refusal: CoherenceRefusal | None = None
     contract_violation: ContractViolation | None = None
     proof_trace: ProofTrace | None = None
+    hash_surface: str = ""
+    """Truth-path surface for ``trace_hash`` folding (ADR-0069 inv C).
+
+    ``surface`` carries the *served* bytes (post register R6/R4);
+    ``hash_surface`` carries the register-invariant truth-path bytes
+    (canonical-precedence base plus the same substrate/fold suffixes).
+    Empty means the served surface IS the truth-path surface (refusal,
+    abstention, and legacy callers) — the pipeline falls back to
+    ``surface`` when folding the trace."""
 
 
 def _base_runtime_surface(
@@ -95,25 +102,44 @@ def _base_runtime_surface(
     response_surface: str,
     response_articulation_surface: str,
 ) -> tuple[str, str, str]:
-    """Select the runtime-owned base surface by declared precedence."""
+    """Select the runtime-owned base surface by declared precedence.
 
-    if canonical_surface:
-        return canonical_surface, response_articulation_surface, "runtime_canonical"
+    ``response_surface`` is the runtime's final *served* bytes — post
+    realizer-guard, post substantive register (ADR-0077 R6), post seeded
+    decoration (ADR-0071 R4) — and always wins when present.
+    ``canonical_surface`` / ``pre_decoration_surface`` are truth-path
+    identity captures the pipeline folds into ``trace_hash``; they are
+    fallbacks for callers that never sealed a response surface, never a
+    substitute for served bytes.  Preferring canonical here strips the
+    entire register axis from pipeline-served turns (terse/convivial
+    stop differing from neutral) while trace_hash stays green — the
+    register-tour claims are the falsifiable contract that catches it.
+    """
+
+    if response_surface:
+        return response_surface, response_articulation_surface, "runtime"
     if pre_decoration_surface:
         return pre_decoration_surface, response_articulation_surface, "runtime_pre_decoration"
-    return response_surface, response_articulation_surface, "runtime"
+    if canonical_surface:
+        return canonical_surface, response_articulation_surface, "runtime_canonical"
+    return "", response_articulation_surface, "runtime"
 
 
-def _assessment_residual(
-    contract_assessment: "ContractAssessment | None",
-) -> ResidualState | None:
-    if contract_assessment is None:
-        return ResidualState(detail="contract_assessment is None")
-    return ResidualState(
-        missing_bindings=tuple(contract_assessment.missing_bindings),
-        unresolved_hazards=tuple(contract_assessment.unresolved_hazards),
-        detail=str(contract_assessment.explanation or ""),
-    )
+def _truth_path_base(
+    *,
+    canonical_surface: str,
+    pre_decoration_surface: str,
+    response_surface: str,
+) -> str:
+    """Register-invariant base folded into ``trace_hash``.
+
+    Canonical-first: the composer's pre-R6 capture is the truth-path
+    identity field, byte-identical across register packs (ADR-0069
+    inv C / ADR-0077).  Falls through to pre-decoration, then the
+    response itself for turns that never captured a canonical surface.
+    """
+
+    return canonical_surface or pre_decoration_surface or response_surface
 
 
 def _abstention_resolution(
@@ -211,8 +237,16 @@ def _grounded_open_hedge_resolution(
         response_surface=response_surface,
         response_articulation_surface=response_articulation_surface,
     )
+    truth_base = _truth_path_base(
+        canonical_surface=canonical_surface,
+        pre_decoration_surface=pre_decoration_surface,
+        response_surface=response_surface,
+    )
     surface = (
         f"{_GROUNDED_OPEN_HEDGE_PREFIX} {base_surface}" if base_surface else base_surface
+    )
+    hash_surface = (
+        f"{_GROUNDED_OPEN_HEDGE_PREFIX} {truth_base}" if truth_base else truth_base
     )
     articulation = (
         f"{_GROUNDED_OPEN_HEDGE_PREFIX} {base_articulation}"
@@ -229,6 +263,7 @@ def _grounded_open_hedge_resolution(
         refusal=None,
         contract_violation=None,
         proof_trace=None,
+        hash_surface=hash_surface,
     )
 
 
@@ -322,6 +357,11 @@ def resolve_surface(
         response_surface=response_surface or "",
         response_articulation_surface=response_articulation_surface or "",
     )
+    hash_surface = _truth_path_base(
+        canonical_surface=canonical_surface or "",
+        pre_decoration_surface=pre_decoration_surface or "",
+        response_surface=response_surface or "",
+    )
 
     # === DUAL-COMPETING SHADOW COHERENCE GATE ===
     # Forward and conjugate evaluated as independent competitors; commit
@@ -340,6 +380,7 @@ def resolve_surface(
 
     if not gate_blocks and realized_surface and forward_ok and conjugate_ok:
         surface = realized_surface
+        hash_surface = realized_surface
         articulation_surface = realized_surface
         authority = "substrate_realizer"
     elif (
@@ -352,12 +393,16 @@ def resolve_surface(
         # Transitional shim: geometric coherence holds, but graph not yet
         # fully grounded. Never used when conjugate residual fails.
         surface = realized_surface
+        hash_surface = realized_surface
         articulation_surface = realized_surface
         authority = "realizer"
 
     fold_sources: list[str] = []
     if walk_surface:
         surface = f"{surface} — {walk_surface}" if surface else walk_surface
+        hash_surface = (
+            f"{hash_surface} — {walk_surface}" if hash_surface else walk_surface
+        )
         articulation_surface = (
             f"{articulation_surface} — {walk_surface}"
             if articulation_surface
@@ -367,6 +412,9 @@ def resolve_surface(
 
     if compose_surface:
         surface = f"{surface} — {compose_surface}" if surface else compose_surface
+        hash_surface = (
+            f"{hash_surface} — {compose_surface}" if hash_surface else compose_surface
+        )
         articulation_surface = (
             f"{articulation_surface} — {compose_surface}"
             if articulation_surface
@@ -392,6 +440,7 @@ def resolve_surface(
         refusal=None,
         contract_violation=None,
         proof_trace=proof,
+        hash_surface=hash_surface,
     )
 
 

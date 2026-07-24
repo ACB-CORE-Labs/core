@@ -43,11 +43,11 @@ LANE_TIMEOUT_S = int(os.environ.get("CORE_LANE_VERIFY_TIMEOUT_S", "900"))
 
 PINNED_SHAS: dict[str, str] = {
     "reviewer_registry": "681a2aab5aa4ffd58cd837ce5673c8b2a9545b570117aec3c02726a12f6876e6",
-    "miner_loop_closure": "9f071733abe7dcacf759f928548ce738fb639af3fd6e4c621a651b306d7e77ce",
-    "curriculum_loop_closure": "b46d56b2d209172cc3ffaf3776dc8dcfe55093f13587c5cb67372be6dfa23e8d",
+    "miner_loop_closure": "537094fe21d7e6cfbaf42bfc32b82d669fa9bb05a132d2bc93c72b3ceb7762a6",
+    "curriculum_loop_closure": "cb94ca0042d78ec2624129ff6493d52e767b69feea32d2997b85d88f1c0883af",
     "domain_contract_validation": "98ace04e3f02bbc5a8ad655bb6593c3f1ee64cb67014f1122fe6c3c85f48d22f",
     "fabrication_control_summary": "01e1b6b711141f2b4a14551d7df3ea482d8d6dd7b364a25c509f4f8d08cda8a8",
-    "demo_composition": "e2ba2314d8768459fb6a8db082a4bbcf4107b5161d869804a4b2a33c3724081a",
+    "demo_composition": "f0611a2ce41721dd40767fc6a83a08470d3c7fd7fc8f1ae8ba003abf8a25ec97",
     "public_demo": "7d8ba0dbae9287cfe0bf15d231fa78a75abc627121c14900439293e01e1cc1d3",
     "math_teaching_corpus_v1": "eaf160d145da29f9050ede8d58bf111b0f651dd40aeae9201857d0b97e014dd4",
     "deductive_logic_v1": "97a230949016e38d5e3f37a69e4245b320575ee70e5af92ff7607f7b05f74b5f",

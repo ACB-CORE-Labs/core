@@ -32,7 +32,10 @@ def _open_assessment() -> ContractAssessment:
     )
 
 
-def test_runtime_canonical_surface_has_base_precedence() -> None:
+def test_runtime_response_surface_has_base_precedence() -> None:
+    # response_surface is the served bytes (post register R6/R4 —
+    # ADR-0077/ADR-0071); canonical is the trace-hash identity capture
+    # and must never displace served bytes when a response exists.
     resolved = resolve_surface(
         canonical_surface="canonical",
         pre_decoration_surface="pre-decoration",
@@ -41,11 +44,37 @@ def test_runtime_canonical_surface_has_base_precedence() -> None:
         contract_assessment=_closed_assessment(),
     )
 
-    assert resolved.surface == "canonical"
+    assert resolved.surface == "runtime"
     assert resolved.articulation_surface == "articulation"
-    assert resolved.authority == "runtime_canonical"
+    assert resolved.authority == "runtime"
     assert resolved.fold_sources == ()
     assert resolved.authoritative is True
+
+
+def test_canonical_surface_is_last_resort_fallback() -> None:
+    resolved = resolve_surface(
+        canonical_surface="canonical",
+        pre_decoration_surface="",
+        response_surface="",
+        response_articulation_surface="articulation",
+        contract_assessment=_closed_assessment(),
+    )
+
+    assert resolved.surface == "canonical"
+    assert resolved.authority == "runtime_canonical"
+
+
+def test_pre_decoration_outranks_canonical_when_response_absent() -> None:
+    resolved = resolve_surface(
+        canonical_surface="canonical",
+        pre_decoration_surface="pre-decoration",
+        response_surface="",
+        response_articulation_surface="articulation",
+        contract_assessment=_closed_assessment(),
+    )
+
+    assert resolved.surface == "pre-decoration"
+    assert resolved.authority == "runtime_pre_decoration"
 
 
 def test_useful_realizer_requires_conjugate_coherence() -> None:

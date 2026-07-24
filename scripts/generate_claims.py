@@ -74,6 +74,10 @@ _LANE_ADR: dict[str, tuple[str, str]] = {
         "ADR-0206",
         "Propositional entailment scored against an independent truth-table oracle; dev+holdout+external 716/716 correct, wrong=0, refused=0",
     ),
+    "deduction_serve_v1": (
+        "ADR-0256",
+        "Flag-gated deduction serving decides real English/member/fused arguments end-to-end under earned SERVE licenses; wrong=0 across all splits",
+    ),
 }
 
 
