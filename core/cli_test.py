@@ -183,6 +183,7 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_verb_argument_reader.py",
         "tests/test_exist_argument_reader.py",
         "tests/test_deduction_serve_e2e.py",
+        "tests/test_curriculum_serve.py",
     ),
     "full": ("tests/",),
 }

@@ -52,6 +52,7 @@ PINNED_SHAS: dict[str, str] = {
     "math_teaching_corpus_v1": "eaf160d145da29f9050ede8d58bf111b0f651dd40aeae9201857d0b97e014dd4",
     "deductive_logic_v1": "97a230949016e38d5e3f37a69e4245b320575ee70e5af92ff7607f7b05f74b5f",
     "deduction_serve_v1": "0b461a5a49c8f8260ca87d0c9c9f9a17232bd1fdedd982e34649eedf9cca30b5",
+    "curriculum_serve_v1": "d9e7ba500f040b865870413a940ee9a49910ac22e1a89c9feec1a60bdd2513f1",
 }
 
 
@@ -135,6 +136,12 @@ LANE_SPECS: tuple[LaneSpec, ...] = (
         lane_id="deduction_serve_v1",
         runner_module="evals/deduction_serve/runner.py",
         report_relative="evals/deduction_serve/report.json",
+        run_as_module=True,
+    ),
+    LaneSpec(
+        lane_id="curriculum_serve_v1",
+        runner_module="evals/curriculum_serve/runner.py",
+        report_relative="evals/curriculum_serve/report.json",
         run_as_module=True,
     ),
 )
