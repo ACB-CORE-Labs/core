@@ -56,7 +56,18 @@ commit; push when the server is repaired.
    `docs/research/math-reader-phase-4-1-status-2026-07-24.md`. Phase 4 should
    be re-pointed at the reader arc's own live recommendation (increment-2
    case-first on cases 0000/0001/0148/0082).
-3. **No curriculum band can earn a SERVE license from present data.** A band
+3. **`deduction_serving_enabled` is RATIFIED and ON** (2026-07-24). Flag-off
+   byte-identity is still pinned, so rollback stays one line with no residue.
+   S1's packet is now a *record* of that decision plus the standing evidence,
+   not an input to it.
+   **`curriculum_serving_enabled` stays OFF until verified.** The bar is
+   explicit: a `(subject × relation family)` band earning SERVE on the sealed
+   ledger — n≥657 committed with a genuine outcome mix. NOTHING in Tier S
+   closes that; it closes only when ratified curriculum content grows (see
+   S6). Do not flip it, and do not propose flipping it on "almost verified"
+   grounds — the bands are at ZERO earned, not near a threshold.
+
+4. **No curriculum band can earn a SERVE license from present data.** A band
    needs n≥657 with a real outcome mix; physics teaches 7 causal + 9 modal
    relations, so at most 16 questions in the whole subject can ever come back
    ENTAILED. A balanced band needs ≈219 taught relations per subject × family.

@@ -2,9 +2,11 @@
 
 The contract these tests pin:
 
-  - ``deduction_serving_enabled`` is OFF by default; flag-off ``chat()``
-    output is byte-identical to pre-arc behavior for argument-shaped text
-    (the pack-token-gloss fallback, unchanged).
+  - ``deduction_serving_enabled`` is ON by default since its ratification
+    (2026-07-24); flag-OFF ``chat()`` output remains byte-identical to
+    pre-arc behavior for argument-shaped text (the pack-token-gloss
+    fallback, unchanged), which is what keeps rollback a one-line, no-residue
+    operation.
   - Flag-on: a sentence-initial "therefore" conclusion clause commits the
     turn to ``chat/deduction_surface.py``; every committed turn returns a
     surface (never a silent fall-through to a different composer).
@@ -310,8 +312,12 @@ def test_flag_off_preserves_pack_token_gloss_byte_identity() -> None:
     assert "Pack-resident tokens" in resp.surface
 
 
-def test_flag_is_off_by_default() -> None:
-    assert RuntimeConfig().deduction_serving_enabled is False
+def test_flag_is_on_by_default_after_ratification() -> None:
+    """RATIFIED 2026-07-24 (ADR-0256): the default flipped False -> True on 25
+    bands at 720/720 wrong=0 and a 166/166 serve lane. The off-path above stays
+    pinned because rollback must remain byte-identical, not because it is the
+    default."""
+    assert RuntimeConfig().deduction_serving_enabled is True
 
 
 # ---------------------------------------------------------------------------
