@@ -486,6 +486,11 @@ class CognitiveTurnPipeline:
             grounding_provenance=grounding_src,
         )
         surface = resolved.surface
+        # Truth-path bytes for trace_hash (ADR-0069 inv C): the served
+        # surface carries register R6/R4 transforms and MUST NOT move the
+        # hash; hash_surface is the register-invariant canonical-precedence
+        # capture, kept in lockstep with every served-surface mutation below.
+        hash_surface = resolved.hash_surface or resolved.surface
         articulation_surface = resolved.articulation_surface
         authority_source = resolved.authority
 
@@ -518,6 +523,7 @@ class CognitiveTurnPipeline:
                 if logos_blocks_certified_answer(logos_decision):
                     refusal = decision_as_coherence_refusal(logos_decision)
                     surface = refusal.surface_message or refusal.message
+                    hash_surface = surface
                     articulation_surface = surface
                     authority_source = "logos_morph_constraint"
         except Exception:
@@ -667,6 +673,7 @@ class CognitiveTurnPipeline:
         # proposal (if any) is added below for FUTURE turns to see.
         if self._speculative_subjects and surface and self._should_mark_speculative(text, surface):
             surface = _SPECULATIVE_SURFACE_MARKER + surface
+            hash_surface = _SPECULATIVE_SURFACE_MARKER + hash_surface
             articulation_surface = _SPECULATIVE_SURFACE_MARKER + articulation_surface
 
         # 10. TEACHING — correction capture, review, and store
@@ -705,9 +712,11 @@ class CognitiveTurnPipeline:
                         if len(tok) >= 4 and tok not in _SUBJECT_STOPWORDS:
                             self._forget_speculative_subject(tok)
 
-        # Advance turn counter and remember surface for next correction binding
+        # Advance turn counter and remember surface for next correction binding.
+        # The truth-path surface (not the served, register-decorated bytes)
+        # feeds correction binding so register packs cannot perturb teaching.
         self._turn_number += 1
-        self._prior_surface = surface
+        self._prior_surface = hash_surface
 
         # 11. TRACE — deterministic hash (includes teaching IDs and any
         # typed-operator invocation per ADR-0018).
@@ -787,7 +796,7 @@ class CognitiveTurnPipeline:
         trace_hash = compute_trace_hash(
             input_text=text,
             filtered_tokens=filtered_tokens,
-            surface=surface,
+            surface=hash_surface,
             walk_surface=response.walk_surface,
             articulation_surface=articulation_surface,
             dialogue_role=str(response.dialogue_role),
