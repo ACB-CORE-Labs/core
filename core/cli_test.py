@@ -75,6 +75,7 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_math_frame_ratification.py",
         "tests/test_math_composition_ratification.py",
         "tests/test_teaching_coverage_cli.py",
+        "tests/test_proposal_queue.py",
     ),
     "packs": (
         "tests/test_pack_draft_serve_boundary.py",
