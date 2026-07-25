@@ -98,6 +98,41 @@ def comprehension_relational_transitive_result() -> DomainResult:
     return DomainResult("comprehension_relational_transitive", c, w, r)
 
 
+def deduction_serve_existential_result() -> DomainResult:
+    """Band v6-EX (ADR-0261) alone — the existential-argument split of the
+    deduction-serve lane, scored against its own independently-authored
+    gold. Deliberately just this one split, not the full six-band lane: the
+    other bands (v1/v1b propositional+categorical, v2-EN/v3-MEM/v4-CM/v5-VP)
+    are pure grammar widenings over the SAME propositional-entailment
+    substrate the ``deductive_logic`` adapter above already scores; the
+    existential band is the one that changes the DECISION PROCEDURE itself
+    (domain widening with Skolem witnesses / an arbitrary element — no
+    existential import), so it is the one genuinely new reasoning capability
+    among the six worth its own index domain."""
+    from evals.deduction_serve.runner import build_combined_report
+
+    counts = build_combined_report()["splits"]["v2_exist"]["counts"]
+    return DomainResult(
+        "deduction_serve_existential",
+        int(counts["correct"]),
+        int(counts["wrong"]),
+        int(counts["declined"]),
+    )
+
+
+def curriculum_serve_result() -> DomainResult:
+    """The curriculum-grounded serving lane (ADR-0262): exam questions
+    answered from the ratified domain-chain curriculum alone, scored against
+    an independent closed-world reachability oracle (``evals.curriculum_serve.oracle``,
+    a different decision procedure than the serving path it checks)."""
+    from evals.curriculum_serve.runner import build_combined_report
+
+    agg = build_combined_report()["aggregate"]
+    return DomainResult(
+        "curriculum_serve", int(agg["correct"]), int(agg["wrong"]), int(agg["declined"])
+    )
+
+
 #: The reasoning domains currently composed into the index (self-loading lanes).
 #: The six ``comprehension_*`` lanes score the GENERAL comprehension reader; the
 #: relational_metric one reads arithmetic prose into the binding-graph quantity
@@ -108,7 +143,10 @@ def comprehension_relational_transitive_result() -> DomainResult:
 #: same-predicate transitive closure over the declared strict orders (mastery-v2 Step-3
 #: Brief B2) — so the index measures comprehension breadth across categorical, ordering,
 #: propositional, quantitative, relational-reading, one-hop relational-inference, AND
-#: transitive relational-inference reasoning.
+#: transitive relational-inference reasoning. ``deduction_serve_existential`` (ADR-0261)
+#: and ``curriculum_serve`` (ADR-0262, generalization arc Tier S) add the PRODUCTION
+#: serving deciders (not bare-engine lanes) for existential-domain widening and
+#: curriculum-grounded exam answering.
 ADAPTERS = (
     deductive_logic_result,
     relational_metric_result,
@@ -121,6 +159,8 @@ ADAPTERS = (
     comprehension_relational_predicate_result,
     comprehension_relational_inference_result,
     comprehension_relational_transitive_result,
+    deduction_serve_existential_result,
+    curriculum_serve_result,
 )
 
 

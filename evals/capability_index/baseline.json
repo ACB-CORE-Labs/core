@@ -1,13 +1,13 @@
 {
-  "capability_score": 0.953968,
-  "coverage_geomean": 0.953968,
-  "coverage_micro": 0.99399,
+  "capability_score": 0.960909,
+  "coverage_geomean": 0.960909,
+  "coverage_micro": 0.99442,
   "accuracy_micro": 1.0,
-  "breadth": 11,
+  "breadth": 13,
   "min_domain_coverage": 0.833333,
   "wrong_total": 0,
   "assert_mode_valid": true,
-  "deterministic_digest": "85c873626423c6b151a7d61bebb0cd5b7caff7dcc7e897188609e5ce3313feac",
+  "deterministic_digest": "27778ecb51b8acbd7e14a8bc23fca6869328c2236c38296bb4b1ad3311daf9eb",
   "domains": [
     {
       "domain": "comprehension_propositional",
@@ -71,6 +71,22 @@
       "wrong": 0,
       "refused": 1,
       "coverage": 0.875,
+      "accuracy": 1.0
+    },
+    {
+      "domain": "curriculum_serve",
+      "correct": 32,
+      "wrong": 0,
+      "refused": 0,
+      "coverage": 1.0,
+      "accuracy": 1.0
+    },
+    {
+      "domain": "deduction_serve_existential",
+      "correct": 32,
+      "wrong": 0,
+      "refused": 0,
+      "coverage": 1.0,
       "accuracy": 1.0
     },
     {
