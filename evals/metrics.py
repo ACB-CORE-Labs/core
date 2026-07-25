@@ -17,7 +17,13 @@ class CaseResult:
     versor_closure: bool
     versor_condition: float
     trace_hash: str
+    #: The SERVED surface — register-decorated, what the user reads.
     surface: str
+    #: The register-INVARIANT truth-path bytes that ``compute_trace_hash``
+    #: folds (ADR-0069 inv C). A different field with a different contract:
+    #: ``surface`` is *expected* to vary across the register axis, this is
+    #: *required* not to. Defaulted so older constructors stay valid.
+    hash_surface: str = ""
 
 
 @dataclass(slots=True)

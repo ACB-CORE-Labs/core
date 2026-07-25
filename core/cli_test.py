@@ -56,6 +56,17 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # were conflated with an unrelated flake. Promoted so this axis can
         # never silently regress again.
         "tests/test_register_substantive_consumption.py",
+        # Deduction serving is LIVE (ADR-0256 ratified the flag ON), so its
+        # cross-stack provenance contract is a serving-path contract, not a
+        # capability-under-development one. Workbench's live chat route builds
+        # a bare ChatRuntime(), which means these composers decide Workbench
+        # turns too — and while their labels were unregistered the API coerced
+        # them to "none" and recorded a proved answer as ungrounded. ~3s.
+        "tests/test_workbench_deduction_provenance.py",
+        # Correction binding anchors to hash_surface, in lockstep with every
+        # substantive override of the served surface. Cheap, and the axis is
+        # invisible until it breaks silently.
+        "tests/test_prior_surface_deduction_binding.py",
     ),
     "runtime": (
         "tests/test_chat_runtime.py",

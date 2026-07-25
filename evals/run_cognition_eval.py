@@ -65,6 +65,7 @@ def _run_case(case: dict, pipeline: CognitiveTurnPipeline) -> CaseResult:
         versor_condition=result.versor_condition,
         trace_hash=result.trace_hash,
         surface=result.surface,
+        hash_surface=result.hash_surface or result.surface,
     )
 
 

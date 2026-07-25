@@ -35,6 +35,7 @@ identically and no lane pin moves.
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -50,6 +51,85 @@ from formation.hashing import sha256_of
 
 class RatifiedLedgerError(ValueError):
     """A committed ledger is malformed or does not verify against its own hash."""
+
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+@dataclass(frozen=True, slots=True)
+class LedgerSpec:
+    """One capability's committed ledger, and whether its absence is an error."""
+
+    capability: str
+    path: Path
+    #: ``False`` — this capability SHIPS with a sealed ledger, so a missing file
+    #: means a broken deployment and the load must refuse.
+    #: ``True``  — this capability's practice volume is still being built, so a
+    #: missing file honestly means "nothing earned yet" and serves disclosed.
+    missing_ok: bool
+    note: str
+
+
+#: Rule 5 of the bridge: **absence policy is declared, not passed.**
+#:
+#: Rules 1-4 (docstring above) are all enforced structurally; this one was not.
+#: ``missing_ok`` began life as a ``load_sealed_ledger`` keyword, which meant
+#: each adapter chose its own answer to "is a missing ledger a broken
+#: deployment, or an unearned capability?" — a question about the capability,
+#: not about the call. Any new subject onboarding through the bridge could pass
+#: ``missing_ok=True`` and silently downgrade a should-be-hard-refuse into a
+#: disclosed hedge, and nothing would catch it.
+#:
+#: Declaring it here means adding a capability is a manifest edit that a
+#: reviewer reads as a policy change, which is what it is. The keyword survives
+#: on the primitive for tests and one-off tooling; no production adapter passes
+#: it.
+CAPABILITY_LEDGERS: dict[str, LedgerSpec] = {
+    "estimation": LedgerSpec(
+        capability="estimation",
+        path=_PROJECT_ROOT / "generate" / "determine" / "data" / "estimation_ledger.json",
+        missing_ok=False,
+        note="ADR-0175 — ships sealed with the converse-estimation gate.",
+    ),
+    "deduction_serve": LedgerSpec(
+        capability="deduction_serve",
+        path=_PROJECT_ROOT / "chat" / "data" / "deduction_serve_ledger.json",
+        missing_ok=False,
+        note="ADR-0256 — ships sealed; 25 bands at 720/720 wrong=0.",
+    ),
+    "curriculum_serve": LedgerSpec(
+        capability="curriculum_serve",
+        path=_PROJECT_ROOT / "chat" / "data" / "curriculum_serve_ledger.json",
+        missing_ok=True,
+        note=(
+            "ADR-0262 §5 — no band has earned a license from present curriculum "
+            "volume; every served band is DISCLOSED. Flips to False when the "
+            "first band earns SERVE and the ledger is committed."
+        ),
+    ),
+}
+
+
+def ledger_spec(capability: str) -> LedgerSpec:
+    """The declared spec for *capability*, or a refusal naming the manifest."""
+    try:
+        return CAPABILITY_LEDGERS[capability]
+    except KeyError:
+        raise RatifiedLedgerError(
+            f"unregistered ledger capability: {capability!r} — declare it in "
+            "core.ratified_ledger.CAPABILITY_LEDGERS before consuming it"
+        ) from None
+
+
+def load_capability_ledger(capability: str) -> dict[str, ClassTally]:
+    """Load the committed ledger for *capability* under its declared policy.
+
+    The production entry point. A caller names what it is, not how absence
+    should be treated — so no call site can grant itself a softer failure mode
+    than the capability was registered with.
+    """
+    spec = ledger_spec(capability)
+    return load_sealed_ledger(spec.path, missing_ok=spec.missing_ok)
 
 
 def tally_dict(tally: ClassTally) -> dict[str, Any]:
@@ -148,7 +228,11 @@ def serve_license(
 
 
 __all__ = [
+    "CAPABILITY_LEDGERS",
+    "LedgerSpec",
     "RatifiedLedgerError",
+    "ledger_spec",
+    "load_capability_ledger",
     "load_sealed_ledger",
     "seal_artifact",
     "serve_license",

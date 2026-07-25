@@ -72,11 +72,34 @@ def test_cli_smoke_suite_covers_ci_smoke_gate() -> None:
             ci_paths.add(token)
 
     assert ci_paths, "no tests/ paths parsed from smoke.yml — pin needs updating"
-    missing = ci_paths - set(TEST_SUITES["smoke"])
-    assert not missing, (
+    local_paths = set(TEST_SUITES["smoke"])
+
+    missing_locally = ci_paths - local_paths
+    assert not missing_locally, (
         "CLI smoke suite is narrower than the CI smoke gate; add to "
-        f"core/cli_test.py TEST_SUITES['smoke']: {sorted(missing)}"
+        f"core/cli_test.py TEST_SUITES['smoke']: {sorted(missing_locally)}"
     )
+
+    # DELIBERATELY ONE-DIRECTIONAL — do not "complete" this by also asserting
+    # local_paths <= ci_paths.
+    #
+    # A bidirectional version was added on 2026-07-25 and reverted the same day.
+    # It read the list's comment ("so the local-first pre-push gate equals the
+    # CI gate") as promising equality, and flagged
+    # tests/test_pack_draft_serve_boundary.py as drift because it sits in the
+    # local gate and not in smoke.yml. That is not drift. Per AGENTS.md, GitHub
+    # Actions are billing-locked and produce dead signals, the Forgejo host
+    # cannot run workflows either, and CI is run manually in-worktree
+    # (scripts/ci/local-ci.sh). smoke.yml is secondary observability, not a
+    # gate.
+    #
+    # So the local suite is the SOURCE, and it is free to be broader. Asserting
+    # the reverse turns a file nobody executes into a maintenance obligation —
+    # one that agents cannot even discharge, since pushing workflow changes
+    # needs an OAuth scope the push credential lacks. The direction checked
+    # above is the one that still protects something: if smoke.yml ever names a
+    # path the local gate lacks, the local gate is genuinely narrower than a
+    # published claim about it.
 
 
 def test_core_test_suite_expands_to_expected_pytest_paths(monkeypatch) -> None:

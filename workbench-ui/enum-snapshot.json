@@ -22,7 +22,9 @@
     "vault",
     "partial",
     "oov",
-    "none"
+    "none",
+    "deduction",
+    "curriculum"
   ],
   "NormativeClearance": [
     "cleared",

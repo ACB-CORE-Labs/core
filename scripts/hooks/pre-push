@@ -2,11 +2,25 @@
 # CORE local-first pre-push gate (weekly-audit T13, 2026-07-22).
 #
 # Automates the AGENTS.md §Local-First CI Validation Protocol "Pre-Push Gate":
-#   (1) the `smoke` suite  — exact CI-gate parity, and
+#   (1) the `smoke` suite  — exact CI-gate parity,
 #   (2) the warmed_session consistency lane pin — catches the T13
 #       telemetry-consistency regression class, which `smoke` does NOT cover
 #       (the #96 fail-closed resolve + #97 morph override escaped smoke and
-#       surfaced only in the warmed_session lane).
+#       surfaced only in the warmed_session lane), and
+#   (3) the `deductive` suite — added 2026-07-25.
+#
+# On (3): this suite was an ASYNC CI concern while deduction serving was a
+# capability under development. ADR-0256 ratified the flag ON by default, which
+# makes it a regression suite for a LIVE serving path — a push that breaks
+# deduction serving would otherwise clear this gate and sit broken on main for
+# the window between push and CI. The register-axis regression (red on main for
+# the 2026-07-22..24 window, masked by an unrelated flake label) is the direct
+# precedent for that failure mode.
+#
+# It was added WHOLE rather than as a subset because the cost measurement said
+# it could be: 285 tests in ~29s, against smoke's 216 in ~62s. There is no
+# coverage trade recorded here because none was needed.
+#
 # The full ~12k fast-lane stays an ASYNC CI concern by design — this gate is
 # deliberately targeted so it prevents the regression class without gridlocking
 # the push cycle.
@@ -32,18 +46,26 @@ if [ "${read_any}" -eq 1 ] && [ "${only_deletes}" -eq 1 ]; then
     exit 0
 fi
 
-echo "[pre-push] CORE local-first gate: smoke suite + warmed_session lane pin"
+echo "[pre-push] CORE local-first gate: smoke + warmed_session lane pin + deductive"
 
-echo "[pre-push] (1/2) smoke suite (core test --suite smoke) ..."
+echo "[pre-push] (1/3) smoke suite (core test --suite smoke) ..."
 if ! uv run core test --suite smoke -q; then
     echo "[pre-push] BLOCKED: smoke suite failed. Fix before pushing." >&2
     echo "[pre-push] (emergency bypass, discouraged: git push --no-verify)" >&2
     exit 1
 fi
 
-echo "[pre-push] (2/2) warmed_session consistency lane ..."
+echo "[pre-push] (2/3) warmed_session consistency lane ..."
 if ! uv run python -m pytest tests/test_warmed_session_lane.py -q; then
     echo "[pre-push] BLOCKED: warmed_session lane failed (T13 regression class)." >&2
+    echo "[pre-push] (emergency bypass, discouraged: git push --no-verify)" >&2
+    exit 1
+fi
+
+echo "[pre-push] (3/3) deductive suite (core test --suite deductive) ..."
+if ! uv run core test --suite deductive -q; then
+    echo "[pre-push] BLOCKED: deductive suite failed — deduction serving is a" >&2
+    echo "[pre-push]          LIVE capability (ADR-0256), not an experiment." >&2
     echo "[pre-push] (emergency bypass, discouraged: git push --no-verify)" >&2
     exit 1
 fi

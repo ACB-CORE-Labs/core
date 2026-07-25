@@ -92,6 +92,15 @@ class TestExpectedLaneCoverage:
             "curriculum_loop_closure",
             "math_teaching_corpus_v1",  # ADR-0131
             "deductive_logic_v1",  # ADR-0206 — independent-oracle entailment lane
+            # Added 2026-07-25. Both lanes shipped during the deduction-serve
+            # generalization arc and neither was added here, so this roster's
+            # `extra` tripwire — which exists precisely to make a new lane an
+            # explicit acknowledgement rather than a silent addition — has been
+            # RED on clean main ever since. It went unnoticed because this file
+            # is in neither `smoke` nor `deductive`; nothing local or in CI runs
+            # it. This entry is the acknowledgement the tripwire was asking for.
+            "deduction_serve_v1",  # ADR-0256
+            "curriculum_serve_v1",  # ADR-0262
         }
     )
 

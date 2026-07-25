@@ -419,6 +419,65 @@ frame's half-space.
 `TurnEvent.flagged`
 : Mirrors `IdentityScore.flagged` for filtering and trace inspection.
 
+`TurnEvent.grounding_source`
+: The composer that grounded the turn, verbatim. Must be a member of
+  `core.epistemic_state.GroundingSource` — the closed, Workbench-coupled set.
+  Consumers that need to *validate* one read `GROUNDING_SOURCES`; nothing
+  restates the members. See "Grounding-source registration" below.
+
+### `trace_hash` is not reconstructable from `TurnEvent`
+
+This is a contract, not a defect, and it is stated here because the two fields
+involved look interchangeable and are not.
+
+- `compute_trace_hash` folds **`hash_surface`** — the register-invariant
+  truth-path capture (ADR-0069 inv C, ADR-0077 R6). Register decoration must
+  not move the truth-path identity, so the hash deliberately does not see the
+  bytes the user read.
+- `finalize_turn_surface` (T13, 2026-07-22) back-stamps the **served** surface
+  onto `TurnEvent`, because the telemetry record must show what the user
+  actually saw — the `warmed_session_consistency` invariant.
+
+These serve different invariants and are correct to differ. `TurnEvent` does
+not carry `hash_surface`, so a consumer holding only telemetry **cannot**
+recompute `trace_hash`; it will silently get a different value on any turn
+carrying register decoration. Recomputation is not a supported operation.
+Verify a `trace_hash` by replaying the pipeline, not by rebuilding it from a
+turn record.
+
+**Open, tracked as audit-ledger R7.** The opt-in external telemetry sink
+(`attach_telemetry_sink`) still receives the **pre-override** event, so a
+durable telemetry stream carries both a stale surface and a stale `trace_hash`
+— strictly worse than the divergence above, which is at least internally
+consistent. `chat/runtime.py::finalize_turn_surface` records the limitation at
+the site. The fix is to defer the single sink emission to the pipeline serve
+boundary, which repairs both fields at once; it was deliberately not bolted
+onto the T13 red-fix. The default sink is `None`, so no default deployment is
+affected today.
+
+### Grounding-source registration
+
+`core.epistemic_state.GroundingSource` is the single source of truth. Adding a
+value is a three-part change that must land together:
+
+1. the `Literal` in `core/epistemic_state.py`, plus its
+   `epistemic_state_for_grounding_source` arm;
+2. `workbench-ui/enum-snapshot.json` (regenerate: `pnpm enum:snapshot`);
+3. the UI badge contract — `badges/types.ts`, `badges/mappings.ts`, a design
+   token, and `types/api.ts`.
+
+`workbench-ui`'s `enumCoverage.test.ts` fails the build if (1) and (3) diverge,
+which is what makes this atomic rather than aspirational.
+
+`deduction` (ADR-0256) and `curriculum` (ADR-0262) were served for a period
+before being registered, on the reasoning that REPL turns do not reach
+Workbench. The traffic flows the other way: `workbench/api.py`'s chat route
+builds a bare `ChatRuntime()`, so those composers decide Workbench turns too,
+and the API's coercion floored the unregistered labels to `"none"` — recording
+a proved answer as ungrounded in a durable audit artifact. Registering a
+grounding source is therefore part of shipping the composer that emits it, not
+a follow-up. Pinned by `tests/test_workbench_deduction_provenance.py`.
+
 ## Identity contract
 
 Identity checks are telemetry/gating signals. A flagged identity score must not

@@ -14,7 +14,15 @@ export type ErrorCode =
 
 export type Backend = "numpy" | "mlx" | "rust" | "unknown";
 export type MutationMode = "read_only" | "runtime_turn";
-export type GroundingSource = "pack" | "teaching" | "vault" | "partial" | "oov" | "none";
+export type GroundingSource =
+  | "pack"
+  | "teaching"
+  | "vault"
+  | "partial"
+  | "oov"
+  | "none"
+  | "deduction"
+  | "curriculum";
 export type TraceIntegrity = "pipeline_trace" | "legacy_unhashed";
 export type PipelineEvidenceStatus = "recorded" | "missing_evidence";
 export type CognitivePipelineStageKind =

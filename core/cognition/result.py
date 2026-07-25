@@ -70,6 +70,19 @@ class CognitiveTurnResult:
     vault_hits: int
     recall_energy_class: str | None = None
 
+    #: The register-INVARIANT truth-path bytes — what ``compute_trace_hash``
+    #: actually folds (ADR-0069 inv C, ADR-0077 R6). Distinct from ``surface``,
+    #: which is the served, register-decorated string the user reads.
+    #:
+    #: Exposed 2026-07-25. It was pipeline-local before that, which made the
+    #: truth-path-isolation invariant unobservable from a turn result — so
+    #: ``test_register_matrix_canonical_surface_byte_identical`` asserted it on
+    #: ``surface`` instead, and went red across all 99 registers the moment
+    #: Phase 0 flipped ``resolve_surface`` to response-first precedence and
+    #: moved the invariant here. The contract was never broken; it just could
+    #: not be seen. Empty string ⇒ identical to ``surface`` (no divergence).
+    hash_surface: str = ""
+
     # --- intent / graph telemetry ---
     intent: DialogueIntent | None = None
     proposition_graph: PropositionGraph | None = None

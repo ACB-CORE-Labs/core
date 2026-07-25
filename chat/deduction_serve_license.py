@@ -19,16 +19,17 @@ stay at the safe defaults (invariant #4 — the engine cannot raise its own bar)
 from __future__ import annotations
 
 from functools import lru_cache
-from pathlib import Path
 
 from core.ratified_ledger import (
     RatifiedLedgerError,
-    load_sealed_ledger,
+    ledger_spec,
+    load_capability_ledger,
     serve_license,
 )
 from core.reliability_gate import Ceilings, ClassTally, LicenseDecision
 
-_LEDGER_PATH = Path(__file__).resolve().parent / "data" / "deduction_serve_ledger.json"
+_LEDGER_CAPABILITY = "deduction_serve"
+_LEDGER_PATH = ledger_spec(_LEDGER_CAPABILITY).path
 
 
 @lru_cache(maxsize=1)
@@ -38,8 +39,12 @@ def load_ratified_ledger() -> dict[str, ClassTally]:
     Raises :class:`RatifiedLedgerError` if the file is absent/malformed or its
     recomputed ``content_sha256`` does not match the committed one (tamper-evidence:
     only the sealed-practice output is trusted, never a hand-edited ledger).
+
+    This capability is registered ``missing_ok=False`` in ``CAPABILITY_LEDGERS``
+    — it ships with its ledger, so absence is a broken deployment, and that
+    verdict is the manifest's rather than this call's (ADR-0263 rule 5).
     """
-    return load_sealed_ledger(_LEDGER_PATH)
+    return load_capability_ledger(_LEDGER_CAPABILITY)
 
 
 def deduction_serve_license(

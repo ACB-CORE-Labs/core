@@ -22,28 +22,34 @@ absent ledger reads as an empty table, so every answer is served DISCLOSED.
 from __future__ import annotations
 
 from functools import lru_cache
-from pathlib import Path
 
 from core.ratified_ledger import (
     RatifiedLedgerError as RatifiedCurriculumLedgerError,
-    load_sealed_ledger,
+    ledger_spec,
+    load_capability_ledger,
     serve_license,
 )
 from core.reliability_gate import Ceilings, ClassTally, LicenseDecision
 
-_LEDGER_PATH = Path(__file__).resolve().parent / "data" / "curriculum_serve_ledger.json"
+_LEDGER_CAPABILITY = "curriculum_serve"
+_LEDGER_PATH = ledger_spec(_LEDGER_CAPABILITY).path
 
 
 @lru_cache(maxsize=1)
 def load_ratified_ledger() -> dict[str, ClassTally]:
     """Load + verify the ratified curriculum-serve ledger → per-band tallies.
 
-    An ABSENT ledger is not an error here: no curriculum band has earned
-    anything yet, and the honest reading of "no file" is "no committed
-    evidence", which the gate turns into a disclosed answer rather than a
-    withheld one.
+    An ABSENT ledger is not an error *for this capability*: no curriculum band
+    has earned anything yet, and the honest reading of "no file" is "no
+    committed evidence", which the gate turns into a disclosed answer rather
+    than a withheld one.
+
+    That policy is declared once in ``CAPABILITY_LEDGERS``, not asserted here —
+    this module names the capability and inherits its registered absence
+    contract, so it cannot grant itself a softer failure mode than the bridge
+    recorded (ADR-0263 rule 5).
     """
-    return load_sealed_ledger(_LEDGER_PATH, missing_ok=True)
+    return load_capability_ledger(_LEDGER_CAPABILITY)
 
 
 def curriculum_serve_license(
