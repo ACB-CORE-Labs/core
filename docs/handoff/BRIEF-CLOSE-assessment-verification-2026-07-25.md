@@ -15,7 +15,9 @@
 | Coercion derives its whitelist from the enum instead of restating it | `workbench/api.py::_coerce_grounding_source` | same file, parametrized over the registration |
 | Ledger absence policy declared, not passed (ADR-0263 rule 5) | `core/ratified_ledger.py::CAPABILITY_LEDGERS` | `tests/test_ratified_ledger_bridge.py::TestCapabilityManifest` |
 | Deductive suite in the pre-push gate | `scripts/hooks/pre-push` | measured 285 tests / 29s vs smoke 216 / 62s |
-| Smoke↔CI parity assertion made bidirectional | `tests/test_cli_test_suites.py` | mutation-checked; carries a dated `PENDING_IN_CI` list — see §7 |
+| One-command local CI runner, fail-closed on interpreter | `scripts/ci/local-ci.sh` | `gate` tier verified: 236 + 10 + 285 |
+| Lane roster red on clean `main` fixed | `tests/test_lane_sha_verifier.py` | two arc lanes were never registered |
+| Test writing proposals into the live in-repo sink | `tests/test_derived_close_proposals.py` | plus a vacuous `or True` assertion removed |
 | Correction-binding lockstep pinned on the deduction path | `tests/test_prior_surface_deduction_binding.py` (6) | mutation-checked |
 | Ratification ceremony + `core proposal-queue ratify` | `teaching/ratification.py`, `core/cli_proposal_queue.py` | `tests/test_ratification_ceremony.py` (14) |
 | Domain-keyed ADR index | `docs/adr/INDEX-by-domain.md` | `tests/test_adr_index.py` (5) |
@@ -99,19 +101,24 @@ latter produces a renderer with nothing to render.
 | `hash_surface` on `TurnEvent`, or not | undecided | same |
 | Arena queue entry + ledger reseal after ratification | deferred by design (bridge rule 1) | `RatificationReceipt.pending_stages` |
 | Forgejo zero-length-object claim | unverified from this environment | assessment doc, preamble |
-| **Three files owed to `smoke.yml`** | blocked (push credential lacks `workflow` OAuth scope) | `tests/test_cli_test_suites.py::PENDING_IN_CI` |
+**A non-finding, recorded so it is not re-found.** Mid-arc this brief listed
+"three files owed to `smoke.yml`" as blocked work: `test_pack_draft_serve_boundary.py`
+plus the two new provenance files sit in the local gate and not in the CI yaml,
+which a newly-bidirectional parity assertion flagged as drift.
 
-**On that last row — the one thing this arc found and could not finish.** The
-CI smoke gate is narrower than the local one. `test_pack_draft_serve_boundary.py`
-(ADR-0253 dual-pack boundary, INV-33) has been in the local pre-push gate and
-absent from `smoke.yml`, and the parity pin only ever checked the *other*
-direction, so it went unseen. The two new deduction-provenance files belong
-there for the same reason. The three-line edit was authored and rejected at push
-(`refusing to allow an OAuth App to create or update workflow smoke.yml without
-workflow scope`), so it is recorded as a named, dated exception rather than
-silently dropped: the assertion still fires on any *new* divergence, and a
-second guard fires once the three land so the list cannot rot. Anyone pushing
-with `workflow` scope closes it by adding three lines and emptying the tuple.
+It is not drift, and the assertion was wrong to exist. Per `AGENTS.md`, GitHub
+Actions are billing-locked dead signals, the Forgejo host cannot run workflows
+either, and CI is run **manually in-worktree** — which is faster anyway on UMA
+hardware with real RAM. `smoke.yml` is secondary observability, not a gate. The
+local suite is the source and is free to be broader; asserting the reverse turns
+a file nobody executes into a maintenance obligation that agents cannot even
+discharge (pushing workflow changes needs an OAuth scope the push credential
+lacks).
+
+Reverted the same day, with the reasoning left at the assertion site so the
+"completion" is not attempted again. The surviving direction — CI ⊆ local —
+still protects something real: if `smoke.yml` ever names a path the local gate
+lacks, the local gate is narrower than a published claim about it.
 
 ## 8. Gates and their state at close
 

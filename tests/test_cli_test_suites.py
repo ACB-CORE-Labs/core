@@ -80,36 +80,26 @@ def test_cli_smoke_suite_covers_ci_smoke_gate() -> None:
         f"core/cli_test.py TEST_SUITES['smoke']: {sorted(missing_locally)}"
     )
 
-    # The other direction, which this pin did not check until 2026-07-25 and
-    # which had in fact drifted: tests/test_pack_draft_serve_boundary.py sat in
-    # the local gate and not in smoke.yml. The list's own comment promises the
-    # two are *equal* ("so the local-first pre-push gate equals the CI gate
-    # rather than silently narrowing it"), and a one-directional assertion can
-    # only ever hold half of that. A file only the local gate runs is a file
-    # whose regression is invisible to anyone reading a green CI badge.
+    # DELIBERATELY ONE-DIRECTIONAL — do not "complete" this by also asserting
+    # local_paths <= ci_paths.
     #
-    # PENDING_IN_CI is a named, dated exception list, not a suppression. These
-    # three are already in the local gate and belong in smoke.yml; the edit was
-    # authored and could not be pushed from the authoring session, whose
-    # credential lacked the `workflow` OAuth scope. Anyone with that scope
-    # closes this by adding the three lines and emptying this tuple. The
-    # assertion below still fires on any NEW divergence, which is the
-    # protection that was missing entirely before.
-    PENDING_IN_CI = (
-        "tests/test_pack_draft_serve_boundary.py",
-        "tests/test_prior_surface_deduction_binding.py",
-        "tests/test_workbench_deduction_provenance.py",
-    )
-    missing_in_ci = local_paths - ci_paths - set(PENDING_IN_CI)
-    assert not missing_in_ci, (
-        "CI smoke gate is narrower than the CLI smoke suite; add to "
-        f".github/workflows/smoke.yml: {sorted(missing_in_ci)}"
-    )
-    stale_exceptions = set(PENDING_IN_CI) & ci_paths
-    assert not stale_exceptions, (
-        "these are in smoke.yml now — drop them from PENDING_IN_CI: "
-        f"{sorted(stale_exceptions)}"
-    )
+    # A bidirectional version was added on 2026-07-25 and reverted the same day.
+    # It read the list's comment ("so the local-first pre-push gate equals the
+    # CI gate") as promising equality, and flagged
+    # tests/test_pack_draft_serve_boundary.py as drift because it sits in the
+    # local gate and not in smoke.yml. That is not drift. Per AGENTS.md, GitHub
+    # Actions are billing-locked and produce dead signals, the Forgejo host
+    # cannot run workflows either, and CI is run manually in-worktree
+    # (scripts/ci/local-ci.sh). smoke.yml is secondary observability, not a
+    # gate.
+    #
+    # So the local suite is the SOURCE, and it is free to be broader. Asserting
+    # the reverse turns a file nobody executes into a maintenance obligation —
+    # one that agents cannot even discharge, since pushing workflow changes
+    # needs an OAuth scope the push credential lacks. The direction checked
+    # above is the one that still protects something: if smoke.yml ever names a
+    # path the local gate lacks, the local gate is genuinely narrower than a
+    # published claim about it.
 
 
 def test_core_test_suite_expands_to_expected_pytest_paths(monkeypatch) -> None:
