@@ -43,7 +43,8 @@ check). Surfaces: `generate/proof_chain/render.py`, `chat/deduction_surface.py`.
 
 | ADR | Decision | Governs |
 |---|---|---|
-| [0262](./ADR-0262-curriculum-grounded-serving.md) | Exams answered from the ratified curriculum, read OPEN-world; §5 records that curriculum **volume** is the binding constraint (~25× gap) | `chat/curriculum_surface.py`, `chat/curriculum_serve_license.py`, `evals/curriculum_serve/runner.py` |
+| [0262](./ADR-0262-curriculum-grounded-serving.md) | Exams answered from the ratified curriculum, read OPEN-world; §5 records that curriculum **volume** is the binding constraint (~25× gap) — **conclusion amended by 0264 §4.1** | `chat/curriculum_surface.py`, `chat/curriculum_serve_license.py`, `evals/curriculum_serve/runner.py` |
+| [0264](./ADR-0264-negative-curriculum-and-premise-scope.md) | Negatives via a row-level `polarity` field reusing the affirmative connective; premise compilation is query-scoped (superset of the query-atom rows ⇒ verdict-identical). §4.1: the 16-premise cap holds a band to ≤16 entailed cases, so **no curriculum band can earn SERVE** until scoping lands — the blocker is engineering, not content | `teaching/curriculum_premises.py`, `teaching/ratification.py`, `evals/curriculum_serve/oracle.py`, `teaching/domain_chains/*.jsonl` |
 
 ## Reliability licensing and the ledger bridge
 
