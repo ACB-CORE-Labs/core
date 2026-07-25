@@ -218,19 +218,39 @@ def test_runtime_flag_off_does_not_emit(vocab_persona, tmp_path: Path):
     ctx = rt._context
     _tell("Socrates is a man.", ctx)
     _tell("All men are mortals.", ctx)
-    res = rt.idle_tick()  # consolidation happens (if flag on), proposal bridge must not
-    # Even if consolidation ran, the derived proposal sink under the test path
-    # should not have been written by the bridge (flag off).
-    # We use a temp engine_state but the proposal sink is repo-relative;
-    # the important contract is that the call was not made.
-    # Direct check: calling the emitter would write, but the runtime path didn't.
-    assert res.derived_close_proposals_emitted == 0
-    # No files should have been created for this disabled path (best-effort check)
+    # The proposal sink is repo-relative even when engine_state is a tmp_path,
+    # so the flag-off contract is checkable directly: snapshot the live sink
+    # BEFORE the tick, and require it unchanged after.
+    #
+    # This assertion used to read:
+    #     assert not any(sink.glob("*.json")) or True
+    # which is vacuously true, and whose comment ("may have pre-existing from
+    # other tests") was describing the very leak it papered over — the flag-ON
+    # test below wrote into the real in-repo sink on every full-suite run.
+    # That test now redirects its sink, so an honest check is possible here.
     sink = Path("teaching") / "proposals" / "derived_close_facts"
-    assert not any(sink.glob("*.json")) or True  # may have pre-existing from other tests; non-fatal
+    before = set(sink.glob("*.json")) if sink.exists() else set()
+
+    res = rt.idle_tick()  # consolidation happens (if flag on), proposal bridge must not
+
+    assert res.derived_close_proposals_emitted == 0
+    after = set(sink.glob("*.json")) if sink.exists() else set()
+    assert after == before, f"flag-off path wrote to the live sink: {after - before}"
 
 
-def test_runtime_flag_on_emits_after_consolidation(vocab_persona, tmp_path: Path):
+def test_runtime_flag_on_emits_after_consolidation(
+    vocab_persona, tmp_path: Path, monkeypatch
+):
+    # ``engine_state_path=tmp_path`` does NOT redirect the proposal sink: the
+    # runtime calls ``emit_derived_close_proposals(ctx)`` with no ``sink``, so
+    # it lands on ``DEFAULT_SINK`` — the real, in-repo
+    # ``teaching/proposals/derived_close_facts/``. Before this monkeypatch,
+    # every full-suite run left a committed-looking speculative artifact in the
+    # working tree, which is how it was found (2026-07-25). Redirect the
+    # module-level default the runtime resolves through.
+    import generate.determine.derived_close_proposals as dcp
+
+    monkeypatch.setattr(dcp, "DEFAULT_SINK", tmp_path / "derived_close_facts")
     cfg = replace(
         DEFAULT_CONFIG,
         consolidate_determinations=True,
