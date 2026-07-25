@@ -863,6 +863,7 @@ class CognitiveTurnPipeline:
             proposition=response.proposition,
             articulation=response.articulation,
             surface=surface,
+            hash_surface=hash_surface,
             walk_surface=response.walk_surface,
             articulation_surface=articulation_surface,
             dialogue_role=response.dialogue_role,

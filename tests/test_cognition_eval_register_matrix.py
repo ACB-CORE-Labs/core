@@ -302,24 +302,42 @@ def test_register_matrix_versor_condition_byte_identical(
 def test_register_matrix_canonical_surface_byte_identical(
     register_report, baseline_by_id,
 ):
-    """``CognitiveTurnResult.surface`` is the pre-decoration /
-    canonical composer output (the truth-path field
-    ``compute_trace_hash`` consumes).  Substantive register transforms
-    apply downstream on ``turn_log[-1].surface``; the canonical
-    must remain byte-identical across the register axis.
+    """``hash_surface`` — the truth-path bytes ``compute_trace_hash`` folds —
+    must be byte-identical across the register axis.
 
-    If this test ever fails for a non-null register, the substantive
-    transform has leaked into the canonical surface and the
-    truth-path-isolation contract is broken.
+    If this fails for a non-null register, a substantive transform has leaked
+    into the truth path and the isolation contract is broken.
+
+    ASSERTED ON ``hash_surface``, NOT ``surface`` (corrected 2026-07-25).
+    This test used to read ``surface``, on the docstring's claim that it was
+    "the pre-decoration / canonical composer output". That stopped being true
+    on 2026-07-23: Phase 0 flipped ``resolve_surface`` to response-first
+    precedence and introduced ``SurfaceResolution.hash_surface`` as the
+    register-invariant capture, so ``pipeline.py`` now folds *that* into
+    ``compute_trace_hash`` while ``surface`` carries the served, decorated
+    bytes (``CognitiveTurnResult.surface``: "final voiced surface (what the
+    user sees)").
+
+    Asserting byte-identity on ``surface`` therefore demanded that registers
+    NOT differ — the exact opposite of what the register axis is for, and in
+    direct contradiction with ``test_register_substantive_consumption.py``,
+    which pins that they DO differ and is green in smoke. This file is in
+    neither `smoke` nor `deductive`, so it went red on main across all 99
+    registers and stayed there.
+
+    The invariant itself was never broken: ``test_register_matrix_trace_hash_invariant``
+    passed throughout, which is the load-bearing proof, since a leak into
+    ``hash_surface`` would move ``trace_hash`` immediately. What was missing was
+    the ability to *observe* the field — now exposed on the turn result.
     """
     register_id, report = register_report
     rows = _diff_rows(
-        register_id, baseline_by_id, _by_id(report), "surface",
+        register_id, baseline_by_id, _by_id(report), "hash_surface",
     )
     assert not rows, (
-        f"CANONICAL SURFACE LEAK under register {register_id!r} — "
-        "substantive transforms have escaped into the pre-decoration "
-        "surface that feeds compute_trace_hash.\n" + "\n".join(rows)
+        f"TRUTH-PATH SURFACE LEAK under register {register_id!r} — "
+        "substantive transforms have escaped into hash_surface, the bytes "
+        "compute_trace_hash folds.\n" + "\n".join(rows)
     )
 
 

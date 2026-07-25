@@ -30,6 +30,10 @@ class CaseResult:
     versor_condition: float
     trace_hash: str
     surface: str
+    #: The register-invariant truth-path bytes (what compute_trace_hash folds).
+    #: ``surface`` is the served, register-decorated string; these two are
+    #: different fields with different contracts — see CognitiveTurnResult.
+    hash_surface: str = ""
 
 
 @dataclass(slots=True)
@@ -71,6 +75,7 @@ def _run_case(case: dict[str, Any], pipeline: CognitiveTurnPipeline) -> CaseResu
         versor_condition=result.versor_condition,
         trace_hash=result.trace_hash,
         surface=result.surface,
+        hash_surface=result.hash_surface or result.surface,
     )
 
 
