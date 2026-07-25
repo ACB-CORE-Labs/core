@@ -108,6 +108,16 @@ Unchanged: its known failure mode is the env-timeout flake
 memory and the lane-shas remediation text. Do not re-pin from a laptop
 run; adjudicate on the Act runner.
 
+**Correction (Tier S, 2026-07-24):** this framing was incomplete. `public_demo`
+carries the SAME register-tour scene as `demo_composition` and was
+independently root-caused as drifted for the same reasons documented above
+(`e7d116c9` benignly, then `e0d1b475`/`5a343b49` as a REAL two-day
+`all_claims_supported` regression, fixed by the same `f95ac26e`) — the
+env-timeout flake is real but is a different failure mode
+(`runtime_under_budget`) than the one that was actually red. Full
+archaeology, measured timeline, and the re-pin:
+`docs/research/public-demo-lane-drift-2026-07-24.md`.
+
 ## Bonus latent break found while re-pinning
 
 `scripts/generate_claims.py` raised on every run since the
