@@ -1,6 +1,6 @@
 # ADR-0259 — Conditional-membership fusion band (Band v4-CM)
 
-- **Status:** Proposed
+- **Status:** Accepted — ratified by Joshua Shay via the PR #109 merge (`5224b5e0`, 2026-07-24)
 - **Date:** 2026-07-23
 - **Relates to:** ADR-0258 (Band v3-MEM — this is its scope-out #1), ADR-0257
   (Band v2-EN — the connective grammar this band reuses), ADR-0256 (earned

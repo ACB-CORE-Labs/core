@@ -67,6 +67,16 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # substantive override of the served surface. Cheap, and the axis is
         # invisible until it breaks silently.
         "tests/test_prior_surface_deduction_binding.py",
+        # ADR governance. An ADR that governs a default-ON flag records a
+        # decision already in force, so leaving it "Proposed" makes the
+        # governance record assert something false about the running system —
+        # which is what happened to ADR-0256 while deduction serving was live.
+        # Filesystem + regex only, ~1.2s, and it is the record for a serving
+        # path, so it belongs on the pre-push gate rather than under `full`.
+        # test_adr_index.py rides along: it landed in #113 registered in NO
+        # curated suite, which is the same silent-red shape it exists to catch.
+        "tests/test_adr_status_governance.py",
+        "tests/test_adr_index.py",
     ),
     "runtime": (
         "tests/test_chat_runtime.py",
@@ -97,6 +107,11 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_math_composition_ratification.py",
         "tests/test_teaching_coverage_cli.py",
         "tests/test_proposal_queue.py",
+        # The ratification ceremony is the only path that turns a reviewed
+        # proposal into a routable ratified chain — i.e. the one mechanism that
+        # can move the curriculum-volume constraint. It landed in #113 in NO
+        # curated suite, so its 14 tests ran only under `full`.
+        "tests/test_ratification_ceremony.py",
     ),
     "packs": (
         "tests/test_pack_draft_serve_boundary.py",

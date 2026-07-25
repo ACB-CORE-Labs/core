@@ -1,6 +1,6 @@
 # ADR-0257 — English-clause argument band (Band v2-EN): opaque-atom propositional serving
 
-- **Status:** Proposed
+- **Status:** Accepted — ratified by Joshua Shay via the PR #107 merge (`9405cf19`, 2026-07-23)
 - **Date:** 2026-07-23
 - **Relates to:** ADR-0256 (deduction-serve earned license), ADR-0201 (ROBDD
   keystone), ADR-0218 (proof-carrying substrate), ADR-0175/0199 (calibrated
