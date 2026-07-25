@@ -68,7 +68,7 @@ def assert_provenance(domain: str, cases: list[dict]) -> None:
         resolve_pinned(curriculum, pinned)  # raises UnratifiedChain
 
 
-def assert_corpus_sound(domain: str, cases: list[dict]) -> None:
+def assert_lane_cases_sound(domain: str, cases: list[dict]) -> None:
     """The independent oracle must re-derive every committed gold (§4.4)."""
     for case in cases:
         query = read_curriculum_question(case["text"])
@@ -105,7 +105,7 @@ def assert_anti_recall_coverage(cases: list[dict]) -> None:
 
 def build_report(domain: str, cases: list[dict]) -> dict:
     assert_provenance(domain, cases)
-    assert_corpus_sound(domain, cases)
+    assert_lane_cases_sound(domain, cases)
     assert_anti_recall_coverage(cases)
 
     counts = Counter({"correct": 0, "wrong": 0, "declined": 0})

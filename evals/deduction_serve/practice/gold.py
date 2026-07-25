@@ -119,7 +119,7 @@ _TEMPLATES: dict[str, tuple[tuple[str, Any], ...]] = {
     # the reader singularizes to ``x3``); ``a, b, c`` are the three distinct
     # middle/subject/predicate classes. Gold is the unconditional validity (modern
     # reading) of the standard form — cross-checked against the INDEPENDENT
-    # syllogism oracle in ``assert_corpus_sound``.
+    # syllogism oracle in ``assert_practice_gold_sound``.
     CATEGORICAL: (
         # Barbara (AAA) — valid.
         ("valid", lambda a, b, c: f"All {a}s are {b}s. All {c}s are {a}s. Therefore all {c}s are {b}s."),
@@ -180,7 +180,7 @@ def _en_neg(clause: str) -> str:
 
 #: English-band templates: (gold, text_builder, intended_premises, intended_query).
 #: The INTENDED formulas are the template's logical form over fixed placeholder
-#: atoms — the reader-independent gold ``assert_corpus_sound`` cross-checks
+#: atoms — the reader-independent gold ``assert_practice_gold_sound`` cross-checks
 #: against the truth-table oracle (INV-25: no reader, no ROBDD involvement).
 _EN_TEMPLATES: dict[str, tuple[tuple[str, Any, tuple[str, ...], str], ...]] = {
     EN_CONDITIONAL_SINGLE: (
@@ -1160,7 +1160,7 @@ class ConstructionGoldTether:
         return str(problem.payload["gold"])
 
 
-def assert_corpus_sound() -> None:
+def assert_practice_gold_sound() -> None:
     """Belt-and-suspenders: every generated case's by-construction gold must
     agree with an INDEPENDENT oracle over its projected form.
 
@@ -1214,6 +1214,6 @@ __all__ = [
     "ConstructionGoldTether",
     "DeductionSolver",
     "all_gold_problems",
-    "assert_corpus_sound",
+    "assert_practice_gold_sound",
     "generate_problems",
 ]

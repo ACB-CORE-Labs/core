@@ -73,9 +73,9 @@ def test_shape_bands_are_exhaustive_for_the_projector() -> None:
 
 
 def test_corpus_is_sound_against_independent_oracle() -> None:
-    from evals.deduction_serve.practice.gold import assert_corpus_sound
+    from evals.deduction_serve.practice.gold import assert_practice_gold_sound
 
-    assert_corpus_sound()  # raises AssertionError on any mis-stated gold
+    assert_practice_gold_sound()  # raises AssertionError on any mis-stated gold
 
 
 def test_every_band_earns_serve_wrong_zero() -> None:
