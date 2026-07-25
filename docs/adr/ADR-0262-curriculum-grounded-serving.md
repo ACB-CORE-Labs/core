@@ -98,6 +98,16 @@ is §5.1.
 
 ### 5.1 The binding constraint on Phase 2 is ratified curriculum VOLUME
 
+> **Amended 2026-07-25 by ADR-0264 §4.1.** The conclusion below — that the
+> remaining work is "a curriculum-authoring and ratification task, not an
+> engineering one" — is wrong, and the reason is in this ADR's own §6. Authoring
+> the ≈219 relations prescribed here takes the family past
+> `MAX_PREMISE_SENTENCES` at row 17, at which point the band answers *nothing*.
+> The §6 scope-out is therefore not a future contingency; it is a prerequisite.
+> The *criterion* stated below (a band whose entailed class is ~1% of its volume
+> demonstrates nothing) is upheld and promoted to a measured precondition. The
+> original text is preserved unchanged.
+
 A band earns SERVE at θ_SERVE=0.99 only with n ≥ 657 committed cases and a
 genuine outcome mix. The question space of a subject is
 `|vocabulary|² − |vocabulary|`, so volume is reachable (physics: 240,
@@ -124,6 +134,13 @@ Every ratified chain is a positive assertion. Refuting a question needs the
 curriculum to teach a negative ("no X causes Y") or an exclusion. Until a
 corpus does, `refuted` is a verdict this path can render but never reach. The
 serving code handles it; the lane documents it.
+
+> **Sharpened 2026-07-25 by ADR-0264 Fact 1.** Stronger than "never reach":
+> authoring a negative row *without* teaching the compiler polarity does not
+> yield UNKNOWN — it yields a confident wrong `entailed`, because
+> `CurriculumChain.sentence` is unconditionally affirmative. The independent
+> oracle ignores `polarity` for the same reason, so gold agrees and `wrong=0`
+> stays green. ADR-0264 R1–R4 and R8 close this before any negative is authored.
 
 ### 5.3 The commit gate must be routability, not shape
 
@@ -176,6 +193,16 @@ chosen from those, or biology's chain corpus authored first.
   does is to compile the query's k-hop neighborhood rather than the whole
   family (sound: fewer premises can lose an entailment, never create one), and
   to disclose the narrowing.
+
+  > **Superseded 2026-07-25 by ADR-0264 R5.** This is no longer a scope-out: §5.1's
+  > own remedy triggers it at row 17. Two corrections to the reasoning above.
+  > (i) "No current family exceeds 9" is measured against a corpus that §5.1 asks
+  > to grow 24×. (ii) *Sound* is the wrong property — a sound narrowing can still
+  > lose true entailments, which is coverage loss in exactly the class the license
+  > counts. The property needed is *verdict-identical*, which holds for any scope
+  > that is a superset of the query-atom rows, because each compiled premise mints
+  > one independent propositional atom. Verified over 8,520 questions with zero
+  > mismatches — `docs/research/curriculum-premise-scope-2026-07-25.md` probe 3.
 
 ## 7. Verification
 
