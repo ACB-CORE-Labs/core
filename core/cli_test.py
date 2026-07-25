@@ -46,6 +46,16 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_pack_measurements_phase2.py",
         # ADR-0253 dual-pack boundary — draft he/grc trees must not be serve imports.
         "tests/test_pack_draft_serve_boundary.py",
+        # Register axis (ADR-0069/0071/0077) — the e2e tests here are the
+        # falsifiable contract that terse/convivial registers actually differ
+        # from neutral on pipeline-served surfaces. Red on main outside every
+        # gate for 2026-07-20..24 (the register-axis serving regression,
+        # docs/research/lane-drift-investigation-2026-07-24.md) because this
+        # file lived only under `full`; the lane-shas job was the sole gate
+        # that runs the demo lanes this axis shows up in, and its failures
+        # were conflated with an unrelated flake. Promoted so this axis can
+        # never silently regress again.
+        "tests/test_register_substantive_consumption.py",
     ),
     "runtime": (
         "tests/test_chat_runtime.py",

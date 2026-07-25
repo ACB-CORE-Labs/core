@@ -121,6 +121,14 @@ def test_core_test_fast_suite_expands_to_iteration_lane(monkeypatch) -> None:
 
 
 def test_core_test_deductive_suite_expands_to_entailment_lane(monkeypatch) -> None:
+    """Contains-style, not exact-tuple: the ``deductive`` suite has grown
+    across the deduction-serve/curriculum-serve arcs (v1 through v6-EX,
+    curriculum, the ratified-ledger bridge, the vocab-trigger instrument) and
+    keeps growing with each new band — an exact-tuple pin here would go stale
+    every time, which is exactly what happened before this fix (a pinned
+    single-file tuple, silently wrong once the suite reached 12+ files, red
+    outside every real gate — the same leaky-gate class the smoke-suite
+    coverage pin above exists to prevent)."""
     calls: list[tuple[str, ...]] = []
 
     def fake_run(*args: str, check: bool = False, cwd=None) -> int:
@@ -132,13 +140,12 @@ def test_core_test_deductive_suite_expands_to_entailment_lane(monkeypatch) -> No
     rc = cli.main(["test", "--suite", "deductive", "-q"])
 
     assert rc == 0
-    assert calls[0] == (
-        cli.sys.executable,
-        "-m",
-        "pytest",
-        "tests/test_deductive_logic_entail.py",
-        "-q",
-    )
+    command = calls[0]
+    assert command[:3] == (cli.sys.executable, "-m", "pytest")
+    assert "tests/test_deductive_logic_entail.py" in command
+    assert "tests/test_deduction_serve_lane.py" in command
+    assert "tests/test_curriculum_serve.py" in command
+    assert "-q" in command
 
 
 def test_core_test_suite_accepts_pytest_flags_without_separator(monkeypatch) -> None:

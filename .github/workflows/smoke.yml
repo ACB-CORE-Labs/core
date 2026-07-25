@@ -3,9 +3,12 @@ name: smoke
 # Fast PR gate — runs the smoke suite on every PR push.
 # Covers: chat runtime, pipeline, architectural invariants, audio sensorium
 # (tests/test_audio_*.py — compiler/eval-gates/mount/CRDT-merge/teachers, ~3s),
-# and identity falsifiability (tests/test_pack_measurements_phase2.py, ADR-0043
+# identity falsifiability (tests/test_pack_measurements_phase2.py, ADR-0043
 # — ratified packs diverge directionally; pack-invariant refusal floor; no
-# fabrication).  The falsifiability lane adds ~4 min but blocks-on-regression.
+# fabrication; adds ~4 min but blocks-on-regression), and the register axis
+# (tests/test_register_substantive_consumption.py, ADR-0069/0071/0077 — terse/
+# convivial registers must actually differ from neutral on served surfaces;
+# promoted after a 2-day silent regression, generalization-arc Tier S).
 #
 # Post-merge on main: full-pytest.yml runs the FAST lane
 # (-m "not quarantine and not slow"). Soak / proof / register-matrix coverage
@@ -56,4 +59,5 @@ jobs:
             tests/test_cognitive_turn_pipeline.py \
             tests/test_architectural_invariants.py \
             tests/test_audio_*.py \
-            tests/test_pack_measurements_phase2.py
+            tests/test_pack_measurements_phase2.py \
+            tests/test_register_substantive_consumption.py

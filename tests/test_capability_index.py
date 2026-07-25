@@ -91,8 +91,10 @@ def test_real_lanes_compose_into_the_index_with_wrong_zero() -> None:
     # (prose -> MeaningGraph -> projection -> independent oracle / pack-named predicate)
     # compose into the cross-domain index with zero wrong commits. The one-hop
     # relational_inference lane (#775) is the 10th domain; the transitive
-    # relational_transitive lane (B2) is the 11th. (This assertion was stale at 9 from
-    # the #596 era — #775's 10th domain was never added here; corrected with B2.)
+    # relational_transitive lane (B2) is the 11th. deduction_serve_existential
+    # (ADR-0261, Band v6-EX) is the 12th; curriculum_serve (ADR-0262, generalization
+    # arc Tier S) is the 13th. (This assertion was stale at 9 from the #596 era —
+    # #775's 10th domain was never added here; corrected with B2, then again here.)
     from evals.capability_index.adapters import collect_domain_results
 
     collection = collect_domain_results()
@@ -100,7 +102,7 @@ def test_real_lanes_compose_into_the_index_with_wrong_zero() -> None:
     idx = aggregate(list(collection.results))
     assert idx.wrong_total == 0
     assert idx.assert_mode_valid
-    assert idx.breadth == 11
+    assert idx.breadth == 13
     assert {d.domain for d in idx.domains} == {
         "deductive_logic",
         "dimensional",
@@ -113,6 +115,8 @@ def test_real_lanes_compose_into_the_index_with_wrong_zero() -> None:
         "comprehension_relational_predicate",
         "comprehension_relational_inference",
         "comprehension_relational_transitive",
+        "deduction_serve_existential",
+        "curriculum_serve",
     }
     assert idx.capability_score > 0.5  # real, non-trivial cross-domain capability
 

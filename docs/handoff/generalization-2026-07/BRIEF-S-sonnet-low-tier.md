@@ -5,6 +5,45 @@ set is binding) and the Tier-O brief's constraints block — they apply verbatim
 
 ---
 
+## TIER S CLOSED (2026-07-24) — all six items done, 4 branches pushed
+
+S1–S6 all complete; each unit has its own `docs/research/*-2026-07-24.md`
+write-up. Four branches pushed to `core-labs/core` on Forgejo, awaiting
+Shay's compare-URL PRs + merge (the push PAT 403s PR-create, so PRs are
+opened manually, not by the operator):
+
+- `feat/tier-s-evidence-and-vocab-instrument` — S1 (ratification packet,
+  now a record of the already-ratified decision), S6 (curriculum-volume
+  quantification across all four served subjects, not just physics), S3
+  (`evals/vocab_trigger_instrument.py` — mechanism/coverage/engine_refused
+  refusal histogram; found and fixed a classification bug where an
+  engine-declined argument was misattributed to a reader band).
+- `fix/public-demo-lane-repin` — S2. `public_demo`'s stale pin was NOT the
+  known env-timeout flake; six-worktree archaeology found a real 2-day
+  `all_claims_supported` regression (2026-07-22→24, same register-axis
+  mechanism as `demo_composition`), masked by the flake label. Re-pinned,
+  memory corrected to triage by which assertion failed.
+- `feat/proposal-queue-cli` — S4. `core proposal-queue
+  {status,list,show,review}` over the two previously-CLI-less sinks
+  (`comprehension_failures`, `derived_close_facts`). Found and fixed a
+  `parents[3]`→`parents[2]` bug in
+  `generate/determine/derived_close_proposals.py::DEFAULT_SINK` that wrote
+  outside the repository entirely.
+- `chore/tier-s-housekeeping` — S5. Register-axis e2e tests promoted into
+  smoke (local + CI); capability-index breadth 11→13
+  (`deduction_serve_existential`, `curriculum_serve`); promotion sweep
+  confirmed clean via the existing wrong=0 gate; a second pre-existing
+  leaky-gate test (`test_core_test_deductive_suite_expands_to_entailment_lane`,
+  stale since the `deductive` suite outgrew its original single file) found
+  and fixed in passing.
+
+Full detail in `project-generalization-arc.md` (memory) and each unit's
+research doc. No flag was touched; `deduction_serving_enabled` stays
+RATIFIED ON and `curriculum_serving_enabled` stays OFF exactly as Opus left
+them.
+
+---
+
 ## STATE AT THE OPUS → SONNET CHECKPOINT (updated 2026-07-24)
 
 **Tier O is complete.** Four units, all committed, all with local gates green:
