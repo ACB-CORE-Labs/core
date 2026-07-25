@@ -2,7 +2,18 @@
 name = "core-versor"
 version = "0.1.0"
 description = "Versor Engine: cognitive field system on Cl(4,1) Conformal Geometric Algebra"
-requires-python = "==3.12.13"
+# Relaxed from "==3.12.13" on 2026-07-25. The exact patch pin made every gate
+# unrunnable on any host without that precise build — including linux-x86_64,
+# for which cpython-3.12.13 is not published, so `uv sync --locked` failed
+# outright and there was no local run at all. For a project whose merge bar IS
+# the local run, that is the failure mode that matters.
+#
+# Safe because the pin was not load-bearing for reproducibility: the committed
+# trace_hash / content_sha256 / lane-SHA pins were established under 3.12.13
+# and reproduce byte-for-byte under 3.12.11 (119 hash-pinned tests, 118 pass;
+# the one failure is a stale lane roster that fails on 3.12.13 too). Minor
+# version stays bounded — 3.13 is a real upgrade decision, not a patch bump.
+requires-python = ">=3.12,<3.13"
 
 dependencies = [
     "hypothesis>=6.152.7",
