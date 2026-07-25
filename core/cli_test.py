@@ -77,6 +77,14 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # curated suite, which is the same silent-red shape it exists to catch.
         "tests/test_adr_status_governance.py",
         "tests/test_adr_index.py",
+        # Volume honesty (ADR-0264 R9). The Wilson floor assumes independent
+        # trials; a deterministic pipeline replaying one case N times supplies
+        # one trial's evidence, not N. This pins the measured exposure in the
+        # ratified deduction ledger (21 of 25 bands short on distinct evidence)
+        # in BOTH directions, and forces any new licensed capability to register
+        # an audit source. It gates a live, flag-ON serving path, so it belongs
+        # on the pre-push gate. ~1.5s.
+        "tests/test_volume_honesty.py",
     ),
     "runtime": (
         "tests/test_chat_runtime.py",

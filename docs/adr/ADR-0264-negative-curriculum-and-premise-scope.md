@@ -185,16 +185,40 @@ being right. Additionally: **negative edges are excluded from the BFS adjacency*
 A negative edge is not a traversable path, and including it would inflate the
 reachability depths the lane asserts against.
 
-**R9 — Earning requires an outcome-mix floor, and a band that cannot reach the
-threshold must say so before anyone authors for it.** ADR-0262 §5.1 already
-states the acceptability criterion — "a band whose entailed class is 1% of its
-volume is passed by a pipeline that never entails anything" — but leaves it as
-prose. It becomes a measured precondition: the practice producer reports, per
-band, the maximum honest committed volume and the maximum entailed share
-achievable from the ratified corpus, and a band whose ceiling is below the
-licensing threshold is reported **structurally unable to earn SERVE** rather than
-left for authoring effort to discover. Phase B specifies the bound; this ADR
-fixes the requirement that the bound exist.
+**R9 — Committed volume must be DISTINCT evidence, and a band that cannot reach
+the threshold must say so before anyone authors for it.**
+
+`conservative_floor` is a one-sided Wilson lower bound, and Wilson assumes
+**independent trials**. CORE's pipeline is deterministic, so replaying an
+identical case is not a second trial — it is the same trial with a guaranteed
+outcome. A ledger's `committed` count is therefore an upper bound on its
+evidence, and the defensible figure is its distinct-decision count. A producer
+must commit at most one case per distinct decision, where the decision key for
+this path is the query atom `(domain, subject, connective, object)` — spelling
+variants of one question are one case, because R2/R3 normalize them to one atom.
+
+Additionally the producer reports, per band, the maximum honest committed volume
+(§4.2) and the maximum entailed share the ratified corpus can support, and a band
+whose ceiling is below the licensing threshold is reported **structurally unable
+to earn SERVE** rather than left for authoring effort to discover.
+
+> **Amended 2026-07-25, Phase B.** This rule was written as a precaution for a
+> producer that does not exist yet. Measuring the producers that *do* exist found
+> it already violated: **21 of the 25 ratified `deduction_serve` bands do not
+> clear θ_SERVE=0.99 on distinct evidence**, three of them inflating 28 distinct
+> cases into 720 committed, under a flag ratified ON. The `estimation` producer
+> (ADR-0175) is clean at 660 distinct per class, so this is a regression from an
+> established standard rather than an architectural gap. Measured, pinned in both
+> directions by `tests/test_volume_honesty.py`, and **not repaired** — the ledger
+> is SHA-sealed and ratified, so re-sealing it is Shay's decision. Full audit:
+> `docs/research/distinct-evidence-audit-2026-07-25.md`.
+>
+> Outcome *mix* is deliberately excluded from the pin. `ClassTally` has no verdict
+> axis, so mix can only be enforced at the producer; the deduction producer
+> already balances 240/240/240 by construction; and whether each verdict class
+> needs its own 657 is an open ruling that would retroactively fail all 25 bands
+> (smallest per-band verdict-class count is 120). Recorded for Shay with numbers,
+> not decided.
 
 ## 3. Why this is sound
 
