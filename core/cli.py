@@ -3695,6 +3695,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     _register_formation(subparsers)
 
+    from core.cli_proposal_queue import register as _register_proposal_queue
+
+    _register_proposal_queue(subparsers)
+
     contemplation = subparsers.add_parser(
         "contemplation",
         help="run ADR-0080 read-only contemplation over explicit evidence files",

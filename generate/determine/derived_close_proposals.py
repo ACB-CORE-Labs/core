@@ -26,8 +26,16 @@ from generate.realize import RealizedRecord, recall_realized
 
 #: Dedicated sink for derived CLOSE proposals (distinct from comprehension-failures
 #: to keep families clean while still reviewable by the same HITL tooling).
+#: ``parents[2]`` reaches the repo root from
+#: ``<repo>/generate/determine/derived_close_proposals.py`` (0=determine/,
+#: 1=generate/, 2=<repo>) — found and fixed while building the S4 HITL
+#: proposal-queue CLI (`core/proposal_review/queue.py`): the prior
+#: ``parents[3]`` resolved one directory ABOVE the repo, silently writing/
+#: reading outside git entirely. Dormant because the feature default-off
+#: flag (``review_derived_close_proposals``) means this sink has never been
+#: populated in normal use.
 DEFAULT_SINK = (
-    Path(__file__).resolve().parents[3]
+    Path(__file__).resolve().parents[2]
     / "teaching"
     / "proposals"
     / "derived_close_facts"
