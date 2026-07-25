@@ -46,6 +46,8 @@ export const groundingSourceMeta = {
   [GroundingSource.PARTIAL]: { label: "Partial", colorToken: "--color-grounding-partial", meaning: "Only partial grounding was available.", adr: "ADR-0160 / ADR-0162", evidence: "grounding_source is partial." },
   [GroundingSource.OOV]: { label: "OOV", colorToken: "--color-grounding-oov", meaning: "Out-of-vocabulary grounding was encountered.", adr: "ADR-0160 / ADR-0162", evidence: "grounding_source is oov." },
   [GroundingSource.NONE]: { label: "None", colorToken: "--color-grounding-none", meaning: "No grounding source was present.", adr: "ADR-0160 / ADR-0162", evidence: "grounding_source is none." },
+  [GroundingSource.DEDUCTION]: { label: "Deduction", colorToken: "--color-grounding-deduction", meaning: "Decided by the verified entailment engine from the argument's own premises.", adr: "ADR-0256 / ADR-0162", evidence: "grounding_source is deduction." },
+  [GroundingSource.CURRICULUM]: { label: "Curriculum", colorToken: "--color-grounding-curriculum", meaning: "Decided from the ratified domain-chain curriculum of the question's subject.", adr: "ADR-0262 / ADR-0162", evidence: "grounding_source is curriculum." },
 } satisfies BadgeMeta<GroundingSource>;
 
 export const safetyVerdictMeta = {

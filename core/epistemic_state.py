@@ -9,16 +9,44 @@ serialize stably into JSONL, metadata dictionaries, and test fixtures.
 from __future__ import annotations
 
 from enum import Enum, unique
-from typing import Any, Literal
+from typing import Any, Literal, get_args
 
 
-GroundingSource = Literal["pack", "teaching", "vault", "partial", "oov", "none"]
+GroundingSource = Literal[
+    "pack",
+    "teaching",
+    "vault",
+    "partial",
+    "oov",
+    "none",
+    "deduction",
+    "curriculum",
+]
 """Ratified grounding-source labels.
 
 Single source of truth for the values ``epistemic_state_for_grounding_source``
-maps, the cold-start-grounding lane validates, and the Workbench UI badges
-bind to (ADR-0162 §3d).  Adding a value here without adding a corresponding
-badge fails the build-time enum coverage test under ``workbench-ui/``.
+maps, the cold-start-grounding lane validates, the Workbench API coerces
+against, and the Workbench UI badges bind to (ADR-0162 §3d).  Adding a value
+here without adding a corresponding badge fails the build-time enum coverage
+test under ``workbench-ui/``.
+
+``deduction`` (ADR-0256) and ``curriculum`` (ADR-0262) joined the closed set
+once deduction serving was ratified ON: ``workbench/api.py``'s live chat route
+builds a bare ``ChatRuntime()``, so those composers decide Workbench turns and
+stamp their label on the ``TurnEvent``.  While the labels were unregistered the
+API's coercion floored them to ``"none"`` — recording a proved answer as
+ungrounded in a durable audit artifact.  Registration is what makes the
+recorded provenance true; ``GROUNDING_SOURCES`` below is what keeps any second
+copy of this set from drifting away from it again.
+"""
+
+GROUNDING_SOURCES: frozenset[str] = frozenset(get_args(GroundingSource))
+"""The runtime-iterable form of :data:`GroundingSource`.
+
+A ``Literal`` is invisible at runtime, which is why consumers historically
+restated its members by hand — and why one of those restatements silently fell
+behind.  Anything that needs to *check* a grounding source reads this set;
+nothing re-types the members.
 """
 
 
@@ -133,7 +161,14 @@ def normative_detail_from_verdicts(verdicts: Any = None, *, safety_verdict: Any 
 def epistemic_state_for_grounding_source(source: str | None) -> EpistemicState:
     """Default runtime mapping for existing grounding-source labels."""
     normalized = (source or "none").strip().lower()
-    if normalized in {"pack", "teaching", "vault"}:
+    # ``deduction`` / ``curriculum`` rank with the decoded sources rather than
+    # the evidenced ones: both are *decided* by the ROBDD entailment engine
+    # over ratified structure (an argument's own premises, or a subject's
+    # ratified curriculum), not retrieved as supporting evidence.  Serving them
+    # authoritatively additionally requires a SERVE license on the sealed
+    # ledger — an unearned band is served DISCLOSED, which is a surface-level
+    # hedge and does not change how the turn was grounded.
+    if normalized in {"pack", "teaching", "vault", "deduction", "curriculum"}:
         return EpistemicState.DECODED
     if normalized == "partial":
         return EpistemicState.EVIDENCED_INCOMPLETE
@@ -145,6 +180,7 @@ def epistemic_state_for_grounding_source(source: str | None) -> EpistemicState:
 
 
 __all__ = [
+    "GROUNDING_SOURCES",
     "EpistemicState",
     "GroundingSource",
     "NormativeClearance",

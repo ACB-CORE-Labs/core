@@ -142,10 +142,19 @@ that has not switched on the CPU kernel it already wrote — `core-rs/src/cl41.r
 the Cl(4,1) Cayley table at compile time via bitmask anticommutation-parity and metric contraction
 (`[u8;1024]` index + `[i8;1024]` sign), which is its own recommendation 1 minus the GPU.
 
-Meanwhile `chat/runtime.py` calls `versor_condition(field_state.F)` three times per turn
-(`:2313`, `:2464`, `:2514`) at a measured Python p50 of 0.536 ms — ≈1.6 ms/turn against a
-FrameVerdict TTFV of 0.151 ms. The per-turn geometric cost is ~10× the entire proof latency, and
-the remedy is already written and merged.
+> **Corrected 2026-07-25 by measurement — see
+> `cga-hot-path-measurement-2026-07-25.md`.** This section originally argued that
+> `versor_condition` (3 calls/turn × the benchmark's `p50 = 0.536 ms`) was "~10× the entire proof
+> latency". That was wrong: it multiplied an *isolated microbenchmark* by a call count and
+> compared the product against `FrameVerdict` TTFV, which is a single verdict's latency rather
+> than a turn's. Measured directly, `versor_condition` is **0.448 ms/turn against a 200 ms turn —
+> 0.22%**, so switching the Rust backend on recovers essentially nothing through that path.
+>
+> The profile does show CGA dominating (~73% of turn time), but through
+> `cga_inner` → `geometric_product` (33,986 calls/turn) in nearest-neighbour and salience search,
+> not through the versor invariant. Both this assessment and the hardware blueprint aimed at the
+> wrong function. The correct target, and why the obvious shortcut is not bit-safe, are in the
+> measurement document.
 
 | Proposal | Verdict |
 |---|---|
@@ -156,8 +165,9 @@ the remedy is already written and merged.
 | bfloat16 asymmetric precision routing | **Reject as specified.** bf16 ε ≈ 7.8e-3 — four orders coarser than the 1e-6 gate; upcasting inside the shader cannot recover bits lost at storage. `cga.rs:embed_point_raw` computes `0.5*(r²∓1)`, cancellation-prone at bf16 for r ≈ 1 — exactly the unit-normalized regime. |
 
 The actionable question the document missed: **why is `CORE_BACKEND=rust` not the default?**
-Establish whether `core_rs` still holds bit-exact parity; if it does, flipping the default is the
-order-of-magnitude win being reached for.
+Establish whether `core_rs` still holds bit-exact parity. (Attempted 2026-07-25 and **blocked**:
+`cargo` cannot reach `static.crates.io` under the sandbox network policy. The question stays open
+— the measurement above just removes the urgency the performance argument was supplying.)
 
 None of this is on the critical path of the arc that just closed — FrameVerdict TTFV is 0.151 ms
 with `producer=proof_chain.entail`, and the deduction/curriculum serving path is pure-Python ROBDD

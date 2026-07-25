@@ -7,12 +7,16 @@ committed artifacts byte-for-byte.
 
 from __future__ import annotations
 
+import ast
 import json
+from pathlib import Path
 
 import pytest
 
 from core.ratified_ledger import (
+    CAPABILITY_LEDGERS,
     RatifiedLedgerError,
+    load_capability_ledger,
     load_sealed_ledger,
     seal_artifact,
     serve_license,
@@ -111,3 +115,79 @@ def test_every_adapter_reads_through_the_bridge() -> None:
         assert "formation.hashing" not in text, (
             f"{module.__name__} still re-implements verification"
         )
+
+
+class TestCapabilityManifest:
+    """Rule 5 — absence policy is DECLARED, not passed at the call site.
+
+    ``missing_ok`` answers a question about the capability ("does this ship
+    with a ledger, or is its practice volume still being built?"), not about
+    the call. While it was only a ``load_sealed_ledger`` keyword, any adapter
+    onboarding a new subject through the bridge could pass ``True`` and quietly
+    turn a should-be-hard-refuse into a disclosed hedge, with nothing to catch
+    it. These pin the manifest that took the choice away from the call site.
+    """
+
+    def test_every_registered_ledger_resolves_inside_the_repo(self) -> None:
+        """Same class as the ``derived_close_proposals`` ``parents[3]`` bug: a
+        path constant that silently pointed outside the tree for five weeks
+        because the feature was default-off and nothing asserted the path."""
+        root = Path(__file__).resolve().parents[1]
+        for spec in CAPABILITY_LEDGERS.values():
+            assert root in spec.path.parents, (
+                f"{spec.capability}: ledger path escapes the repo: {spec.path}"
+            )
+
+    def test_shipping_capabilities_are_declared_required(self) -> None:
+        """A ledger that exists on disk must not be declared optional — that
+        combination reads "absence is fine" about a capability whose absence
+        would in fact be a broken deployment."""
+        for spec in CAPABILITY_LEDGERS.values():
+            if spec.path.exists():
+                assert spec.missing_ok is False, (
+                    f"{spec.capability} ships a committed ledger but is "
+                    "registered missing_ok=True"
+                )
+
+    def test_deduction_serve_is_required_and_loads(self) -> None:
+        ledger = load_capability_ledger("deduction_serve")
+        assert len(ledger) == 25, "the 25 sealed shape-bands (ADR-0256)"
+        assert all(tally.wrong == 0 for tally in ledger.values())
+
+    def test_curriculum_serve_is_optional_and_empty_today(self) -> None:
+        """ADR-0262 §5 — no band has earned a license from present volume."""
+        assert CAPABILITY_LEDGERS["curriculum_serve"].missing_ok is True
+        assert load_capability_ledger("curriculum_serve") == {}
+
+    def test_unregistered_capability_refuses(self) -> None:
+        """A capability the manifest never declared has no absence policy to
+        inherit, so it cannot be consumed at all."""
+        with pytest.raises(RatifiedLedgerError, match="unregistered"):
+            load_capability_ledger("philosophy_serve")
+
+    def test_no_production_adapter_passes_missing_ok(self) -> None:
+        """The keyword survives on the primitive for tests and one-off tooling.
+        If a serving path starts passing it again, the manifest has been routed
+        around and this fails.
+
+        Matched on the AST rather than the text: the string ``missing_ok``
+        appears legitimately in the adapters' docstrings, which explain the
+        policy they inherit. What must not appear is an *argument*.
+        """
+        root = Path(__file__).resolve().parents[1]
+        offenders: list[str] = []
+        for directory in ("chat", "core", "generate", "teaching", "workbench"):
+            for path in sorted((root / directory).rglob("*.py")):
+                if path.name == "ratified_ledger.py":
+                    continue  # the primitive's own definition site
+                tree = ast.parse(path.read_text(encoding="utf-8"))
+                for node in ast.walk(tree):
+                    if not isinstance(node, ast.Call):
+                        continue
+                    func = node.func
+                    name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
+                    if name != "load_sealed_ledger":
+                        continue
+                    if any(kw.arg == "missing_ok" for kw in node.keywords):
+                        offenders.append(f"{path.relative_to(root)}:{node.lineno}")
+        assert offenders == [], f"missing_ok passed outside the manifest: {offenders}"

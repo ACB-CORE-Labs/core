@@ -114,11 +114,21 @@ def test_tampered_ledger_is_rejected(tmp_path, monkeypatch) -> None:
     rejected on load — only the sealed-practice output is trusted."""
     import chat.deduction_serve_license as mod
 
+    from dataclasses import replace
+
+    from core.ratified_ledger import CAPABILITY_LEDGERS
+
     original = json.loads(mod._LEDGER_PATH.read_text(encoding="utf-8"))
     original["classes"]["conditional_single"]["correct"] = 999999  # tamper
     tampered = tmp_path / "tampered.json"
     tampered.write_text(json.dumps(original), encoding="utf-8")
-    monkeypatch.setattr(mod, "_LEDGER_PATH", tampered)
+    # Redirect at the manifest, which owns the path since ADR-0263 rule 5 —
+    # patching the module constant would no longer reach the load.
+    monkeypatch.setitem(
+        CAPABILITY_LEDGERS,
+        mod._LEDGER_CAPABILITY,
+        replace(CAPABILITY_LEDGERS[mod._LEDGER_CAPABILITY], path=tampered),
+    )
     load_ratified_ledger.cache_clear()
     with pytest.raises(RatifiedLedgerError):
         load_ratified_ledger()

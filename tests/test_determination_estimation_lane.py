@@ -151,13 +151,23 @@ def test_tampered_ledger_is_rejected(tmp_path, monkeypatch) -> None:
     import generate.determine.estimation_license as mod
     from generate.determine.estimation_license import RatifiedLedgerError, load_ratified_ledger
 
+    from dataclasses import replace
+
+    from core.ratified_ledger import CAPABILITY_LEDGERS
+
     good = _json.loads(mod._LEDGER_PATH.read_text(encoding="utf-8"))
     good["classes"][converse_class_name(REFUSED_PREDICATE)]["correct"] = 999  # forge a SERVE
     forged_path = tmp_path / "estimation_ledger.json"
     forged_path.write_text(_json.dumps(good), encoding="utf-8")
 
     load_ratified_ledger.cache_clear()
-    monkeypatch.setattr(mod, "_LEDGER_PATH", forged_path)
+    # Redirect at the manifest, which owns the path since ADR-0263 rule 5 —
+    # patching the module constant would no longer reach the load.
+    monkeypatch.setitem(
+        CAPABILITY_LEDGERS,
+        mod._LEDGER_CAPABILITY,
+        replace(CAPABILITY_LEDGERS[mod._LEDGER_CAPABILITY], path=forged_path),
+    )
     try:
         with pytest.raises(RatifiedLedgerError, match="content_sha256 mismatch"):
             load_ratified_ledger()

@@ -13,6 +13,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 from chat.runtime import ChatRuntime
 from core.cognition.pipeline import CognitiveTurnPipeline
 from core.epistemic_state import (
+    GROUNDING_SOURCES,
     clearance_from_verdicts,
     coerce_normative_clearance,
     epistemic_state_for_grounding_source,
@@ -712,12 +713,18 @@ def _with_turn_cost_and_id(
 
 
 def _coerce_grounding_source(value: object) -> str:
+    """Floor an unregistered grounding label to ``"none"``, preserve the rest.
+
+    Reads ``core.epistemic_state.GROUNDING_SOURCES`` rather than restating the
+    members.  A hand-copied whitelist here fell behind the ratified set when
+    deduction serving went ON (ADR-0256) and silently recorded proved answers
+    as ungrounded; deriving it means a new grounding source is registered once,
+    in one file, and this boundary follows.  The floor itself is deliberate and
+    stays: an unregistered label is not grounding evidence, and the record must
+    not imply it is.
+    """
     text = str(value or "none").strip().lower()
-    return (
-        text
-        if text in {"pack", "teaching", "vault", "partial", "oov", "none"}
-        else "none"
-    )
+    return text if text in GROUNDING_SOURCES else "none"
 
 
 def _identity_verdict(identity_score: object | None) -> TurnVerdict | None:

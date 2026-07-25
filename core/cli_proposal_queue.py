@@ -95,6 +95,52 @@ def cmd_proposal_queue_review(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_proposal_queue_ratify(args: argparse.Namespace) -> int:
+    """The ratification ceremony (Lane 2) — a reviewed decision becomes artifacts.
+
+    Deliberately a sibling of ``review`` rather than a flag on it: ``review``
+    records that a human looked and must stay incapable of ratifying. This
+    command is the separate, explicit act, and it still ratifies nothing on its
+    own judgement — the operator supplies the edge, the identity, and the
+    rationale, and the ceremony only enforces that the result is *routable*.
+    """
+    from teaching.ratification import (
+        RatificationError,
+        build_chain_record,
+        ratify_chain,
+    )
+
+    try:
+        record = build_chain_record(
+            domain=args.domain,
+            subject=args.subject,
+            connective=args.connective,
+            obj=args.object,
+            reviewer=args.reviewer,
+            rationale=args.rationale,
+            intent=args.intent,
+        )
+        receipt = ratify_chain(record, dry_run=args.dry_run)
+    except RatificationError as exc:
+        print(f"REFUSED: {exc}")
+        return 1
+
+    if args.json:
+        print(json.dumps(receipt.as_dict(), indent=2, sort_keys=True))
+        return 0
+
+    verb = "would ratify" if args.dry_run else "RATIFIED"
+    print(f"{verb} {receipt.chain.chain_id}: "
+          f"{record.subject} {record.connective} {record.object}")
+    print(f"  corpus        : {receipt.corpus_id}")
+    print(f"  domain chains : {receipt.chains_before} -> {receipt.chains_after}")
+    print(f"  {record.operator_family} band  : "
+          f"{receipt.family_chains_before} -> {receipt.family_chains_after}")
+    if not args.dry_run:
+        print(f"  still pending : {', '.join(receipt.pending_stages)}")
+    return 0
+
+
 def register(subparsers: argparse._SubParsersAction) -> None:
     """Attach the ``core proposal-queue`` subcommand tree to a top-level parser."""
     queue = subparsers.add_parser(
@@ -140,6 +186,29 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     review.add_argument("content_hash")
     review.add_argument("--note", default=None, help="optional free-text note")
     review.set_defaults(func=cmd_proposal_queue_review)
+
+    ratify = sub.add_parser(
+        "ratify",
+        help="ratify one reviewed edge into the domain chain corpus (writes)",
+        description=(
+            "The ratification ceremony: validate -> append -> CONFIRM the "
+            "curriculum loader admits the chain -> receipt. Refuses, and rolls "
+            "back, if the appended row would be silently dropped. Does not "
+            "write a ledger (bridge rule 1) or queue an arena entry; the "
+            "receipt names those stages."
+        ),
+    )
+    ratify.add_argument("domain")
+    ratify.add_argument("subject")
+    ratify.add_argument("connective")
+    ratify.add_argument("object")
+    ratify.add_argument("--reviewer", required=True, help="who ratified this")
+    ratify.add_argument("--rationale", required=True, help="why it is ratified")
+    ratify.add_argument("--intent", default="cause")
+    ratify.add_argument("--dry-run", action="store_true",
+                        help="report the band delta without writing")
+    ratify.add_argument("--json", action="store_true")
+    ratify.set_defaults(func=cmd_proposal_queue_ratify)
 
 
 __all__ = ["register"]

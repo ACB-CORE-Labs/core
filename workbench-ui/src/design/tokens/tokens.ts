@@ -45,6 +45,8 @@ export const tokens = {
   "color-grounding-partial": "#6faea4",
   "color-grounding-oov": "#e9a94f",
   "color-grounding-none": "#6f7b8c",
+  "color-grounding-deduction": "#8d8cff",
+  "color-grounding-curriculum": "#58bfe0",
   "color-state-info-bg": "#10253a",
   "color-state-info-border": "#23648e",
   "color-state-info-text": "#bde8ff",

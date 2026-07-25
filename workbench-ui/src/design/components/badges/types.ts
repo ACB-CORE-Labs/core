@@ -37,6 +37,8 @@ export enum GroundingSource {
   PARTIAL = "partial",
   OOV = "oov",
   NONE = "none",
+  DEDUCTION = "deduction",
+  CURRICULUM = "curriculum",
 }
 
 export enum SafetyVerdict {

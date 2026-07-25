@@ -72,10 +72,43 @@ def test_cli_smoke_suite_covers_ci_smoke_gate() -> None:
             ci_paths.add(token)
 
     assert ci_paths, "no tests/ paths parsed from smoke.yml — pin needs updating"
-    missing = ci_paths - set(TEST_SUITES["smoke"])
-    assert not missing, (
+    local_paths = set(TEST_SUITES["smoke"])
+
+    missing_locally = ci_paths - local_paths
+    assert not missing_locally, (
         "CLI smoke suite is narrower than the CI smoke gate; add to "
-        f"core/cli_test.py TEST_SUITES['smoke']: {sorted(missing)}"
+        f"core/cli_test.py TEST_SUITES['smoke']: {sorted(missing_locally)}"
+    )
+
+    # The other direction, which this pin did not check until 2026-07-25 and
+    # which had in fact drifted: tests/test_pack_draft_serve_boundary.py sat in
+    # the local gate and not in smoke.yml. The list's own comment promises the
+    # two are *equal* ("so the local-first pre-push gate equals the CI gate
+    # rather than silently narrowing it"), and a one-directional assertion can
+    # only ever hold half of that. A file only the local gate runs is a file
+    # whose regression is invisible to anyone reading a green CI badge.
+    #
+    # PENDING_IN_CI is a named, dated exception list, not a suppression. These
+    # three are already in the local gate and belong in smoke.yml; the edit was
+    # authored and could not be pushed from the authoring session, whose
+    # credential lacked the `workflow` OAuth scope. Anyone with that scope
+    # closes this by adding the three lines and emptying this tuple. The
+    # assertion below still fires on any NEW divergence, which is the
+    # protection that was missing entirely before.
+    PENDING_IN_CI = (
+        "tests/test_pack_draft_serve_boundary.py",
+        "tests/test_prior_surface_deduction_binding.py",
+        "tests/test_workbench_deduction_provenance.py",
+    )
+    missing_in_ci = local_paths - ci_paths - set(PENDING_IN_CI)
+    assert not missing_in_ci, (
+        "CI smoke gate is narrower than the CLI smoke suite; add to "
+        f".github/workflows/smoke.yml: {sorted(missing_in_ci)}"
+    )
+    stale_exceptions = set(PENDING_IN_CI) & ci_paths
+    assert not stale_exceptions, (
+        "these are in smoke.yml now — drop them from PENDING_IN_CI: "
+        f"{sorted(stale_exceptions)}"
     )
 
 

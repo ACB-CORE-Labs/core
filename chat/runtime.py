@@ -468,17 +468,20 @@ class ChatResponse:
     #   "none"     — universal "insufficient grounding" disclosure on stub.
     #   "deduction" — answer decided by the verified propositional
     #                entailment engine (deduction-serve arc, Phase 1;
-    #                chat/deduction_surface.py). NOTE: this value is NOT
-    #                yet registered in core.epistemic_state.GroundingSource
-    #                (the Workbench-coupled closed Literal) or the Workbench
-    #                UI badge contract — epistemic_state_for_grounding_source
-    #                falls through to the honest EPISTEMIC_STATE_NEEDED
-    #                default for it. core chat REPL turns do not flow
-    #                through Workbench's CognitivePipelineRecord path, so
-    #                this is inert today; registering "deduction" as a
-    #                first-class GroundingSource + Workbench badge is
-    #                deferred to a follow-up if/when that visibility is
-    #                needed.
+    #                chat/deduction_surface.py — ADR-0256).
+    #   "curriculum" — answer decided from the ratified domain-chain
+    #                curriculum of the question's subject
+    #                (chat/curriculum_surface.py — ADR-0262).
+    # Both are registered in core.epistemic_state.GroundingSource (the
+    # Workbench-coupled closed Literal) and map to DECODED. That registration
+    # is load-bearing rather than cosmetic: workbench/api.py's live chat route
+    # builds a bare ChatRuntime(), so with deduction_serving_enabled ratified
+    # ON these composers decide Workbench turns too. While the labels were
+    # unregistered, the API's coercion floored them to "none" and recorded a
+    # proved answer as ungrounded (pinned by
+    # tests/test_workbench_deduction_provenance.py). Adding a grounding source
+    # here means registering it there in the same change — the workbench-ui
+    # enum-coverage test fails the build otherwise.
     # The string is preserved verbatim in TurnEvent for downstream audit.
     grounding_source: str = "none"
     # ADR-0071 (R4) — pre-decoration surface.  ``surface`` is the
