@@ -3,6 +3,44 @@
 **Date:** 2026-07-25 · **Status:** ACTIVE · **Base:** main @ `0a26787f`
 (post ADR-governance pin, PR #114)
 
+> ## AMENDED 2026-07-25 after Phases A and B — read this before §1
+>
+> Phases A and B are complete (ADR-0264; `core/reliability_gate/evidence.py` +
+> `tests/test_volume_honesty.py`). Both falsified premises of the plan below. The
+> original text is preserved unchanged; this block is what supersedes it.
+>
+> **1. §3's first content target was wrong.** `physics · modal` was chosen for
+> having the most ratified chains (9). Chain count is not the constraint —
+> *taught vocabulary* is, because a question routes only if exactly one served
+> subject's vocabulary holds both terms. Physics has 16 lemmas, so that band's
+> entire question space is 480 — below the 657 threshold with every possible
+> question counted, and no amount of authoring raises it. **8 of 11 bands are
+> structurally unable to reach 657.** New target: **`philosophy_theology · modal`**
+> (149 exclusive lemmas ⇒ ceiling 44,104, same 8-chain start). ADR-0264 §4.2.
+>
+> **2. §1's "the build is modest" understates it, and §4's phase order is wrong.**
+> `MAX_PREMISE_SENTENCES = 16` caps a family at 16 chains — at 17 the band declines
+> *everything*, including questions that work today. So ADR-0262 §5.1's remedy
+> (author ≈219 relations) destroys the capability at row 17. A band therefore has
+> ≤16 entailed cases against a 657 threshold, and **no curriculum band can earn
+> SERVE until premise compilation is query-scoped.** A new implementation phase
+> (ADR-0264 R5–R7) precedes all content work. ADR-0264 §4.1.
+>
+> **3. Authoring a negative today serves a confident wrong "Yes."** Not UNKNOWN —
+> `polarity` is read by nothing, so the affirmative sentence is compiled. The
+> independent oracle ignores the field too, so gold agrees and `wrong=0` stays
+> green. ADR-0264 Fact 1 / R1–R4, R8.
+>
+> **4. §4's Phase B found the exposure already live elsewhere.** 21 of the 25
+> ratified `deduction_serve` bands do not clear θ_SERVE on *distinct* evidence;
+> three inflate 28 distinct cases into 720 committed, under a flag ratified ON.
+> Not repaired — the ledger is SHA-sealed and ratified, so re-sealing is Shay's
+> decision. `docs/research/distinct-evidence-audit-2026-07-25.md`.
+>
+> **Revised order:** E2 → **R5–R7 premise scope** → C → D → E1(code) → parity,
+> with Phase F retargeted and its volume recomputed. §7's "A gates B" held; what
+> it missed is that a scope fix gates C, D *and* F.
+
 Successor to `generalization-arc-2026-07-24.md`, which closed its Tier F/O/S
 arc, and to the assessment-verification arc (PR #113). Division of work across
 tiers: `docs/handoff/curriculum-license-loop-2026-07/DIVISION-OF-WORK.md`

@@ -10,6 +10,50 @@ a memory or a chat instruction, the plan of record and `AGENTS.md` win.
 
 ---
 
+## 0. Status at handoff — 2026-07-25, Opus units complete
+
+The three Opus units are done and pushed. **Read the plan of record's AMENDED
+block first**: Phases A and B falsified four premises, one of which reorders the
+remaining work.
+
+| Unit | Branch | State |
+|---|---|---|
+| A — negative-curriculum epistemology | `docs/adr-negative-curriculum` | ADR-0264, pushed. Proposed, awaiting ratification |
+| B — volume-honesty invariant | `test/volume-honesty-invariant` (stacked on A) | pushed. 13 tests, mutation-checked, in `smoke` |
+| E1 Opus half — the R7 assertion | `docs/e1-r7-assertion-spec` | this branch. `E1-R7-ASSERTION-SPEC.md` |
+
+Merge order: **A, then B** (B is stacked on A), then E1's spec — merge-commit, not
+squash. E1's spec branch is independent of A/B and can merge in any order.
+
+**What changed for the Sonnet units.** Three things, all of which make the
+remaining work different from §4 as originally written:
+
+1. **A new implementation unit precedes everything: ADR-0264 R5–R7, query-scoped
+   premise compilation.** `MAX_PREMISE_SENTENCES = 16` caps a family at 16 chains;
+   at 17 the band declines every question, including ones that work today. Until
+   this lands, no curriculum band can earn a license at any corpus size, so
+   building Phase C first would produce a correct instrument reporting that every
+   band is at its ceiling. R5 is fully specified and verified verdict-identical
+   over 8,520 questions — it is a loud unit (the physics lane pins every verdict).
+2. **Phase F retargets to `philosophy_theology · modal`.** `physics · modal` has a
+   hard ceiling of 480 against a 657 threshold. Do not author physics modal volume.
+3. **Phase C's producer must call the Phase B audit.** `AUDIT_SOURCES` in
+   `tests/test_volume_honesty.py` carries a declared `None` for
+   `curriculum_serve` that fails the moment its ledger exists. That is deliberate:
+   it is the forcing function against repeating the deduction pattern.
+
+**Standing "do not fix" — the deduction ledger exposure.** 21 of 25 ratified
+`deduction_serve` bands do not clear θ_SERVE on distinct evidence (worst: 28
+distinct cases inflated to 720 committed). It is measured, pinned in both
+directions, and **must not be repaired by any unit below.** The ledger is
+SHA-sealed, ratified, and gating a live flag; re-sealing it is Shay's ratification.
+If a unit's work makes `tests/test_volume_honesty.py` fail, that is a real signal
+— report it, do not update the inventory to match.
+
+**Revised order: E2 → R5–R7 → C → D → E1(code) → parity.**
+
+---
+
 ## 1. The tiering criterion — read this first, it is the whole rationale
 
 Units are **not** assigned by difficulty, and not by model prestige. The evidence
@@ -49,11 +93,12 @@ and escalate (§6). That is not a failure — it is the mechanism working.
 
 | Unit | Phase | Owner | Failure mode |
 |---|---|---|---|
-| Negative-curriculum epistemology ADR | A | **Opus** | silent |
-| Volume-honesty invariant (tests first) | B | **Opus** | silent |
-| R7 assertion — *what* to assert | E1 | **Opus** | silent |
+| Negative-curriculum epistemology ADR | A | **Opus** ✅ | silent |
+| Volume-honesty invariant (tests first) | B | **Opus** ✅ | silent |
+| R7 assertion — *what* to assert | E1 | **Opus** ✅ | silent |
 | Articulation feasibility study | §6 of plan | **Opus** | silent |
 | `assert_corpus_sound` rename | E2 | **Sonnet** | loud |
+| **Query-scoped premise compilation (R5–R7)** | **new, gates C/D/F** | **Sonnet** | loud |
 | Practice producer implementation | C | **Sonnet** | loud |
 | `core proposal-queue reseal` verb | D | **Sonnet** | loud |
 | R7 code move + suite registration | E1 | **Sonnet** | loud |
@@ -141,8 +186,37 @@ Every unit here has a loud failure mode. You are expected to iterate against the
 gate until it is green, not to re-derive design. If a unit seems to require a
 design decision, that is the signal in §6.
 
-**Order: E2 → C → D → E1(code) → parity.** E2 first because Phase C adds a third
-`assert_corpus_sound` caller and renaming after that is strictly more work.
+**Order: E2 → R5–R7 → C → D → E1(code) → parity.** E2 first because Phase C adds a
+third `assert_corpus_sound` caller and renaming after that is strictly more work.
+R5–R7 second because nothing downstream can earn anything until it lands (§0).
+
+### R5–R7. Query-scoped premise compilation — **do this before C and D**
+
+`teaching/curriculum_premises.py::compile_premises` emits *every* chain in the
+family, and `read_verb_argument` refuses past `MAX_PREMISE_SENTENCES = 16`. So a
+17-chain family answers nothing. Three rules, all specified in ADR-0264 §2:
+
+- **R5** — compile a scope that is a **superset of the query-atom rows** and a
+  subset of the family. Default: **term incidence** (rows whose subject or object
+  is one of the query's two terms). If that would still exceed the cap, narrow to
+  the query-atom rows. Never truncate arbitrarily, and never refuse for size.
+- **R6** — an **empty scope is UNKNOWN**; only an empty *family* is the
+  `empty_curriculum` refusal. Get this wrong and 8,463 of 8,520 questions flip
+  from `unknown` to `declined`.
+- **R7 (curriculum)** — `premise_count` keeps reporting **family size**, because it
+  is user-visible. Carry the compiled-scope size as a separate field. (Unrelated to
+  audit-ledger R7 in E1 — same numeral, different register.)
+
+**Why this is loud, and why it is not the ADR-0261 §5.1 premise-dropping sin.**
+Narrowing is verdict-*identical*, not merely sound: each compiled premise mints one
+independent propositional atom, so a scope containing the query atom decides the
+query exactly as the full family does. Verified over 8,520 routable questions with
+zero mismatches (`docs/research/curriculum-premise-scope-2026-07-25.md` probe 3).
+Gold is preserved: physics stays `entailed 14 / unknown 12 / declined 6`.
+
+**Gate:** the `curriculum_serve` lane at `wrong=0`, and the 20 tests in
+`tests/test_curriculum_serve.py`. If any verdict moves, stop — the equivalence
+argument has a hole and that is escalation §6.3.
 
 ### E2. `assert_corpus_sound` rename
 Two functions, one name: `evals/deduction_serve/practice/gold.py:1163` (no args,
@@ -154,6 +228,18 @@ contract). Not a missing contract — a name collision, flagged in
 `evals/curriculum_serve/practice/{__init__,generator,runner}.py`. Mirror
 `evals/deduction_serve/practice/` topology **exactly**: producer in `evals/`,
 sealed artifact next to its reader in `chat/data/`.
+
+> **Mirror the topology, NOT the volume strategy.** The deduction producer sets a
+> flat `CASES_PER_BAND = 720` and fills the quota by cycling a template ×
+> vocabulary space that is as small as 28 distinct instances — which is the
+> exposure Phase B measured. Follow the **`estimation`** producer instead
+> (`evals/determination_estimation`): 660 *distinct* cases per class, zero repeats,
+> chosen just above the 657 a perfect record needs. Emit at most one case per
+> distinct query atom (ADR-0264 R9) and let the count fall where the corpus puts
+> it. Then register the producer in `AUDIT_SOURCES`
+> (`tests/test_volume_honesty.py`) — the declared `None` there fails as soon as
+> `chat/data/curriculum_serve_ledger.json` exists, which is how this unit is
+> stopped from repeating the pattern.
 
 **Reuse, do not rewrite** — this is why the unit is small:
 - `evals/curriculum_serve/oracle.py` — already an independent decision procedure;
@@ -241,7 +327,9 @@ available here.
 - Branch **and** worktree per unit; both deleted immediately after merge.
 - Pre-push gate in-worktree on canonical **Python 3.12.13** with
   `uv sync --locked`: `core test --suite smoke -q` then `--suite deductive -q`.
-  Baselines at arc start: **smoke 555**, **deductive 285**.
+  Baselines: **smoke 555 / deductive 285** at arc start; **smoke 569** after
+  Phases A+B (+1 from ADR-0264 joining the derived ADR pin, +13 from
+  `tests/test_volume_honesty.py`).
 - `[Verification]:` line in every PR description, naming the interpreter.
 - One PR per coherent unit. Compare-URL PRs; **Shay merges** — no merge
   automation, and green PRs sit until explicit authorization.
