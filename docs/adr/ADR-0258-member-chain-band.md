@@ -1,6 +1,6 @@
 # ADR-0258 — Member-chain band (Band v3-MEM): singular membership + universal premises
 
-- **Status:** Proposed
+- **Status:** Accepted — ratified by Joshua Shay via the PR #108 merge (`dd2245a7`, 2026-07-24)
 - **Date:** 2026-07-23
 - **Relates to:** ADR-0257 (Band v2-EN — this is its scope-out #1), ADR-0256
   (earned license), ADR-0201 (ROBDD keystone), ADR-0175/0199 (calibrated

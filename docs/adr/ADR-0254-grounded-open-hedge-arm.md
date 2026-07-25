@@ -1,6 +1,6 @@
 # ADR-0254: Grounded-Open Hedge Arm for the Shadow Coherence Gate
 
-**Status:** Proposed (predicate pre-authorized by Joshua Shay, 2026-07-22 weekly-audit ruling T13 decision 2; ratify on PR #103 merge)
+**Status:** Accepted — ratified by Joshua Shay via the PR #103 merge (`da3447e9`, 2026-07-23), discharging this ADR's own ratify-on-merge predicate (pre-authorized by the 2026-07-22 weekly-audit ruling T13 decision 2)
 **Date:** 2026-07-23
 **Deciders:** Joshua Shay (ruling authority) + Claude (implementation)
 **Companion docs:** [`ADR-0036-safety-refusal-policy.md`](ADR-0036-safety-refusal-policy.md), [`ADR-0037-per-predicate-ethics-refusal.md`](ADR-0037-per-predicate-ethics-refusal.md), [`ADR-0038-hedge-injection.md`](ADR-0038-hedge-injection.md), [`ADR-0252-problem-solving-paradigm-consolidation.md`](ADR-0252-problem-solving-paradigm-consolidation.md)

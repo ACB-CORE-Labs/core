@@ -1,6 +1,6 @@
 # ADR-0256: Deduction Serving Governed by an Earned Reliability License
 
-**Status:** Proposed (deduction-serve arc, Phase 3 — ratify-on-merge)
+**Status:** Accepted — ratified by Joshua Shay via the deduction-serve Phase 5 merge (`1a6ccaf9`, 2026-07-23), discharging this ADR's own ratify-on-merge predicate. The `deduction_serving_enabled` default was flipped False → True by a separate, explicit ratification (`5dd61803`, 2026-07-24)
 **Date:** 2026-07-23
 **Deciders:** Joshua Shay (ruling authority) + Claude (implementation)
 **Companion docs:** [`docs/research/deduction-serve-arc-phase0-baseline-2026-07-23.md`](../research/deduction-serve-arc-phase0-baseline-2026-07-23.md), [`docs/research/deduction-serve-arc-phase1-turn-spine-2026-07-23.md`](../research/deduction-serve-arc-phase1-turn-spine-2026-07-23.md), [`docs/research/deduction-serve-arc-phase2-eval-lane-2026-07-23.md`](../research/deduction-serve-arc-phase2-eval-lane-2026-07-23.md), [`docs/adr/ADR-0175-...`](.) (calibrated learning), [`docs/adr/ADR-0199-...`](.) (cross-domain arena), [`docs/adr/ADR-0206-...`](.) (response-governance bridge)

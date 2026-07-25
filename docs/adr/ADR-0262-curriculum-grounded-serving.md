@@ -1,6 +1,6 @@
 # ADR-0262 — Curriculum-grounded serving: exams answered from what was taught
 
-- **Status:** Proposed
+- **Status:** Accepted — ratified by Joshua Shay via the `feat/curriculum-serve-physics` merge (`0ae54ebb`, 2026-07-24). Accepting this ADR does NOT enable `curriculum_serving_enabled`, which stays False pending ratified curriculum volume (§5.1)
 - **Date:** 2026-07-24
 - **Arc:** generalization Phase 2 (docs/plans/generalization-arc-2026-07-24.md §4)
 - **Governs:** `teaching/curriculum_premises.py`, `chat/curriculum_surface.py`,

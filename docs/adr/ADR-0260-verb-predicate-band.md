@@ -1,6 +1,6 @@
 # ADR-0260 — Band v5-VP: verb-predicate arguments, decided
 
-- **Status:** Proposed
+- **Status:** Accepted — ratified by Joshua Shay via the PR #111 merge (`2a82c8a3`, 2026-07-24)
 - **Date:** 2026-07-24
 - **Arc:** deduction-serve (ADR-0256 → 0257 → 0258 → 0259 → this)
 - **Governs:** `generate/proof_chain/verb.py`, the `en_verb_*` shape-bands,

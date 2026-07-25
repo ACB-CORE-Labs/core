@@ -1,6 +1,6 @@
 # ADR-0261 — Band v6-EX: existential arguments, decided
 
-- **Status:** Proposed
+- **Status:** Accepted — ratified by Joshua Shay via the `feat/existential-band` merge (`a8488e9c`, 2026-07-24)
 - **Date:** 2026-07-24
 - **Arc:** deduction-serve (ADR-0256 → 0257 → 0258 → 0259 → 0260 → this)
 - **Governs:** `generate/proof_chain/exist.py`, the `en_exist_*` shape-bands,

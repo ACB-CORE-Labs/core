@@ -1,6 +1,6 @@
 # ADR-0263 — The ratified-ledger bridge
 
-- **Status:** Proposed
+- **Status:** Accepted — ratified by Joshua Shay via the `feat/curriculum-serve-physics` merge (`0ae54ebb`, 2026-07-24). Amended 2026-07-25 with rule 5 (ledger-absence policy declared, not passed)
 - **Date:** 2026-07-24
 - **Arc:** generalization Phase 3.3 (docs/plans/generalization-arc-2026-07-24.md §2)
 - **Governs:** `core/ratified_ledger.py` and the three adapters over it —
