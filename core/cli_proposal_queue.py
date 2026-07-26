@@ -119,6 +119,7 @@ def cmd_proposal_queue_ratify(args: argparse.Namespace) -> int:
             reviewer=args.reviewer,
             rationale=args.rationale,
             intent=args.intent,
+            polarity=args.polarity,
         )
         receipt = ratify_chain(record, dry_run=args.dry_run)
     except RatificationError as exc:
@@ -138,10 +139,90 @@ def cmd_proposal_queue_ratify(args: argparse.Namespace) -> int:
           f"{receipt.family_chains_before} -> {receipt.family_chains_after}")
     if not args.dry_run:
         print(f"  still pending : {', '.join(receipt.pending_stages)}")
+        # Wiring the receipt's `ledger_reseal` stage to the verb that performs
+        # it. Naming a pending stage without naming its command is how this one
+        # stayed unperformed since the ceremony was written.
+        if "ledger_reseal" in receipt.pending_stages:
+            print(
+                "  next          : core proposal-queue reseal curriculum_serve "
+                "--dry-run   (the ledger is stale until you do)"
+            )
+    return 0
+
+
+def cmd_proposal_queue_reseal(args: argparse.Namespace) -> int:
+    """The ``ledger_reseal`` stage of the ceremony — explicit, never automatic.
+
+    ``ratify_chain`` grows the corpus and names this stage in its receipt's
+    ``pending_stages``; nothing performed it until now, so a sealed ledger went
+    stale the moment curriculum changed. This is the verb a human runs.
+
+    It refuses by default to grant a license. A band can clear θ_SERVE on correct
+    NON-COMMITMENTS alone, so "regenerate the artifact" and "make four bands
+    authoritative" would otherwise be the same keystroke.
+    """
+    from teaching.ledger_reseal import ReadyToReseal, apply_reseal, plan_reseal
+
+    try:
+        plan = plan_reseal(args.capability)
+    except ReadyToReseal as exc:
+        print(f"REFUSED: {exc}")
+        return 2
+
+    payload: dict[str, object] = {
+        "capability": plan.capability,
+        "path": str(plan.path),
+        "licensed_before": list(plan.licensed_before),
+        "licensed_after": list(plan.licensed_after),
+        "newly_licensed": list(plan.newly_licensed),
+        "revoked": list(plan.revoked),
+        "committed": plan.committed,
+        "mix": plan.mix,
+        "is_housekeeping": plan.is_housekeeping,
+        "written": False,
+    }
+    if not args.json:
+        print(f"reseal plan for {plan.capability}:")
+        print(f"  artifact      : {plan.path}")
+        for band in sorted(plan.committed):
+            mix = ", ".join(f"{k}={v}" for k, v in sorted(plan.mix.get(band, {}).items()))
+            lic = "SERVE" if band in plan.licensed_after else "     "
+            print(f"  {lic} {band:44s} committed={plan.committed[band]:6d}  {mix}")
+        print(f"  licensed now  : {len(plan.licensed_before)}")
+        print(f"  licensed after: {len(plan.licensed_after)}")
+        if plan.newly_licensed:
+            print(f"  NEWLY LICENSED: {', '.join(plan.newly_licensed)}")
+        if plan.revoked:
+            print(f"  revoked       : {', '.join(plan.revoked)}")
+
+    if args.dry_run:
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print("  (dry run — nothing written)")
+        return 0
+
+    try:
+        path = apply_reseal(plan, allow_new_licenses=args.allow_new_licenses)
+    except ReadyToReseal as exc:
+        if args.json:
+            payload["refused"] = str(exc)
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print(f"REFUSED: {exc}")
+        return 1
+
+    if args.json:
+        payload["written"] = True
+        print(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        print(f"  SEALED -> {path}")
     return 0
 
 
 def register(subparsers: argparse._SubParsersAction) -> None:
+    from teaching.curriculum_premises import AFFIRMATIVE, POLARITIES
+
     """Attach the ``core proposal-queue`` subcommand tree to a top-level parser."""
     queue = subparsers.add_parser(
         "proposal-queue",
@@ -195,7 +276,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
             "curriculum loader admits the chain -> receipt. Refuses, and rolls "
             "back, if the appended row would be silently dropped. Does not "
             "write a ledger (bridge rule 1) or queue an arena entry; the "
-            "receipt names those stages."
+            "receipt names those stages, and `reseal` performs the first."
         ),
     )
     ratify.add_argument("domain")
@@ -205,10 +286,49 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     ratify.add_argument("--reviewer", required=True, help="who ratified this")
     ratify.add_argument("--rationale", required=True, help="why it is ratified")
     ratify.add_argument("--intent", default="cause")
+    ratify.add_argument(
+        "--polarity", choices=list(POLARITIES), default=AFFIRMATIVE,
+        help=(
+            "ADR-0264 R1. `negative` ratifies an explicitly TAUGHT refutation: "
+            "the atom compiles under the sentential-negation prefix and the "
+            "question answers `refuted`, which is different from an absent edge "
+            "(UNKNOWN, the open-world reading). Must reuse the AFFIRMATIVE "
+            "connective (R3) — `causes`, never `does not cause` — or it mints a "
+            "different atom and silently fails to refute. Refused if the atom is "
+            "already taught with the other polarity (R4)."
+        ),
+    )
     ratify.add_argument("--dry-run", action="store_true",
                         help="report the band delta without writing")
     ratify.add_argument("--json", action="store_true")
     ratify.set_defaults(func=cmd_proposal_queue_ratify)
+
+    from teaching.ledger_reseal import resealable_capabilities
+
+    reseal = sub.add_parser(
+        "reseal",
+        help="re-run sealed practice and rewrite a capability's committed ledger",
+        description=(
+            "The `ledger_reseal` stage `ratify_chain` names but never performs. "
+            "Ratifying a chain grows the corpus without re-running practice, so "
+            "the ledger the serving gate reads goes stale. This rebuilds it from "
+            "sealed practice. REFUSES by default if the reseal would newly "
+            "license a band: reliability is commitment precision, so a band can "
+            "clear theta_SERVE on correct NON-COMMITMENTS alone, and granting a "
+            "serving license is a ratification rather than housekeeping."
+        ),
+    )
+    reseal.add_argument("capability", choices=resealable_capabilities())
+    reseal.add_argument(
+        "--dry-run", action="store_true",
+        help="report the license delta without writing",
+    )
+    reseal.add_argument(
+        "--allow-new-licenses", action="store_true",
+        help="authorize bands that would become newly licensed (a RATIFICATION)",
+    )
+    reseal.add_argument("--json", action="store_true")
+    reseal.set_defaults(func=cmd_proposal_queue_reseal)
 
 
 __all__ = ["register"]
