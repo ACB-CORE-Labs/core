@@ -124,11 +124,17 @@ def routable_atoms(domain: str, family: str) -> tuple[QueryAtom, ...]:
 
 @lru_cache(maxsize=None)
 def taught_atoms(domain: str, family: str) -> frozenset[tuple[str, str, str, str]]:
-    """The atom keys a ratified chain states directly — the ``entailed`` class.
+    """The atom keys a ratified chain states directly — the COMMITTED classes.
 
     Scarce by nature: a band has as many taught edges as the curriculum states,
     which is why ADR-0262 §5.1 makes authored volume the binding constraint on
     what a band can demonstrate beyond non-commitment.
+
+    Polarity-independent on purpose (ADR-0264 R1). A negative row states its atom
+    just as directly as an affirmative one — it says "no" about it — so both are
+    scarce committed evidence and both are force-included in a capped sample. The
+    verdict they earn (``entailed`` vs ``refuted``) is the oracle's call, not this
+    function's; classifying here would duplicate the gold rule inside the corpus.
     """
     return frozenset(
         QueryAtom(domain, family, c.subject, c.connective, c.obj).key
