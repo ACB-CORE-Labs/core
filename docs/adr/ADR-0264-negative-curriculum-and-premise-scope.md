@@ -1,9 +1,16 @@
 # ADR-0264 — Negative curriculum, premise scope, and what a curriculum band can earn
 
-- **Status:** Proposed — awaiting Joshua Shay's ratification. This ADR changes no
-  flag and no default; it fixes a schema shape and a compilation rule, and it
-  records a blocking finding about ADR-0262 §5.1.
-- **Date:** 2026-07-25
+- **Status:** Accepted — ratified by Joshua Shay 2026-07-26. All nine rules
+  (R1–R9) are implemented and merged to `main` @ `803703fc`. This ADR changes no
+  flag and no default; it fixed a schema shape and a compilation rule, and it
+  recorded a blocking finding about ADR-0262 §5.1. **§4.1 is self-superseded by
+  this ADR's own R5** — see the note there before citing it.
+- **Date:** 2026-07-25 · **Ratified:** 2026-07-26
+- **Implemented by:** R5–R7 #120 · R9 #117 · R1–R4/R8 #125. Enforcement pins:
+  `tests/test_curriculum_polarity.py` (R1–R4, R8),
+  `tests/test_volume_honesty.py` (R9),
+  `tests/test_curriculum_serve.py` (R6/R7),
+  `tests/test_curriculum_practice.py` (R9 at the producer).
 - **Arc:** curriculum-license-loop Phase A
   (`docs/plans/curriculum-license-loop-2026-07-25.md` §4)
 - **Governs:** the `polarity` field of `teaching/domain_chains/*.jsonl`,
@@ -259,6 +266,33 @@ because absent `polarity` means affirmative.
 ## 4. Findings
 
 ### 4.1 No curriculum band can earn a SERVE license under the current architecture
+
+> **SELF-SUPERSEDED by this ADR's own R5, discharged 2026-07-26. The heading is no
+> longer true of the running system.** Read the finding below as a statement about
+> the **pre-R5** architecture; it was accurate then and it is why R5 exists.
+>
+> §4.1's reasoning rests on "the premise cap holds a family to ≤16 chains". R5
+> removed that: compilation is query-scoped, so a family of any size answers. With
+> the cap gone, **four bands would earn SERVE the moment a ledger is sealed** —
+> `physics·causal`, `systems_software·causal`, and
+> `philosophy_theology·{modal,contrast}` — measured in
+> `docs/research/curriculum-practice-producer-2026-07-26.md` §1.
+>
+> But the conclusion "the binding constraint is not curriculum volume" **survives,
+> for a different and stronger reason.** Reliability is commitment precision and a
+> correct UNKNOWN is a commitment, so a band clears θ_SERVE **on non-commitments
+> alone**: `conservative_floor(660,660) = 0.990046`. The licensable evidence is
+> 99.0–99.98% non-entailed, and max entailed volume in any band is **9**. So §4.1's
+> "≥97.6% non-entailed" arithmetic was directionally right and its cause was wrong
+> — it is not the premise cap that makes a curriculum license dishonest, it is the
+> absence of a mix rule. That also means the plan's Phase-1 exit criterion ("a
+> real, still-unearned ledger") is unreachable: a committed ledger is necessarily
+> an earning one.
+>
+> **The binding constraint is now the outcome-mix ruling** (§5, recorded as open
+> and still open). `chat/data/curriculum_serve_ledger.json` is deliberately absent
+> and `core proposal-queue reseal` refuses to grant a license without
+> `--allow-new-licenses`, so nothing is licensed while that ruling is unmade.
 
 This follows from two facts already in the repository, and it does not depend on
 any rule in §2.
