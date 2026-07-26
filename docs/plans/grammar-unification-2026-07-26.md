@@ -357,12 +357,39 @@ The corrected rule for this arc: **a table is off-serving only when every caller
 is proven to be eval-only.** Phase 2 is therefore split by that test, not by
 topic.
 
+**Second correction, same session — the static test is not sufficient.** I then
+computed the serving import closure (227 first-party modules from `chat/runtime.py`,
+`core/cognition/pipeline.py`, `chat/deduction_surface.py`,
+`chat/curriculum_surface.py`, `chat/pack_grounding.py`,
+`chat/teaching_grounding.py`) and **all 13 table-owning modules are in it —
+13 of 13**, including `generate/templates.py` via
+`pipeline.py` → `realizer.py` → `templates.py`. A static import test therefore
+returns "everything is serving" and discriminates nothing.
+
+**Import-reachable is not call-reachable.** Importing a module executes its
+table literals (pure data) but not its functions. The call chain
+`realize_target` → `render_step` → `_inflect_predicate` → `base_form` is
+closed and small enough to verify exhaustively, and `realize_target` has **zero
+non-eval, non-test callers** — so that subtree is genuinely call-unreachable
+from serving, and §1.2/§1.4 stand.
+
+But Python call-reachability is not statically decidable in general, so the
+arbiter for this arc is **empirical, not analytical**: make the change, run the
+11 pinned lanes, and let byte-identity decide. That is stronger than a static
+claim because it tests behaviour rather than predicting it, and it is the
+doctrine the lane pins already encode.
+
+⇒ **The 2A/2B split is therefore a *result*, not a prediction.** A change is 2A
+if the pins come back byte-identical and 2B if they move. Work the changes in
+the order below, run the pins, and let the split fall out. Do not argue a change
+into 2A.
+
 | phase | changes served output? | gate |
 |---|---|---|
 | 1 — instrument | no (new files only) | local smoke/deductive |
-| 2A — off-serving tables | no (callers proven eval-only) | byte-identical lane SHAs |
-| 2B — serving tables + render fix | **yes** | **explicit authorization** |
-| 3 — agreement defect | no (`render_step` is eval-only) | 26/26 oracle |
+| 2A — changes the pins prove inert | no (**measured**, not predicted) | byte-identical lane SHAs |
+| 2B — changes that move a pin | **yes** | **explicit authorization** |
+| 3 — agreement defect | no (`realize_target` has zero serving callers) | 26/26 oracle |
 | 4 — which realizer serves | **yes** | **explicit authorization** |
 | 5 — round-trip + diversity | **yes** | **explicit authorization** |
 
@@ -395,9 +422,9 @@ Deliver:
 also rejecting the positive corpus, the grammar formulation is wrong. **Stop and
 reassess — do not tune a threshold to split them.**
 
-### Phase 2A — One source of linguistic truth, off-serving only
+### Phase 2A — One source of linguistic truth (the hash-inert subset)
 
-*Touches:* the word-tables in §1.3 whose every caller is proven eval-only, plus
+*Touches:* the word-tables in §1.3 whose unification the lane pins prove inert, plus
 new single-owner modules. *Serving risk:* none, and proven by byte-identity.
 
 Deliver:
