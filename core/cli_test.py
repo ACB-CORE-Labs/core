@@ -237,6 +237,7 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_curriculum_serve.py",
         "tests/test_curriculum_practice.py",
         "tests/test_curriculum_polarity.py",
+        "tests/test_ledger_reseal.py",
         "tests/test_ratified_ledger_bridge.py",
         "tests/test_vocab_trigger_instrument.py",
     ),
