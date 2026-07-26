@@ -203,7 +203,68 @@ surfaces — **24 refusals, 0 comprehensions**:
 | `Knowledge is what a person knows from truth and evidence.` (**live**) | no_template_match | no_conclusion | mixed_structure | out_of_band | mixed_structure | mixed_structure |
 | `Wisdom is a good use of knowledge. Furthermore, it belongs to cognition.wisdom.` (**live**) | reserved_word_in_np | membership_shape | out_of_band | out_of_band | out_of_band | out_of_band |
 
-### 1.7 The models are not type-compatible
+### 1.7 A ratified band serves malformed English today
+
+This was found while designing Phase 1's projection, and it is the most
+consequential item in §1 because it is **user-visible on a ratified, flag-ON
+band**.
+
+`generate/proof_chain/render.py`:
+
+```python
+_CATEGORICAL_PHRASE = {
+    "A": "all {s} are {p}",     # plural syntax…
+    "E": "no {s} are {p}",
+    "I": "some {s} are {p}",
+    "O": "some {s} are not {p}",
+}
+```
+
+…but `{s}` / `{p}` are filled with the **singularized entity ids** the
+MeaningGraph reader produces (`_chunk_class` → `_singularize`). There is no
+re-pluralization step, because the reader and the renderer are on opposite sides
+of the seam described in §1.3. Result, live through `deduction_grounded_surface`:
+
+```
+in : All dogs are mammals. All mammals are animals. Therefore all dogs are animals.
+out: Given: all dog are mammal; all mammal are animal. That's valid — all dog are animal follows.
+
+in : No dogs are cats. All cats are animals. Therefore no dogs are animals.
+out: Given: no dog are cat; all cat are animal. That doesn't follow — …
+
+in : All wolves are mammals. All mammals are animals. Therefore all wolves are animals.
+out: Given: all wolve are mammal; … — all wolve are animal follows.
+```
+
+Scope, measured two ways:
+
+- **Synthetically: every plural noun**, regular or irregular. `all dog are
+  mammal`, `all cat are mammal`, `all student are mammal`, `all child are
+  mammal`, `all man are mammal`.
+- **In the ratified corpus: 4 of 47** cases that serve a categorical clause —
+  `ds-v1-0023`, `ds-v1-0024`, `ds-v1-0026`, `ds-v1-0028`, all band v1. The corpus
+  under-represents the defect only because band routing sends most arguments to
+  renderers that echo the user's original text.
+
+**`wrong=0` is not threatened.** Every verdict above is correct; this is purely a
+surface defect. Two distinct causes compound in it:
+
+1. **No re-pluralization at render time** — affects *all* nouns. This is the
+   dominant cause.
+2. **The reader's plural table is 8 entries** where the v3-MEM band's is 29, so
+   `wolves → wolve`, `knives → knive`, `leaves → leave`, `lives → live`,
+   `halves → halve`, `loaves → loave`, `thieves → thieve`, `elves → elve`
+   — **8 silently wrong singulars**, and 4 more (`cacti`, `dice`, `fungi`,
+   `oxen`) that refuse outright. **CORE's two readers disagree on 12 of 20
+   plurals.**
+
+The wrong singulars do *not* break soundness, because `_singularize` is a
+deterministic function applied uniformly to premises and conclusion, so the
+lowering stays a consistent bijection. They are label defects — and they are the
+reason cause (2) must be fixed with a *shared* table rather than by patching one
+side.
+
+### 1.8 The models are not type-compatible
 
 A literal `read(write(g)) == g` is not expressible today:
 
@@ -236,7 +297,7 @@ once works for reading and for writing, and so that surface diversity becomes
 - **Not curriculum content.** Scripture/theology content is separately deferred
   (word-for-word verification + a faith-domain evidentiary regime are both
   undesigned).
-- **Not a graph-model merge.** §1.7 says that may be needed; §6 makes it a
+- **Not a graph-model merge.** §1.8 says that may be needed; §6 makes it a
   measured decision for a *later* arc behind an ADR, not a silent expansion of
   this one.
 
@@ -281,8 +342,29 @@ bidirectional requirement is what keeps this instrument from becoming the next
 ## 4. Phases
 
 Each phase is independently valuable, independently landable, and has a
-falsifiable exit test. Phases 1–3 cannot change serving behaviour. Phase 4 is
-the first that can, and is gated on explicit authorization.
+falsifiable exit test.
+
+**Serving-risk classification — corrected 2026-07-26 after §1.7.** An earlier
+draft of this plan asserted "Phases 1–3 cannot change serving behaviour." That
+was **wrong**, and the error is worth recording because it is the same shape as
+the mistakes this arc exists to fix: I classified a table as off-serving without
+asking which callers reach it. `generate/meaning_graph/reader.py::_IRREGULAR_PLURALS`
+**is** on the serving path — `comprehend` → `to_syllogism` → band v1b →
+`deduction_grounded_surface`. Unifying it changes entity ids, which moves
+trace hashes and served surfaces.
+
+The corrected rule for this arc: **a table is off-serving only when every caller
+is proven to be eval-only.** Phase 2 is therefore split by that test, not by
+topic.
+
+| phase | changes served output? | gate |
+|---|---|---|
+| 1 — instrument | no (new files only) | local smoke/deductive |
+| 2A — off-serving tables | no (callers proven eval-only) | byte-identical lane SHAs |
+| 2B — serving tables + render fix | **yes** | **explicit authorization** |
+| 3 — agreement defect | no (`render_step` is eval-only) | 26/26 oracle |
+| 4 — which realizer serves | **yes** | **explicit authorization** |
+| 5 — round-trip + diversity | **yes** | **explicit authorization** |
 
 ### Phase 1 — Build the instrument, record the baseline
 
@@ -298,7 +380,7 @@ Deliver:
    shuffled tokens from positive cases): `reject_rate`.
 3. The chosen `MeaningGraph`↔`PropositionGraph` projection, written down with
    what it deliberately discards.
-4. Reproduction scripts for §1.3–§1.6 so every number in this plan is re-runnable.
+4. Reproduction scripts for §1.3–§1.7 so every number in this plan is re-runnable.
 
 **Exit criteria (all required):**
 
@@ -313,10 +395,10 @@ Deliver:
 also rejecting the positive corpus, the grammar formulation is wrong. **Stop and
 reassess — do not tune a threshold to split them.**
 
-### Phase 2 — One source of linguistic truth
+### Phase 2A — One source of linguistic truth, off-serving only
 
-*Touches:* the 44 word-tables in §1.3; new single-owner modules.
-*Serving risk:* none intended, and proven by byte-identity.
+*Touches:* the word-tables in §1.3 whose every caller is proven eval-only, plus
+new single-owner modules. *Serving risk:* none, and proven by byte-identity.
 
 Deliver:
 
@@ -325,11 +407,14 @@ Deliver:
 2. The **identical** duplicate groups collapsed — 3 connective tables, 2
    `_SENTENTIAL_NOT`, 2 predicate-display tables — with byte-identical lane
    hashes as the proof of zero behaviour change.
-3. Each of the **4 real divergences** resolved by an explicit recorded decision
-   (not by picking the larger table), with a test pinning the chosen answer.
+3. Each divergence among off-serving tables resolved by an explicit recorded
+   decision (not by picking the larger table), with a test pinning the answer.
 4. A structural test asserting no module defines a second copy — same discipline
    as `tests/test_volume_honesty.py`, which must fail if a duplicate is
    reintroduced.
+5. **A caller-provenance test**: for every table the new module owns, assert
+   whether it is serving-reachable. This is the check whose absence produced the
+   error corrected above, so it belongs in the tree, not in a reviewer's head.
 
 **Exit criteria:**
 
@@ -337,17 +422,46 @@ Deliver:
 |---|---|
 | duplication removed | one table per fact; structural test green and mutation-red |
 | identical collapses are inert | 11/11 lane SHA pins **byte-identical** |
-| divergences decided, not averaged | each of the 4 has a recorded decision + pinning test |
+| divergences decided, not averaged | each has a recorded decision + pinning test |
 | agreement | Jaccard → 1.00 for facts that should agree (from 0.083 overall) |
+| serving reachability is known | caller-provenance test covers every owned table |
 
 **Failure / stop condition:** if collapsing an "identical" pair moves a lane
-hash, the tables were not actually identical — stop, and treat it as a
-divergence requiring a decision.
+hash, the tables were not actually identical — stop, treat it as a divergence
+requiring a decision, and move it to Phase 2B.
+
+### Phase 2B — Serving-path tables and the categorical render defect — **authorization gate**
+
+*Touches:* `generate/meaning_graph/reader.py::_IRREGULAR_PLURALS`,
+`generate/proof_chain/render.py::_CATEGORICAL_PHRASE`, the band readers' tables.
+**Changes served surfaces and trace hashes.** Depends on 2A's shared pluralizer.
+
+Deliver:
+
+1. Re-pluralization at categorical render time, fixing `all dog are mammal` →
+   `all dogs are mammals` (§1.7 cause 1 — affects *all* nouns).
+2. The reader's 8-entry plural table replaced by 2A's shared table, fixing the
+   8 silently-wrong singulars and the 12-of-20 reader-vs-reader disagreement
+   (§1.7 cause 2).
+3. Updated lane SHA pins — **surgical single-line edits only**, never
+   `--update` — with the old and new hash recorded per lane.
+
+**Exit criteria:**
+
+| criterion | measure |
+|---|---|
+| surfaces well-formed | 0 malformed categorical surfaces; `ds-v1-0023/0024/0026/0028` render plurals |
+| readers agree | reader-vs-reader singularization agreement **20/20** (from 8/20) |
+| soundness preserved | `wrong=0` holds; deduction lane verdicts **unchanged case-for-case** |
+| hash movement is intended | every moved pin explained; no pin changed that shouldn't move |
+
+**Why gated:** this changes what users see. Fixing a defect is still a serving
+change, and serving changes are Shay's call.
 
 ### Phase 3 — Fix the 9-of-26 agreement defect
 
 *Touches:* `generate/morphology.py::base_form`, `generate/templates.py::_inflect_predicate`,
-new eval cases. Depends on Phase 2 (unified tables) and Phase 1 (instrument).
+new eval cases. Depends on Phase 2A (unified tables) and Phase 1 (instrument).
 *Serving risk:* none (`render_step` is eval-only).
 
 Deliver:
@@ -385,7 +499,7 @@ It is a serving change and belongs to Shay, not to this plan.
 
 ### Phase 5 — Raise round-trip, then earn diversity
 
-*Depends on:* Phases 1–3, and on the Phase 1 baseline being non-zero-able.
+*Depends on:* Phases 1–3 plus 2B, and on the Phase 1 baseline being non-zero-able.
 *Scope: deliberately unestimated* — see §5.
 
 Deliver:
@@ -433,7 +547,7 @@ grammar. That number forks the road:
 - **`read_rate` rises materially from unification alone** ⇒ the two grammars were
   closer than they looked, the surface layer was the barrier, and Phase 5
   (diversity) is the right next arc.
-- **`read_rate` stays near zero after unification** ⇒ the barrier is **§1.7**:
+- **`read_rate` stays near zero after unification** ⇒ the barrier is **§1.8**:
   `MeaningGraph` and `PropositionGraph` are genuinely different models, and no
   amount of table-sharing bridges them. The next arc is then a **graph-model**
   decision, which is large, touches the decision layer, and **must go to an ADR
@@ -443,7 +557,7 @@ Either way we will know which, and why, from a measured quantity — which is th
 thing the previous arc could not do until after it had built the machinery.
 
 **One reading of the evidence is worth pre-committing to now:** §1.6's uniform
-`no_template_match` across all 280, combined with §1.7's type mismatch, makes
+`no_template_match` across all 280, combined with §1.8's type mismatch, makes
 the second fork more likely than the first. If that is where we land, Phases 1–3
 are still exactly the right work — they are what makes the graph-model question
 answerable instead of speculative — but the arc should be expected to *end* at
@@ -461,7 +575,7 @@ Per `AGENTS.md`, unchanged from prior arcs:
 - Every new gate must **fail under mutation**. A pin that cannot fail is
   worthless — this arc exists because three such pins were found (§1.5, the Rust
   parity lane, and the fluency suite's blind spot).
-- Phase 2 additionally requires **byte-identical** 11/11 lane SHA pins.
+- Phase 2A additionally requires **byte-identical** 11/11 lane SHA pins.
   Never `scripts/verify_lane_shas.py --update`; surgical single-line edits only.
 - One PR per phase, branch + worktree each, Forgejo compare URL,
   `[Verification]:` line. No merge automation — PRs sit until authorized.
@@ -473,7 +587,7 @@ Per `AGENTS.md`, unchanged from prior arcs:
   reader's control words.** The vocabulary boundary is never screened against the
   reader's grammar. A unified grammar makes this screenable for the first time —
   and makes forgetting to screen it a single-point failure. Add the screen in
-  Phase 2.
+  Phase 2A.
 - Corpus-mutating tests must never write committed files: the `full` suite
   injects `-n auto`, so writes race.
 - Never "fix" a hash drift or a ledger inventory to make a test pass.
