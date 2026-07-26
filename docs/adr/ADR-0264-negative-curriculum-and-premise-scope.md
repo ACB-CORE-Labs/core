@@ -158,8 +158,19 @@ The default scope is **term incidence**: rows whose subject or object is one of
 the query's two terms. This is bounded by vocabulary degree rather than corpus
 size, keeps real neighbouring premises in the argument, and is a superset of the
 query-atom rows. If term incidence would still exceed the band's cap, narrow to
-the query-atom rows — which is verdict-identical, never an arbitrary truncation.
-The reader is never asked to refuse for size.
+the query-atom rows — never an arbitrary truncation. The reader is never asked to
+refuse for size.
+
+> **Precision fix, 2026-07-26.** "Verdict-identical" is exact for every scope the
+> full family could be *read* at, and that is where the 8,520-question / zero-
+> mismatch evidence in §6 was gathered. It is **not** exact for the over-cap
+> branch: there the full family exceeds `MAX_PREMISE_SENTENCES`, so full-family
+> compilation would refuse `compiled_premises_unreadable` and answer nothing.
+> Narrowing there is verdict-**improving**, not identical — which is the entire
+> point of the unblock. The precise claim is therefore: **identical wherever the
+> full family was readable, improving where it was not.** Read literally, the
+> unqualified phrasing would lead a reader to expect a 17-chain family to keep
+> declining, which is backwards.
 
 **R6 — An empty scope is UNKNOWN; only an empty family is a refusal.** Today
 `compile_premises` returning nothing means "this family has no ratified chains"
@@ -270,7 +281,38 @@ that prerequisite: query-scoped compilation removes the 16-chain ceiling, at
 which point §5.1's ≈219-relation prescription becomes achievable and its
 arithmetic becomes correct again.
 
-### 4.2 Eight of eleven bands cannot reach the threshold even with unlimited authoring
+### 4.2 Seven of eleven bands cannot reach the threshold even with unlimited authoring
+
+> **CORRECTED 2026-07-26, after Phase C measured this against the wired code.**
+> The original heading said *eight* of eleven and the table below understated
+> every ceiling. Both errors have one cause: I sized bands from **per-term
+> exclusivity** (a lemma taught by only one subject), while `resolve_domain`'s
+> actual predicate is **per-pair** — a question routes iff exactly one served
+> subject holds *both* terms. A lemma taught in two subjects can still appear in
+> a pair only one of them holds both halves of, so per-term exclusivity is a
+> strictly tighter bound.
+>
+> | band | stated below | measured | change |
+> |---|---:|---:|---|
+> | `curriculum_systems_software_causal` | 630 | **720** | **impossible → reachable** |
+> | `curriculum_philosophy_theology_modal` | 44,104 | 45,300 | — |
+> | `curriculum_philosophy_theology_contrast` | 22,052 | 22,650 | — |
+> | `curriculum_mathematics_logic_modal` | 420 | 480 | — |
+> | `curriculum_mathematics_logic_{sequence,contrast,evidential}` | 210 | 240 | — |
+> | `curriculum_systems_software_modal` | 420 | 480 | — |
+> | `curriculum_systems_software_sequence` | 210 | 240 | — |
+> | `curriculum_physics_{causal,modal}` | 720 / 480 | 720 / 480 | — |
+>
+> So **four** bands can reach 657, not three, and **seven** cannot, not eight.
+> Every conclusion that depends on this survives: `physics · modal` at 480 is
+> still impossible at any authoring volume, and `philosophy_theology · modal` is
+> still the defensible target by two orders of magnitude. The numbers are now
+> pinned as *measured* values in
+> `tests/test_curriculum_practice.py::BAND_ATOM_SPACE`, so this class of error
+> cannot recur silently. See
+> `docs/research/curriculum-practice-producer-2026-07-26.md` §2.
+>
+> The original text is preserved below unedited.
 
 Volume is bounded by *taught vocabulary*, not by corpus size, because a question
 must have both terms in exactly one served subject's vocabulary to route at all

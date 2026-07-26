@@ -10,6 +10,50 @@ a memory or a chat instruction, the plan of record and `AGENTS.md` win.
 
 ---
 
+## 0b. Status 2026-07-26 — every code unit in this arc is open as a PR
+
+Superseding §0 below (kept for the reasoning, which still holds). All units are
+**open, unmerged, awaiting Shay's authorization.**
+
+| unit | PR | branch | state |
+|---|---|---|---|
+| E2 rename | #119 | — | **MERGED** |
+| R5–R7 query-scoped premises | #120 | — | **MERGED** |
+| **C** practice producer | **#121** | `feat/curriculum-practice-producer` | open |
+| **D** `proposal-queue reseal` | **#122** | `feat/proposal-queue-reseal` (on #121) | open |
+| **E1** code half (audit-ledger R7) | **#123** | `feat/audit-ledger-r7` | open |
+| **parity** measurement + `core rust build` fix | **#124** | `fix/rust-build-env-and-parity-report` | open |
+| **polarity** R1–R4/R8 | **#125** | `feat/curriculum-polarity` (on #121) | open |
+| doc reconciliation + arc close | this branch | `docs/arc-reconciliation` | open |
+
+Merge order: **#121 first** (#122 and #125 stack on it; retarget both to `main`
+after it lands). #123 and #124 are independent of everything. Merge-commit, not
+squash. #122 and #125 both touch `core/cli_proposal_queue.py` in different hunks.
+
+Still Shay's, unchanged: **Phase F** content (`philosophy_theology · modal`),
+**Phase G** the flag, **E3** the ADR vocab sweep (Haiku), and the four open
+rulings — of which **outcome mix is now blocking rather than academic** (#121).
+
+**What the units found that the plan did not predict** — all four are in the PRs
+and the research notes, listed here because a status table is where someone looks:
+
+1. **A committed curriculum ledger is necessarily an EARNING ledger.** The plan's
+   Phase-1 exit criterion ("a real, still-unearned ledger") is unreachable: a
+   band clears θ_SERVE on correct NON-COMMITMENTS alone, so sealing licenses four
+   bands on ~99% non-entailed evidence. Hence #121 ships the writer and commits
+   no artifact, and #122's verb refuses to grant a license without an explicit
+   flag.
+2. **§4.2's ceiling table was understated** (per-term vs per-pair routability);
+   `systems_software · causal` is reachable, not impossible. Four bands can reach
+   657, not three. ADR-0264 §4.2 now carries the correction.
+3. **`then` and `therefore` are taught lemmas that collide with the argument
+   reader's control grammar** — 164 atoms refuse, in the Phase F target band. The
+   vocabulary boundary is never screened against the reader's grammar.
+4. **The Rust lane-parity method cannot fail.** Sabotaging every Rust kernel
+   still yields 11/11 lane pins matching, so §6B's premise needs re-earning.
+
+---
+
 ## 0. Status at handoff — 2026-07-25, Opus units complete
 
 The three Opus units are done and pushed. **Read the plan of record's AMENDED
@@ -35,6 +79,9 @@ remaining work different from §4 as originally written:
    building Phase C first would produce a correct instrument reporting that every
    band is at its ceiling. R5 is fully specified and verified verdict-identical
    over 8,520 questions — it is a loud unit (the physics lane pins every verdict).
+   (Precisely: identical wherever the full family was READABLE, and
+   verdict-*improving* over the cap, where full-family compilation refuses
+   outright. See ADR-0264 R5's precision note.)
 2. **Phase F retargets to `philosophy_theology · modal`.** `physics · modal` has a
    hard ceiling of 480 against a 657 threshold. Do not author physics modal volume.
 3. **Phase C's producer must call the Phase B audit.** `AUDIT_SOURCES` in
@@ -97,7 +144,7 @@ and escalate (§6). That is not a failure — it is the mechanism working.
 | Volume-honesty invariant (tests first) | B | **Opus** ✅ | silent |
 | R7 assertion — *what* to assert | E1 | **Opus** ✅ | silent |
 | Articulation feasibility study | §6 of plan | **Opus** | silent |
-| `assert_corpus_sound` rename | E2 | **Sonnet** | loud |
+| `assert_corpus_sound` rename | E2 | **Sonnet** ✅ #119 | loud |
 | **Query-scoped premise compilation (R5–R7)** | **new, gates C/D/F** | **Sonnet** | loud |
 | Practice producer implementation | C | **Sonnet** | loud |
 | `core proposal-queue reseal` verb | D | **Sonnet** | loud |
@@ -190,6 +237,12 @@ design decision, that is the signal in §6.
 third `assert_corpus_sound` caller and renaming after that is strictly more work.
 R5–R7 second because nothing downstream can earn anything until it lands (§0).
 
+> **Both landed (#119, #120), so this ordering constraint is spent.** The names are
+> now `assert_practice_gold_sound` (no args, practice gold) and
+> `assert_lane_cases_sound(domain, cases)` (lane contract); Phase C added its
+> caller after the rename, as intended. Remaining units are order-independent
+> except for the stacking recorded in §0b.
+
 ### R5–R7. Query-scoped premise compilation — **do this before C and D**
 
 `teaching/curriculum_premises.py::compile_premises` emits *every* chain in the
@@ -210,7 +263,10 @@ family, and `read_verb_argument` refuses past `MAX_PREMISE_SENTENCES = 16`. So a
 **Why this is loud, and why it is not the ADR-0261 §5.1 premise-dropping sin.**
 Narrowing is verdict-*identical*, not merely sound: each compiled premise mints one
 independent propositional atom, so a scope containing the query atom decides the
-query exactly as the full family does. Verified over 8,520 routable questions with
+query exactly as the full family does — **wherever the full family was readable.**
+Over the cap it is verdict-*improving*: full-family compilation refuses
+`compiled_premises_unreadable` there, so the narrowed scope answers questions the
+unscoped compiler could not. That is the unblock, not a deviation from it. Verified over 8,520 routable questions with
 zero mismatches (`docs/research/curriculum-premise-scope-2026-07-25.md` probe 3).
 Gold is preserved: physics stays `entailed 14 / unknown 12 / declined 6`.
 
@@ -218,8 +274,9 @@ Gold is preserved: physics stays `entailed 14 / unknown 12 / declined 6`.
 `tests/test_curriculum_serve.py`. If any verdict moves, stop — the equivalence
 argument has a hole and that is escalation §6.3.
 
-### E2. `assert_corpus_sound` rename
-Two functions, one name: `evals/deduction_serve/practice/gold.py:1163` (no args,
+### E2. `assert_corpus_sound` rename — **DONE, #119**
+Renamed to `assert_practice_gold_sound` / `assert_lane_cases_sound`. Two
+functions, one name: `evals/deduction_serve/practice/gold.py:1163` (no args,
 practice corpus) and `evals/curriculum_serve/runner.py:71` (`domain, cases`, lane
 contract). Not a missing contract — a name collision, flagged in
 `BRIEF-CLOSE-assessment-verification-2026-07-25.md` §9.5. **Gate:** imports break.

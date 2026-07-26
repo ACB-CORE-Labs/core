@@ -156,7 +156,8 @@ implement without re-litigating epistemology.
 4. **Independent oracle** — per subject, a closed-world reachability
    oracle over the chain corpus (sharing no code with the serving path)
    validates every gold verdict; the lane asserts corpus soundness
-   before any case runs (the `assert_corpus_sound()` pattern).
+   before any case runs (the `assert_corpus_sound()` pattern — since #119 split
+   into `assert_practice_gold_sound` / `assert_lane_cases_sound`).
 5. **License granularity** — bands keyed by (subject × relation family ×
    chain depth), earned in the ADR-0199 arena: θ_SERVE=0.99, n≥720,
    wrong=0, sealed + SHA-verified ledger per subject.
