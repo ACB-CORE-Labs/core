@@ -33,9 +33,22 @@ from core.cli_test import TEST_SUITES as _TEST_SUITES  # noqa: E402
 
 
 
-def _run(*args: str, check: bool = False, cwd: Path | None = None) -> int:
-    """Run a child command and return its exit code."""
-    completed = subprocess.run(args, check=check, text=True, cwd=cwd)
+def _run(
+    *args: str,
+    check: bool = False,
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> int:
+    """Run a child command and return its exit code.
+
+    ``env`` is part of the ``CommandRunner`` contract that ``core/cli_rust.py``
+    and ``core/cli_test.py`` are written against; omitting it here made
+    ``core rust build`` raise ``TypeError`` unconditionally, because
+    ``cli_rust.cmd_rust_build`` passes ``env=rust_build_env()`` to carry
+    ``PYO3_USE_ABI3_FORWARD_COMPATIBILITY``. The injected runner has to accept
+    everything the injection sites pass.
+    """
+    completed = subprocess.run(args, check=check, text=True, cwd=cwd, env=env)
     return int(completed.returncode)
 
 

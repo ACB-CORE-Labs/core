@@ -13,6 +13,7 @@ from typing import Protocol
 TEST_SUITES: dict[str, tuple[str, ...]] = {
     "fast": (
         "tests/test_cli_test_suites.py",
+        "tests/test_cli_runner_contract.py",
         "tests/test_runtime_config.py",
         "tests/test_core_semantic_seed_pack.py",
         "tests/test_intent_proposition_graph.py",
@@ -27,6 +28,7 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_cognitive_turn_pipeline.py",
         "tests/test_audit_ledger_r7.py",
         "tests/test_architectural_invariants.py",
+        "tests/test_cli_runner_contract.py",
         # Audio sensorium lane — part of the smoke.yml PR gate (compiler,
         # CRDT merge, eval gates, pack manifest, mount, teachers; ~3s).
         # Listed explicitly so the local-first pre-push gate (AGENTS.md
