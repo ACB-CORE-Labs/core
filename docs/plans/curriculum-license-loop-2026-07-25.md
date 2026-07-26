@@ -158,7 +158,9 @@ absent one.
   `docs/specs/runtime_contracts.md:448-456`). Repairs the stale surface and
   stale `trace_hash` together. Default sink is `None`, so no deployment risk.
   Independent of the `hash_surface`-on-`TurnEvent` ruling.
-- **E2 — `assert_corpus_sound` name collision.** Two functions, one name:
+- **E2 — `assert_corpus_sound` name collision.** ✅ **DONE (#119)** — now
+  `assert_practice_gold_sound` (no args, practice gold) and
+  `assert_lane_cases_sound(domain, cases)` (lane contract). Two functions, one name:
   `evals/deduction_serve/practice/gold.py:1163` (no args, practice corpus) vs
   `evals/curriculum_serve/runner.py:71` (`domain, cases`, lane contract). Must
   land **before** Phase C adds a third caller.

@@ -280,8 +280,14 @@ def compile_premises(
     probe 3). If term incidence would still exceed the reader's
     :data:`MAX_PREMISE_SENTENCES` cap, narrow further to the **query-atom
     rows** — chains whose ``(subject, connective, obj)`` exactly match the
-    query's — which stays verdict-identical for the same reason. Scope is
-    never truncated arbitrarily and never refused for size.
+    query's. Scope is never truncated arbitrarily and never refused for size.
+
+    Precisely: narrowing is verdict-**identical** wherever the full family was
+    readable, and verdict-**improving** where it was not. In the over-cap branch
+    full-family compilation would refuse ``compiled_premises_unreadable`` and
+    answer nothing at all, so the narrowed scope answers questions the unscoped
+    compiler could not — which is the unblock this exists for, not a deviation
+    from it.
 
     Deterministic: the same curriculum, family and query always compile to
     the same sentences in the same order, so a lane report over them is
