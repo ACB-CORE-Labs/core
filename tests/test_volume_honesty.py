@@ -25,9 +25,11 @@ Three producers back the three entries in `core.ratified_ledger.CAPABILITY_LEDGE
   distinct evidence; the worst three inflate 28 distinct cases to 720 committed.
   Recorded, pinned, and NOT silently repaired: the ledger is SHA-sealed, ratified,
   and gating a live flag, so changing it is Shay's ratification, not a test's.
-- **curriculum_serve** (ADR-0262/0264) — producer unbuilt. The registry pin below
-  fails the moment it is built without an audit source, which is the forcing
-  function that stops Phase C from repeating the deduction pattern.
+- **curriculum_serve** (ADR-0262/0264) — clean, and clean *structurally*: the
+  producer's case identity IS the query atom, so ``committed == distinct`` cannot
+  drift apart the way it did for deduction, where case identity was a quota index.
+  Its ledger is deliberately uncommitted — see
+  ``evals/curriculum_serve/practice/runner.py``.
 
 Deliberately narrow. This pins evidence *distinctness*. It does not pin outcome
 mix — whether each verdict class needs its own volume is an open ruling recorded
@@ -99,13 +101,30 @@ def _estimation_keys() -> dict[str, list[Hashable]]:
     return out
 
 
+def _curriculum_keys() -> dict[str, list[Hashable]]:
+    """Decision keys per band for the curriculum practice corpus (Phase C).
+
+    The key is the query ATOM, which is also the producer's case identity — so
+    this audit can only ever report inflation 1.0 while the producer is correct,
+    and reports the real figure the moment it is not. Contrast the deduction
+    source above, where the key had to be recovered from case text because the
+    producer's identity was a quota index.
+    """
+    from evals.curriculum_serve.practice import all_gold_problems
+
+    out: dict[str, list[Hashable]] = {}
+    for problem in all_gold_problems():
+        out.setdefault(problem.class_name, []).append(problem.payload.key)
+    return out
+
+
 #: capability -> keys provider, or ``None`` when the producer is not built.
 #: ``None`` is a declaration, not an omission: :func:`test_every_licensed_capability_has_an_audit_source`
 #: accepts it only while the capability's ledger is genuinely absent.
 AUDIT_SOURCES: dict[str, Callable[[], dict[str, list[Hashable]]] | None] = {
     "estimation": _estimation_keys,
     "deduction_serve": _deduction_keys,
-    "curriculum_serve": None,  # Phase C — see module docstring
+    "curriculum_serve": _curriculum_keys,
 }
 
 
@@ -238,9 +257,10 @@ def test_audit_rejects_impossible_counts() -> None:
 def test_every_licensed_capability_has_an_audit_source() -> None:
     """Derived from `CAPABILITY_LEDGERS`, so a new capability cannot slip past.
 
-    This is the forcing function for Phase C: the moment
-    `chat/data/curriculum_serve_ledger.json` exists, a ``None`` audit source
-    stops being an honest declaration and this fails.
+    This was the forcing function for Phase C, and it worked: a ``None`` audit
+    source stops being an honest declaration the moment the capability's ledger
+    exists. All three producers now carry one, so the guard is holding the line
+    for the NEXT capability rather than for curriculum.
     """
     assert set(AUDIT_SOURCES) == set(CAPABILITY_LEDGERS), (
         "AUDIT_SOURCES and CAPABILITY_LEDGERS disagree — a licensed capability is "
@@ -292,6 +312,31 @@ def test_estimation_producer_has_no_inflation(
         assert audit.max_repeat == 1
         assert audit.clears(THETA_SERVE)
     assert below_floor(estimation_audits, THETA_SERVE) == ()
+
+
+# ---------------------------------------------------------------------------
+# 3b. The curriculum producer — clean, and clean by construction (Phase C).
+# ---------------------------------------------------------------------------
+
+def test_curriculum_producer_has_no_inflation() -> None:
+    """The second producer that satisfies the invariant, and the first that
+    satisfies it STRUCTURALLY.
+
+    Its case identity is the query atom, so ``committed == distinct`` is not a
+    property the generator has to maintain — it is the same fact twice. Pinned here
+    beside the estimation standard because this file is where a reader looks to ask
+    "which producers are honest about volume?".
+    """
+    audits = audit_bands(_curriculum_keys())
+    assert audits, "curriculum producer yielded no bands"
+    assert len(audits) == 11, f"expected 11 populated bands, found {len(audits)}"
+    for audit in audits:
+        assert audit.committed == audit.distinct, format_report(audits, THETA_SERVE)
+        assert audit.inflation == 1.0
+        assert audit.max_repeat == 1
+    assert {a.band for a in below_floor(audits, THETA_SERVE)} == {
+        a.band for a in audits if a.distinct < SERVE_VOLUME_AT_THETA_099
+    }, "a band below the floor must be below it for lack of VOLUME, never inflation"
 
 
 # ---------------------------------------------------------------------------
