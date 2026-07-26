@@ -445,15 +445,34 @@ carrying register decoration. Recomputation is not a supported operation.
 Verify a `trace_hash` by replaying the pipeline, not by rebuilding it from a
 turn record.
 
-**Open, tracked as audit-ledger R7.** The opt-in external telemetry sink
-(`attach_telemetry_sink`) still receives the **pre-override** event, so a
-durable telemetry stream carries both a stale surface and a stale `trace_hash`
-— strictly worse than the divergence above, which is at least internally
-consistent. `chat/runtime.py::finalize_turn_surface` records the limitation at
-the site. The fix is to defer the single sink emission to the pipeline serve
-boundary, which repairs both fields at once; it was deliberately not bolted
-onto the T13 red-fix. The default sink is `None`, so no default deployment is
-affected today.
+**Closed — audit-ledger R7.** The opt-in external telemetry sink now receives
+the **post-override** event. `CognitiveTurnPipeline.run` declares that it owns
+the turn's emission (`ChatRuntime.begin_deferred_turn_emission`); the runtime
+stages the event as an **index into `turn_log`**, and the pipeline flushes it at
+the serve boundary in a `finally`, after `finalize_turn_trace_hash` and
+`finalize_turn_surface` have both landed. Staging an index rather than the
+`TurnEvent` is what makes the record un-stale-able: the flush re-reads the log,
+so it picks up every back-stamp by construction. Deferral is opt-in because the
+pipeline wraps the runtime rather than the reverse, so the runtime cannot detect
+whether one will run; a runtime used directly (the eval and demo paths) emits
+inline, byte-identically and at the same moment as before. Invariants I1–I8 are
+pinned in `tests/test_audit_ledger_r7.py`.
+
+**One correction to the R7 statement as originally written.** It claimed the
+stream carried "both a stale surface and a stale `trace_hash`". It never carried
+a `trace_hash` at all — `chat/telemetry.py` does not serialize the field, so
+there was nothing stale about it. The stale-**surface** half was real and is what
+R7 repaired. Note also that the surface divergence needs
+`realizer_grounded_authority`: with the default config `finalize_turn_surface` is
+a no-op on every input probed (36 turns, zero divergences), because the runtime's
+own surface already wins the resolver. Under that flag the grounded realizer beats
+it and the sealed event genuinely disagrees with the served bytes — 24 divergences
+over 84 turns. A test written against the default config would therefore pass
+while proving nothing, which is why the fixture pins the flag.
+
+Whether a consumer *should* be able to recompute `trace_hash` — i.e. whether
+`TurnEvent` should carry `hash_surface` — remains open and is a separate ruling.
+R7 was only about which of the two records the sink receives.
 
 ### Grounding-source registration
 
