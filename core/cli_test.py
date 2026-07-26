@@ -25,6 +25,7 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_achat.py",
         "tests/test_runtime_config.py",
         "tests/test_cognitive_turn_pipeline.py",
+        "tests/test_audit_ledger_r7.py",
         "tests/test_architectural_invariants.py",
         # Audio sensorium lane — part of the smoke.yml PR gate (compiler,
         # CRDT merge, eval gates, pack manifest, mount, teachers; ~3s).
@@ -95,6 +96,7 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
     "cognition": (
         "tests/test_intent_proposition_graph.py",
         "tests/test_cognitive_turn_pipeline.py",
+        "tests/test_audit_ledger_r7.py",
         "tests/test_articulation_realizer_v2.py",
         "tests/test_semantic_realizer_integration.py",
         "tests/test_cognitive_eval_harness.py",

@@ -165,7 +165,29 @@ class CognitiveTurnPipeline:
     # ------------------------------------------------------------------
 
     def run(self, text: str, max_tokens: int | None = None) -> CognitiveTurnResult:
-        """Execute one full cognitive turn and return a complete result record."""
+        """Execute one full cognitive turn and return a complete result record.
+
+        Audit-ledger R7 — this pipeline owns the turn's telemetry emission.
+        ``ChatRuntime.chat`` seals the ``TurnEvent`` before the surface
+        authority and the canonical ``trace_hash`` are known, so an inline
+        emission put a stale record into the durable stream while ``turn_log``
+        was back-stamped and correct. The runtime cannot detect that a pipeline
+        is wrapping it (the wrapping goes this way, not the other), so the
+        deferral is declared here and flushed at the serve boundary below.
+
+        The ``finally`` is load-bearing (I5): if anything between ``chat``
+        returning and the serve boundary raises, the staged event must still
+        reach the sink. Silently swallowing a telemetry record on the error path
+        would be a worse failure than the staleness this repairs.
+        """
+        self.runtime.begin_deferred_turn_emission()
+        try:
+            return self._run_turn(text, max_tokens=max_tokens)
+        finally:
+            self.runtime.flush_deferred_turn_event()
+
+    def _run_turn(self, text: str, max_tokens: int | None = None) -> CognitiveTurnResult:
+        """The turn body. Call :meth:`run` — it owns the emission boundary."""
 
         # 0. TOKENIZE — once at the top; reused by recognition step and trace.
         raw_tokens: tuple[str, ...] = tuple(self.runtime.tokenize(text))

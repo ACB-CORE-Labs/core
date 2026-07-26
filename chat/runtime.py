@@ -783,6 +783,13 @@ class ChatRuntime:
         # checkpoint is loaded, flushed to the sink on attach_telemetry_sink.
         # None means no reboot was detected this session.
         self._pending_reboot_payload: str | None = None
+        # Audit-ledger R7 — when a CognitiveTurnPipeline owns this turn's sink
+        # emission, the turn event is staged as an INDEX into ``turn_log`` and
+        # emitted at the pipeline's serve boundary, after the surface and
+        # trace_hash back-stamps land. Opt-in (M3): a runtime used directly
+        # emits inline exactly as it did before R7.
+        self._deferred_turn_emission: bool = False
+        self._staged_turn_index: int | None = None
         # L11 — the engine's content-derived identity (who am I), and the
         # identity stamped in the loaded checkpoint (the lineage parent for the
         # next checkpoint). ``_loaded_engine_identity`` stays "" at genesis.
@@ -1235,13 +1242,10 @@ class ChatRuntime:
         contract: operates on the most recent ``TurnEvent`` (main or
         refusal-stub path), no-ops when unchanged or when no turn exists.
 
-        NOTE: the opt-in external telemetry sink (``attach_telemetry_sink``)
-        still receives the pre-override event, the same provisional-then-
-        back-stamped limitation ``finalize_turn_trace_hash`` carries today
-        (default sink is ``None`` → no-op).  Deferring the single sink
-        emission to the pipeline serve boundary — which would repair both
-        surface and ``trace_hash`` in the durable stream — is tracked as a
-        follow-up (audit ledger R7), not bolted onto this red-fix.
+        The opt-in external telemetry sink receives the POST-override event:
+        the pipeline stages its turn event and flushes it at the serve
+        boundary, after this back-stamp and ``finalize_turn_trace_hash`` have
+        both landed (audit-ledger R7, closed — see ``_emit_turn_event``).
         """
         if not self.turn_log:
             return
@@ -1480,7 +1484,16 @@ class ChatRuntime:
         *,
         include_content: bool = False,
     ) -> None:
-        """ADR-0040 — attach a structured-logging sink."""
+        """ADR-0040 — attach a structured-logging sink.
+
+        A buffered REBOOT payload is flushed here; a staged TURN event
+        (:meth:`begin_deferred_turn_emission`) deliberately is NOT. The
+        asymmetry is load-bearing (audit-ledger R7, mechanism M2): the reboot
+        payload is already final when it is buffered, whereas a staged turn
+        event is mid-flight and may not yet carry the pipeline's back-stamped
+        surface and ``trace_hash``. Flushing one on attach would emit the
+        pre-override event and silently restore the defect R7 fixed.
+        """
         self._telemetry_sink = sink
         self._telemetry_include_content = bool(include_content)
         # W-024 / ADR-0158 — flush buffered reboot event now that sink is live.
@@ -1634,18 +1647,82 @@ class ChatRuntime:
         for candidate in candidates:
             sink.emit(format_candidate_jsonl(candidate))
 
-    def _emit_turn_event(self, event: TurnEvent) -> None:
-        sink = self._telemetry_sink
-        if sink is None:
-            return
-        line = format_turn_event_jsonl(
+    def _format_turn_event(self, event: TurnEvent) -> str:
+        return format_turn_event_jsonl(
             event,
             safety_pack_id=self.safety_pack.pack_id,
             ethics_pack_id=self.ethics_pack_id,
             identity_pack_id=self.identity_pack_id,
             include_content=self._telemetry_include_content,
         )
-        sink.emit(line)
+
+    def _emit_turn_event(self, event: TurnEvent) -> None:
+        """Emit one turn event to the sink, or STAGE it for the serve boundary.
+
+        Audit-ledger R7. Emitting inline is correct whenever this runtime owns
+        the final surface — which it does for every direct
+        ``ChatRuntime.chat`` caller, including the eval and demo paths. When a
+        :class:`CognitiveTurnPipeline` wraps the runtime it does not: the
+        pipeline applies the surface authority and computes the canonical
+        ``trace_hash`` AFTER ``chat`` returns, back-stamping both onto
+        ``turn_log[-1]``. Inline emission therefore put a stale ``surface`` and
+        a stale ``trace_hash`` into the durable stream while ``turn_log`` was
+        repaired — the record that persists was the wrong one.
+
+        The runtime cannot detect whether a pipeline will run, because the
+        pipeline wraps it rather than the reverse (M3). So deferral is opt-in:
+        the pipeline declares that it owns the emission.
+        """
+        sink = self._telemetry_sink
+        if sink is None:
+            return
+        if self._deferred_turn_emission and self.turn_log and self.turn_log[-1] is event:
+            # M1 — stage the INDEX, never a copy of the event. At flush time the
+            # log is re-read, so both back-stamps are picked up for free and the
+            # staged record cannot go stale. Capturing the TurnEvent object here
+            # would be the original defect with extra steps.
+            #
+            # I7 — a second staging while one is unflushed flushes the first
+            # rather than dropping it, which bounds the worst case to the final
+            # turn of a session whose pipeline raised before its flush (and I5's
+            # ``finally`` covers that).
+            self._flush_staged_turn_event()
+            self._staged_turn_index = len(self.turn_log) - 1
+            return
+        sink.emit(self._format_turn_event(event))
+
+    def begin_deferred_turn_emission(self) -> None:
+        """Claim ownership of this turn's sink emission (audit-ledger R7, M3).
+
+        Called by :class:`CognitiveTurnPipeline` before it delegates to
+        :meth:`chat`. The caller MUST pair this with
+        :meth:`flush_deferred_turn_event` in a ``finally`` — otherwise a raising
+        pipeline swallows a telemetry record, which is worse than the staleness
+        this repairs.
+        """
+        self._deferred_turn_emission = True
+
+    def _flush_staged_turn_event(self) -> None:
+        index = self._staged_turn_index
+        self._staged_turn_index = None
+        if index is None:
+            return
+        sink = self._telemetry_sink
+        if sink is None or index >= len(self.turn_log):
+            return
+        # Re-read the log: this is where the pipeline's back-stamped surface and
+        # trace_hash enter the durable stream.
+        sink.emit(self._format_turn_event(self.turn_log[index]))
+
+    def flush_deferred_turn_event(self) -> None:
+        """Emit the staged turn event and stop deferring (idempotent).
+
+        Idempotent by construction — the staged index is cleared before the
+        emit — so the exactly-once invariant survives a caller that flushes in
+        both a normal return and a ``finally``.
+        """
+        self._flush_staged_turn_event()
+        self._deferred_turn_emission = False
 
     def _tokenize(self, text: str) -> list[str]:
         return [self._surface_by_fold.get(m.group(0).casefold(), m.group(0)) for m in _TOKEN_RE.finditer(text)]
@@ -3261,7 +3338,17 @@ class ChatRuntime:
     def _emit_correction_event(
         self, correction_result, *, target_turn: int,
     ) -> None:
-        """ADR-0059 — emit one JSONL correction event to the telemetry sink."""
+        """ADR-0059 — emit one JSONL correction event to the telemetry sink.
+
+        Any staged turn event is flushed FIRST (audit-ledger R7, I6). A durable
+        stream's consumers may rely on order, and a correction event for turn
+        *N* must appear after turn *N*'s own event. Ordering this deliberately
+        rather than relying on ``correct()``'s call sequence is the point: today
+        ``correct`` emits here and only then calls :meth:`chat`, so the two
+        happen to land in the right order — a fact about one call site, not an
+        invariant.
+        """
+        self._flush_staged_turn_event()
         sink = self._telemetry_sink
         if sink is None:
             return
