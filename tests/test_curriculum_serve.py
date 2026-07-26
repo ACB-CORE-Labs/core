@@ -26,6 +26,9 @@ from chat.curriculum_surface import (
 )
 from evals.curriculum_serve.oracle import oracle_answer
 from teaching.curriculum_premises import (
+    MAX_PREMISE_SENTENCES,
+    Curriculum,
+    CurriculumChain,
     UnratifiedChain,
     compile_premises,
     load_curriculum,
@@ -37,6 +40,9 @@ from teaching.curriculum_premises import (
 
 
 def test_premises_come_only_from_ratified_chains() -> None:
+    """Without a *query*, ``compile_premises`` compiles the FULL family,
+    unscoped — the pre-ADR-0264 shape, still correct where there is no query
+    to scope by (e.g. a lane audit that wants the whole corpus)."""
     curriculum = load_curriculum("physics")
     premises, chain_ids = compile_premises(curriculum, "causal")
     assert premises == (
@@ -60,12 +66,103 @@ def test_pinned_chain_that_is_not_ratified_fails_loudly() -> None:
 
 
 def test_family_scoping_never_loses_a_taught_edge() -> None:
-    """Compilation is family-scoped; every taught edge is reachable from the
-    family its own connective implies, so scoping cannot hide an answer."""
+    """Every taught edge is reachable from a QUERY-SCOPED compile of its own
+    terms (ADR-0264 R5) — a term-incidence scope built from a chain's own
+    (subject, connective, obj) always contains that chain, so query-scoping
+    cannot hide an answer the full family would have given."""
     curriculum = load_curriculum("physics")
     for chain in curriculum.chains:
-        premises, _ = compile_premises(curriculum, chain.family)
+        premises, _ = compile_premises(
+            curriculum, chain.family, query=(chain.subject, chain.connective, chain.obj)
+        )
         assert chain.sentence in premises
+
+
+# --- query-scoped compilation (ADR-0264 R5-R7) ---------------------------------
+
+
+def test_term_incidence_scope_is_narrower_than_the_full_family() -> None:
+    """The default scope only pulls in chains that share one of the query's
+    two terms — not the whole family — for a query with real neighbours."""
+    curriculum = load_curriculum("physics")
+    full, _ = compile_premises(curriculum, "modal")
+    scoped, _ = compile_premises(
+        curriculum, "modal", query=("mass", "requires", "energy")
+    )
+    assert 0 < len(scoped) < len(full)
+    assert "mass requires force" in scoped  # touches "mass"
+    assert "energy requires conservation" in scoped  # touches "energy"
+
+
+def test_cap_narrowing_falls_back_to_query_atom_rows() -> None:
+    """R5: when term incidence would exceed the reader's
+    ``MAX_PREMISE_SENTENCES`` cap, compilation narrows further to the
+    query-atom rows — never an arbitrary truncation, and the cap is never
+    exceeded either way. A synthetic hub-shaped family (every chain shares
+    one term) is used so the term-incidence scope provably exceeds the cap
+    without depending on any corpus's current size."""
+    chains = tuple(
+        CurriculumChain(f"synthetic-{i}", f"leaf{i}", "requires", "hub", "modal")
+        for i in range(MAX_PREMISE_SENTENCES + 4)
+    )
+    curriculum = Curriculum(domain="synthetic", chains=chains, vocabulary=frozenset())
+    # Every chain touches "hub" -> unscoped term incidence around ("leaf0",
+    # "hub") is the entire (over-cap) family.
+    scoped, ids = compile_premises(curriculum, "modal", query=("leaf0", "requires", "hub"))
+    assert len(scoped) <= MAX_PREMISE_SENTENCES
+    assert scoped == ("leaf0 requires hub",)
+    assert ids == ("synthetic-0",)
+
+
+def test_cap_narrowing_to_an_absent_atom_is_an_empty_scope() -> None:
+    """A query whose exact atom is not among the ratified chains narrows to
+    nothing when the cap forces query-atom scoping — an empty scope, which
+    the surface layer reads as UNKNOWN (R6), never a truncation artifact."""
+    chains = tuple(
+        CurriculumChain(f"synthetic-{i}", f"leaf{i}", "requires", "hub", "modal")
+        for i in range(MAX_PREMISE_SENTENCES + 4)
+    )
+    curriculum = Curriculum(domain="synthetic", chains=chains, vocabulary=frozenset())
+    scoped, ids = compile_premises(
+        curriculum, "modal", query=("nonexistent", "requires", "hub")
+    )
+    assert scoped == () and ids == ()
+
+
+def test_empty_scope_is_unknown_not_declined() -> None:
+    """R6: an empty SCOPE (no ratified chain mentions either query term) is
+    the open-world UNKNOWN reading — distinct from an empty FAMILY. Physics
+    teaches "force" and "acceleration" as members of the causal chain but
+    neither term appears in any MODAL chain, so the modal term-incidence
+    scope around them is empty while the modal family itself (9 chains) is
+    not."""
+    curriculum = load_curriculum("physics")
+    assert curriculum.family("modal")  # the family is not empty
+    decision = decide_curriculum_question("Does acceleration require motion?")
+    assert decision.verdict == "unknown"
+    assert decision.scope_size == 0
+    assert decision.band == band_for("physics", "modal")
+    assert decision.premise_count == len(curriculum.family("modal"))
+
+
+def test_empty_family_is_still_the_empty_curriculum_refusal() -> None:
+    """R6's other half: an empty FAMILY (no ratified chain at all, of any
+    scope) stays the pre-existing `empty_curriculum` refusal — physics has no
+    ratified "sequence" chains, and both terms are taught."""
+    curriculum = load_curriculum("physics")
+    assert not curriculum.family("sequence")
+    decision = decide_curriculum_question("Does force precede acceleration?")
+    assert decision.verdict == "declined"
+    assert decision.reason == "empty_curriculum"
+
+
+def test_premise_count_reports_family_size_scope_size_reports_the_compile() -> None:
+    """R7: `premise_count` stays the user-visible FAMILY size (unchanged
+    surface prose); the query-scoped compile size is carried separately."""
+    curriculum = load_curriculum("physics")
+    decision = decide_curriculum_question("Does force cause acceleration?")
+    assert decision.premise_count == len(curriculum.family("causal"))
+    assert 0 < decision.scope_size <= decision.premise_count
 
 
 # --- the verdicts that matter -------------------------------------------------

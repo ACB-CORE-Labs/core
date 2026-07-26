@@ -41,6 +41,7 @@ from core.capability.domains import (
     DOMAIN_CORPORA,
     DOMAIN_PACKS,
 )
+from generate.proof_chain.verb import MAX_PREMISE_SENTENCES
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -205,15 +206,49 @@ def load_curriculum(domain: str) -> Curriculum:
 
 
 def compile_premises(
-    curriculum: Curriculum, family: str
+    curriculum: Curriculum,
+    family: str,
+    query: tuple[str, str, str] | None = None,
 ) -> tuple[tuple[str, ...], tuple[str, ...]]:
     """``(premise_sentences, chain_ids)`` for *family*, in corpus order.
 
-    Deterministic: the same curriculum and family always compile to the same
-    sentences in the same order, so a lane report over them is SHA-pinnable.
+    Without *query*, the full family is compiled unscoped — the pre-ADR-0264
+    behaviour, still correct where no query exists to scope by.
+
+    With *query* — ``(subject, connective, obj)``, the query's own terms in
+    the curriculum's connective spelling — compilation is QUERY-SCOPED
+    (ADR-0264 R5). The default scope is **term incidence**: every chain whose
+    subject or object is one of the query's two terms. This is a superset of
+    the query's own atom, and since every compiled premise mints one
+    independent propositional atom that no other atom in the argument can
+    constrain, a term-incidence scope decides the query identically to the
+    full family — verified over 8,520 routable questions with zero verdict
+    mismatches (``docs/research/curriculum-premise-scope-2026-07-25.md``
+    probe 3). If term incidence would still exceed the reader's
+    :data:`MAX_PREMISE_SENTENCES` cap, narrow further to the **query-atom
+    rows** — chains whose ``(subject, connective, obj)`` exactly match the
+    query's — which stays verdict-identical for the same reason. Scope is
+    never truncated arbitrarily and never refused for size.
+
+    Deterministic: the same curriculum, family and query always compile to
+    the same sentences in the same order, so a lane report over them is
+    SHA-pinnable.
     """
     chains = curriculum.family(family)
-    return tuple(c.sentence for c in chains), tuple(c.chain_id for c in chains)
+    if query is None:
+        scoped = chains
+    else:
+        q_subject, q_connective, q_obj = query
+        scoped = tuple(
+            c for c in chains if c.subject in (q_subject, q_obj) or c.obj in (q_subject, q_obj)
+        )
+        if len(scoped) > MAX_PREMISE_SENTENCES:
+            scoped = tuple(
+                c
+                for c in chains
+                if c.subject == q_subject and c.connective == q_connective and c.obj == q_obj
+            )
+    return tuple(c.sentence for c in scoped), tuple(c.chain_id for c in scoped)
 
 
 class UnratifiedChain(LookupError):
@@ -242,6 +277,7 @@ def resolve_pinned(curriculum: Curriculum, chain_ids: tuple[str, ...]) -> tuple[
 __all__ = [
     "CONNECTIVE_FAMILY",
     "FAMILIES",
+    "MAX_PREMISE_SENTENCES",
     "Curriculum",
     "CurriculumChain",
     "UnratifiedChain",
