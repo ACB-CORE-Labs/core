@@ -169,16 +169,26 @@ def resolve_family(query: CurriculumQuery) -> str | CurriculumRefusal:
     return CurriculumRefusal("out_of_curriculum", query.verb)
 
 
-def _query_sentence(query: CurriculumQuery, family: str) -> str:
-    """The conclusion sentence, spelled with the CURRICULUM's own connective
-    form so the reader's agreement linking has nothing to do — the question's
-    base form is normalized here, once, visibly."""
+def _resolve_connective(query: CurriculumQuery, family: str) -> str:
+    """The curriculum's own spelling of *query*'s relation, within *family* —
+    the SAME closed agreement relation the verb-predicate band uses
+    (ADR-0260), so a question may spell the relation in its base form while
+    the curriculum states it in the third person. Guarded by
+    :func:`resolve_family`: any *family* reaching this function already has a
+    connective that links to ``query.verb``."""
     for connective in CONNECTIVE_FAMILY:
         if CONNECTIVE_FAMILY[connective] == family and verb_forms_link(
             query.verb, connective
         ):
-            return f"{query.subject} {connective} {query.obj}"
-    return f"{query.subject} {query.verb} {query.obj}"  # pragma: no cover - guarded above
+            return connective
+    return query.verb  # pragma: no cover - guarded above
+
+
+def _query_sentence(query: CurriculumQuery, family: str) -> str:
+    """The conclusion sentence, spelled with the CURRICULUM's own connective
+    form so the reader's agreement linking has nothing to do — the question's
+    base form is normalized here, once, visibly."""
+    return f"{query.subject} {_resolve_connective(query, family)} {query.obj}"
 
 
 def band_for(domain: str, family: str) -> str:
@@ -196,7 +206,8 @@ class CurriculumDecision:
     reason: str           # typed refusal reason, or "" when decided
     domain: str = ""
     family: str = ""
-    premise_count: int = 0
+    premise_count: int = 0  # FAMILY size — user-visible (ADR-0264 R7)
+    scope_size: int = 0     # compiled, query-scoped premise count (R5/R7)
 
 
 def decide_curriculum_question(text: str) -> CurriculumDecision:
@@ -217,10 +228,23 @@ def decide_curriculum_question(text: str) -> CurriculumDecision:
         return CurriculumDecision("declined", "", family.reason, domain=domain)
 
     curriculum = load_curriculum(domain)
-    premises, _chain_ids = compile_premises(curriculum, family)
-    if not premises:
+    family_chains = curriculum.family(family)
+    if not family_chains:
         return CurriculumDecision(
             "declined", "", "empty_curriculum", domain=domain, family=family
+        )
+    family_size = len(family_chains)
+    band = band_for(domain, family)
+    connective = _resolve_connective(query, family)
+    premises, _chain_ids = compile_premises(
+        curriculum, family, query=(query.subject, connective, query.obj)
+    )
+    if not premises:
+        # An empty SCOPE — no ratified chain mentions either query term — is
+        # the open-world UNKNOWN reading (ADR-0264 R6). Distinct from an
+        # empty FAMILY (handled above), which stays `empty_curriculum`.
+        return CurriculumDecision(
+            "unknown", band, "", domain=domain, family=family, premise_count=family_size,
         )
     conclusion = _query_sentence(query, family)
     argument = ". ".join(premises) + f". Therefore {conclusion}."
@@ -235,7 +259,7 @@ def decide_curriculum_question(text: str) -> CurriculumDecision:
         if not isinstance(arg, ExistArgument):
             return CurriculumDecision(
                 "declined", "", "compiled_premises_unreadable",
-                domain=domain, family=family, premise_count=len(premises),
+                domain=domain, family=family, premise_count=family_size,
             )
     trace = evaluate_entailment_with_trace(arg.premise_formulas, arg.query_formula)
     verdict = {
@@ -247,11 +271,12 @@ def decide_curriculum_question(text: str) -> CurriculumDecision:
     reason = trace.reason if trace.outcome is Entailment.REFUSED else ""
     return CurriculumDecision(
         verdict,
-        band_for(domain, family),
+        band,
         reason,
         domain=domain,
         family=family,
-        premise_count=len(premises),
+        premise_count=family_size,
+        scope_size=len(premises),
     )
 
 
