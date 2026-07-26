@@ -1,0 +1,16 @@
+{"id": "pos-cat-A-regular", "kind": "positive_surface", "surface": "All dogs are animals.", "note": "A-form, regular plural"}
+{"id": "pos-cat-A-plural2", "kind": "positive_surface", "surface": "All wolves are mammals.", "note": "A-form, -ves plural (reader singularizes to 'wolve')"}
+{"id": "pos-cat-A-irreg", "kind": "positive_surface", "surface": "All men are mortal men.", "note": "A-form, irregular plural"}
+{"id": "pos-cat-E", "kind": "positive_surface", "surface": "No dogs are cats.", "note": "E-form"}
+{"id": "pos-cat-I", "kind": "positive_surface", "surface": "Some dogs are pets.", "note": "I-form"}
+{"id": "pos-mem", "kind": "positive_surface", "surface": "Socrates is a man.", "note": "singular membership; no categorical surface"}
+{"id": "pos-cmp-taller", "kind": "positive_surface", "surface": "Alice is taller than Bob.", "note": "comparative; no categorical surface"}
+{"id": "pos-cmp-above", "kind": "positive_surface", "surface": "Alice is above Bob.", "note": "spatial comparative; no categorical surface"}
+{"id": "neg-salad-banana", "kind": "negative_surface", "surface": "banana does the.", "note": "passes every content predicate of deterministic_fluency"}
+{"id": "neg-salad-wetground", "kind": "negative_surface", "surface": "wet ground rains the is.", "note": "passes every content predicate of deterministic_fluency"}
+{"id": "neg-salad-isisis", "kind": "negative_surface", "surface": "is is is is.", "note": "passes every content predicate of deterministic_fluency"}
+{"id": "neg-salad-colorless", "kind": "negative_surface", "surface": "colorless green ideas sleep furiously.", "note": "syntactically well-formed, semantically empty"}
+{"id": "neg-salad-funcwords", "kind": "negative_surface", "surface": "the of and to a in that.", "note": "function words only"}
+{"id": "neg-salad-quantonly", "kind": "negative_surface", "surface": "all some no every.", "note": "quantifiers only"}
+{"id": "neg-salad-nonverb", "kind": "negative_surface", "surface": "dog cat mammal animal.", "note": "nouns only, no predicate"}
+{"id": "neg-salad-reversed", "kind": "negative_surface", "surface": "animals are dogs all.", "note": "reversed A-form"}
