@@ -57,7 +57,13 @@ from core.capability.domains import (
     DOMAIN_CORPORA,
     DOMAIN_PACKS,
 )
-from teaching.curriculum_premises import CONNECTIVE_FAMILY, load_curriculum
+from teaching.curriculum_premises import (
+    AFFIRMATIVE,
+    CONNECTIVE_FAMILY,
+    NEGATIVE,
+    POLARITIES,
+    load_curriculum,
+)
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -74,6 +80,10 @@ _ROW_FIELDS: tuple[str, ...] = (
     "intent",
     "connective",
     "object",
+    # ADR-0264 R1 — row-level polarity, emitted only for NEGATIVE rows (see
+    # ``ChainRecord.as_row``). An affirmative row omits it, so every committed
+    # corpus stays byte-identical and no existing lane hash moves.
+    "polarity",
     "subject_pack_id",
     "object_pack_id",
     "review_status",
@@ -100,9 +110,34 @@ class ChainRecord:
     object_pack_id: str
     review_status: str
     provenance: str
+    #: ADR-0264 R1. Defaulted so existing construction sites are unchanged.
+    polarity: str = AFFIRMATIVE
 
     def as_row(self) -> dict[str, Any]:
-        return {name: getattr(self, name) for name in _ROW_FIELDS}
+        """The committed row.
+
+        ``polarity`` is OMITTED when affirmative. An absent field already reads
+        as affirmative (ADR-0264 R1), so emitting it would add a redundant key
+        to every future row while the committed corpora lack it — two spellings
+        of the same fact, and a diff that looks like a schema change on rows
+        whose meaning did not move.
+        """
+        row = {
+            name: getattr(self, name)
+            for name in _ROW_FIELDS
+            if name != "polarity"
+        }
+        if self.polarity != AFFIRMATIVE:
+            # Re-insert in _ROW_FIELDS order — chain corpora are reviewed as
+            # diffs, so key order is part of the artifact.
+            ordered = {}
+            for name in _ROW_FIELDS:
+                if name == "polarity":
+                    ordered["polarity"] = self.polarity
+                else:
+                    ordered[name] = row[name]
+            return ordered
+        return row
 
     def as_jsonl_line(self) -> str:
         """Byte-compatible with the committed corpora: compact separators,
@@ -221,6 +256,7 @@ def build_chain_record(
     reviewer: str,
     rationale: str,
     intent: str = "cause",
+    polarity: str = AFFIRMATIVE,
     chain_id: str | None = None,
 ) -> ChainRecord:
     """Construct the record a reviewed decision implies.
@@ -236,11 +272,20 @@ def build_chain_record(
     if not rationale:
         raise RatificationError("ratification requires a stated rationale")
 
+    polarity = polarity.strip().lower()
+    if polarity not in POLARITIES:
+        raise RatificationError(
+            f"polarity {polarity!r} is not one of {list(POLARITIES)} — the "
+            "curriculum loader would drop this row (ADR-0264 R1)"
+        )
+
     family = CONNECTIVE_FAMILY.get(connective.strip())
     if family is None:
         raise RatificationError(
             f"connective {connective!r} is outside CONNECTIVE_FAMILY "
-            f"{sorted(CONNECTIVE_FAMILY)} — the loader would drop this row"
+            f"{sorted(CONNECTIVE_FAMILY)} — the loader would drop this row. "
+            "A NEGATIVE row must reuse the affirmative connective (ADR-0264 R3), "
+            "never a negated paraphrase of it."
         )
 
     packs = DOMAIN_PACKS.get(domain, ())
@@ -273,6 +318,7 @@ def build_chain_record(
         object_pack_id=object_pack,
         review_status="reviewed",
         provenance=f"ratification-ceremony:{reviewer}:{rationale}",
+        polarity=polarity,
     )
 
 
@@ -298,6 +344,10 @@ def validate_admissible(record: ChainRecord) -> None:
         raise RatificationError(
             f"object {record.object!r} absent from pack {record.object_pack_id}"
         )
+    if record.polarity not in POLARITIES:
+        raise RatificationError(
+            f"polarity {record.polarity!r} has no meaning (ADR-0264 R1)"
+        )
     for row in existing_rows(record.domain):
         if str(row.get("chain_id")) == record.chain_id:
             raise RatificationError(f"chain_id {record.chain_id} already committed")
@@ -306,6 +356,25 @@ def validate_admissible(record: ChainRecord) -> None:
             and str(row.get("connective")) == record.connective
             and str(row.get("object")) == record.object
         ):
+            # ADR-0264 R4 — a corpus stating both polarities of ONE atom is
+            # contradictory, and the contradiction is rejected HERE rather than
+            # discovered at serve time. `evaluate_entailment_with_trace` would
+            # meet `p ∧ ¬p` and refuse INCONSISTENT_PREMISES, which is honest
+            # but arrives as a band that has stopped answering anything in that
+            # family — the curriculum silently going dark instead of the
+            # authoring mistake being named.
+            existing_polarity = (
+                str(row.get("polarity") or AFFIRMATIVE).strip().lower()
+            )
+            if existing_polarity != record.polarity:
+                raise RatificationError(
+                    f"contradiction: {row.get('chain_id')} already teaches "
+                    f"{existing_polarity} '{record.subject} {record.connective} "
+                    f"{record.object}'; this row would teach {record.polarity}. "
+                    "One atom cannot hold both polarities (ADR-0264 R4) — the "
+                    "compiled premises would be inconsistent and the band would "
+                    "refuse every question in the family."
+                )
             raise RatificationError(
                 f"duplicate edge: {row.get('chain_id')} already teaches "
                 f"{record.subject} {record.connective} {record.object}"

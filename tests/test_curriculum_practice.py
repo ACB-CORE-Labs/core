@@ -335,11 +335,20 @@ def test_wrong_is_zero_for_every_band(report: dict) -> None:
 
 
 def test_gold_mix_has_no_refuted_class(report: dict) -> None:
-    """No corpus row can express a negative yet (ADR-0264 R1-R4 unimplemented), so
-    `refuted` is unreachable and the mix is entailed/unknown only. Pinned so the
-    polarity unit has a red test to turn green."""
+    """`refuted` is reachable in MECHANISM but absent from CONTENT.
+
+    ADR-0264 R1–R4/R8 are implemented, so a negative row would be compiled,
+    decided and scored as `refuted` — `tests/test_curriculum_polarity.py` proves
+    that end to end against a temporary corpus row. No negative row is COMMITTED,
+    because authoring curriculum is Phase F and Shay's. So the shipped mix is
+    still entailed/unknown only, and this stays a true statement about the corpus
+    rather than about the machinery.
+    """
     for band, entry in report["classes"].items():
-        assert "refuted" not in entry["gold_mix"], f"{band} produced refuted — polarity landed?"
+        assert "refuted" not in entry["gold_mix"], (
+            f"{band} produced refuted — a negative row was committed. That is "
+            "Phase F content; update this pin deliberately alongside it."
+        )
         assert set(entry["gold_mix"]) <= {"entailed", "unknown", "declined"}
 
 

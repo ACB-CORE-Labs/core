@@ -85,6 +85,12 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # an audit source. It gates a live, flag-ON serving path, so it belongs
         # on the pre-push gate. ~1.5s.
         "tests/test_volume_honesty.py",
+        # ADR-0264 R1-R4/R8 — taught curriculum NEGATIVES. Before this, a row
+        # authored to refute compiled to a premise ASSERTING the atom, and the
+        # independent oracle ignored polarity too, so gold agreed and wrong=0
+        # stayed green. Corpus-level epistemology is unfalsifiable by every
+        # other gate here, so this one belongs on the pre-push gate. ~0.4s.
+        "tests/test_curriculum_polarity.py",
     ),
     "runtime": (
         "tests/test_chat_runtime.py",
@@ -230,6 +236,7 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_deduction_serve_e2e.py",
         "tests/test_curriculum_serve.py",
         "tests/test_curriculum_practice.py",
+        "tests/test_curriculum_polarity.py",
         "tests/test_ledger_reseal.py",
         "tests/test_ratified_ledger_bridge.py",
         "tests/test_vocab_trigger_instrument.py",

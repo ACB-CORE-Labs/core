@@ -79,13 +79,34 @@ def _lemmas(pack_id: str) -> set[str]:
     return out
 
 
-def _edges(domain: str) -> list[tuple[str, str, str, str]]:
-    """``(subject, connective, object, chain_id)`` for every ratified row."""
+#: ADR-0264 R1/R8, restated independently — the serving path has its own copy of
+#: this vocabulary and the two must not share a polarity helper. Code-level
+#: independence is the whole evidentiary value of this oracle: if it imported the
+#: compiler's notion of polarity, agreement would only prove the compiler agrees
+#: with itself, and a polarity bug would be invisible on both sides at once.
+_AFFIRMATIVE = "affirmative"
+_NEGATIVE = "negative"
+_POLARITIES = (_AFFIRMATIVE, _NEGATIVE)
+
+
+def _row_polarity(row: dict) -> str | None:
+    """This oracle's own reading of a row's polarity.
+
+    Absent ⇒ affirmative. An unrecognized token ⇒ ``None``, and the caller drops
+    the row: reading an unknown value as affirmative would let a row someone
+    wrote to refute be scored as an assertion.
+    """
+    value = str(row.get("polarity") or _AFFIRMATIVE).strip().lower()
+    return value if value in _POLARITIES else None
+
+
+def _edges(domain: str) -> list[tuple[str, str, str, str, str]]:
+    """``(subject, connective, object, chain_id, polarity)`` per ratified row."""
     corpora, packs = _DOMAIN_SOURCES[domain]
     vocabulary = set()
     for pack in packs:
         vocabulary |= _lemmas(pack)
-    out: list[tuple[str, str, str, str]] = []
+    out: list[tuple[str, str, str, str, str]] = []
     for corpus in corpora:
         path = _CHAIN_DIR / f"{corpus}.jsonl"
         if not path.exists():
@@ -105,7 +126,12 @@ def _edges(domain: str) -> list[tuple[str, str, str, str]]:
                 continue
             if connective not in _FAMILY_OF_CONNECTIVE:
                 continue
-            out.append((subject, connective, obj, row.get("chain_id", "")))
+            polarity = _row_polarity(row)
+            if polarity is None:
+                continue
+            out.append(
+                (subject, connective, obj, row.get("chain_id", ""), polarity)
+            )
     return out
 
 
@@ -159,12 +185,28 @@ def oracle_answer(domain: str, subject: str, relation: str, obj: str) -> OracleV
     # curriculum teaching "entropy reveals energy" has not thereby taught
     # "entropy causes energy". Family scoping decides which premises are in
     # play; the connective decides what was actually said.
-    if any(s == subject and c == connective and o == obj for s, c, o, _id in edges):
-        return OracleVerdict("entailed", "", family, 1)
+    #
+    # ADR-0264 R1/R8 — and the POLARITY decides which way. A taught negative row
+    # is a taught refutation: the curriculum has said something about this atom,
+    # and what it said is "no". That is categorically different from an absent
+    # edge, which stays UNKNOWN under the open-world reading. Both are checked at
+    # depth 1, against the same atom, so the two cannot be confused.
+    for s, c, o, _id, polarity in edges:
+        if s == subject and c == connective and o == obj:
+            if polarity == _NEGATIVE:
+                return OracleVerdict("refuted", "", family, 1)
+            return OracleVerdict("entailed", "", family, 1)
     # No taught edge. Report the shortest path so the lane can prove the
     # serving path does NOT compose a chain into a claim.
+    #
+    # NEGATIVE rows are EXCLUDED from the adjacency (ADR-0264 R8). Reachability
+    # here exists to measure whether an untaught pair is *composable* from taught
+    # edges, and "a does not X b" supplies no step from a to b — treating it as
+    # one would report a path built out of a denial.
     adjacency: dict[str, list[str]] = {}
-    for s, _c, o, _id in edges:
+    for s, _c, o, _id, polarity in edges:
+        if polarity == _NEGATIVE:
+            continue
         adjacency.setdefault(s, []).append(o)
     seen = {subject}
     queue: deque[tuple[str, int]] = deque([(subject, 0)])
@@ -181,8 +223,11 @@ def oracle_answer(domain: str, subject: str, relation: str, obj: str) -> OracleV
     return OracleVerdict("unknown", "", family, 0)
 
 
-def taught_edges(domain: str) -> list[tuple[str, str, str, str]]:
-    """Public view for the lane's provenance assertions."""
+def taught_edges(domain: str) -> list[tuple[str, str, str, str, str]]:
+    """Public view for the lane's provenance assertions.
+
+    Each row carries its polarity as the fifth element (ADR-0264 R1).
+    """
     return _edges(domain)
 
 

@@ -73,6 +73,21 @@ CONNECTIVE_FAMILY: dict[str, str] = {
 #: Relation families, in a stable order (the band-key axis — ADR-0262 §4).
 FAMILIES: tuple[str, ...] = ("causal", "modal", "sequence", "contrast", "evidential")
 
+#: The two row polarities (ADR-0264 R1). ``polarity`` is a ROW-LEVEL field, not
+#: an ``intent`` value and not a new ``operator_family``: bands key on
+#: *(domain, connective-derived family)*, so a ``modal_negative`` family would
+#: create a fresh band at n=0 instead of adding refuted volume to the band it
+#: belongs to. An ABSENT field reads as affirmative, which is what makes the
+#: existing corpora valid unchanged.
+AFFIRMATIVE = "affirmative"
+NEGATIVE = "negative"
+POLARITIES: tuple[str, str] = (AFFIRMATIVE, NEGATIVE)
+
+#: ADR-0264 R2 — the sentential-negation prefix the argument reader already
+#: parses (``generate/proof_chain/english.py``). Stated once here so the
+#: compiled form cannot drift from the form the reader accepts.
+NEGATION_PREFIX = "it is not the case that "
+
 
 @dataclass(frozen=True, slots=True)
 class CurriculumChain:
@@ -83,13 +98,42 @@ class CurriculumChain:
     connective: str
     obj: str
     family: str
+    #: ADR-0264 R1. Defaulted, so every existing construction site stays valid
+    #: and an un-migrated corpus row reads as the affirmative it always was.
+    polarity: str = AFFIRMATIVE
+
+    @property
+    def negated(self) -> bool:
+        return self.polarity == NEGATIVE
+
+    @property
+    def atom_sentence(self) -> str:
+        """The affirmative core, independent of polarity — the ATOM this chain
+        is about.
+
+        ADR-0264 R3 in one property: a negative row must mint the *same*
+        propositional atom as its affirmative counterpart, or it cannot refute
+        anything. A negative row that reworded the relation would produce a
+        second, unrelated atom and the query would come back UNKNOWN instead of
+        REFUTED — a taught refutation silently failing to refute, which is the
+        worst available outcome here because nothing goes red.
+        """
+        return f"{self.subject} {self.connective} {self.obj}"
 
     @property
     def sentence(self) -> str:
-        """The English premise this chain compiles to. The connective is
-        already a third-person-singular verb form, so the sentence lands in
-        the verb-predicate grammar (ADR-0260) exactly as written."""
-        return f"{self.subject} {self.connective} {self.obj}"
+        """The English premise this chain compiles to.
+
+        The connective is already a third-person-singular verb form, so the
+        affirmative sentence lands in the verb-predicate grammar (ADR-0260)
+        exactly as written. A negative row is the same sentence under the
+        sentential-negation prefix (ADR-0264 R2), which the verb band reads as
+        a negation OF THAT ATOM — so `(¬p, therefore p)` is a tautological
+        refutation and the query decides REFUTED.
+        """
+        if self.negated:
+            return f"{NEGATION_PREFIX}{self.atom_sentence}"
+        return self.atom_sentence
 
 
 @dataclass(frozen=True, slots=True)
@@ -189,6 +233,14 @@ def load_curriculum(domain: str) -> Curriculum:
             family = CONNECTIVE_FAMILY.get(connective)
             if family is None:
                 continue
+            # ADR-0264 R1 — absent polarity IS affirmative. An UNRECOGNIZED
+            # polarity is dropped here rather than guessed: reading an
+            # unknown token as affirmative would turn a row someone wrote to
+            # refute into a row that asserts, which is the one direction of
+            # error this whole rule exists to prevent.
+            polarity = str(row.get("polarity") or AFFIRMATIVE).strip().lower()
+            if polarity not in POLARITIES:
+                continue
             chains.append(
                 CurriculumChain(
                     chain_id=str(row.get("chain_id") or ""),
@@ -196,6 +248,7 @@ def load_curriculum(domain: str) -> Curriculum:
                     connective=connective,
                     obj=str(row.get("object") or "").strip(),
                     family=family,
+                    polarity=polarity,
                 )
             )
     return Curriculum(
@@ -275,9 +328,13 @@ def resolve_pinned(curriculum: Curriculum, chain_ids: tuple[str, ...]) -> tuple[
 
 
 __all__ = [
+    "AFFIRMATIVE",
     "CONNECTIVE_FAMILY",
     "FAMILIES",
     "MAX_PREMISE_SENTENCES",
+    "NEGATION_PREFIX",
+    "NEGATIVE",
+    "POLARITIES",
     "Curriculum",
     "CurriculumChain",
     "UnratifiedChain",

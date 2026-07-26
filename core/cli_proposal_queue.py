@@ -119,6 +119,7 @@ def cmd_proposal_queue_ratify(args: argparse.Namespace) -> int:
             reviewer=args.reviewer,
             rationale=args.rationale,
             intent=args.intent,
+            polarity=args.polarity,
         )
         receipt = ratify_chain(record, dry_run=args.dry_run)
     except RatificationError as exc:
@@ -220,6 +221,8 @@ def cmd_proposal_queue_reseal(args: argparse.Namespace) -> int:
 
 
 def register(subparsers: argparse._SubParsersAction) -> None:
+    from teaching.curriculum_premises import AFFIRMATIVE, POLARITIES
+
     """Attach the ``core proposal-queue`` subcommand tree to a top-level parser."""
     queue = subparsers.add_parser(
         "proposal-queue",
@@ -283,6 +286,18 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     ratify.add_argument("--reviewer", required=True, help="who ratified this")
     ratify.add_argument("--rationale", required=True, help="why it is ratified")
     ratify.add_argument("--intent", default="cause")
+    ratify.add_argument(
+        "--polarity", choices=list(POLARITIES), default=AFFIRMATIVE,
+        help=(
+            "ADR-0264 R1. `negative` ratifies an explicitly TAUGHT refutation: "
+            "the atom compiles under the sentential-negation prefix and the "
+            "question answers `refuted`, which is different from an absent edge "
+            "(UNKNOWN, the open-world reading). Must reuse the AFFIRMATIVE "
+            "connective (R3) — `causes`, never `does not cause` — or it mints a "
+            "different atom and silently fails to refute. Refused if the atom is "
+            "already taught with the other polarity (R4)."
+        ),
+    )
     ratify.add_argument("--dry-run", action="store_true",
                         help="report the band delta without writing")
     ratify.add_argument("--json", action="store_true")
