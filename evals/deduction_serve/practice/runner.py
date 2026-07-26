@@ -28,7 +28,7 @@ from evals.deduction_serve.practice.gold import (
     ConstructionGoldTether,
     DeductionSolver,
     all_gold_problems,
-    assert_corpus_sound,
+    assert_practice_gold_sound,
 )
 
 #: The committed sealed ledger lives next to its serving READER (chat/), mirroring
@@ -96,7 +96,7 @@ def build_sealed_artifact() -> dict[str, Any]:
 def seal_ledger(path: Path = _SEALED_LEDGER_PATH) -> dict[str, Any]:
     """Regenerate + write the committed sealed ledger. Verifies corpus soundness
     against the independent oracle first (a mis-stated gold can never seal)."""
-    assert_corpus_sound()
+    assert_practice_gold_sound()
     return write_sealed_ledger(path, build_sealed_artifact())
 
 
