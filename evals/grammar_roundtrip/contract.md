@@ -36,6 +36,14 @@ Round-trip is falsifiable with no judge, no embedding, and no gold aesthetic.
 | direction | pipeline | what a failure means |
 |---|---|---|
 | **G-round-trip** | graph → `realize_target` → surface → `comprehend` → graph | CORE cannot read its own writing |
+
+> **`realize_target` is eval-only** (Phase 4). `core/cognition/pipeline.py` calls
+> `realize_semantic`, never `realize_target`, so `g_read_rate` is a measurement of
+> the grammar *library* and not of served English. Run through the serving writer
+> instead, the G-direction reads back **nothing** (0.0 vs 0.003413) — see
+> `tests/test_phase4_realizer_resolution.py`. Any claim made from this metric must
+> say which writer it is about.
+
 | **S-round-trip** | surface → `comprehend` → graph → categorical renderer → surface | CORE cannot reproduce what it just understood |
 
 Both are reported because they fail for different reasons and have different
