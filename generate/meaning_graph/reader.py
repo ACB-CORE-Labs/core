@@ -51,6 +51,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
+from generate.lexicon import READER_IRREGULAR_SINGULARS
 from generate.meaning_graph.model import (
     Entity,
     MeaningGraph,
@@ -63,16 +64,7 @@ _ARTICLES = frozenset({"a", "an"})
 
 # Common irregular plurals the corpus exercises. Conservative + closed; an
 # unrecognized plural REFUSES rather than guessing a wrong singular (wrong=0).
-_IRREGULAR_PLURALS = {
-    "people": "person",
-    "men": "man",
-    "women": "woman",
-    "children": "child",
-    "feet": "foot",
-    "teeth": "tooth",
-    "mice": "mouse",
-    "geese": "goose",
-}
+_IRREGULAR_PLURALS = READER_IRREGULAR_SINGULARS
 
 # Categorical quantifier -> the MeaningGraph predicate it mints. The predicate
 # vocabulary is shared between facts and the "therefore" conclusion query, and is

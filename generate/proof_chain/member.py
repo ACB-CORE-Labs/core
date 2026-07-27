@@ -50,6 +50,14 @@ from dataclasses import dataclass
 # The v2-EN sentence splitter and tokenizer are reused VERBATIM (one
 # normalization discipline, no drift between the English-argument bands) —
 # a deliberate private-name import inside the proof_chain package.
+from generate.lexicon import (
+    CONNECTIVES,
+    COPULA_FORMS,
+    IRREGULAR_SINGULARS,
+    NEGATION_BEARING_WITH_NOT,
+    QUANTIFIER_TOKENS,
+    SENTENTIAL_NOT,
+)
 from generate.proof_chain.english import _SENTENCE_RE, _tokenize
 from generate.proof_chain.shape import (
     EN_MEMBER_ATOMIC,
@@ -65,32 +73,25 @@ _E_LEAD = "no"
 #: Quantifier tokens (determiners AND pronouns) this band cannot lower —
 #: existential/plurality readings refuse rather than misread "everyone" or
 #: "some men" as an individual. A/E leads are dispatched before this check.
-_QUANTIFIER_TOKENS = frozenset({
-    "all", "every", "each", "no", "some", "none", "any", "most", "few",
-    "many", "several", "both", "either", "neither",
-    "everyone", "everybody", "everything", "someone", "somebody",
-    "something", "anyone", "anybody", "anything", "nobody", "nothing",
-})
+_QUANTIFIER_TOKENS = QUANTIFIER_TOKENS
 
 #: Connective structure this band does not compose (a future band fuses the
 #: v2-EN connective grammar with these sentence readings — ADR-0258 §6.1).
-_CONNECTIVES = frozenset({"if", "then", "or", "and", "either"})
+_CONNECTIVES = CONNECTIVES
 
 #: Negation-bearing tokens with no normalized reading here (only the copular
 #: ``is not`` slot and the sentential prefix are normalized).
-_NEGATION_BEARING = frozenset({
-    "not", "never", "cannot", "nor", "neither", "nothing", "none", "no",
-})
+_NEGATION_BEARING = NEGATION_BEARING_WITH_NOT
 
 #: Relative-clause markers — internal structure a name/class run must not hide.
 _RELATIVE_MARKERS = frozenset({"that", "which", "who", "whom", "whose"})
 
 #: All copular forms recognized for DISPATCH; only ``is``/``are`` are in-band
 #: (tense is a deliberate scope-out — ADR-0258 §6.3).
-_COPULA_FORMS = ("is", "are", "was", "were")
+_COPULA_FORMS = COPULA_FORMS
 
 #: The "it is not the case that <singular>" sentential-negation prefix.
-_SENTENTIAL_NOT = ("it", "is", "not", "the", "case", "that")
+_SENTENTIAL_NOT = SENTENTIAL_NOT
 
 #: Honesty caps — beyond these the argument is refused, never truncated.
 #: ``MAX_ATOMS`` counts minted (individual, class) pairs, so instantiation
@@ -104,19 +105,7 @@ MAX_ATOMS = 24
 #: only authority for that pair — which is what keeps ``species``/``specie``
 #: and ``news``/``new`` unlinked. CORE's first morphology table; promoted to
 #: a ratified pack when the tri-language siblings land (ADR-0258 §5).
-_IRREGULAR_PLURALS: dict[str, str] = {
-    "men": "man", "women": "woman", "people": "person",
-    "children": "child", "mice": "mouse", "geese": "goose",
-    "feet": "foot", "teeth": "tooth", "oxen": "ox",
-    "wolves": "wolf", "knives": "knife", "lives": "life",
-    "leaves": "leaf", "halves": "half", "elves": "elf",
-    "loaves": "loaf", "thieves": "thief", "cacti": "cactus",
-    "fungi": "fungus", "dice": "die",
-    # invariants (plural == singular)
-    "sheep": "sheep", "fish": "fish", "deer": "deer",
-    "species": "species", "series": "series", "means": "means",
-    "offspring": "offspring", "aircraft": "aircraft", "news": "news",
-}
+_IRREGULAR_PLURALS: dict[str, str] = IRREGULAR_SINGULARS
 _TABLE_TOKENS = frozenset(_IRREGULAR_PLURALS) | frozenset(_IRREGULAR_PLURALS.values())
 
 _SIBILANT_ENDINGS = ("s", "x", "z", "ch", "sh")

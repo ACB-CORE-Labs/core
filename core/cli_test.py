@@ -245,6 +245,7 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_ratified_ledger_bridge.py",
         "tests/test_vocab_trigger_instrument.py",
         "tests/test_grammar_roundtrip.py",
+        "tests/test_lexicon_single_source.py",
     ),
     "full": ("tests/",),
 }

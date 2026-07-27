@@ -66,6 +66,7 @@ from dataclasses import dataclass
 # sibilant set are reused VERBATIM — deliberate private-name imports inside
 # the proof_chain package, same precedent as generate.proof_chain.member and
 # generate.proof_chain.cond_member.
+from generate.lexicon import CONNECTIVES
 from generate.proof_chain.english import _SENTENCE_RE, _tokenize
 from generate.proof_chain.member import (
     _A_LEADS,
@@ -91,7 +92,7 @@ from generate.proof_chain.shape import (
 
 #: Connective structure this band does not compose (a future band fuses the
 #: v2-EN/v4-CM connective grammar with verb sentences — ADR-0260 §5).
-_CONNECTIVES = frozenset({"if", "then", "or", "and", "either"})
+_CONNECTIVES = CONNECTIVES
 
 #: Auxiliary/determiner tokens that can never BE the verb or object of an
 #: in-band sentence. ``does`` is consumed only by the exact ``does not``

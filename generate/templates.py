@@ -12,6 +12,11 @@ consumes these as constraints rather than final output.
 
 from __future__ import annotations
 
+from generate.lexicon import (
+    IRREGULAR_PLURALS,
+    PLURAL_QUANTIFIERS,
+    PREDICATE_DISPLAY,
+)
 from generate.articulation_legality import (
     ArticulationLegality,
     validate_finite_predicate_legality,
@@ -22,19 +27,7 @@ from generate.morphology import base_form, past_participle, past_tense, present_
 
 # Noun pluralisation — used under quantifiers (all/some/many/few/most).
 # Closes english_fluency_ood gaps.md G2 (plural agreement).
-_IRREGULAR_PLURALS: dict[str, str] = {
-    "child": "children", "ox": "oxen", "foot": "feet", "tooth": "teeth",
-    "man": "men", "woman": "women", "person": "people",
-    "mouse": "mice", "louse": "lice", "goose": "geese",
-    # invariant
-    "sheep": "sheep", "fish": "fish", "deer": "deer", "moose": "moose",
-    "series": "series", "species": "species",
-    # latin/greek-origin domain vocabulary
-    "datum": "data", "criterion": "criteria", "phenomenon": "phenomena",
-    "analysis": "analyses", "axis": "axes", "basis": "bases",
-    "thesis": "theses", "hypothesis": "hypotheses",
-    "mitochondrion": "mitochondria",
-}
+_IRREGULAR_PLURALS: dict[str, str] = IRREGULAR_PLURALS
 
 
 def pluralize(noun: str) -> str:
@@ -57,9 +50,7 @@ def pluralize(noun: str) -> str:
 # Quantifiers that demand plural agreement on the subject + verb.
 # "the" / "a" stay singular; "every" / "each" are singular by English
 # rule even though semantically universal.
-_PLURAL_QUANTIFIERS: frozenset[str] = frozenset({
-    "all", "some", "many", "few", "most", "several", "various", "no",
-})
+_PLURAL_QUANTIFIERS: frozenset[str] = PLURAL_QUANTIFIERS
 
 # Mass nouns — uncountable in English, so "all evidence", "some wisdom"
 # stay singular under quantifiers ("all evidences" is wrong).  The
@@ -87,34 +78,7 @@ def is_mass_noun(noun: str) -> bool:
     return noun.lower() in _MASS_NOUNS
 
 
-_PREDICATE_DISPLAY: dict[str, str] = {
-    "is_defined_as": "is defined as",
-    "is_caused_by": "is caused by",
-    "has_steps": "has the following steps",
-    "contrasts_with": "contrasts with",
-    "corrects": "corrects",
-    "recalls": "recalls",
-    "is_verified_as": "is verified as",
-    "addresses": "addresses",
-    "defines": "defines",
-    "means": "means",
-    "grounds": "grounds",
-    "supports": "supports",
-    "causes": "causes",
-    "reveals": "reveals",
-    "precedes": "precedes",
-    "follows": "follows",
-    "belongs_to": "belongs to",
-    "answers": "answers",
-    "is_grounded_in": "is grounded in",
-    "is_distinguished_from": "is distinguished from",
-    "implies": "implies",
-    "entails": "entails",
-    "requires": "requires",
-    "verifies": "verifies",
-    "evidences": "evidences",
-    "orders": "orders",
-}
+_PREDICATE_DISPLAY: dict[str, str] = PREDICATE_DISPLAY
 
 
 def _humanize_predicate(predicate: str) -> str:

@@ -49,6 +49,13 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from generate.lexicon import (
+    COPULAS,
+    NEGATION_BEARING,
+    QUANTIFIER_LEAD,
+    SENTENTIAL_NOT,
+    STRUCTURAL,
+)
 from generate.proof_chain.shape import (
     EN_ATOMIC,
     EN_CONDITIONAL_CHAIN,
@@ -61,21 +68,23 @@ _SENTENCE_RE = re.compile(r"\s*([^.?!]+?)\s*([.?!])")
 
 #: Structural function words. One may never survive into an opaque atom — a
 #: leftover here means the clause has structure this grammar did not consume.
-_STRUCTURAL = frozenset({"if", "then", "or", "and", "either", "therefore"})
+_STRUCTURAL = STRUCTURAL
 
 #: Quantifier-led clause = categorical shape ("all whales are mammals") — real
 #: internal structure the opaque band must NOT flatten (a valid syllogism read
 #: as three opaque atoms would yield a misleading "doesn't follow"). Refused
 #: here; the categorical band (v1b) is the honest home for these.
-_QUANTIFIER_LEAD = frozenset({"all", "every", "each", "no", "some", "none", "any", "most"})
+_QUANTIFIER_LEAD = QUANTIFIER_LEAD
 
 #: Negation-bearing tokens inside a clause that this band cannot normalize.
 #: Leaving one inside an opaque atom would hide a negation from the engine
 #: ("it never rains" vs "it rains" would be unrelated atoms) — refuse instead.
-_NEGATION_BEARING = frozenset({"never", "cannot", "nor", "neither", "nothing", "none", "no"})
+#: This band deliberately EXCLUDES bare ``not``, which the copular rule below
+#: normalizes — see ``lexicon.NEGATION_BEARING_WITH_NOT`` for the divergence.
+_NEGATION_BEARING = NEGATION_BEARING
 
 #: Copulas whose "<copula> not" form this band DOES normalize into ``~atom``.
-_COPULAS = frozenset({"is", "are", "was", "were"})
+_COPULAS = COPULAS
 
 #: Contraction → expanded tokens (applied before parsing; deterministic).
 _CONTRACTIONS = {
@@ -86,7 +95,7 @@ _CONTRACTIONS = {
 }
 
 #: The "it is not the case that <X>" sentential-negation prefix.
-_SENTENTIAL_NOT = ("it", "is", "not", "the", "case", "that")
+_SENTENTIAL_NOT = SENTENTIAL_NOT
 
 #: Honesty caps — an argument beyond these is refused, not truncated.
 MAX_PREMISE_SENTENCES = 16

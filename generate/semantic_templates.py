@@ -13,6 +13,7 @@ Design constraints:
 
 from __future__ import annotations
 
+from generate.lexicon import PREDICATE_DISPLAY
 from generate.intent import IntentTag
 
 
@@ -27,34 +28,7 @@ _INTENT_TEMPLATES: dict[IntentTag, str] = {
     IntentTag.UNKNOWN: "{subject} {predicate_h} {obj}",
 }
 
-_PREDICATE_HUMANIZE: dict[str, str] = {
-    "is_defined_as": "is defined as",
-    "is_caused_by": "is caused by",
-    "has_steps": "has the following steps",
-    "contrasts_with": "contrasts with",
-    "corrects": "corrects",
-    "recalls": "recalls",
-    "is_verified_as": "is verified as",
-    "addresses": "addresses",
-    "defines": "defines",
-    "means": "means",
-    "grounds": "grounds",
-    "supports": "supports",
-    "causes": "causes",
-    "reveals": "reveals",
-    "precedes": "precedes",
-    "follows": "follows",
-    "belongs_to": "belongs to",
-    "answers": "answers",
-    "is_grounded_in": "is grounded in",
-    "is_distinguished_from": "is distinguished from",
-    "implies": "implies",
-    "entails": "entails",
-    "requires": "requires",
-    "verifies": "verifies",
-    "evidences": "evidences",
-    "orders": "orders",
-}
+_PREDICATE_HUMANIZE: dict[str, str] = PREDICATE_DISPLAY
 
 
 def humanize_predicate(predicate: str) -> str:
