@@ -9,7 +9,12 @@ pipeline ``chat/deduction_surface.py`` runs), distinct from the bare-engine
 
 from __future__ import annotations
 
-from evals.deduction_serve.runner import _ROOT, _load, build_report
+from evals.deduction_serve.runner import (
+    _ROOT,
+    _load,
+    build_combined_report,
+    build_report,
+)
 
 _V1 = _ROOT / "v1" / "cases.jsonl"
 _V2_EN = _ROOT / "v2_en" / "cases.jsonl"
@@ -136,3 +141,57 @@ def test_runner_treats_wrong_verdict_as_the_only_real_failure() -> None:
     ])
     assert report["counts"]["wrong"] == 1
     assert report["all_cases_correct"] is False
+
+
+def test_the_pinned_report_records_what_the_user_actually_reads() -> None:
+    """Every committed case contributes its SERVED PROSE to the pinned bytes.
+
+    Before 2026-07-27 the pinned artifact held verdict counts only, on the
+    stated rationale that prose is "presentation, not decision" and that
+    wording was covered by ``tests/test_deduction_surface.py``. Measured, it
+    was not: see the mutation test below.
+    """
+    report = build_combined_report()
+    for name, split in report["splits"].items():
+        assert len(split["surfaces"]) == split["n"], name
+        assert len(split["surface_sha256"]) == 64, name
+        for row in split["surfaces"]:
+            assert row["surface"], f"{name}/{row['id']} served empty prose"
+
+
+def test_surface_hash_moves_when_the_renderer_is_sabotaged(monkeypatch) -> None:
+    """THE MUTATION PROOF — without this, the field above is decoration.
+
+    A pin that cannot fail guards nothing. This corrupts the categorical noun
+    renderer exactly as the 2026-07-27 investigation did (every clause becomes
+    "all SABOTAGE_dogs are SABOTAGE_animals") and requires the pinned digest to
+    move.
+
+    Historical note, and the reason this test exists: under that same sabotage
+    the 11 lane SHA pins stayed 11/11 byte-identical, this file's other 20
+    tests passed, and all 41 tests in ``tests/test_deduction_surface.py``
+    passed. Only ``evals/grammar_roundtrip`` caught it. CORE could have served
+    word salad indefinitely with every hash gate green.
+    """
+    from generate.proof_chain import render
+
+    clean = build_combined_report()
+
+    original = render._display_noun
+    monkeypatch.setattr(
+        render, "_display_noun", lambda term: "SABOTAGE_" + original(term)
+    )
+    sabotaged = build_combined_report()
+
+    moved = [
+        name
+        for name in clean["splits"]
+        if clean["splits"][name]["surface_sha256"]
+        != sabotaged["splits"][name]["surface_sha256"]
+    ]
+    assert moved, "sabotaging the renderer did not move any surface digest"
+
+    # And the verdicts must be untouched — this proves the digest is tracking
+    # PROSE, not smuggling in a decision change.
+    assert clean["aggregate"] == sabotaged["aggregate"]
+    assert sabotaged["wrong_is_zero"] is True
