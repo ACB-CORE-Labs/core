@@ -33,7 +33,122 @@
         "declined": 0,
         "wrong": 0
       },
-      "n": 28
+      "n": 28,
+      "surface_sha256": "0c36317b61e7f6ad6f8ac8a8f99a9e6c70d78cc86ccb90cd7d930fd94fdc1f81",
+      "surfaces": [
+        {
+          "id": "ds-v1-0001",
+          "surface": "Given: s implies t; s. Your premises entail: t."
+        },
+        {
+          "id": "ds-v1-0002",
+          "surface": "Given: s implies t; not t. Your premises entail: not s."
+        },
+        {
+          "id": "ds-v1-0003",
+          "surface": "Given: p implies q; q implies r. Your premises entail: p implies r."
+        },
+        {
+          "id": "ds-v1-0004",
+          "surface": "Given: p or q; not p. Your premises entail: q."
+        },
+        {
+          "id": "ds-v1-0005",
+          "surface": "Given: p or q; not q. Your premises entail: p."
+        },
+        {
+          "id": "ds-v1-0006",
+          "surface": "Given: if p then q. Your premises entail: if not q then not p."
+        },
+        {
+          "id": "ds-v1-0007",
+          "surface": "Given: p. Your premises entail: p."
+        },
+        {
+          "id": "ds-v1-0008",
+          "surface": "Given: p implies q; r implies q; p or r. Your premises entail: q."
+        },
+        {
+          "id": "ds-v1-0009",
+          "surface": "Given: p implies q; not q. Your premises entail the opposite of p \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-v1-0010",
+          "surface": "Given: p or q; not p. Your premises entail the opposite of p \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-v1-0011",
+          "surface": "Given: p implies q; p. Your premises entail the opposite of not q \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-v1-0012",
+          "surface": "Given: not p. Your premises entail the opposite of p \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-v1-0013",
+          "surface": "Given: p implies q; q implies r; p. Your premises entail the opposite of not r \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-v1-0014",
+          "surface": "Given: p or q. Your premises don't settle whether p \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-v1-0015",
+          "surface": "Given: p implies q. Your premises don't settle whether p \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-v1-0016",
+          "surface": "Given: p implies q. Your premises don't settle whether q \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-v1-0017",
+          "surface": "Given: p or q. Your premises don't settle whether q \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-v1-0018",
+          "surface": "Given: p implies q; r implies q. Your premises don't settle whether p \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-v1-0019",
+          "surface": "Given: p; not p. Those premises are inconsistent \u2014 they can't all be true, so I won't assert anything from them."
+        },
+        {
+          "id": "ds-v1-0020",
+          "surface": "Given: p implies q; p; not q. Those premises are inconsistent \u2014 they can't all be true, so I won't assert anything from them."
+        },
+        {
+          "id": "ds-v1-0021",
+          "surface": "Given: p; not p. Those premises are inconsistent \u2014 they can't all be true, so I won't assert anything from them."
+        },
+        {
+          "id": "ds-v1-0022",
+          "surface": "Given: p or q; not p; not q. Those premises are inconsistent \u2014 they can't all be true, so I won't assert anything from them."
+        },
+        {
+          "id": "ds-v1-0023",
+          "surface": "Given: all mammals are animals; all whales are mammals. That's valid \u2014 all whales are animals follows."
+        },
+        {
+          "id": "ds-v1-0024",
+          "surface": "Given: no reptiles are mammals; all snakes are reptiles. That's valid \u2014 no snakes are mammals follows."
+        },
+        {
+          "id": "ds-v1-0025",
+          "surface": "Given: if it rains then the ground is wet; it rains. Your premises entail: the ground is wet."
+        },
+        {
+          "id": "ds-v1-0026",
+          "surface": "Given: some students are poets; all poets are artists. That's valid \u2014 some students are artists follows."
+        },
+        {
+          "id": "ds-v1-0028",
+          "surface": "Given: all cats are animals; all dogs are animals. That doesn't follow \u2014 all dogs are cats isn't guaranteed by those premises."
+        },
+        {
+          "id": "ds-v1-0027",
+          "surface": "Given: p implies q; q implies r; r implies s; p. Your premises entail: s."
+        }
+      ]
     },
     "v2_condmem": {
       "all_cases_correct": true,
@@ -54,7 +169,114 @@
         "declined": 0,
         "wrong": 0
       },
-      "n": 26
+      "n": 26,
+      "surface_sha256": "fb7d86b19ee9286b43a1b4475653d62b819e07fd89113476def13f5f55cfc308",
+      "surfaces": [
+        {
+          "id": "ds-cm-0001",
+          "surface": "Given: if socrates is a man then socrates is mortal; socrates is a man. Your premises entail: socrates is mortal."
+        },
+        {
+          "id": "ds-cm-0002",
+          "surface": "Given: if the museum is open then the ticket booth is staffed; the ticket booth is not staffed. Your premises entail: the museum is not open."
+        },
+        {
+          "id": "ds-cm-0003",
+          "surface": "Given: either the witness is lying or the suspect is guilty; the witness is not lying. Your premises entail: the suspect is guilty."
+        },
+        {
+          "id": "ds-cm-0004",
+          "surface": "Given: the key is in the drawer or the key is on the hook; the key is not in the drawer. Your premises entail: the key is on the hook."
+        },
+        {
+          "id": "ds-cm-0005",
+          "surface": "Given: if the alarm is triggered then the guard is alerted; if the sensor is triggered then the guard is alerted; the alarm is triggered or the sensor is triggered. Your premises entail: the guard is alerted."
+        },
+        {
+          "id": "ds-cm-0006",
+          "surface": "Given: if the pressure is high then the valve is open; if the valve is open then the tank is draining; the pressure is high. Your premises entail: the tank is draining."
+        },
+        {
+          "id": "ds-cm-0007",
+          "surface": "Given: if nova is a suspect then nova is a person of interest; if nova is a person of interest then nova is a flight risk; nova is a suspect. Your premises entail: nova is a flight risk."
+        },
+        {
+          "id": "ds-cm-0008",
+          "surface": "Given: all engineers are employees; if dax is an employee then dax is insured; dax is an engineer. Your premises entail: dax is insured."
+        },
+        {
+          "id": "ds-cm-0009",
+          "surface": "Given: if dax is an employee then dax is insured; all contractors are employees; dax is a contractor. Your premises entail: dax is insured."
+        },
+        {
+          "id": "ds-cm-0010",
+          "surface": "Given: all students are learners; priya is a student; if priya is a learner then priya is curious. Your premises entail: priya is curious."
+        },
+        {
+          "id": "ds-cm-0011",
+          "surface": "Given: if the reactor is critical then the reactor is unstable; the reactor is critical. Your premises entail the opposite of the reactor is not unstable \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-cm-0012",
+          "surface": "Given: if the code compiles then the code is buildable; if the code is buildable then the code is deployable; the code compiles. Your premises entail the opposite of the code is not deployable \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-cm-0013",
+          "surface": "Given: all interns are trainees; if kai is a trainee then kai is supervised; kai is an intern. Your premises entail the opposite of kai is not supervised \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-cm-0014",
+          "surface": "Given: the switch is on or the switch is off; the switch is not on. Your premises entail the opposite of the switch is not off \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-cm-0015",
+          "surface": "Given: if it is raining then the ground is wet; the ground is wet. Reading each clause as one indivisible claim, your premises don't settle whether it is raining \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-cm-0016",
+          "surface": "Given: if the server is overloaded then the response is slow; the server is not overloaded. Reading each clause as one indivisible claim, your premises don't settle whether the response is not slow \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-cm-0017",
+          "surface": "Given: if the bridge is closed then the traffic is rerouted. Reading each clause as one indivisible claim, your premises don't settle whether the bridge is closed \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-cm-0018",
+          "surface": "Given: the door is locked or the door is unlocked. Reading each clause as one indivisible claim, your premises don't settle whether the door is locked \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-cm-0019",
+          "surface": "Given: all senators are legislators; if elio is a legislator then elio is a committee member; priya is a senator. Reading each name as one individual and each class word at face value, your premises don't settle whether elio is a committee member \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-cm-0020",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        },
+        {
+          "id": "ds-cm-0021",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        },
+        {
+          "id": "ds-cm-0022",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        },
+        {
+          "id": "ds-cm-0023",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        },
+        {
+          "id": "ds-cm-0024",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        },
+        {
+          "id": "ds-cm-0025",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        },
+        {
+          "id": "ds-cm-0026",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        }
+      ]
     },
     "v2_en": {
       "all_cases_correct": true,
@@ -75,7 +297,114 @@
         "declined": 0,
         "wrong": 0
       },
-      "n": 26
+      "n": 26,
+      "surface_sha256": "ee1866c501556f8907c447050ca42d3e62c38ec5cef60303d65863a5a7827e0c",
+      "surfaces": [
+        {
+          "id": "ds-en-0001",
+          "surface": "Given: if it rains then the ground is wet; it rains. Your premises entail: the ground is wet."
+        },
+        {
+          "id": "ds-en-0002",
+          "surface": "Given: if the alarm is armed then the light is on; the light is not on. Your premises entail: the alarm is not armed."
+        },
+        {
+          "id": "ds-en-0003",
+          "surface": "Given: either the door is open or the window is open; the door is not open. Your premises entail: the window is open."
+        },
+        {
+          "id": "ds-en-0004",
+          "surface": "Given: if the pump runs then the tank fills; if the valve opens then the tank fills; the pump runs or the valve opens. Your premises entail: the tank fills."
+        },
+        {
+          "id": "ds-en-0005",
+          "surface": "Given: if it rains then the ground is wet; if the ground is wet then the match is cancelled. Your premises entail: if it rains then the match is cancelled."
+        },
+        {
+          "id": "ds-en-0006",
+          "surface": "Given: the oven is hot and the dough is ready. Your premises entail: the dough is ready."
+        },
+        {
+          "id": "ds-en-0007",
+          "surface": "Given: the kettle is boiling; the toast is ready. Your premises entail: the kettle is boiling and the toast is ready."
+        },
+        {
+          "id": "ds-en-0008",
+          "surface": "Given: the train is late. Your premises entail: the train is late or the bus is early."
+        },
+        {
+          "id": "ds-en-0009",
+          "surface": "Given: it is not the case that the store is open. Your premises entail: the store is not open."
+        },
+        {
+          "id": "ds-en-0010",
+          "surface": "Given: if the seal is broken then the tank is empty; if the tank is empty then the pump is dry; the pump is not dry. Your premises entail: the seal is not broken."
+        },
+        {
+          "id": "ds-en-0011",
+          "surface": "Given: if the bell rings then the class is over; if the class is over then the hall is crowded; the bell rings. Your premises entail: the hall is crowded."
+        },
+        {
+          "id": "ds-en-0012",
+          "surface": "Given: if the printer is jammed then the queue is stuck; the queue is not stuck. Your premises entail: the printer is not jammed."
+        },
+        {
+          "id": "ds-en-0013",
+          "surface": "Given: the report is filed. Your premises entail: the report is filed."
+        },
+        {
+          "id": "ds-en-0014",
+          "surface": "Given: if it rains then the ground is wet; it rains. Your premises entail the opposite of the ground is not wet \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-en-0015",
+          "surface": "Given: the gate is locked. Your premises entail the opposite of the gate is not locked \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-en-0016",
+          "surface": "Given: the cat is inside or the dog is inside; the cat is not inside. Your premises entail the opposite of the dog is not inside \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-en-0017",
+          "surface": "Given: if it rains then the ground is wet; the ground is wet. Reading each clause as one indivisible claim, your premises don't settle whether it rains \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-en-0018",
+          "surface": "Given: if the oven is on then the kitchen is warm; the oven is not on. Reading each clause as one indivisible claim, your premises don't settle whether the kitchen is not warm \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-en-0019",
+          "surface": "Given: the key is lost or the lock is broken. Reading each clause as one indivisible claim, your premises don't settle whether the key is lost \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-en-0020",
+          "surface": "Given: the sky is clear. Reading each clause as one indivisible claim, your premises don't settle whether the sea is calm \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-en-0021",
+          "surface": "Given: the door is open; the door is not open. Those premises are inconsistent \u2014 they can't all be true, so I won't assert anything from them."
+        },
+        {
+          "id": "ds-en-0022",
+          "surface": "Given: socrates is a man. Your premises entail: socrates is a man."
+        },
+        {
+          "id": "ds-en-0023",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-en-0024",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-en-0025",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        },
+        {
+          "id": "ds-en-0026",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        }
+      ]
     },
     "v2_exist": {
       "all_cases_correct": true,
@@ -96,7 +425,138 @@
         "declined": 0,
         "wrong": 0
       },
-      "n": 32
+      "n": 32,
+      "surface_sha256": "1713d4a839fb73c0dc7fc416e11c159cdae6661bebadbddd754978b96f98c3c7",
+      "surfaces": [
+        {
+          "id": "ds-ex-0001",
+          "surface": "Given: every mammal is a vertebrate; some whales are mammals. Your premises entail: some whales are vertebrates."
+        },
+        {
+          "id": "ds-ex-0002",
+          "surface": "Given: some philosophers are greeks; zeno is a greek. Your premises entail: some greeks are philosophers."
+        },
+        {
+          "id": "ds-ex-0003",
+          "surface": "Given: socrates is a philosopher; socrates is wise. Your premises entail: some philosophers are wise."
+        },
+        {
+          "id": "ds-ex-0004",
+          "surface": "Given: mars is a planet; no planets are stars; some wanderers are planets. Your premises entail: some wanderers are not stars."
+        },
+        {
+          "id": "ds-ex-0005",
+          "surface": "Given: all metals conduct heat; some alloys are metals. Your premises entail: some alloys conduct heat."
+        },
+        {
+          "id": "ds-ex-0006",
+          "surface": "Given: no reptiles nurse young; some lizards are reptiles. Your premises entail: some lizards do not nurse young."
+        },
+        {
+          "id": "ds-ex-0007",
+          "surface": "Given: some canaries are songbirds; all songbirds are perchers; all perchers are agile. Your premises entail: some canaries are agile."
+        },
+        {
+          "id": "ds-ex-0008",
+          "surface": "Given: aristotle is a philosopher; all philosophers are scholars. Your premises entail: some scholars are philosophers."
+        },
+        {
+          "id": "ds-ex-0009",
+          "surface": "Given: some tortoises are ancient. Your premises entail: some tortoises are ancient."
+        },
+        {
+          "id": "ds-ex-0010",
+          "surface": "Given: some hermits are not sociable. Your premises entail: some hermits are not sociable."
+        },
+        {
+          "id": "ds-ex-0011",
+          "surface": "Given: every goose is a bird; some geese are gray. Your premises entail: some birds are gray."
+        },
+        {
+          "id": "ds-ex-0012",
+          "surface": "Given: no fish are mammals. Your premises entail the opposite of some fish are mammals \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-ex-0013",
+          "surface": "Given: every square is a rectangle. Your premises entail the opposite of some squares are not rectangles \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-ex-0014",
+          "surface": "Given: bede is a monk; no monks are talkative; some scribes are monks. Your premises entail the opposite of bede is talkative \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-ex-0015",
+          "surface": "Given: nile is a river; all rivers are wet; some rivers are wide. Your premises entail the opposite of nile is not wet \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-ex-0016",
+          "surface": "Given: some sailors are brave; magellan is a sailor. Reading each name as one individual, each class word and verb phrase at face value, and \"some\" as claiming a member exists (so \"all\" does not), your premises don't settle whether magellan is brave \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-ex-0017",
+          "surface": "Given: all unicorns are horned. Reading each name as one individual, each class word and verb phrase at face value, and \"some\" as claiming a member exists (so \"all\" does not), your premises don't settle whether some unicorns are horned \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-ex-0018",
+          "surface": "Given: some auks are flightless; some auks are colorful. Reading each name as one individual, each class word and verb phrase at face value, and \"some\" as claiming a member exists (so \"all\" does not), your premises don't settle whether some flightless are colorful \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-ex-0019",
+          "surface": "Given: vega is a star; vega is not visible. Reading each name as one individual, each class word and verb phrase at face value, and \"some\" as claiming a member exists (so \"all\" does not), your premises don't settle whether some stars are visible \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-ex-0020",
+          "surface": "Given: some poems are sonnets; no plays rhyme. Reading each name as one individual, each class word and verb phrase at face value, and \"some\" as claiming a member exists (so \"all\" does not), your premises don't settle whether some poems do not rhyme \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-ex-0021",
+          "surface": "Given: some larks sing. Reading each name as one individual, each class word and verb phrase at face value, and \"some\" as claiming a member exists (so \"all\" does not), your premises don't settle whether some larks sing sweetly \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-ex-0022",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        },
+        {
+          "id": "ds-ex-0023",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-ex-0024",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-ex-0025",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (reserved_word_in_np)."
+        },
+        {
+          "id": "ds-ex-0026",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-ex-0027",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (unknown_morphology)."
+        },
+        {
+          "id": "ds-ex-0028",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-ex-0029",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-ex-0030",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (unknown_morphology)."
+        },
+        {
+          "id": "ds-ex-0031",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (unknown_morphology)."
+        },
+        {
+          "id": "ds-ex-0032",
+          "surface": "<not-argument-shaped>"
+        }
+      ]
     },
     "v2_member": {
       "all_cases_correct": true,
@@ -117,7 +577,114 @@
         "declined": 0,
         "wrong": 0
       },
-      "n": 26
+      "n": 26,
+      "surface_sha256": "e1e16e0f061ac2060d7795a8ec3f13b49d14fab369e64f57be42486d4aeecdbf",
+      "surfaces": [
+        {
+          "id": "ds-mem-0001",
+          "surface": "Given: socrates is a man; all men are mortal. Your premises entail: socrates is mortal."
+        },
+        {
+          "id": "ds-mem-0002",
+          "surface": "Given: ada is a person; all people are mortal. Your premises entail: ada is mortal."
+        },
+        {
+          "id": "ds-mem-0003",
+          "surface": "Given: rex is a dog; all dogs are mammals; all mammals are animals. Your premises entail: rex is an animal."
+        },
+        {
+          "id": "ds-mem-0004",
+          "surface": "Given: fido is a dog; no dogs are cats. Your premises entail: fido is not a cat."
+        },
+        {
+          "id": "ds-mem-0005",
+          "surface": "Given: every child is curious; milo is a child. Your premises entail: milo is curious."
+        },
+        {
+          "id": "ds-mem-0006",
+          "surface": "Given: tweety is a canary; all canaries are birds; no birds are reptiles. Your premises entail: tweety is not a reptile."
+        },
+        {
+          "id": "ds-mem-0007",
+          "surface": "Given: dolly is a sheep; all sheep are woolly. Your premises entail: dolly is woolly."
+        },
+        {
+          "id": "ds-mem-0008",
+          "surface": "Given: rex is not a cat. Your premises entail: rex is not a cat."
+        },
+        {
+          "id": "ds-mem-0009",
+          "surface": "Given: each planet is round; mars is a planet. Your premises entail: mars is round."
+        },
+        {
+          "id": "ds-mem-0010",
+          "surface": "Given: rex is a guard dog; all guard dogs are loyal. Your premises entail: rex is loyal."
+        },
+        {
+          "id": "ds-mem-0011",
+          "surface": "Given: plato is a man; aristotle is a man; all men are mortal. Your premises entail: aristotle is mortal."
+        },
+        {
+          "id": "ds-mem-0012",
+          "surface": "Given: it is not the case that rex is a cat. Your premises entail: rex is not a cat."
+        },
+        {
+          "id": "ds-mem-0013",
+          "surface": "Given: socrates is a man; all men are mortal. Your premises entail the opposite of socrates is not mortal \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-mem-0014",
+          "surface": "Given: fido is a dog; no dogs are cats. Your premises entail the opposite of fido is a cat \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-mem-0015",
+          "surface": "Given: rex is loyal. Your premises entail the opposite of rex is not loyal \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-mem-0016",
+          "surface": "Given: socrates is mortal; all men are mortal. Reading each name as one individual and each class word at face value, your premises don't settle whether socrates is a man \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-mem-0017",
+          "surface": "Given: plato is a man; all men are mortal. Reading each name as one individual and each class word at face value, your premises don't settle whether zeus is mortal \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-mem-0018",
+          "surface": "Given: rex is a dog; all cats are animals. Reading each name as one individual and each class word at face value, your premises don't settle whether rex is an animal \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-mem-0019",
+          "surface": "Given: milo is a child; all children are curious. Reading each name as one individual and each class word at face value, your premises don't settle whether milo is happy \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-mem-0020",
+          "surface": "Given: some men are wise; socrates is a man. Reading each name as one individual, each class word and verb phrase at face value, and \"some\" as claiming a member exists (so \"all\" does not), your premises don't settle whether socrates is wise \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-mem-0021",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-mem-0022",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-mem-0023",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (unknown_morphology)."
+        },
+        {
+          "id": "ds-mem-0024",
+          "surface": "Given: if socrates is a man then socrates is mortal. Reading each name as one individual and each class word at face value, your premises don't settle whether socrates is mortal \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-mem-0025",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (unknown_morphology)."
+        },
+        {
+          "id": "ds-mem-0026",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        }
+      ]
     },
     "v2_verb": {
       "all_cases_correct": true,
@@ -138,7 +705,122 @@
         "declined": 0,
         "wrong": 0
       },
-      "n": 28
+      "n": 28,
+      "surface_sha256": "1d7d28645222f137da226ad1a1264e0e661fcffa16c5bea6b5ab94aba101987b",
+      "surfaces": [
+        {
+          "id": "ds-vb-0001",
+          "surface": "Given: all poets write; homer is a poet. Your premises entail: homer writes."
+        },
+        {
+          "id": "ds-vb-0002",
+          "surface": "Given: every senator debates policy; cicero is a senator. Your premises entail: cicero debates policy."
+        },
+        {
+          "id": "ds-vb-0003",
+          "surface": "Given: anselm is a monk; each monk prays. Your premises entail: anselm prays."
+        },
+        {
+          "id": "ds-vb-0004",
+          "surface": "Given: aristotle is a philosopher; all philosophers are scholars; all scholars read. Your premises entail: aristotle reads."
+        },
+        {
+          "id": "ds-vb-0005",
+          "surface": "Given: all sparrows are birds; jack is a sparrow; all birds build nests. Your premises entail: jack builds nests."
+        },
+        {
+          "id": "ds-vb-0006",
+          "surface": "Given: miriam is a nun; no nuns marry. Your premises entail: miriam does not marry."
+        },
+        {
+          "id": "ds-vb-0007",
+          "surface": "Given: felix is a tortoise; all tortoises are reptiles; no reptiles purr. Your premises entail: felix does not purr."
+        },
+        {
+          "id": "ds-vb-0008",
+          "surface": "Given: clara paints portraits; clara is an artist. Your premises entail: clara paints portraits."
+        },
+        {
+          "id": "ds-vb-0009",
+          "surface": "Given: boris does not smoke. Your premises entail: it is not the case that boris smokes."
+        },
+        {
+          "id": "ds-vb-0010",
+          "surface": "Given: every baby cries; moses is a baby. Your premises entail: moses cries."
+        },
+        {
+          "id": "ds-vb-0011",
+          "surface": "Given: all pilgrims go; dante is a pilgrim. Your premises entail: dante goes."
+        },
+        {
+          "id": "ds-vb-0012",
+          "surface": "Given: all owls hunt; hedwig is an owl. Your premises entail the opposite of hedwig does not hunt \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-vb-0013",
+          "surface": "Given: petra is a judge; no judges gossip. Your premises entail the opposite of petra gossips \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-vb-0014",
+          "surface": "Given: omar swims; omar is an athlete. Your premises entail the opposite of omar does not swim \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-vb-0015",
+          "surface": "Given: ida is a farmer; all farmers are workers; all workers vote. Your premises entail the opposite of ida does not vote \u2014 it cannot hold."
+        },
+        {
+          "id": "ds-vb-0016",
+          "surface": "Given: all monks chant; basil is a monk. Reading each name as one individual and each class word and verb phrase at face value, your premises don't settle whether gregory chants \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-vb-0017",
+          "surface": "Given: nina sings; all larks sing. Reading each name as one individual and each class word and verb phrase at face value, your premises don't settle whether nina is a lark \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-vb-0018",
+          "surface": "Given: viktor cooks; viktor is a chef. Reading each name as one individual and each class word and verb phrase at face value, your premises don't settle whether viktor cooks stew \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-vb-0019",
+          "surface": "Given: rosa is not a lawyer; no lawyers whistle. Reading each name as one individual and each class word and verb phrase at face value, your premises don't settle whether rosa does not whistle \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-vb-0020",
+          "surface": "Given: edgar does not dance. Reading each name as one individual and each class word and verb phrase at face value, your premises don't settle whether edgar does not skate \u2014 it holds in some cases and fails in others."
+        },
+        {
+          "id": "ds-vb-0021",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-vb-0022",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-vb-0023",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-vb-0024",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-vb-0025",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-vb-0026",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-vb-0027",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        },
+        {
+          "id": "ds-vb-0028",
+          "surface": "That reads as an argument, but I can't parse it precisely enough to decide it yet (no_template_match)."
+        }
+      ]
     }
   },
   "wrong_is_zero": true

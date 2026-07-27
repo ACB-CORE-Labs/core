@@ -625,10 +625,43 @@ on a ratified, flag-ON band with `wrong=0` intact for the whole arc. The
 round-trip lane is not a nice-to-have measurement; it is the only guard that
 reads what the user reads.
 
-⇒ **Carried forward:** any future phase touching surfaces must gate on
-`grammar_roundtrip`, not on the lane pins. Adding surface text to the pinned
-lane payloads would be the durable fix and is *not* done here — it would move
-every pin at once and deserves its own unit.
+**One correction to the sabotage table above.** The runner's own docstring named
+`tests/test_deduction_surface.py` as the place wording is covered, and I had not
+included that file in the first sabotage run. Tested: **all 41 of its tests pass
+under the sabotage too.** So the exclusion's stated justification — "wording is
+covered by tests/test_deduction_surface.py" — was false, not merely incomplete.
+The claim survived the check that could have refuted it.
+
+#### Closed — the pins now read what the user reads
+
+Fixed in the same arc rather than deferred. `evals/deduction_serve/runner.py`
+now puts `surface_sha256` **and** the per-case `surfaces` into the pinned
+artifact, via `build_combined_report` (the earlier attempt missed because that
+function re-projects five named fields per split and silently dropped the new
+one — the payload is not the report).
+
+| | before | after |
+|---|---|---|
+| pinned artifact | 2,766 bytes, verdict counts only | 37,280 bytes, every served sentence |
+| `deduction_serve_v1` under sabotage | ✓ byte-identical (blind) | **✗ `52370b73` vs `c855d55c`** |
+
+Re-pinned surgically — one line, old hash recorded in a comment beside it, never
+`--update`. Verdicts are untouched (166/166 correct, `wrong=0`); the hash moved
+because the payload grew.
+
+`test_surface_hash_moves_when_the_renderer_is_sabotaged` makes this permanent:
+it corrupts the renderer, requires a digest to move, **and** asserts the
+aggregate verdict counts are unchanged — proving the digest tracks prose rather
+than smuggling in a decision change. A pin that cannot fail guards nothing.
+
+**Accepted cost, stated plainly:** wording-only changes now move this pin. That
+is the intent — a wording change *is* a user-visible change and should require a
+deliberate re-pin, which is exactly the discipline whose absence let
+`all dog are mammal` serve for the whole arc.
+
+The other 10 lanes are untouched. Whether their payloads should also carry
+surfaces is a separate question this unit does not answer; `deduction_serve` was
+fixed because it is the one demonstrably serving prose to users.
 
 The Phase 1 instrument moved on its own, having been built with no knowledge of
 this fix. That is the whole argument for building the instrument first.

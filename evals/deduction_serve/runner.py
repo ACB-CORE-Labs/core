@@ -9,11 +9,33 @@ pipeline ``chat/deduction_surface.py`` calls in serving — the shape-gate
 (``looks_like_deductive_argument``), the reader (``comprehend``), the
 projector (``to_deductive_logic``), and the production ROBDD engine
 (``evaluate_entailment_with_trace``) — and the resulting outcome is
-compared to independently-authored gold. The prose-rendering step
-(``generate.proof_chain.render.render_entailment``) is presentation, not
-decision, and is intentionally NOT re-derived here so this lane's pinned
-bytes stay stable against wording-only changes; wording is covered by
-``tests/test_deduction_surface.py``.
+compared to independently-authored gold.
+
+**Surfaces are hashed too (2026-07-27).** This lane previously excluded the
+prose-rendering step on the stated grounds that it is "presentation, not
+decision", so the pinned bytes would "stay stable against wording-only
+changes; wording is covered by ``tests/test_deduction_surface.py``."
+
+That rationale was measured and does not hold. With
+``render._display_noun`` sabotaged to prefix every categorical noun — so
+CORE served ``all SABOTAGE_dogs are SABOTAGE_animals`` — the following
+were all still green:
+
+* the 11 lane SHA pins (11/11 byte-identical),
+* ``tests/test_deduction_serve_lane`` + ``_license`` (20 passed),
+* ``tests/test_deduction_surface.py`` (41 passed) — the very file named
+  above as the wording guard.
+
+Only ``evals/grammar_roundtrip`` caught it. So "wording is covered
+elsewhere" was false, and the exclusion left CORE's user-visible output
+unguarded by its own hash pins. That is how the ratified v1b band served
+``all dog are mammal`` for the whole arc with ``wrong=0`` intact.
+
+``surface_sha256`` now covers every served surface, and ``surfaces``
+records them per case so a moved hash can be diffed rather than guessed at.
+The accepted cost is exactly what the old rationale wanted to avoid: a
+wording-only change moves this pin. That is the point — a wording change IS
+a user-visible change and should require a deliberate re-pin.
 
 Counts:
 * ``correct``  — the pipeline's outcome class matches gold (including a
@@ -37,11 +59,15 @@ AND that the pipeline declines honestly, not to inflate a pass rate).
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from collections import Counter
 from pathlib import Path
 
-from chat.deduction_surface import looks_like_deductive_argument
+from chat.deduction_surface import (
+    deduction_grounded_surface,
+    looks_like_deductive_argument,
+)
 from generate.meaning_graph.projectors import to_deductive_logic, to_syllogism
 from generate.meaning_graph.reader import Comprehension, comprehend
 from generate.proof_chain.categorical import CategoricalError, decide_syllogism
@@ -177,16 +203,33 @@ def _decide_exist(text: str) -> str:
     return _OUTCOME_TO_CLASS[outcome]
 
 
+def _served_surface(text: str) -> str:
+    """The production prose for *text*, or a stable marker when none is served.
+
+    Uses the real ``deduction_grounded_surface`` — the same call chat serving
+    makes — so what this lane hashes is what a user would actually read. A
+    raised exception is recorded rather than swallowed: a renderer that
+    crashes is a surface change too.
+    """
+    try:
+        surface = deduction_grounded_surface(text)
+    except Exception as exc:  # noqa: BLE001 - recorded, not handled
+        return f"<raised {type(exc).__name__}>"
+    return surface if surface is not None else "<not-argument-shaped>"
+
+
 def build_report(cases: list[dict]) -> dict:
     counts = Counter({"correct": 0, "wrong": 0, "declined": 0})
     by_gold: Counter[str] = Counter()
     correct_by_gold: Counter[str] = Counter()
     wrong_examples: list[dict] = []
+    surfaces: list[dict] = []
 
     for case in cases:
         gold = case["gold"]
         by_gold[gold] += 1
         got = decide(case["text"])
+        surfaces.append({"id": case["id"], "surface": _served_surface(case["text"])})
         if got == gold:
             counts["correct"] += 1
             correct_by_gold[gold] += 1
@@ -204,6 +247,7 @@ def build_report(cases: list[dict]) -> dict:
                 )
 
     all_cases_correct = counts["correct"] == len(cases)
+    surface_blob = "\n".join(f"{s['id']}\t{s['surface']}" for s in surfaces)
     return {
         "n": len(cases),
         "counts": dict(counts),
@@ -211,6 +255,10 @@ def build_report(cases: list[dict]) -> dict:
         "correct_by_gold": dict(correct_by_gold),
         "all_cases_correct": all_cases_correct,
         "mismatch_examples": wrong_examples,
+        # What the user actually reads. See the module docstring for why this
+        # is hashed rather than treated as "presentation, not decision".
+        "surface_sha256": hashlib.sha256(surface_blob.encode("utf-8")).hexdigest(),
+        "surfaces": surfaces,
     }
 
 
@@ -243,6 +291,14 @@ def build_combined_report() -> dict:
             "by_gold": report["by_gold"],
             "correct_by_gold": report["correct_by_gold"],
             "all_cases_correct": report["all_cases_correct"],
+            # The served prose, hashed AND recorded. Without these the pinned
+            # artifact carried verdict counts only, and a renderer that emitted
+            # "all SABOTAGE_dogs are SABOTAGE_animals" left every pin
+            # byte-identical. Keeping the surfaces (not just the digest) means a
+            # moved pin shows the exact sentence that changed in review, instead
+            # of an opaque hash someone has to go re-derive.
+            "surface_sha256": report["surface_sha256"],
+            "surfaces": report["surfaces"],
         }
         aggregate["n"] += report["n"]
         for key in ("correct", "wrong", "declined"):

@@ -51,7 +51,13 @@ PINNED_SHAS: dict[str, str] = {
     "public_demo": "da7fad654e77aac4573a6fcf6e9eaaf84540be8e135d2e033d9cfd15119df3fc",
     "math_teaching_corpus_v1": "eaf160d145da29f9050ede8d58bf111b0f651dd40aeae9201857d0b97e014dd4",
     "deductive_logic_v1": "97a230949016e38d5e3f37a69e4245b320575ee70e5af92ff7607f7b05f74b5f",
-    "deduction_serve_v1": "0b461a5a49c8f8260ca87d0c9c9f9a17232bd1fdedd982e34649eedf9cca30b5",
+    # Re-pinned 2026-07-27: the report now carries the SERVED PROSE
+    # (``surface_sha256`` + ``surfaces`` per split) as well as verdict counts.
+    # Old: 0b461a5a49c8f8260ca87d0c9c9f9a17232bd1fdedd982e34649eedf9cca30b5
+    # The move is the payload growing, not a behaviour change — verdicts are
+    # identical (166/166 correct, wrong=0). Before this, a renderer emitting
+    # "all SABOTAGE_dogs are SABOTAGE_animals" left all 11 pins byte-identical.
+    "deduction_serve_v1": "c855d55cf316471fdfe092aa0d5c954e5ceb6f30c9a8db283e0b9a5d5e8b419a",
     "curriculum_serve_v1": "d9e7ba500f040b865870413a940ee9a49910ac22e1a89c9feec1a60bdd2513f1",
 }
 
