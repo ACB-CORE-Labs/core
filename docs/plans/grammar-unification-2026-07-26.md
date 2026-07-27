@@ -766,7 +766,14 @@ not guessed). Mutation now:
 | baseline | 13/13 |
 | phrase-head plural agreement | **4/13** |
 | `-es` stem rule | **12/13** |
-| closed `ves` set | **11/13** |
+| closed `ves` set | **12/13** |
+
+> **Correction (Phase 4).** The `ves` row was first recorded here as 11/13. Re-run
+> against merged `main` by reverting the hunk in source — not by monkeypatch — it
+> is **12/13**, and the single sensitive case is `gram_C14_p06` (`proofs`). The
+> pin is still load-bearing; the recorded number was wrong. Corrected rather than
+> left standing, because a mutation matrix nobody can reproduce is worth less
+> than no matrix at all.
 
 The 4 survivors of the first mutation are the mass-noun and unchanged controls,
 which is the correct behaviour — `all evidence is grounded in truth` must *not*
@@ -791,6 +798,55 @@ is taken is recorded with its reasoning.
 
 **Why this is gated:** (a) changes what users see and would move surface hashes.
 It is a serving change and belongs to Shay, not to this plan.
+
+**RESULT — (b), and the framing of the choice was wrong.**
+
+The plan posed this as "which realizer is better". Reading the source says it is
+not a quality question. `render_semantic`'s signature is
+`(intent, subject, predicate, obj, secondary, language, root)` — there is **no
+`negated`, `quantifier`, `tense` or `aspect` parameter**, and `realize_semantic`
+never reads them off the step. So the serving writer does not merely inflect
+worse; it cannot express content the `ArticulationStep` is carrying:
+
+```
+negated=False -> 'Knowledge is defined as opinion.'
+negated=True  -> 'Knowledge is defined as opinion.'    <-- byte-identical
+```
+
+**It serves the affirmative of a negated proposition.** That is not a fluency
+defect. It is the ADR-0261 §5.1 family — v1b served WRONG by dropping premises
+it could not express — and it is pinned here as a defect, not fixed, because
+fixing it changes served output.
+
+Scored on the identical contract across all seven corpora that a lane runs
+through `realize_target`:
+
+| bucket | n | `realize_target` | `realize_semantic` |
+|---|---|---|---|
+| feature-bearing, single node | 214 | 207 | **49** |
+| no features, multi-node | 100 | 100 | **3** |
+| no features, single node — **CONTROL** | 33 | 33 | **33** |
+| total | 347 | **340** | **85** |
+
+The control is what makes the rest mean anything. Every corpus hardcodes
+`IntentTag.UNKNOWN`, so "the serving writer scores badly" could have been an
+artifact of never giving it a real intent. On the 33 cases carrying nothing it
+cannot express, the two realizers are **identical** — so the gap on the other
+314 is the dropped features (214) and clause joining (100), not the intent.
+
+**What was delivered.** `grammatical_coverage/runner.py` now reports
+`serving_accuracy` beside `accuracy`, computed by re-scoring the same cases
+through `realize_semantic`; `english_fluency_ood` delegates to that `run_lane`
+and gains it for free. The claim is restated at both places it was made — the
+lane docstring and `grammar_roundtrip/contract.md` — as a claim about
+**eval-only code**. Zero served bytes change, so this needed no serving
+authorization.
+
+**What was not delivered, deliberately.** (a) is still open and still Shay's.
+The difference now is that it can be decided against a measured cost: promoting
+`realize_target` buys 340/347 over 85/347 and the ability to say "not", and
+costs a move in every surface hash plus whatever the Shadow Coherence Gate
+ruling in `core/cognition/surface_resolution.py` was protecting.
 
 ### Phase 5 — Raise round-trip, then earn diversity
 
@@ -857,6 +913,58 @@ the second fork more likely than the first. If that is where we land, Phases 1�
 are still exactly the right work — they are what makes the graph-model question
 answerable instead of speculative — but the arc should be expected to *end* at
 the ADR rather than at fluid prose.
+
+---
+
+### RESULT — measured after Phase 4. **Neither fork. The pre-commitment above was wrong.**
+
+`g_read_rate` did not stay at zero, and it did not rise materially either. It
+went to **1 of 293** (`0.003413`) — the first non-zero in the arc — and the one
+case tells you more than the rate does.
+
+The unblocked case is `gram_C14_p01`. What was blocking it: the writer emitted
+`all molecules are defined as compound`, a predicate nominal that does not agree
+with its subject. The reader **accepts** `...as compounds` and **refuses**
+`...as compound`. So the blocker was a one-line *writer* defect — not §1.8.
+
+The other 292 decompose, and not one of them is a model mismatch either:
+
+| refusal reason | n | whose problem |
+|---|---|---|
+| `no_template_match` | 289 | reader has no SUBJ-VERB-OBJ template at all |
+| `unknown_morphology` | 2 | prepositional objects (`reserved_word_in_np`) |
+| `unsupported_negation` | 1 | reader has no negated-categorical template |
+| read | 1 | — |
+
+Every one is the reader declining a **construction it has no template for**, not
+a projection disagreeing about a graph it successfully parsed. And where a
+construction *is* in both inventories the round trip closes exactly —
+`s_surface_match_rate == s_renderable_rate` — while the reader independently
+reads `all dogs are mammals`, `all wolves are canines`, and
+`all molecules are defined as compounds`.
+
+**So the barrier is the overlap of the two construction inventories, which is
+currently one construction wide.** That is Phase 5's item 1 — grow the
+inventory until `read_rate` clears a ratcheted floor — and it is tractable work,
+not an ADR-scale model decision.
+
+**Why the pre-commitment was wrong, kept here rather than quietly edited out:**
+§1.6 read "uniform `no_template_match` across all 280" as evidence *for* the
+type mismatch. It is not evidence for it. `no_template_match` is the reader
+saying it has no template — a coverage fact — and §1.8's type mismatch was
+inferred from it rather than measured. The corpus was 289/293 bare transitives,
+a construction the reader has never claimed to read, so the measurement was
+mostly reporting the corpus's composition. The one construction the corpus *did*
+share with the reader (Phase 3's C14) was blocked by a writer bug, and until
+that was fixed there was no case in the whole corpus capable of testing the
+graph-model question at all.
+
+**Consequence for Phase 5.** Its scope is now decidable. The inventory question
+is the arc's live frontier, and it should be sized by measuring the reader's
+construction set against the writer's rather than by growing corpora blindly.
+The graph-model ADR is **not** cancelled — §1.8's type mismatch is still real —
+but nothing measured here obliges it, and it should not be opened until a case
+exists that fails for that reason and no other.
 
 ---
 
