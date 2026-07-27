@@ -1,9 +1,11 @@
 # ADR-0265 — Negation belongs in the proposition graph, and clause grammar has one owner
 
-- **Status:** Proposed — awaiting ratification by Joshua Shay. **This ADR
-  changes served output.** It fixes a truth defect on a serving path; it flips
-  no flag and changes no default.
-- **Date:** 2026-07-27
+- **Status:** Accepted — ratified by Joshua Shay 2026-07-27. **This ADR changes
+  served output.** It fixes a truth defect on a serving path; it flips no flag
+  and changes no default. Implemented and merged to `main` in the same unit
+  that proposed it, because the defect it removes was live behind a shipped
+  flag rather than latent.
+- **Date:** 2026-07-27 · **Ratified:** 2026-07-27
 - **Implemented by:** #137. Enforcement pins:
   `tests/test_negation_survives_articulation.py` (registered in the `smoke`
   pre-push gate in the same PR).
