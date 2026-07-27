@@ -76,6 +76,8 @@ Three distinct surfaces exist for three distinct invariants, and conflating them
 
 ## Judgment
 
+> **Phase 3 refinement (C-3, `05-phase3-findings.md`):** "no single place states the precedence order" is half-wrong — `core/cognition/surface_resolution.py::resolve_surface` (494 lines) is a declared-precedence resolver for the pipeline seam. The accretion concern survives only for the upstream composer arms in `chat/runtime.py`; the Third-Door candidate refines to *extending the existing resolver's pattern upstream*. Full arm inventory: `20-component-cards/surface-selection.md`.
+
 **Fitness: `strained`.** M4's *architecture* is among the strongest in CORE — the selection-not-rewrite discipline, the three-surface separation, the fail-closed typing, the atomic enum/UI coupling. The strain is that its surface-selection policy has accreted one arm per capability (determination, estimate, unknown-domain, deduction, curriculum, hedge, register decoration, logos-morph override), each individually contracted, with no single place that states the precedence order as an executable rule. `runtime_contracts.md` documents it in prose across several sections; `chat/runtime.py` implements it across 3364 lines. That is the classic shape of a trade-off being split rather than dissolved — and a Third Door candidate for Phase 4 (a declarative resolution table with the precedence pinned, rather than ordered branches).
 
 **Honest wrinkles:**

@@ -11,6 +11,8 @@
 
 ---
 
+> **Phase 3 correction (C-2, `05-phase3-findings.md`):** this card's "T1 vault and field excitation are discarded on exit by design" describes the **default config only**. The daemon forces `persist_session_state=True` (Shape B+ — "restored bit-exactly"), so residency machinery exists and is daemon-forced; open items are its exact coverage (`chat/runtime.py:893–952`) and horizon proof. The daemon's forced flag set is exactly `{persist_session_state, consolidate_determinations, strict_identity_continuity}` — see `20-component-cards/always-on-process.md`.
+
 ## ⚠️ Correction to Phase 0 Finding 0-C and to the system map
 
 **Phase 0 recorded that the L11 always-on process is unbuilt. That is wrong, and the error is instructive.**
