@@ -16,6 +16,7 @@ from generate.lexicon import (
     IRREGULAR_PLURALS,
     PLURAL_QUANTIFIERS,
     PREDICATE_DISPLAY,
+    PREDICATIVE_NOMINAL,
 )
 from generate.articulation_legality import (
     ArticulationLegality,
@@ -25,11 +26,13 @@ from generate.graph_planner import RhetoricalMove
 from generate.morphology import (
     agree_plural_phrase,
     base_form,
+    inflect_phrase_head,
     is_mass_noun,
     past_participle,
     past_tense,
     pluralize,
     present_participle,
+    takes_bare_not,
 )
 
 
@@ -52,6 +55,16 @@ _PREDICATE_DISPLAY: dict[str, str] = PREDICATE_DISPLAY
 
 def _humanize_predicate(predicate: str) -> str:
     return _PREDICATE_DISPLAY.get(predicate, predicate.replace("_", " "))
+
+
+def _drop_indefinite_article(predicate_h: str) -> str:
+    """Strip a trailing ``a``/``an`` from an inflected predicate.
+
+    ``is_a`` humanizes to "is a" and pluralizes to "are a"; the article cannot
+    survive a plural nominal ("all dogs are a mammals" is not English).
+    """
+    head, sep, rest = predicate_h.rpartition(" ")
+    return head if sep and rest in ("a", "an") else predicate_h
 
 
 _MOVE_TEMPLATES: dict[RhetoricalMove, str] = {
@@ -83,25 +96,42 @@ def _inflect_predicate(
         predicate_h.startswith(prefix)
         for prefix in ("is ", "are ", "has ", "have ", "belongs ")
     )
-    base = base_form(verb)
-
     match (aspect, tense, negated, plural_subject):
+        # Every branch below inflects the phrase HEAD and carries tokens 2..n
+        # through untouched. Phase 3 fixed only the two plural branches, so
+        # these eight were still handing whole phrases to single-verb
+        # functions: "belongs to" came back "has belongs toed" (perfective),
+        # "is belongs toing" (imperfective), "belongs toed" (past), and
+        # "is defined as" came back "will is defined a" (future).
         case ("perfective", _, _, True):
-            return f"have {past_participle(verb)}"
+            return f"have {inflect_phrase_head(verb, past_participle)}"
         case ("perfective", _, _, False):
-            return f"has {past_participle(verb)}"
+            return f"has {inflect_phrase_head(verb, past_participle)}"
         case ("imperfective", _, _, True):
-            return f"are {present_participle(verb)}"
+            return f"are {inflect_phrase_head(verb, present_participle)}"
         case ("imperfective", _, _, False):
-            return f"is {present_participle(verb)}"
+            return f"is {inflect_phrase_head(verb, present_participle)}"
         case (_, "past", True, _):
-            return f"did not {base}"
+            # A be/have head negates in place and carries its own past tense
+            # ("was not defined as"); anything else takes do-support in the
+            # past ("did not belong to"), where the head reverts to the base.
+            if takes_bare_not(verb):
+                past = inflect_phrase_head(verb, past_tense)
+                p_head, sep, rest = past.partition(" ")
+                if plural_subject:
+                    p_head = {"was": "were", "has": "have", "did": "did"}.get(p_head, p_head)
+                return f"{p_head} not{sep}{rest}" if rest else f"{p_head} not"
+            return f"did not {inflect_phrase_head(verb, base_form)}"
         case (_, "past", False, _):
-            return past_tense(verb)
+            past = inflect_phrase_head(verb, past_tense)
+            if plural_subject:
+                p_head, sep, rest = past.partition(" ")
+                return {"was": "were"}.get(p_head, p_head) + sep + rest
+            return past
         case (_, "future", True, _):
-            return f"will not {base}"
+            return f"will not {inflect_phrase_head(verb, base_form)}"
         case (_, "future", False, _):
-            return f"will {base}"
+            return f"will {inflect_phrase_head(verb, base_form)}"
         case (_, _, True, True):
             # Plural + negated. Agree the head first, then negate around it:
             # a plural copula takes a bare "not" ("are not defined as"), while
@@ -125,9 +155,13 @@ def _inflect_predicate(
                 return "have not " + predicate_h[5:]
             if predicate_h.startswith("belongs "):
                 return "does not belong " + predicate_h[8:]
-            return f"is not {base}"
+            return f"is not {inflect_phrase_head(verb, base_form)}"
         case (_, _, True, False):
-            return f"does not {base}"
+            # Do-support puts the head in the bare infinitive. This branch was
+            # the ninth instance of the same defect: ``base_form`` on the whole
+            # phrase left "contrasts with" untouched (no -s/-es/-ies suffix to
+            # strip from "with"), yielding "does not contrasts with".
+            return f"does not {inflect_phrase_head(verb, base_form)}"
         case (_, _, False, True):
             # Plural agreement on the whole phrase, not base_form() of it.
             # This is the branch the 9-of-26 defect lived in: it returned the
@@ -170,6 +204,16 @@ def render_step(
         plural_subject=plural,
     )
     obj_display = obj if obj != "<pending>" else "..."
+    # A predicate nominal names the subject's category, so it agrees with the
+    # subject in number and sheds its indefinite article: "all dogs are
+    # mammals", never "all dogs are a mammal". Restricted to the closed
+    # PREDICATIVE_NOMINAL set — a prepositional object carries its own number
+    # ("all claims are grounded in evidence") and pluralizing it produces
+    # "evidences". The reader accepts the agreeing form and refuses the other,
+    # which is why this was the last writer-side blocker on G-round-trip.
+    if plural and predicate in PREDICATIVE_NOMINAL:
+        obj_display = pluralize(obj_display)
+        predicate_h = _drop_indefinite_article(predicate_h)
     subject_form = pluralize(subject) if plural else subject
     subject_display = f"{quantifier} {subject_form}" if quantifier else subject_form
     return template.format(
