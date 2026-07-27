@@ -232,6 +232,7 @@ def _build_graph_from_intent(intent: DialogueIntent, plan: ArticulationPlan) -> 
             predicate=predicate,
             obj=secondary,
             source_intent=intent.tag,
+            negated=intent.negated,
         )
         right = GraphNode(
             node_id="p1",
@@ -239,6 +240,7 @@ def _build_graph_from_intent(intent: DialogueIntent, plan: ArticulationPlan) -> 
             predicate=predicate,
             obj=subject,
             source_intent=intent.tag,
+            negated=intent.negated,
         )
         edge = GraphEdge(source="p0", target="p1", relation=Relation.CONTRAST)
         return graph.add_node(left).add_node(right).add_edge(edge)
@@ -249,6 +251,7 @@ def _build_graph_from_intent(intent: DialogueIntent, plan: ArticulationPlan) -> 
         predicate=predicate,
         obj=obj,
         source_intent=intent.tag,
+        negated=intent.negated,
     )
     return graph.add_node(root)
 

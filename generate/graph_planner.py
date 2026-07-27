@@ -71,15 +71,36 @@ class GraphNode:
     root: str | None = None
     morphology_id: str | None = None
     # 3-lang depth support for PropGraph spine (comprehend/articulate/think via roots)
+    negated: bool = False
+    """Whether the proposition is DENIED rather than asserted.
+
+    The intent parser has always recovered this from the user's text
+    (``intent.negated``, ``generate/intent.py``), and the graph then dropped it
+    on the floor: ``GraphNode`` had no slot for it, so ``plan_articulation``
+    could not carry it and the realizer could not express it. The measured
+    consequence, under ``realizer_grounded_authority``:
+
+        "evidence does not support truth" -> 'Evidence is verified: what supports truth.'
+        "evidence supports truth"         -> 'Evidence is verified: what supports truth.'
+
+    Byte-identical. CORE affirmed what the user denied. A proposition graph that
+    cannot represent denial cannot decode a denial, which is the thesis check
+    this field exists to pass.
+
+    Serialized only when True, so every pre-existing ``as_dict`` — and every
+    ``trace_hash`` folded from one — stays byte-identical.
+    """
 
     def as_dict(self) -> dict[str, object]:
-        d = {
+        d: dict[str, object] = {
             "node_id": self.node_id,
             "subject": self.subject,
             "predicate": self.predicate,
             "object": self.obj,
             "source_intent": self.source_intent.value,
         }
+        if self.negated:
+            d["negated"] = True
         if self.language is not None:
             d["language"] = self.language
         if self.root is not None:
@@ -289,6 +310,7 @@ def graph_from_intent(
                 obj=intent.secondary_subject or "<pending>",
                 source_intent=intent.tag,
                 # depth fields populated later via resolve_entry + grounding enrichment
+                negated=intent.negated,
             )
             right = GraphNode(
                 node_id="p1",
@@ -296,6 +318,7 @@ def graph_from_intent(
                 predicate=predicate,
                 obj=intent.subject,
                 source_intent=intent.tag,
+                negated=intent.negated,
             )
             edge = GraphEdge(source="p0", target="p1", relation=Relation.CONTRAST)
             return graph.add_node(left).add_node(right).add_edge(edge)
@@ -308,6 +331,7 @@ def graph_from_intent(
                 predicate=predicate,
                 obj=prior_node_id or "<prior>",
                 source_intent=intent.tag,
+                negated=intent.negated,
             )
             graph = graph.add_node(root)
             if prior_node_id is not None:
@@ -324,6 +348,7 @@ def graph_from_intent(
                 predicate=predicate,
                 obj="<pending>",
                 source_intent=intent.tag,
+                negated=intent.negated,
             )
             return graph.add_node(root)
 
@@ -365,6 +390,12 @@ def ground_graph(
                 language=lang,
                 root=rt,
                 morphology_id=mid,
+                # Same drop-on-rebuild bug this field exists to fix: grounding
+                # is the ADR-0088 Phase B path, i.e. exactly the path on which
+                # the realizer's surface becomes useful enough to WIN the
+                # resolver. Losing negation here would restore the defect on
+                # the only turns where it reaches a user.
+                negated=node.negated,
             ))
         else:
             new_nodes.append(node)
@@ -400,6 +431,7 @@ def plan_articulation(graph: PropositionGraph) -> ArticulationTarget:
                 move=move,
                 predicate=node.predicate,
                 subject=node.subject,
+                negated=node.negated,
             )
         )
 

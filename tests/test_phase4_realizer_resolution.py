@@ -104,17 +104,24 @@ def test_the_lane_reports_the_serving_writer_too() -> None:
     speaks scored 0.23 on the identical cases, and nothing surfaced it."""
     metrics = run_lane(_load("english_fluency_ood/public/v1")).metrics
     assert metrics["passed"] == 117
-    assert metrics["serving_passed"] == 27
+    assert metrics["serving_passed"] == 36  # was 27 before ADR-0265
     assert "serving_accuracy" in metrics
 
 
 def test_the_measured_gap_across_every_scored_corpus() -> None:
-    """340/347 for the realizer the lanes score; 85/347 for the one that ships."""
+    """340/347 for the realizer the lanes score; 109/347 for the one that ships.
+
+    Was 85 before ADR-0265. The +24 is precisely the negation-bearing cases:
+    the serving writer can now say "not". The remaining gap is quantifier,
+    tense, aspect and clause joining — none of which has a producer on the
+    serving path (ADR-0265 §3), so it is a capability gap and not a live
+    defect.
+    """
     cases = _all_cases()
     assert len(cases) == 347
     metrics = run_lane(cases).metrics
     assert metrics["passed"] == 340
-    assert metrics["serving_passed"] == 85
+    assert metrics["serving_passed"] == 109
 
 
 # --------------------------------------------------------------------------- #
@@ -145,7 +152,7 @@ def test_the_two_realizers_agree_exactly_where_nothing_is_dropped() -> None:
 @pytest.mark.parametrize(
     ("bucket", "expected_n", "expected_eval", "expected_serving"),
     [
-        ("features", 214, 207, 49),
+        ("features", 214, 207, 73),   # 49 before ADR-0265
         ("multi_node", 100, 100, 3),
     ],
 )
@@ -171,37 +178,49 @@ def test_the_gap_decomposes_into_dropped_features_and_clause_joining(
 # --------------------------------------------------------------------------- #
 
 
-def test_the_serving_realizer_emits_the_same_surface_negated_or_not() -> None:
-    """DEFECT PIN, not a goal.  Revise when fixed; never relax.
+def test_the_serving_realizer_now_distinguishes_a_denial_from_its_assertion() -> None:
+    """WAS A DEFECT PIN. **Fixed by ADR-0265** — revised deliberately, as the
+    pin required, rather than relaxed.
 
-    ``render_semantic``'s signature is ``(intent, subject, predicate, obj,
-    secondary, language, root)``.  There is no ``negated`` parameter, and
-    ``realize_semantic`` never reads ``step.negated``.  So a negated
-    proposition is served as its **affirmative**:
+    The recorded defect was::
 
         negated=False -> 'Knowledge is defined as opinion.'
         negated=True  -> 'Knowledge is defined as opinion.'
 
-    This is not a fluency defect.  It is the same family as ADR-0261 §5.1
-    refuse-don't-drop: v1b served WRONG by dropping premises it could not
-    express.  Fixing it changes served output, so it is authorization-gated;
-    pinning it here is what stops it from being forgotten.
+    Byte-identical: the serving writer had no ``negated`` parameter and
+    ``realize_semantic`` never read ``step.negated``.  Sizing the exposure
+    showed it was **live**, not latent — under ``realizer_grounded_authority``
+    a real user turn served the affirmative of its own denial — and that it was
+    two drops in series, the first being a ``GraphNode`` with no field for a
+    denial at all.
+
+    ADR-0265 threads the flag end to end and delegates the clause to
+    ``render_step``.  The end-to-end regression lives in
+    ``tests/test_negation_survives_articulation.py``; this pin keeps the
+    unit-level guarantee that the two surfaces may never collapse again.
     """
     affirmative = realize_semantic(*_one_step(negated=False)).surface
     negated = realize_semantic(*_one_step(negated=True)).surface
-    assert affirmative == negated, "the defect this pin records has changed shape"
+    assert affirmative != negated, "the serving realizer collapsed a denial again"
+    assert "not" in negated
 
-    # The eval-only realizer distinguishes them, which is how we know the
-    # information reaches the realizer boundary intact.
+    # The eval-only realizer distinguishes them too.
     assert realize_target(*_one_step(negated=True)).surface != (
         realize_target(*_one_step(negated=False)).surface
     )
     assert "not" in realize_target(*_one_step(negated=True)).surface
 
 
-@pytest.mark.parametrize("feature", _UNEXPRESSIBLE)
-def test_render_semantic_has_no_parameter_for_the_content_it_drops(feature: str) -> None:
-    """Derived from the signature, so it cannot rot into a stale comment."""
+@pytest.mark.parametrize("feature", sorted(set(_UNEXPRESSIBLE) - {"negated"}))
+def test_render_semantic_still_has_no_parameter_for_these(feature: str) -> None:
+    """Derived from the signature, so it cannot rot into a stale comment.
+
+    ``negated`` left this list in ADR-0265. The other three stay, and stay
+    deliberately: **no producer sets them** anywhere on the serving path, so
+    threading them would be machinery with no caller. They become expressible
+    the moment a producer exists, because ``render_step`` already handles all
+    three.
+    """
     import inspect
 
     from generate.semantic_templates import render_semantic
@@ -209,8 +228,12 @@ def test_render_semantic_has_no_parameter_for_the_content_it_drops(feature: str)
     assert feature not in inspect.signature(render_semantic).parameters
 
 
-def test_how_much_of_the_corpus_carries_content_the_serving_writer_drops() -> None:
-    """214 of 347.  The scale of the gap, independent of any rubric."""
+def test_how_much_of_the_corpus_carries_feature_bearing_content() -> None:
+    """214 of 347. The scale of the gap, independent of any rubric.
+
+    Post-ADR-0265 the serving writer expresses the *negation* subset of these;
+    quantifier, tense and aspect remain unexpressed (and unproduced).
+    """
     cases = _all_cases()
     carrying = [c for c in cases if _carries_unexpressible(c)]
     assert len(carrying) == 214

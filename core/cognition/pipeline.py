@@ -407,6 +407,10 @@ class CognitiveTurnPipeline:
                             language=getattr(res, 'language', None),
                             root=getattr(res, 'root', None),
                             morphology_id=getattr(res, 'morphology_id', None),
+                            # Depth enrichment must not launder a denial away.
+                            # This rebuild is on the ADR-0088 Phase B path, the
+                            # one where the realizer's surface actually wins.
+                            negated=n.negated,
                         )
                         new_nodes.append(enriched)
                         changed = True

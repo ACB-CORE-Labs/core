@@ -872,6 +872,48 @@ Deliver:
 | diversity is safe | 100% of emitted variants round-trip to the source graph — **zero exceptions** |
 | truth path untouched | `wrong=0` holds; variant selection provably cannot alter a verdict |
 
+**RESULT (first unit) — the realizer question resolved, and it was a truth bug.**
+See **ADR-0265**. Phase 4 ruled option (b) and pinned "`render_semantic` cannot
+express negation" as a defect. Sizing the exposure before acting on it — the
+step this plan's own §7 requires — showed the pin was correct and *incomplete*:
+the defect is **two drops in series**, and the first is in the graph.
+
+`intent.negated` has always been parsed from the user's words. `GraphNode` had
+no field for it, so `graph_from_intent`, `ground_graph`, the pipeline's depth
+enrichment, `intent_bridge` and `plan_articulation` each discarded it — five
+constructors, each silently defaulting to the affirmative. Measured live under
+`realizer_grounded_authority`:
+
+```
+"evidence does not support truth"  -> 'Evidence is verified: what supports truth.'
+"evidence supports truth"          -> 'Evidence is verified: what supports truth.'
+```
+
+**Byte-identical — CORE affirmed what the user denied.** Live, not latent.
+Default config was safe only by accident: the ungrounded realizer emits `...`,
+`_is_useful_surface` rejects it, and the runtime echo (which contains the
+user's own "does not") wins. Grounding removes the accident.
+
+Delivered: `negated` threaded end to end, and the four intent "templates" that
+were never frames delegated to `render_step`, the one owner of clause grammar.
+Delegation measured **192/192 byte-identical** on affirmatives, so the only
+surfaces that moved are ones that were wrong. `negated` serializes only when
+True ⇒ no `trace_hash` and **no lane pin** moves.
+
+The exhaustive control found five further intents — TRANSITIVE_QUERY,
+FRAME_TRANSFER, NARRATIVE, EXAMPLE, DEDUCTION — each serving a denial as its
+own assertion, because an intent without a frame fell back to the UNKNOWN
+*template* rather than the UNKNOWN *clause*. Found by the control, not by
+inspection.
+
+**Deliberately still unexpressed:** `quantifier`, `tense`, `aspect`. No
+producer sets them anywhere on the serving path, so threading them now would be
+machinery with no caller. The clause owner already handles all three the moment
+a producer exists.
+
+Phase 5's *diversity* work (items 1–3 above) remains open and is now correctly
+scoped by §6's RESULT: the frontier is **construction-inventory overlap**.
+
 ---
 
 ## 5. What is deliberately not estimated

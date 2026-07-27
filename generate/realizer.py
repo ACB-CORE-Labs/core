@@ -150,6 +150,7 @@ def realize_semantic(
             secondary=secondary,
             language=lang_a,
             root=root_a,
+            negated=step_a.negated,
         )
         fragments.append(RealizedFragment(
             node_id=step_a.node_id,
@@ -167,6 +168,9 @@ def realize_semantic(
                 obj=obj,
                 language=lang,
                 root=rt,
+                # The step has carried this since the graph learned to hold a
+                # denial; the realizer discarded it silently until Phase 5.
+                negated=step.negated,
             )
             move = step.move
             if move is RhetoricalMove.ASSERT and intent is IntentTag.CORRECTION:
