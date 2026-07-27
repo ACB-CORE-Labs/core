@@ -53,6 +53,7 @@ from dataclasses import dataclass
 # reused VERBATIM (one normalization discipline across every argument band —
 # deliberate private-name imports inside the proof_chain package, same
 # precedent as generate.proof_chain.member).
+from generate.lexicon import CONNECTIVES
 from generate.proof_chain.english import _SENTENCE_RE, _split_on, _tokenize
 from generate.proof_chain.member import (
     _A_LEADS,
@@ -75,7 +76,7 @@ from generate.proof_chain.shape import (
 #: Connective structure this band's grammar composes (v2-EN's inventory,
 #: minus "therefore" — that token is the commit-gate handled by the
 #: outer sentence loop, never part of a clause's own structure).
-_CONNECTIVE_TOKENS = frozenset({"if", "then", "or", "and", "either"})
+_CONNECTIVE_TOKENS = CONNECTIVES
 
 #: Honesty caps — beyond these the argument is refused, never truncated.
 #: ``MAX_ATOMS`` counts minted (individual, class) pairs.

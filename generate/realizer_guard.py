@@ -55,6 +55,8 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Literal
 
+from generate.lexicon import BE_FINITE
+
 
 DISCLOSURE_SURFACE = "I do not have a reviewed articulation for that yet."
 """Bounded fallback surface used when the guard rejects a candidate.
@@ -97,7 +99,7 @@ _ADVERB_FUNCTION_WORDS: frozenset[str] = frozenset({
 
 
 _DO_AUX: frozenset[str] = frozenset({"do", "does", "did"})
-_BE_AUX: frozenset[str] = frozenset({"is", "are", "was", "were"})
+_BE_AUX: frozenset[str] = BE_FINITE
 
 
 @dataclass(frozen=True)

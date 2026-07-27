@@ -8,6 +8,8 @@ import warnings
 from collections.abc import Sequence
 from typing import Any, List
 
+from generate.lexicon import BE_FINITE
+
 import numpy as np
 
 from algebra.versor import versor_condition
@@ -181,7 +183,7 @@ _QUESTION_WORDS = frozenset({"what", "who", "how", "why", "when", "where", "whic
 # does not allocate a fresh set on every English turn.  Aux-verbs that
 # precede the prompt's content noun ("is", "are", "was", "were") get
 # filtered out so the content-noun search lands on the actual subject.
-_BE_FORMS: frozenset[str] = frozenset({"is", "are", "was", "were"})
+_BE_FORMS: frozenset[str] = BE_FINITE
 _TERMINALS = frozenset({".", "?", ";", "!"})
 _UNKNOWN_DOMAIN_SURFACE = "I don't know — insufficient grounding for that yet."
 

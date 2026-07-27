@@ -279,6 +279,61 @@ Round-trip therefore needs a **defined projection**, not identity. Choosing that
 projection is Phase 1's first design decision, and §6 records why this matters
 for direction.
 
+### 1.9 §1.3 re-measured during Phase 2A — mostly subsets, not contradictions
+
+§1.3 was counted by name and by table size. Reading the actual values while
+building `generate/lexicon.py` changed the picture materially, and in CORE's
+favour: **almost nothing contradicts.**
+
+| §1.3 claim | measured | correction |
+|---|---|---|
+| irregular plurals: 3 copies, all diverge | 1 pluralizer + 2 singularizers | **direction confusion.** `templates` is singular→plural; `member`/`reader` are plural→singular. Comparing them as copies is a category error. |
+| — | `reader` ⊂ `member`, difference empty | **no disagreement.** The reader's 8 values all agree; only its coverage is short. |
+| quantifier tokens: 5 copies, 3-way divergence | 3 *distinct facts* | `QUANTIFIER_LEAD` (can lead a clause), `QUANTIFIER_TOKENS` (⊃ lead, adds pronouns), `PLURAL_QUANTIFIERS` (forces plural agreement). `every`/`each` lead but take singular nouns, so their absence from the third is **correct**. |
+| connectives: 4 copies, `english` adds `therefore` | 3 identical + 1 derived | confirmed; the 4th is `english._STRUCTURAL`, exactly `CONNECTIVES ∪ {therefore}`. |
+| negation-bearing: 2, diverge by `'not'` | `english` ⊂ `member` | confirmed, and the difference is **principled**: v2-EN normalizes `<copula> not`, v3-MEM refuses all non-copular `not`. |
+| copula forms: 2 copies | **5 copies** | undercounted. The structural test found `realizer_guard._BE_AUX` and `chat/runtime._BE_FORMS` — same four words, auxiliary role, invisible to a `COPULA`-shaped grep. |
+
+Exactly **one** genuine contradiction exists in the whole inventory:
+`discourse_planner._PREDICATE_HUMANIZE` maps `is_defined_as` → `"is"` where the
+other two map it to `"is defined as"`. Preserved as a deliberate register choice
+(the short copula reads as prose mid-paragraph), pinned by test.
+
+⇒ The §1.3 framing "tables that should agree and do not" overstated the disease.
+The accurate diagnosis is **coverage asymmetry plus three facts sharing one
+name**, which is a better problem to have: subsets can be derived from their
+superset with zero behaviour change, which is why Phase 2A came back 11/11
+byte-identical.
+
+**Worse than §1.7 stated, though.** `reader._singularize` does not refuse
+uncovered plurals despite a comment claiming it does — it falls through to a
+bare `-s` strip. So `news` → `new` and `species` → `specy`: precisely the
+corruptions `member.py`'s table comment says its table exists to prevent. Same
+fact, one file guarded, the other not. Pinned as current behaviour in
+`tests/test_lexicon_single_source.py`; Phase 2B must flip it.
+
+### 1.10 The destination for morphology already exists and is disconnected
+
+ADR-0258 §5 decided that the number table "moves from module constants to a
+ratified pack" **when a `grc_*`/`he_*` member band is built.** That trigger has
+not fired (no such band exists in `generate/proof_chain/`), so the promotion is
+correctly deferred — `generate/lexicon.py` is a staging area, not a competing
+home, and no new ADR is warranted.
+
+The destination's measured state, so the promotion is not planned on a guess:
+
+- `packs/en/morphology.jsonl` = **9 records.** Seven are forms of *be*; two are
+  noun plurals (`word`, `beginning`) that are **regular** and exist to support
+  John 1:1. **Zero irregular English plurals exist as pack data.**
+- **`features.number` has no consumer.** No code reads it.
+- The only reader of `morphology.jsonl` is
+  `chat/pack_resolver.py::_pack_morph_roots_for`, which extracts a top-level
+  `root` key. **0 of 31 records across all four packs define `root`**, so it
+  returns `{}` on every call while its docstring claims it "enables root-level
+  depth (Hebrew triconsonantal, Greek stems)". A dead path, not a slow one.
+- The pack is *richer* than the code on one point: it has `am`
+  (`en:be:present:1sg`), which all five Python be-form copies lack.
+
 ---
 
 ## 2. Goal, non-goals, and the thesis check
@@ -457,6 +512,33 @@ Deliver:
 hash, the tables were not actually identical — stop, treat it as a divergence
 requiring a decision, and move it to Phase 2B.
 
+**RESULT — the split fell entirely on the 2A side.** `generate/lexicon.py` owns
+the tables; **11/11 lane SHA pins came back byte-identical**, so by the #129
+rule every change in this unit is 2A and nothing spilled into 2B. Smoke 621
+unchanged, deductive 383 (364 + 19 new).
+
+Two exit criteria needed re-definition rather than just measuring, and both
+re-definitions are recorded here because the original wording was unmeasurable:
+
+- **"Jaccard → 1.00"** cannot be the measure. `measure_grammar_seam.py` scans
+  *source literals*, so unifying a fact **removes** it from those files and
+  Jaccard **fell**, 0.083 → 0.023. That is the success direction, reported by a
+  metric shaped to read like failure. Replaced with an **object-identity**
+  count: distinct underlying objects behind the consumer names, which is what
+  "one source of truth" actually asserts. Comparing by value cannot distinguish
+  a shared object from two equal copies, so identity is the only honest test.
+  Measured: **3 distinct objects behind 8 names**, from 8-behind-8.
+- **"one table per fact"** presumed the §1.3 fact inventory was right. §1.9
+  shows it was not, so the report now separates `_SHOULD_AGREE` (must be one
+  object → all **UNIFIED**) from `_RELATED_BUT_DISTINCT` (six expected
+  relations, all **HOLD**: derived-plus-`therefore`, strict-superset,
+  distinct-fact, differ-by-`not`, subset, inverse-direction).
+
+**The structural test earned its place immediately**: it found two copies of the
+be-form inventory (`realizer_guard._BE_AUX`, `chat/runtime._BE_FORMS`) that a
+name-based grep missed because neither is named like a copula. §1.3's "2 copies"
+was really 5.
+
 ### Phase 2B — Serving-path tables and the categorical render defect — **authorization gate**
 
 *Touches:* `generate/meaning_graph/reader.py::_IRREGULAR_PLURALS`,
@@ -467,9 +549,15 @@ Deliver:
 
 1. Re-pluralization at categorical render time, fixing `all dog are mammal` →
    `all dogs are mammals` (§1.7 cause 1 — affects *all* nouns).
-2. The reader's 8-entry plural table replaced by 2A's shared table, fixing the
-   8 silently-wrong singulars and the 12-of-20 reader-vs-reader disagreement
-   (§1.7 cause 2).
+2. The reader's 8-key view (`lexicon.READER_SINGULAR_KEYS`) widened to the full
+   29-entry singularizer. **Corrected framing (§1.9):** the reader's 8 *values*
+   are already right — they agree with the full table entry for entry — so this
+   is a **coverage** fix, not a correctness fix, and there are no "8 silently
+   wrong singulars." The silent wrongness is in the *fallback*:
+   `reader._singularize` guesses via a bare `-s` strip instead of refusing, so
+   `wolves`→`wolve`, `news`→`new`, `species`→`specy`. Its own comment claims it
+   refuses; it does not. Those five are pinned as current behaviour in
+   `tests/test_lexicon_single_source.py` and this phase must flip them.
 3. Updated lane SHA pins — **surgical single-line edits only**, never
    `--update` — with the old and new hash recorded per lane.
 

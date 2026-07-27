@@ -49,32 +49,74 @@ _WRITE_PATH_FILES = (
 )
 
 #: Groups of tables that encode the SAME linguistic fact and should agree.
+#: Groups that are ONE fact and must therefore be ONE object.
+#:
+#: Corrected 2026-07-26 (plan §1.9). The original grouping asserted that the
+#: three plural tables and the three quantifier sets were each one fact. They
+#: are not: the plural tables are a pluralizer plus two singularizers (inverse
+#: directions), and the quantifier sets are three distinct facts — "can lead a
+#: clause", "is a quantifier token", "forces plural agreement". Reporting those
+#: as DIVERGE was a correct answer to a wrong question, so they moved to
+#: :data:`_RELATED_BUT_DISTINCT` below.
 _SHOULD_AGREE = {
-    "irregular plurals": (
-        ("generate.proof_chain.member", "_IRREGULAR_PLURALS"),
-        ("generate.meaning_graph.reader", "_IRREGULAR_PLURALS"),
-        ("generate.templates", "_IRREGULAR_PLURALS"),
-    ),
-    "quantifier tokens": (
-        ("generate.proof_chain.english", "_QUANTIFIER_LEAD"),
-        ("generate.proof_chain.member", "_QUANTIFIER_TOKENS"),
-        ("generate.templates", "_PLURAL_QUANTIFIERS"),
-    ),
     "connective tokens": (
-        ("generate.proof_chain.english", "_STRUCTURAL"),
         ("generate.proof_chain.member", "_CONNECTIVES"),
         ("generate.proof_chain.verb", "_CONNECTIVES"),
         ("generate.proof_chain.cond_member", "_CONNECTIVE_TOKENS"),
-    ),
-    "negation-bearing tokens": (
-        ("generate.proof_chain.english", "_NEGATION_BEARING"),
-        ("generate.proof_chain.member", "_NEGATION_BEARING"),
     ),
     "predicate display": (
         ("generate.semantic_templates", "_PREDICATE_HUMANIZE"),
         ("generate.templates", "_PREDICATE_DISPLAY"),
     ),
+    "be-form inventory": (
+        ("generate.proof_chain.english", "_COPULAS"),
+        ("generate.realizer_guard", "_BE_AUX"),
+        ("chat.runtime", "_BE_FORMS"),
+    ),
 }
+
+#: Tables that are RELATED but genuinely distinct, with the relation that must
+#: hold between them. Each is pinned by ``tests/test_lexicon_single_source.py``;
+#: this table exists so the report states the relation instead of crying
+#: divergence. ``relation`` is a predicate over the two loaded values.
+_RELATED_BUT_DISTINCT = (
+    (
+        "STRUCTURAL = CONNECTIVES + therefore",
+        ("generate.proof_chain.english", "_STRUCTURAL"),
+        ("generate.proof_chain.member", "_CONNECTIVES"),
+        lambda a, b: frozenset(a) - frozenset(b) == {"therefore"},
+    ),
+    (
+        "QUANTIFIER_TOKENS strictly contains LEAD",
+        ("generate.proof_chain.member", "_QUANTIFIER_TOKENS"),
+        ("generate.proof_chain.english", "_QUANTIFIER_LEAD"),
+        lambda a, b: frozenset(b) < frozenset(a),
+    ),
+    (
+        "PLURAL_QUANTIFIERS is a different fact (excludes every/each)",
+        ("generate.templates", "_PLURAL_QUANTIFIERS"),
+        ("generate.proof_chain.english", "_QUANTIFIER_LEAD"),
+        lambda a, b: {"every", "each"} <= frozenset(b) and not ({"every", "each"} & frozenset(a)),
+    ),
+    (
+        "member negation = english negation + not",
+        ("generate.proof_chain.member", "_NEGATION_BEARING"),
+        ("generate.proof_chain.english", "_NEGATION_BEARING"),
+        lambda a, b: frozenset(a) - frozenset(b) == {"not"},
+    ),
+    (
+        "reader singulars are a subset of the full table",
+        ("generate.meaning_graph.reader", "_IRREGULAR_PLURALS"),
+        ("generate.proof_chain.member", "_IRREGULAR_PLURALS"),
+        lambda a, b: set(a.items()) < set(b.items()),
+    ),
+    (
+        "pluralizer is the inverse direction of the singularizer",
+        ("generate.templates", "_IRREGULAR_PLURALS"),
+        ("generate.proof_chain.member", "_IRREGULAR_PLURALS"),
+        lambda a, b: all(b[p] == s for s, p in a.items() if s != p and p in b),
+    ),
+)
 
 #: Plural-subject agreement oracle for §1.4 — hand-written English, not derived
 #: from the code under test (deriving it from the code would make it agree by
@@ -141,8 +183,18 @@ def section_tables() -> None:
     print(f"  writing path: {len(write_tables):3d} word-tables, {len(write_words):3d} distinct words")
     print(f"  shared      : {len(shared):3d} of {len(union)} union")
     print(f"  JACCARD     : {len(shared) / len(union):.3f}" if union else "  JACCARD: n/a")
+    print(
+        "  NOTE: these counts scan SOURCE LITERALS, so after Phase 2A they\n"
+        "        measure how much table text still lives in these files, not\n"
+        "        how many answers exist. A unified fact leaves the file as an\n"
+        "        import and DROPS out of the count — Jaccard falling is the\n"
+        "        expected direction, not a regression. Read the ownership\n"
+        "        block below for the number the 2A exit criterion actually means."
+    )
 
-    print("\n  tables that encode the same fact:")
+    print("\n  tables that encode the same fact (by OBJECT IDENTITY):")
+    owners_total = 0
+    views_total = 0
     for label, refs in _SHOULD_AGREE.items():
         loaded = []
         for module_name, attr in refs:
@@ -151,13 +203,46 @@ def section_tables() -> None:
             except (ImportError, AttributeError):
                 continue
             keys = frozenset(value) if not isinstance(value, tuple) else frozenset(value)
-            loaded.append((f"{module_name.split('.')[-1]}.{attr}", keys))
+            loaded.append((f"{module_name.split('.')[-1]}.{attr}", keys, id(value)))
         if len(loaded) < 2:
             continue
-        all_equal = all(k == loaded[0][1] for _, k in loaded)
-        verdict = "IDENTICAL" if all_equal else "DIVERGE"
-        sizes = ", ".join(f"{n}={len(k)}" for n, k in loaded)
-        print(f"    {verdict:9s} {label:26s} ({len(loaded)} copies: {sizes})")
+        # Distinct underlying OBJECTS, not distinct names. After unification a
+        # band attribute is the lexicon object itself, so N names backed by one
+        # object is one answer — which is what "unified" means. Comparing by
+        # value alone cannot tell a shared object from two equal copies.
+        distinct_objects = {oid for _, _, oid in loaded}
+        distinct_values = {keys for _, keys, _ in loaded}
+        owners_total += len(distinct_objects)
+        views_total += len(loaded)
+        if len(distinct_objects) == 1:
+            verdict = "UNIFIED"
+        elif len(distinct_values) == 1:
+            verdict = "EQUAL-COPY"  # same content, still two objects
+        else:
+            verdict = "DIVERGE"
+        sizes = ", ".join(f"{n}={len(k)}" for n, k, _ in loaded)
+        print(
+            f"    {verdict:10s} {label:26s} "
+            f"({len(distinct_objects)} owner(s) behind {len(loaded)} view(s): {sizes})"
+        )
+    if views_total:
+        print(
+            f"\n  OWNERSHIP   : {owners_total} distinct objects behind {views_total} names"
+            f"  (1 owner per fact is the 2A goal)"
+        )
+
+    print("\n  related but DISTINCT facts — the relation that must hold:")
+    for label, ref_a, ref_b, relation in _RELATED_BUT_DISTINCT:
+        try:
+            a = getattr(importlib.import_module(ref_a[0]), ref_a[1])
+            b = getattr(importlib.import_module(ref_b[0]), ref_b[1])
+        except (ImportError, AttributeError):
+            continue
+        try:
+            ok = bool(relation(a, b))
+        except Exception:  # a broken relation is a red flag, not a crash
+            ok = False
+        print(f"    {'HOLDS' if ok else 'BROKEN':10s} {label}")
 
 
 def section_agreement() -> None:

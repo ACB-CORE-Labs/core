@@ -53,6 +53,7 @@ import json
 from dataclasses import dataclass, field
 from enum import Enum, unique
 
+from generate.lexicon import DISCOURSE_PREDICATE_DISPLAY
 from generate.graph_planner import Relation
 from generate.intent import (
     CompoundIntent,
@@ -767,10 +768,7 @@ def plan_compound_discourse(
 #   * a fixed-template connective from the table below.
 # No synthesis, no LLM, no approximation.
 
-_PREDICATE_HUMANIZE: dict[str, str] = {
-    "is_defined_as": "is",
-    "belongs_to": "belongs to",
-}
+_PREDICATE_HUMANIZE: dict[str, str] = DISCOURSE_PREDICATE_DISPLAY
 
 
 def _humanize_predicate(predicate: str) -> str:
