@@ -70,6 +70,15 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # substantive override of the served surface. Cheap, and the axis is
         # invisible until it breaks silently.
         "tests/test_prior_surface_deduction_binding.py",
+        # CORE must not serve the affirmative of a proposition the user denied.
+        # This was live behind `realizer_grounded_authority`: "evidence does not
+        # support truth" and "evidence supports truth" served byte-identical
+        # surfaces, because the graph had no slot for a denial. It is a truth
+        # defect on a serving path, so it belongs on the pre-push gate, not
+        # under `full` — and this file is registered in the same PR that
+        # creates it, per the #136 finding that an unregistered pin runs
+        # nowhere. ~6s, mostly two real pipeline turns per denial pair.
+        "tests/test_negation_survives_articulation.py",
         # ADR governance. An ADR that governs a default-ON flag records a
         # decision already in force, so leaving it "Proposed" makes the
         # governance record assert something false about the running system —
