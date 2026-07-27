@@ -134,12 +134,22 @@ def test_shuffles_are_byte_stable_across_calls():
 # --------------------------------------------------------------------------- #
 
 
-def test_g_roundtrip_baseline_is_zero(report):
-    """BASELINE PIN (a defect, not a goal): CORE reads 0% of what it writes.
+def test_g_roundtrip_baseline_is_one_case_of_293(report):
+    """RATCHET PIN. Was 0/293 on main @ 9696443a — CORE read *nothing* it wrote.
 
-    Measured on main @ 9696443a. When the grammar is unified this must be
-    revised **upward**; it must never be revised downward to accommodate a
-    regression.
+    Phase 4 made it **1**. This must only ever be revised upward; never
+    downward to accommodate a regression.
+
+    The one case is ``gram_C14_p01``, and what unblocked it is worth recording
+    because it is the opposite of what §6 of the plan predicted. The writer was
+    emitting ``all molecules are defined as compound`` — a predicate nominal
+    that does not agree with its subject. The reader accepts
+    ``...as compounds`` and refuses ``...as compound``, so the blocker was a
+    one-line **writer** defect, not the MeaningGraph/PropositionGraph type
+    mismatch of §1.8.
+
+    The remaining 292 decompose cleanly, and none of them is a model mismatch
+    either — see ``test_the_remaining_blockers_are_reader_construction_coverage``.
     """
     # 293, not the original 280: Phase 3 added 13 quantified-copular cases
     # (construction C14) to grammatical_coverage/public/v1, and this lane
@@ -148,8 +158,42 @@ def test_g_roundtrip_baseline_is_zero(report):
     # or shrinks should require a deliberate edit here, not pass silently.
     assert report.metrics["graph_cases"] == 293
     assert report.metrics["g_write_rate"] == 1.0
-    assert report.metrics["g_read_rate"] == 0.0
-    assert report.metrics["g_exact_rate"] == 0.0
+    assert report.metrics["g_read_rate"] >= 0.003413, "the ratchet may not go down"
+    assert report.metrics["g_read_rate"] == 0.003413
+
+
+def test_the_remaining_blockers_are_reader_construction_coverage(report):
+    """WHY g_read_rate is 1/293 and not 293/293 — the measurement §6 turns on.
+
+    The plan pre-committed to reading a near-zero rate as evidence for §1.8:
+    two incompatible graph models, next step an ADR. The refusal reasons say
+    otherwise. Every one of them is the reader declining a CONSTRUCTION it has
+    no template for — not a projection disagreeing about a graph it parsed:
+
+        no_template_match     289   reader has no SUBJ-VERB-OBJ template at all
+        unknown_morphology      2   prepositional objects (reserved_word_in_np)
+        unsupported_negation    1   reader has no negated-categorical template
+
+    Where a construction IS in both inventories, the round trip closes exactly
+    (``s_surface_match_rate == s_renderable_rate``). So the barrier is the
+    *overlap* of the two construction inventories, which is currently one
+    construction wide — and that is Phase 5's item 1, not an ADR.
+    """
+    reasons: dict[str, int] = {}
+    for row in report.case_details:
+        if "wrote" not in row:
+            continue
+        reasons[row.get("refusal_reason") or "READ"] = (
+            reasons.get(row.get("refusal_reason") or "READ", 0) + 1
+        )
+    assert reasons == {
+        "no_template_match": 289,
+        "unknown_morphology": 2,
+        "unsupported_negation": 1,
+        "READ": 1,
+    }
+    # The load-bearing claim: not one refusal is a graph-model disagreement.
+    assert "projection_mismatch" not in reasons
 
 
 def test_s_roundtrip_closes_for_every_renderable_surface(report):

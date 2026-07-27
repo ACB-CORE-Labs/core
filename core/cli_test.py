@@ -246,6 +246,21 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_vocab_trigger_instrument.py",
         "tests/test_grammar_roundtrip.py",
         "tests/test_lexicon_single_source.py",
+        # Phase 4 — which realizer serves, and what the other one's score
+        # means. Registered here deliberately: this file exists because a lane
+        # reported 117/117 for a function nothing calls, and a pin that no
+        # curated suite runs is the same defect one level up. Pure in-process
+        # lane replay, ~0.4s.
+        "tests/test_phase4_realizer_resolution.py",
+        # The grammar arc's agreement oracle and the tail-preservation
+        # invariant. It lived ONLY in the `cognition` suite, which is not on
+        # the AGENTS.md pre-push gate (smoke + deductive) — so every pin
+        # Phases 3 and 4 added to it, including the invariant that covers all
+        # twelve inflection branches, ran in no gate at all. Exactly the
+        # silent-red shape called out for test_adr_index.py above, and the
+        # reason smoke stayed at 621 across two PRs that added 13 tests.
+        # ~0.4s; it belongs with the other grammar pins.
+        "tests/test_realizer_quantifier_agreement.py",
     ),
     "full": ("tests/",),
 }

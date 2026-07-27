@@ -5,6 +5,23 @@ English surfaces from PropositionGraph inputs. Each case specifies a
 construction family (e.g. negation, conjunction, embedded clause) and
 acceptance criteria (exact surfaces, constraint checks).
 
+WHICH REALIZER (Phase 4)
+------------------------
+``accuracy`` scores ``realize_target``, which **no serving path calls** —
+``core/cognition/pipeline.py`` calls ``realize_semantic``. So ``accuracy`` is a
+measurement of the grammar *library*, not of English CORE has ever spoken, and
+citing it as "CORE's fluency" is a category error. It was cited that way for
+the whole arc: 117/117 + 39/39 for a function that does not speak.
+
+``serving_accuracy`` scores ``realize_semantic`` on the identical cases and the
+identical rubric. Across all seven corpora the two read **340/347** and
+**85/347**. The gap is not a matter of polish — ``render_semantic`` has no
+``negated``, ``quantifier``, ``tense`` or ``aspect`` parameter, so it serves a
+negated proposition as its affirmative. See
+``tests/test_phase4_realizer_resolution.py``, which pins that defect and the
+control proving the gap is the dropped content rather than the corpora's
+hardcoded ``IntentTag.UNKNOWN``.
+
 Conforms to the framework interface: ``run_lane(cases, config=None) -> report``.
 """
 from __future__ import annotations
@@ -62,11 +79,16 @@ def _check_word_order(order: list[str], surface_words: list[str]) -> bool:
     return True
 
 
-def _realize_from_graph(case: dict[str, Any]) -> str:
+def _realize_from_graph(case: dict[str, Any], realize: Any = None) -> str:
     """Realize a surface from a proposition graph case.
 
     This calls the actual realizer infrastructure. The graph format in
     the eval cases maps to the realizer's PropositionGraph -> surface path.
+
+    ``realize`` defaults to ``realize_target``, which is the realizer this lane
+    has always scored -- and which **nothing in the serving path calls**
+    (Phase 4). Passing ``realize_semantic`` scores the writer that actually
+    ships, against this identical contract.
     """
     from generate.graph_planner import (
         ArticulationStep,
@@ -133,17 +155,17 @@ def _realize_from_graph(case: dict[str, Any]) -> str:
         ))
 
     target = ArticulationTarget(steps=tuple(steps), source_intent=IntentTag.UNKNOWN)
-    plan = realize_target(target, graph)
+    plan = (realize or realize_target)(target, graph)
     surface = plan.surface.rstrip(".")
     return surface
 
 
-def _score_case(case: dict[str, Any]) -> CaseResult:
+def _score_case(case: dict[str, Any], realize: Any = None) -> CaseResult:
     construction = case["construction"]
     construction_name = case["construction_name"]
 
     try:
-        surface = _realize_from_graph(case)
+        surface = _realize_from_graph(case, realize)
     except Exception as exc:
         return CaseResult(
             case_id=case["id"],
@@ -235,11 +257,30 @@ def run_lane(
         for k, v in sorted(by_construction.items())
     }
 
+    # ----------------------------------------------------------------- #
+    # Phase 4: score the SERVING writer on the identical contract.
+    #
+    # `accuracy` above is `realize_target`'s, and `core/cognition/pipeline.py`
+    # never calls `realize_target` -- it calls `realize_semantic`. For the whole
+    # arc this lane reported ~1.00 for a function that does not speak. Both
+    # numbers are reported now so the headline can never again be read as
+    # "CORE's fluency" when it is a measurement of a grammar library.
+    #
+    # This is the honest half of Phase 4 option (b). It changes no served byte;
+    # it only stops the lane from being silent about the gap.
+    # ----------------------------------------------------------------- #
+    from generate.realizer import realize_semantic
+
+    serving_passed = sum(1 for case in cases if _score_case(case, realize_semantic).passed)
+
     metrics = {
         "total": total,
         "passed": passed,
         "accuracy": round(passed / total, 4) if total else 0.0,
         "by_construction": construction_scores,
+        # What ships, on the same cases and the same rubric.
+        "serving_passed": serving_passed,
+        "serving_accuracy": round(serving_passed / total, 4) if total else 0.0,
     }
 
     return LaneReport(metrics=metrics, case_details=case_details)

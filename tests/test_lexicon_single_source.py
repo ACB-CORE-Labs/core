@@ -62,6 +62,10 @@ RECORDED_CONSUMERS: dict[str, frozenset[str]] = {
     "QUANTIFIER_LEAD": frozenset({"generate.proof_chain.english"}),
     "QUANTIFIER_TOKENS": frozenset({"generate.proof_chain.member"}),
     "PLURAL_QUANTIFIERS": frozenset({"generate.templates"}),
+    # Phase 4: the closed set of predicates whose object is a predicate nominal
+    # and therefore agrees in number with the subject. Closed, not productive —
+    # a rule would pluralize "grounded in evidence" into "evidences".
+    "PREDICATIVE_NOMINAL": frozenset({"generate.templates"}),
     "PREDICATE_DISPLAY": frozenset({
         "generate.templates",
         "generate.semantic_templates",

@@ -15,6 +15,8 @@ mammal``.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from generate.lexicon import (
     INVARIANT_NUMBER,
     VES_PLURAL_SINGULARS,
@@ -152,12 +154,39 @@ _IRREGULAR_FORMS: dict[str, tuple[str, str]] = {
 _IRREGULAR_PAST: dict[str, str] = {v: forms[0] for v, forms in _IRREGULAR_FORMS.items()}
 
 _IRREGULAR_PARTICIPLE: dict[str, str] = {
-    # Present-participle (-ing) is almost always regular.  Only handle
-    # the truly weird cases (lie→lying handled by the suffix rule;
-    # be→being is the one English present-participle that needs a
-    # special entry, but `is` doesn't normally surface as a content
-    # predicate in our realizer pipeline).
+    # Present-participle (-ing) is almost always regular (lie→lying is handled
+    # by the suffix rule).  The auxiliaries are the exception, and they DO
+    # surface as predicate heads: every copular predicate in
+    # ``PREDICATE_DISPLAY`` begins with "is"/"has" ("is defined as", "has the
+    # following steps"), so the imperfective branch inflects them constantly.
+    # Without these entries ``present_participle("is")`` fell through
+    # ``_base_form("is") == "i"`` and produced **"iing"**.
+    "is": "being",
+    "are": "being",
+    "was": "being",
+    "were": "being",
+    "has": "having",
+    "have": "having",
+    "does": "doing",
+    "do": "doing",
 }
+
+#: 3sg present → bare infinitive, for the verbs whose base is not the stem left
+#: behind by stripping ``-s``.  ``_base_form`` is a suffix stripper, so without
+#: this table ``base_form("is")`` returned **"i"** and the future branch emitted
+#: "will i defined as".  Same closed-set discipline as the ``ves`` plurals: a
+#: table, not a rule, because the rule has no way to know.
+_IRREGULAR_BASE: dict[str, str] = {
+    "is": "be", "are": "be", "was": "be", "were": "be", "am": "be",
+    "has": "have", "have": "have", "had": "have",
+    "does": "do", "do": "do", "did": "do",
+}
+
+#: Heads that take a bare ``not`` rather than do-support.  "was not defined as",
+#: never "did not be defined as"; but "did not belong to", never "belonged not".
+_BARE_NOT_HEADS: frozenset[str] = frozenset(
+    {"is", "are", "was", "were", "has", "have", "had", "does", "do", "did"}
+)
 
 _IRREGULAR_PAST_PARTICIPLE: dict[str, str] = {v: forms[1] for v, forms in _IRREGULAR_FORMS.items()}
 
@@ -179,6 +208,8 @@ _ES_STEM_ENDINGS = ("ss", "sh", "ch", "x", "z", "o")
 
 
 def _base_form(verb_3sg: str) -> str:
+    if verb_3sg in _IRREGULAR_BASE:
+        return _IRREGULAR_BASE[verb_3sg]
     if verb_3sg in _IES_KEEP_IE:
         return verb_3sg[:-1]
     if verb_3sg.endswith("ies"):
@@ -207,13 +238,32 @@ def plural_present(verb_3sg: str) -> str:
     return _base_form(verb_3sg)
 
 
+def inflect_phrase_head(phrase: str, inflect: Callable[[str], str]) -> str:
+    """Apply a SINGLE-VERB inflection to a predicate phrase's finite verb.
+
+    English marks tense, number and aspect on the finite verb, which is the
+    first token of every humanized predicate ("is defined as", "has the
+    following steps", "belongs to", "contrasts with"). Only that token
+    inflects; tokens 2..n are carried through **byte-identical**.
+
+    That tail-preservation is a falsifiable invariant, and it is the one this
+    module kept violating. Every function in here — ``base_form``,
+    ``past_tense``, ``present_participle``, ``past_participle`` — is written
+    for a single verb, and ``_inflect_predicate`` was handing them whole
+    phrases on nine of its ten branches. Phase 3 fixed the two plural branches
+    by hand; the other eight still produced "belongs toed", "has belongs toed",
+    "is belongs toing" and "will is defined a". Routing every branch through
+    this one function is what makes the invariant checkable in one place
+    instead of eight.
+    """
+    if not phrase:
+        return phrase
+    head, sep, rest = phrase.partition(" ")
+    return inflect(head) + sep + rest
+
+
 def agree_plural_phrase(phrase: str) -> str:
     """Put a whole predicate PHRASE into plural agreement.
-
-    Number is marked on the finite verb, which is the first token of every
-    humanized predicate ("is defined as", "has the following steps",
-    "belongs to", "contrasts with"). Only that token inflects; the rest is
-    carried through untouched.
 
     This exists because :func:`base_form` is a SINGLE-VERB function and was
     being applied to whole phrases, stripping the last character-class of the
@@ -221,10 +271,15 @@ def agree_plural_phrase(phrase: str) -> str:
     -> "has the following step". Nine of the 26 seed predicates were wrong
     that way, and every multi-word one was.
     """
+    return inflect_phrase_head(phrase, plural_present)
+
+
+def takes_bare_not(phrase: str) -> bool:
+    """True when negation attaches directly to the head ("was not defined as")
+    rather than through do-support ("did not belong to")."""
     if not phrase:
-        return phrase
-    head, sep, rest = phrase.partition(" ")
-    return plural_present(head) + sep + rest
+        return False
+    return phrase.partition(" ")[0] in _BARE_NOT_HEADS
 
 
 def past_tense(verb_3sg: str) -> str:

@@ -338,3 +338,27 @@ MASS_NOUNS: Final[frozenset[str]] = frozenset(
     }
 )
 
+
+#: Predicates whose object is a **predicate nominal** — a second name for the
+#: subject's category rather than an independent noun phrase. English makes the
+#: object agree in number with the subject in exactly this construction:
+#:
+#:     all dogs are mammals            (not "are a mammal")
+#:     all molecules are defined as compounds
+#:
+#: and does **not** elsewhere, because a prepositional object carries its own
+#: number, chosen by the speaker and not by the subject:
+#:
+#:     all claims are grounded in evidence     (mass — never "evidences")
+#:     some theories are caused by observation (generic singular is fine)
+#:
+#: So this is a CLOSED SET, not a productive rule — the same discipline
+#: ``VES_PLURAL_SINGULARS`` enforces for f/fe → ves. A rule that pluralized
+#: every object under a plural subject would produce "grounded in evidences".
+#:
+#: Deliberately excluded: ``is_distinguished_from``, ``is_caused_by``,
+#: ``is_grounded_in``. Their objects read as generic and the reader refuses the
+#: whole construction anyway (``reserved_word_in_np``), so widening the set buys
+#: no round-trip and commits to a number English leaves open.
+PREDICATIVE_NOMINAL: Final[frozenset[str]] = frozenset({"is_a", "is_defined_as"})
+
