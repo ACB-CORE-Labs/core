@@ -23,6 +23,7 @@ from generate.articulation_legality import (
 )
 from generate.graph_planner import RhetoricalMove
 from generate.morphology import (
+    agree_plural_phrase,
     base_form,
     is_mass_noun,
     past_participle,
@@ -102,7 +103,17 @@ def _inflect_predicate(
         case (_, "future", False, _):
             return f"will {base}"
         case (_, _, True, True):
-            return f"do not {base}"
+            # Plural + negated. Agree the head first, then negate around it:
+            # a plural copula takes a bare "not" ("are not defined as"), while
+            # any other verb needs do-support ("do not have the following
+            # steps", "do not belong to"). Previously this was
+            # ``f"do not {base}"`` over the whole phrase, which produced
+            # "do not is defined a".
+            agreed = agree_plural_phrase(predicate_h)
+            head, sep, rest = agreed.partition(" ")
+            if head in ("are", "were"):
+                return f"{head} not{sep}{rest}" if rest else f"{head} not"
+            return f"do not {agreed}"
         case (_, _, True, False) if copular:
             if predicate_h.startswith("is "):
                 return "is not " + predicate_h[3:]
@@ -118,7 +129,11 @@ def _inflect_predicate(
         case (_, _, True, False):
             return f"does not {base}"
         case (_, _, False, True):
-            return base
+            # Plural agreement on the whole phrase, not base_form() of it.
+            # This is the branch the 9-of-26 defect lived in: it returned the
+            # bare base and never consulted ``copular``, so "is defined as"
+            # came back "is defined a" instead of "are defined as".
+            return agree_plural_phrase(predicate_h)
         case _:
             return verb
 

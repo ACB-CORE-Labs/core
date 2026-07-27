@@ -79,6 +79,9 @@ RECORDED_CONSUMERS: dict[str, frozenset[str]] = {
     }),
     "INVARIANT_NUMBER": frozenset({"generate.morphology"}),
     "MASS_NOUNS": frozenset({"generate.morphology"}),
+    # Phase 3: the closed f/fe -> ves set, derived from the singularizer's own
+    # ves-rows so the rule cannot claim a word the table does not know.
+    "VES_PLURAL_SINGULARS": frozenset({"generate.morphology"}),
 }
 
 #: The tables a duplicate literal would be a duplicate *of*. Frozen as

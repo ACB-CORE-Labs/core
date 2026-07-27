@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from generate.lexicon import (
     INVARIANT_NUMBER,
+    VES_PLURAL_SINGULARS,
     IRREGULAR_PLURALS,
     IRREGULAR_SINGULARS,
     MASS_NOUNS,
@@ -167,16 +168,63 @@ _IRREGULAR_PAST_PARTICIPLE: dict[str, str] = {v: forms[1] for v, forms in _IRREG
 _IES_KEEP_IE: frozenset[str] = frozenset({"dies", "lies", "ties", "vies", "pies", "hies"})
 
 
+#: Stem endings that take ``-es`` for the 3sg rather than a bare ``-s``.
+#:
+#: ``ss`` and not ``s``: the sibilant rule fires on a DOUBLED s ("passes" ->
+#: "pass"), while a stem ending in a single ``s`` is almost always a stem
+#: ending in ``e`` that took a plain ``-s`` ("causes" -> "cause"). Before this
+#: distinction, ``base_form("causes")`` returned **"caus"**, which is the
+#: single-verb half of the 9-of-26 agreement defect.
+_ES_STEM_ENDINGS = ("ss", "sh", "ch", "x", "z", "o")
+
+
 def _base_form(verb_3sg: str) -> str:
     if verb_3sg in _IES_KEEP_IE:
         return verb_3sg[:-1]
     if verb_3sg.endswith("ies"):
         return verb_3sg[:-3] + "y"
     if verb_3sg.endswith("es"):
-        return verb_3sg[:-2] if verb_3sg[:-2].endswith(("s", "sh", "ch", "x", "z", "o")) else verb_3sg[:-1]
+        return verb_3sg[:-2] if verb_3sg[:-2].endswith(_ES_STEM_ENDINGS) else verb_3sg[:-1]
     if verb_3sg.endswith("s"):
         return verb_3sg[:-1]
     return verb_3sg
+
+
+#: 3sg present -> plural present, for the forms where the plural is not simply
+#: the bare stem. Everything else pluralizes by dropping the ``-s``.
+_PLURAL_PRESENT: dict[str, str] = {
+    "is": "are", "are": "are",
+    "has": "have", "have": "have",
+    "does": "do", "do": "do",
+    "was": "were", "were": "were",
+}
+
+
+def plural_present(verb_3sg: str) -> str:
+    """A third-person-singular verb → its plural-subject present form."""
+    if verb_3sg in _PLURAL_PRESENT:
+        return _PLURAL_PRESENT[verb_3sg]
+    return _base_form(verb_3sg)
+
+
+def agree_plural_phrase(phrase: str) -> str:
+    """Put a whole predicate PHRASE into plural agreement.
+
+    Number is marked on the finite verb, which is the first token of every
+    humanized predicate ("is defined as", "has the following steps",
+    "belongs to", "contrasts with"). Only that token inflects; the rest is
+    carried through untouched.
+
+    This exists because :func:`base_form` is a SINGLE-VERB function and was
+    being applied to whole phrases, stripping the last character-class of the
+    final word: "is defined as" -> "is defined a", "has the following steps"
+    -> "has the following step". Nine of the 26 seed predicates were wrong
+    that way, and every multi-word one was.
+    """
+    if not phrase:
+        return phrase
+    head, sep, rest = phrase.partition(" ")
+    return plural_present(head) + sep + rest
 
 
 def past_tense(verb_3sg: str) -> str:
@@ -272,10 +320,12 @@ def pluralize(noun: str) -> str:
         return prefix + head + "es"
     if head.endswith("y") and len(head) > 1 and head[-2] not in "aeiou":
         return prefix + head[:-1] + "ies"
-    if head.endswith("fe"):
-        return prefix + head[:-2] + "ves"
-    if head.endswith("f"):
-        return prefix + head[:-1] + "ves"
+    # f/fe -> ves is a CLOSED set, not a productive rule: proof->proofs and
+    # chief->chiefs, but wolf->wolves. The set is derived from the number
+    # table's own ves-rows, so the rule can never claim a word the table does
+    # not know. Without this, pluralize("proof") returned "prooves".
+    if head in VES_PLURAL_SINGULARS:
+        return prefix + (head[:-2] if head.endswith("fe") else head[:-1]) + "ves"
     return prefix + head + "s"
 
 

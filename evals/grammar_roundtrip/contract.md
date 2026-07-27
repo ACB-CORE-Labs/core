@@ -65,7 +65,7 @@ this arc's direction (plan §6).
 
 | corpus | source | size |
 |---|---|---|
-| positive graphs | committed `english_fluency_ood` + `grammatical_coverage` case files | 280 |
+| positive graphs | committed `english_fluency_ood` + `grammatical_coverage` case files | 293 |
 | positive surfaces | in-module, each verified comprehensible by probe | 8 |
 | negative surfaces | hand-authored salad + deterministic token shuffles of the positives | 16 |
 
@@ -86,7 +86,7 @@ grammar checking. Shuffling uses a fixed rotation rather than a PRNG so
 ## v1 baseline — measured on `main` @ `9696443a`
 
 ```
-graph_cases              280
+graph_cases              293
 g_write_rate             1.000
 g_read_rate              0.000     <-- CORE reads 0% of what it writes
 g_propositions_expected  370

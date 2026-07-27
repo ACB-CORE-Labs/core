@@ -723,6 +723,56 @@ Deliver:
 | the gap is closed for good | new cases exercise quantifier × copular; reverting either fix goes red |
 | no regression | `english_fluency_ood` 117/117 + 39/39 holds; smoke/deductive unchanged |
 
+**RESULT — all three met.** Agreement **26/26** (from 17/26). `english_fluency_ood`
+**117/117 + 39/39** (+ dev 13/13) unchanged. New construction **C14
+`quantified_copular`**, 13 cases, `grammatical_coverage` v1 **49/49**.
+
+Root causes, both single-point as §1.4 predicted:
+
+1. `base_form` is a **single-verb** function and was applied to whole phrases,
+   stripping the final word's last character-class. Fixed by
+   `morphology.agree_plural_phrase`, which inflects the **head** (the finite
+   verb is the first token of every humanized predicate) and carries the rest
+   through. `base_form` itself is left single-verb and **pinned as still wrong
+   on a phrase**, so nobody "fixes" the symptom in the wrong place.
+2. The plural branch never consulted `copular` — it returned the bare base. Now
+   it agrees the phrase. The plural **negated** branch had the same defect
+   (`do not is defined a`) and is fixed with it: a plural copula takes a bare
+   `not`, everything else takes do-support.
+
+**Two further defects found while writing the cases**, both genuine and both
+fixed here:
+
+- `base_form("causes")` → **`"caus"`**. The `-es` sibilant rule fired on a
+  stem ending in a single `s`; it should require a doubled `ss` ("passes" →
+  "pass") because a single `s` is nearly always a stem ending in `e` that took a
+  plain `-s` ("causes" → "cause").
+- `pluralize("proof")` → **`"prooves"`**. `f`/`fe` → `ves` is **not productive
+  in English** (proof→proofs, chief→chiefs, roof→roofs); it applies to a closed
+  set. Now derived as `lexicon.VES_PLURAL_SINGULARS` from the `ves` rows of
+  `IRREGULAR_SINGULARS`, so the rule cannot claim a word the table does not
+  know. **Phase 2B had put `pluralize` on the serving path**, so this one was
+  live.
+
+**The first draft of the C14 cases could not fail.** `must_contain` and
+`word_order` listed quantifier, subject and object — but *not the verb* — so
+`all molecules is defined a compound` passed. Reverting the fix left 47/47 green.
+Rewritten with the agreed verb in both constraints plus `reject_surfaces`
+carrying the **actual** pre-fix output (computed by running the reverted code,
+not guessed). Mutation now:
+
+| reverted fix | C14 |
+|---|---|
+| baseline | 13/13 |
+| phrase-head plural agreement | **4/13** |
+| `-es` stem rule | **12/13** |
+| closed `ves` set | **11/13** |
+
+The 4 survivors of the first mutation are the mass-noun and unchanged controls,
+which is the correct behaviour — `all evidence is grounded in truth` must *not*
+pluralize. Same lesson as the lane pins in #133: a pin that cannot fail guards
+nothing, and the only way to know is to break the thing on purpose.
+
 ### Phase 4 — Resolve `realize_semantic` vs `realize_target` — **authorization gate**
 
 *Touches:* `core/cognition/pipeline.py` or the eval lanes. **First phase that can

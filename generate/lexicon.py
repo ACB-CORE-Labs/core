@@ -282,6 +282,22 @@ IRREGULAR_SINGULARS: Final[dict[str, str]] = {
     "offspring": "offspring", "aircraft": "aircraft", "news": "news",
 }
 
+#: Singulars whose plural is formed by ``f``/``fe`` → ``ves``, **derived** from
+#: the rows of :data:`IRREGULAR_SINGULARS` whose plural actually ends in
+#: ``ves`` — wolf, knife, life, leaf, half, elf, loaf, thief.
+#:
+#: The ``f`` → ``ves`` change is **not productive in English**: it applies to a
+#: closed set, and the productive form is a plain ``-s`` (proof→proofs,
+#: chief→chiefs, roof→roofs, belief→beliefs). Applying it as a suffix rule made
+#: ``pluralize("proof")`` return **"prooves"**, which Phase 2B had put on the
+#: serving path. Derived rather than hand-listed so the rule cannot claim a
+#: word the number table does not actually know.
+VES_PLURAL_SINGULARS: Final[frozenset[str]] = frozenset(
+    singular
+    for plural, singular in IRREGULAR_SINGULARS.items()
+    if plural.endswith("ves") and plural != singular
+)
+
 #: Nouns whose plural equals their singular, **derived** from the invariant
 #: rows of :data:`IRREGULAR_SINGULARS` (the rows where key == value).
 #:
