@@ -69,6 +69,17 @@ only the *vocabulary* is split — a materially different remedy from both being
 low. Collapsing them into one boolean would hide the distinction that decides
 this arc's direction (plan §6).
 
+> **Never quote `g_read_rate` without `g_args_rate`.** They currently disagree:
+> `g_read_rate = 0.003413` with `g_args_rate = 0.0`. The single surface that
+> "reads" is `all molecules are defined as compounds`, which the reader accepts
+> as `subset(molecule, defined_as_compound)` — it chunked the writer's verb
+> phrase into a class name. **Acceptance is not comprehension**, and a reader
+> scored on whether it returned a graph rather than on whether the graph is the
+> one it was given is rewarded for guessing. Plan §6's RESULT drew a conclusion
+> from `g_read_rate` alone and had to be corrected; see
+> `evals/construction_inventory/contract.md`, which measures the same question
+> against the writer's whole output space instead of a 293-case corpus.
+
 ## Corpora
 
 | corpus | source | size |

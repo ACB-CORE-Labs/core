@@ -914,6 +914,63 @@ a producer exists.
 Phase 5's *diversity* work (items 1–3 above) remains open and is now correctly
 scoped by §6's RESULT: the frontier is **construction-inventory overlap**.
 
+**RESULT (second unit) — the inventories measured against each other.**
+New lane `evals/construction_inventory` (contract + 14 pins, 13 mutations
+observed red). It sweeps the writer's whole parameter space — every
+`RhetoricalMove` × `IntentTag` × predicate × quantifier × tense × aspect, both
+public entry points, 32292 cells — quotients it by the reader's own function-word
+skeleton, and comprehends each construction under three vocabularies.
+
+| | |
+|---|---|
+| writer constructions | **1739** |
+| reader constructions | **19** (mint-site AST-guarded) |
+| **overlap, faithful** | **6** |
+| reader accepts but mis-reads | **22** |
+| reader refuses | 1711 |
+| vocabulary-dependent | **0** |
+
+The overlap is the same six from both sides — `X is a Y`, `the X is a Y`, and
+the four categoricals — and it is **entirely set-theoretic**. The writer cannot
+express one ordering, propositional or interrogative construction; the reader
+has no template for the bare transitive clause that is the writer's whole
+default output. Two of the reader's constructions need a `?`, which no writer
+template contains, so they are unreachable **by shape** — corpus work cannot
+close that gap, only a template can.
+
+Three findings change what item 1 should be:
+
+1. **Growing the inventory is not the first move — the reader fabricates.** On
+   22 constructions it neither reads nor refuses: it invents. `every dog is a
+   mammal` → `member(every_dog, mammal)`; `all dogs are defined as mammals` →
+   `subset(dog, defined_as_mammal)`; `furthermore, all dogs are mammals` →
+   `asserted(furthermore)`. One root cause: `_RESERVED` does not contain the
+   function words the writer emits, and `_parse_propositional` accepts any
+   single token as a fact. **The first and third are ordinary user English.**
+
+2. **It reaches served output.** `chat/deduction_surface.py` recites
+   `Given: furthermore; p implies q; p.` — a premise the user never stated —
+   and `chat/runtime.py` *realizes* declarative turns into the held self, so a
+   fabricated atom is vault-writable. Widening the inventory before closing this
+   widens the fabrication surface with it.
+
+3. **ADR-0265's defect class survives inside ADR-0265's own designated owner of
+   clause grammar.** The four aspect arms of `_inflect_predicate` bind `negated`
+   to a wildcard and never read it, so `dog has been defined as mammal` is
+   emitted for both the assertion and the denial — 10530 of 16146 parameter
+   points. Not reachable today (no producer sets `aspect`), so a loaded gun, not
+   a casualty. It survived because ADR-0265's invariant is *structural* — does
+   `negated` reach the call? — and cannot see an arm that receives the flag and
+   ignores it. **A behavioural sweep catches what a threading invariant cannot.**
+
+**Item 1 is therefore re-ordered: close the fabrications first, then widen.**
+Both fixes are small and both are already written as mutations that turn the
+defect pins red (`every`/`each` into `_RESERVED`; discourse connectives stripped
+in `_split_clauses`). But they change what CORE *comprehends* from user input,
+which is a serving change on the truth path — **authorization-gated, and an ADR
+before any code**, on the ADR-0261 §5.1 precedent that a reader must refuse
+rather than drop or invent.
+
 ---
 
 ## 5. What is deliberately not estimated
@@ -1007,6 +1064,32 @@ construction set against the writer's rather than by growing corpora blindly.
 The graph-model ADR is **not** cancelled — §1.8's type mismatch is still real —
 but nothing measured here obliges it, and it should not be opened until a case
 exists that fails for that reason and no other.
+
+#### CORRECTION to the block above, from the Phase 5 measurement it asked for
+
+Two claims made here are wrong, and the metric that disproves both was already
+on the page when they were written.
+
+**"the reader independently reads `all molecules are defined as compounds`" —
+no, it mis-reads it.** `g_read_rate` is `1/293` but **`g_args_rate` is `0.0`**.
+The reader comprehends that surface as `subset(molecule, defined_as_compound)`:
+it chunked the writer's verb phrase into a class name. It accepted, it did not
+comprehend. The contract for this lane separates `read` from `args` for exactly
+this reason and the separation did its job; the RESULT above simply put its
+weight on the wrong one of the two.
+
+**"one construction wide" — wrong in both directions.** On this corpus the
+*faithful* overlap is **zero**, because the one case that reads is the mis-read
+above. Measured over the writer's whole output space instead of a 293-case
+corpus, the true overlap is **six** — the corpus never exercised five of them.
+A corpus cannot report the size of an inventory. Only the inventory can, which
+is what §Phase 5's RESULT now does.
+
+The generalisable lesson, and the reason this is kept rather than edited away:
+**acceptance is not comprehension.** A reader scored on whether it returned a
+graph, rather than on whether the graph is the one it was given, is rewarded for
+guessing — a `wrong=0` hazard wearing a green metric. `g_read_rate` should never
+again be quoted without `g_args_rate` beside it.
 
 ---
 
