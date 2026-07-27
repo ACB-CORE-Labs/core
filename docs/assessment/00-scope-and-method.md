@@ -44,8 +44,8 @@ The assessment is conducted under `docs/conceptualizing_engineering_mastery.md`,
 | **1 — Taxonomy & schema** | The macro→micro layer taxonomy and the metadata card schema every card must fill | Fable 5 |
 | **2 — Macro layer cards** | One card per top-level layer; layer-level verdicts; cross-cutting concerns | Opus 5 |
 | **3 — Micro component cards** | Per-subsystem descent, depth allocated by load-bearing-ness | Fable 5 |
-| **4 — Gap register + hindrance audit** | Two separate registers; evidence-carrying | Opus 5 |
-| **5 — Synthesis** | Executive assessment; ranked gaps; ranked hindrances; recommended R&D attack order | Opus 5 |
+| **4 — Gap register + hindrance audit** | Two separate registers; evidence-carrying | Fable 5 *(reassigned from Opus 5 by Shay, 2026-07-27)* |
+| **5 — Synthesis** | Executive assessment; ranked gaps; ranked hindrances; recommended R&D attack order | Fable 5 *(same reassignment)* |
 
 Phase 1 is the keystone. A wrong taxonomy miscategorizes everything downstream, and it is the cheapest phase to correct.
 
