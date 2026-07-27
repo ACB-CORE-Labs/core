@@ -141,7 +141,12 @@ def test_g_roundtrip_baseline_is_zero(report):
     revised **upward**; it must never be revised downward to accommodate a
     regression.
     """
-    assert report.metrics["graph_cases"] == 280
+    # 293, not the original 280: Phase 3 added 13 quantified-copular cases
+    # (construction C14) to grammatical_coverage/public/v1, and this lane
+    # harvests its graph corpus from the committed case files rather than
+    # holding its own copy. An exact count is the point — a corpus that grows
+    # or shrinks should require a deliberate edit here, not pass silently.
+    assert report.metrics["graph_cases"] == 293
     assert report.metrics["g_write_rate"] == 1.0
     assert report.metrics["g_read_rate"] == 0.0
     assert report.metrics["g_exact_rate"] == 0.0
@@ -303,5 +308,5 @@ def test_positive_surfaces_are_all_inside_the_reader_envelope():
 
 def test_graph_corpus_is_harvested_from_committed_case_files():
     cases = positive_graph_cases()
-    assert len(cases) == 280
+    assert len(cases) == 293  # +13 C14 quantified-copular (Phase 3)
     assert all(c.nodes for c in cases)
