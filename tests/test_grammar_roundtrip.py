@@ -147,28 +147,59 @@ def test_g_roundtrip_baseline_is_zero(report):
     assert report.metrics["g_exact_rate"] == 0.0
 
 
-def test_s_roundtrip_pins_the_categorical_render_defect(report):
-    """BASELINE PIN (a defect): nothing CORE reads renders back to its input.
+def test_s_roundtrip_closes_for_every_renderable_surface(report):
+    """Phase 2A pinned this at **0.0** — nothing CORE read rendered back to its
+    input, because the serving renderer interpolated singularized entity ids
+    into plural templates ("all dog are animal").
 
-    The reader comprehends all 8 positive surfaces, and the serving categorical
-    renderer reproduces none of them, because it interpolates singularized
-    entity ids into plural templates. Phase 2B fixes this and must raise this
-    number.
+    Phase 2B re-inflects at render time, and every surface the renderer can
+    express now returns its input exactly. The two rates are equal on purpose:
+    ``s_surface_match_rate == s_renderable_rate`` says the *only* remaining
+    round-trip losses are surfaces the categorical renderer cannot express at
+    all, which is a coverage gap in a later phase, not a grammar defect.
+
+    Asserting equality rather than a literal keeps this honest if the corpus
+    grows: adding an unrenderable positive lowers both numbers together, while
+    reintroducing the plural defect lowers only the match rate.
     """
     assert report.metrics["s_read_rate"] == 1.0
-    assert report.metrics["s_surface_match_rate"] == 0.0
+    assert report.metrics["s_surface_match_rate"] == report.metrics["s_renderable_rate"]
+    assert report.metrics["s_surface_match_rate"] > 0.0
 
 
-def test_the_categorical_render_defect_concretely():
-    """The specific defect, stated as an example rather than a rate."""
+def test_the_categorical_render_defect_is_fixed_concretely():
+    """The 2A defect stated as an example rather than a rate, now inverted.
+
+    Both sides matter: the graph still carries the SINGULAR canonical id
+    (``dog``), so the fix is in the renderer's inflection and not in the
+    comprehension it was built to preserve.
+    """
     result = comprehend("All dogs are animals.", source_id="t")
     assert isinstance(result, Comprehension)
     props = sorted(from_meaning_graph(result.meaning_graph))
     assert props == [CanonicalProposition("subset", "dog", "animal", False)]
     rendered = rt_runner._render_categorical("subset", "dog", "animal")
-    # "all dog are animal" — plural template, singular entity ids.
-    assert rendered == "all dog are animal"
-    assert rendered != "all dogs are animals"
+    assert rendered == "all dogs are animals"
+
+
+def test_irregular_plurals_survive_the_full_round_trip():
+    """The reader and renderer now share one number table, so an irregular
+    plural returns as itself. Before 2B this produced ``all wolve are
+    mammals`` — the reader's bare ``-s`` strip leaking a corrupted id straight
+    into served text."""
+    cases = (
+        ("All wolves are mammals.", "wolf", "all wolves are mammals"),
+        ("All children are mammals.", "child", "all children are mammals"),
+        ("All men are mammals.", "man", "all men are mammals"),
+        ("All knives are tools.", "knife", "all knives are tools"),
+    )
+    for surface, singular, expected_clause in cases:
+        result = comprehend(surface, source_id="t")
+        assert isinstance(result, Comprehension), surface
+        props = sorted(from_meaning_graph(result.meaning_graph))
+        assert props[0].subject == singular, f"{surface} -> {props}"
+        rendered = rt_runner._render_categorical("subset", singular, props[0].obj)
+        assert rendered == expected_clause
 
 
 # --------------------------------------------------------------------------- #

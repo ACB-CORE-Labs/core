@@ -67,9 +67,18 @@ RECORDED_CONSUMERS: dict[str, frozenset[str]] = {
         "generate.semantic_templates",
     }),
     "DISCOURSE_PREDICATE_DISPLAY": frozenset({"generate.discourse_planner"}),
-    "IRREGULAR_PLURALS": frozenset({"generate.templates"}),
-    "IRREGULAR_SINGULARS": frozenset({"generate.proof_chain.member"}),
-    "READER_IRREGULAR_SINGULARS": frozenset({"generate.meaning_graph.reader"}),
+    # Phase 2B: generate.morphology became the single owner of the number
+    # RULES, so it is now the consumer of the number tables. The reader no
+    # longer imports a table of its own — it calls morphology.singularize —
+    # which is why READER_IRREGULAR_SINGULARS/READER_SINGULAR_KEYS were deleted
+    # rather than left behind documenting a coverage gap that no longer exists.
+    "IRREGULAR_PLURALS": frozenset({"generate.morphology", "generate.templates"}),
+    "IRREGULAR_SINGULARS": frozenset({
+        "generate.morphology",
+        "generate.proof_chain.member",
+    }),
+    "INVARIANT_NUMBER": frozenset({"generate.morphology"}),
+    "MASS_NOUNS": frozenset({"generate.morphology"}),
 }
 
 #: The tables a duplicate literal would be a duplicate *of*. Frozen as
@@ -295,15 +304,17 @@ def test_the_two_number_tables_are_inverse_directions_not_copies() -> None:
         assert lexicon.IRREGULAR_SINGULARS[plur] == sing, f"{sing}/{plur} not inverse"
 
 
-def test_reader_number_table_is_a_derived_subset_that_cannot_drift() -> None:
-    """The reader's 8 values were measured to AGREE with the 29-entry table
-    entry for entry — the set difference in the reader's favour was empty. So
-    only its key list is local; the values are derived."""
-    assert set(lexicon.READER_IRREGULAR_SINGULARS) == set(lexicon.READER_SINGULAR_KEYS)
-    assert len(lexicon.READER_SINGULAR_KEYS) == 8
-    for key, value in lexicon.READER_IRREGULAR_SINGULARS.items():
-        assert lexicon.IRREGULAR_SINGULARS[key] == value
-    assert set(lexicon.READER_IRREGULAR_SINGULARS) < set(lexicon.IRREGULAR_SINGULARS)
+def test_invariant_number_is_derived_from_the_singularizer() -> None:
+    """Invariants must not be a second hand-written list.
+
+    A hand-written list is exactly how the directions drifted: the pluralizer
+    lacked ``aircraft``/``means``/``offspring`` and produced "aircrafts",
+    "meanses", "offsprings" while the singularizer knew all three. Deriving
+    from the ``key == value`` rows makes that class of gap unrepresentable."""
+    expected = {p for p, s in lexicon.IRREGULAR_SINGULARS.items() if p == s}
+    assert lexicon.INVARIANT_NUMBER == expected
+    for word in ("sheep", "aircraft", "means", "offspring", "species", "series"):
+        assert word in lexicon.INVARIANT_NUMBER
 
 
 # --------------------------------------------------------------------------
@@ -312,41 +323,110 @@ def test_reader_number_table_is_a_derived_subset_that_cannot_drift() -> None:
 
 
 @pytest.mark.parametrize(
-    ("plural", "current_wrong_singular"),
+    ("plural", "singular"),
     [
-        ("wolves", "wolve"),
-        ("leaves", "leave"),
-        ("knives", "knive"),
-        ("news", "new"),
-        ("species", "specy"),
+        # Phase 2A pinned these as WRONG (wolve / leave / knive). Phase 2B
+        # flipped them by routing the reader through the shared 29-entry
+        # singularizer.
+        ("wolves", "wolf"),
+        ("leaves", "leaf"),
+        ("knives", "knife"),
+        ("halves", "half"),
+        ("thieves", "thief"),
+        ("children", "child"),
+        ("men", "man"),
+        # Genuinely inflected irregulars the reader could not read before.
+        ("cacti", "cactus"),
+        ("fungi", "fungus"),
+        ("oxen", "ox"),
     ],
 )
-def test_reader_silently_mis_singularizes_uncovered_plurals(
-    plural: str, current_wrong_singular: str
-) -> None:
-    """CURRENT BEHAVIOUR, deliberately pinned as wrong.
+def test_reader_singularizes_irregulars_correctly(plural: str, singular: str) -> None:
+    """The defect Phase 2A pinned, now fixed.
 
-    ``reader.py``'s comment claims an unrecognized plural "REFUSES rather
-    than guessing a wrong singular (wrong=0)". The code does not implement
-    that: ``_singularize`` falls through to a bare ``-s`` strip, so uncovered
-    plurals mint corrupted entity ids. ``news`` -> ``new`` and ``species`` ->
-    ``specy`` are exactly the corruptions ``member.py``'s table comment says
-    its table exists to prevent.
-
-    Phase 2B replaces the reader's 8-key view with the full singularizer and
-    must flip these to ``wolf``/``leaf``/``knife``/``news``/``species``.
-    Changing minted ids moves trace hashes, which is why it is gated.
+    ``reader.py``'s comment always claimed an unrecognized plural "REFUSES
+    rather than guessing a wrong singular (wrong=0)". Until 2B the code did
+    not implement it — ``_singularize`` fell through to a bare ``-s`` strip
+    and minted corrupted ids that reached served text ("all wolve are
+    mammal"). The comment is now true of the code.
     """
     from generate.meaning_graph.reader import _singularize
 
-    assert _singularize(plural) == current_wrong_singular
+    assert _singularize(plural) == singular
 
 
-def test_reader_covered_plurals_are_already_correct() -> None:
-    """The control for the test above: where the reader HAS an entry it is
-    right. So the defect is coverage, not wrong values — which is why 2A
-    could derive the values safely and leave coverage to 2B."""
+@pytest.mark.parametrize(
+    "invariant", ["fish", "sheep", "deer", "species", "series", "news", "means"]
+)
+def test_reader_declines_number_invariant_forms(invariant: str) -> None:
+    """Invariants are AMBIGUOUS in number and must be declined, not resolved.
+
+    "fish are mammals" is plural; "a fish is a mammal" is singular; the token
+    cannot tell you which. Two independent reasons this must decline:
+
+    1. **Honesty** — resolving it is a guess about number, and 2A measured what
+       guessing costs: the old ``-s`` strip turned ``news`` into ``new`` and
+       ``species`` into ``specy``.
+    2. **Soundness** — the serving composer tries the categorical band (v1b)
+       first. Resolving an invariant makes v1b *accept* a sentence it cannot
+       decide, stealing the case from a band that can. Measured: resolving
+       ``fish`` made ds-ex-0012 ("No fish are mammals. Therefore some fish are
+       mammals.") answer ``invalid`` instead of ``refuted`` — **wrong=1 on a
+       ratified band.** Declining restores the fall-through.
+    """
     from generate.meaning_graph.reader import _singularize
 
-    for plural, singular in lexicon.READER_IRREGULAR_SINGULARS.items():
-        assert _singularize(plural) == singular
+    assert _singularize(invariant) is None
+
+
+@pytest.mark.parametrize("not_a_plural", ["child", "evidence", "wolf", "", "ss"])
+def test_reader_declines_rather_than_guessing(not_a_plural: str) -> None:
+    """The other half of wrong=0: a singular, a mass noun, or anything the
+    closed rules do not confidently cover returns ``None`` so the caller can
+    refuse instead of minting a corrupted id. Without this, ``child`` would
+    become ``chil``."""
+    from generate.meaning_graph.reader import _singularize
+
+    assert _singularize(not_a_plural) is None
+
+
+def test_regular_plurals_still_singularize() -> None:
+    """Control: widening the irregular table must not break the regular rule
+    that handles the overwhelming majority of real input."""
+    from generate.meaning_graph.reader import _singularize
+
+    assert _singularize("cars") == "car"
+    assert _singularize("glasses") == "glass"
+    assert _singularize("cities") == "city"
+
+
+def test_the_two_number_directions_are_mutual_inverses() -> None:
+    """Every irregular the singularizer knows, the pluralizer can produce.
+
+    This is the law that makes read/write agreement possible at all: if CORE
+    can read ``cacti`` but writes ``cactuses``, no round trip can close. Phase
+    2B added the three missing inverses (cactus/fungus/die) and derived
+    :data:`lexicon.INVARIANT_NUMBER` from the singularizer's own invariant
+    rows, so ``aircraft``/``means``/``offspring`` stop becoming "aircrafts",
+    "meanses", "offsprings".
+    """
+    from generate.morphology import pluralize
+
+    broken = {
+        singular: (pluralize(singular), plural)
+        for plural, singular in lexicon.IRREGULAR_SINGULARS.items()
+        if pluralize(singular) != plural
+    }
+    assert not broken, f"singular -> plural does not round-trip: {broken}"
+
+
+def test_mass_nouns_and_compounds_inflect_correctly() -> None:
+    """Two cases the categorical renderer depends on: mass nouns must not take
+    a plural ("all evidence", not "all evidences"), and an English compound
+    inflects on its HEAD ("guard dogs", not "guards dog")."""
+    from generate.morphology import pluralize
+
+    assert pluralize("evidence") == "evidence"
+    assert pluralize("knowledge") == "knowledge"
+    assert pluralize("guard_dog") == "guard_dogs"
+    assert pluralize("guard dog") == "guard dogs"

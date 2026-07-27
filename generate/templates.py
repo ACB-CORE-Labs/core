@@ -22,61 +22,29 @@ from generate.articulation_legality import (
     validate_finite_predicate_legality,
 )
 from generate.graph_planner import RhetoricalMove
-from generate.morphology import base_form, past_participle, past_tense, present_participle
+from generate.morphology import (
+    base_form,
+    is_mass_noun,
+    past_participle,
+    past_tense,
+    pluralize,
+    present_participle,
+)
 
 
 # Noun pluralisation — used under quantifiers (all/some/many/few/most).
 # Closes english_fluency_ood gaps.md G2 (plural agreement).
+#
+# Phase 2B: the rules moved to generate/morphology.py, which now owns number
+# in both directions. Re-exported here because this module's public surface
+# is consumed by the eval runners.
 _IRREGULAR_PLURALS: dict[str, str] = IRREGULAR_PLURALS
-
-
-def pluralize(noun: str) -> str:
-    if not noun:
-        return noun
-    if noun in _IRREGULAR_PLURALS:
-        return _IRREGULAR_PLURALS[noun]
-    n = noun
-    if n.endswith(("s", "sh", "ch", "x", "z")):
-        return n + "es"
-    if n.endswith("y") and len(n) > 1 and n[-2] not in "aeiou":
-        return n[:-1] + "ies"
-    if n.endswith("fe"):
-        return n[:-2] + "ves"
-    if n.endswith("f"):
-        return n[:-1] + "ves"
-    return n + "s"
 
 
 # Quantifiers that demand plural agreement on the subject + verb.
 # "the" / "a" stay singular; "every" / "each" are singular by English
 # rule even though semantically universal.
 _PLURAL_QUANTIFIERS: frozenset[str] = PLURAL_QUANTIFIERS
-
-# Mass nouns — uncountable in English, so "all evidence", "some wisdom"
-# stay singular under quantifiers ("all evidences" is wrong).  The
-# verb still agrees (singular: "all evidence supports truth").
-# This list covers the abstract/epistemic vocabulary in
-# en_core_cognition_v1 + common English mass nouns.
-_MASS_NOUNS: frozenset[str] = frozenset({
-    # epistemic / abstract (the seed-pack vocabulary)
-    "evidence", "wisdom", "knowledge", "truth", "light", "darkness",
-    "information", "data", "music", "art", "literature", "philosophy",
-    "courage", "patience", "love", "hope", "fear", "grace",
-    "meaning", "purpose", "beauty", "justice", "freedom",
-    # physical mass
-    "water", "air", "fire", "earth", "sand", "rain", "snow", "ice",
-    "wood", "metal", "gold", "silver", "iron", "stone",
-    "blood", "flesh", "bone",
-    # collective / continuous
-    "weather", "traffic", "furniture", "luggage", "advice",
-    "equipment", "machinery", "scenery", "money", "news",
-    "research", "progress", "feedback",
-})
-
-
-def is_mass_noun(noun: str) -> bool:
-    return noun.lower() in _MASS_NOUNS
-
 
 _PREDICATE_DISPLAY: dict[str, str] = PREDICATE_DISPLAY
 
