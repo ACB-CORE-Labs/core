@@ -12,7 +12,7 @@ call sites need different content, this module defines one literal and
 
 Naming convention: a name is the linguistic fact, not the consumer. When a
 consumer needs a narrower view, the narrow name says whose view it is
-(``STRUCTURAL``, ``READER_SINGULAR_KEYS``).
+(``STRUCTURAL``, ``NEGATION_BEARING_WITH_NOT``).
 
 **Deliberate non-goal:** this module does not decide anything. It holds
 tables and derivations; the refusal/agreement logic stays with each band.
@@ -256,6 +256,11 @@ IRREGULAR_PLURALS: Final[dict[str, str]] = {
     "analysis": "analyses", "axis": "axes", "basis": "bases",
     "thesis": "theses", "hypothesis": "hypotheses",
     "mitochondrion": "mitochondria",
+    # Added in Phase 2B so the two directions are mutual inverses. The
+    # singularizer knew cacti/fungi/dice; without these the pluralizer
+    # produced "cactuses"/"funguses"/"dies" and CORE could read a word it
+    # could not write back.
+    "cactus": "cacti", "fungus": "fungi", "die": "dice",
 }
 
 #: Plural -> singular, including invariants that map to themselves. The
@@ -277,29 +282,43 @@ IRREGULAR_SINGULARS: Final[dict[str, str]] = {
     "offspring": "offspring", "aircraft": "aircraft", "news": "news",
 }
 
-#: The 8 keys ``meaning_graph/reader.py`` currently covers.
+#: Nouns whose plural equals their singular, **derived** from the invariant
+#: rows of :data:`IRREGULAR_SINGULARS` (the rows where key == value).
 #:
-#: **Recorded divergence (Phase 2A decision).** The reader's values are all
-#: *correct* — they agree with :data:`IRREGULAR_SINGULARS` entry for entry —
-#: so the values are derived below and only the key list is local. What is
-#: wrong is the **coverage**, and the consequence is not a refusal:
-#: ``reader._singularize`` falls through to a bare ``-s`` strip, so an
-#: uncovered plural is silently mis-singularized rather than declined
-#: (``wolves`` -> ``wolve``, ``news`` -> ``new``, ``species`` -> ``specy``).
-#: The reader's own comment claims it "REFUSES rather than guessing a wrong
-#: singular (wrong=0)"; the code does not implement that.
-#:
-#: Widening this to the full table changes minted entity ids and therefore
-#: served surfaces and trace hashes, so it is **Phase 2B** work behind the
-#: authorization gate. Recorded here, with the gap named, rather than fixed
-#: silently.
-READER_SINGULAR_KEYS: Final[tuple[str, ...]] = (
-    "people", "men", "women", "children", "feet", "teeth", "mice", "geese",
+#: Derived rather than re-listed because a hand-written second list is exactly
+#: how the two directions drifted apart in the first place: before Phase 2B the
+#: pluralizer lacked ``aircraft``/``means``/``offspring`` and produced
+#: "aircrafts", "meanses", "offsprings" while the singularizer knew all three.
+#: ``news`` was saved only by coincidence — it is also a mass noun.
+INVARIANT_NUMBER: Final[frozenset[str]] = frozenset(
+    plural for plural, singular in IRREGULAR_SINGULARS.items() if plural == singular
 )
 
-#: The reader's view of :data:`IRREGULAR_SINGULARS`, restricted to
-#: :data:`READER_SINGULAR_KEYS`. Derived, so the reader's 8 values cannot
-#: drift from the 29-entry table they are a subset of.
-READER_IRREGULAR_SINGULARS: Final[dict[str, str]] = {
-    key: IRREGULAR_SINGULARS[key] for key in READER_SINGULAR_KEYS
-}
+#: Uncountable nouns — they take a quantifier but stay singular, so
+#: ``all evidence`` is right and ``all evidences`` is wrong. The verb still
+#: agrees singular ("all evidence supports truth"), which the categorical
+#: renderer does **not** yet handle; see the Phase 2B note in
+#: ``proof_chain/render.py``.
+#:
+#: Moved here in Phase 2B: it was a single copy in ``templates.py``, but the
+#: pluralizer needs it and the pluralizer now serves, so the table has to be
+#: reachable from both without a second literal. Covers the abstract/epistemic
+#: vocabulary in ``en_core_cognition_v1`` plus common English mass nouns.
+MASS_NOUNS: Final[frozenset[str]] = frozenset(
+    {
+        # epistemic / abstract (the seed-pack vocabulary)
+        "evidence", "wisdom", "knowledge", "truth", "light", "darkness",
+        "information", "data", "music", "art", "literature", "philosophy",
+        "courage", "patience", "love", "hope", "fear", "grace",
+        "meaning", "purpose", "beauty", "justice", "freedom",
+        # physical mass
+        "water", "air", "fire", "earth", "sand", "rain", "snow", "ice",
+        "wood", "metal", "gold", "silver", "iron", "stone",
+        "blood", "flesh", "bone",
+        # collective / continuous
+        "weather", "traffic", "furniture", "luggage", "advice",
+        "equipment", "machinery", "scenery", "money", "news",
+        "research", "progress", "feedback",
+    }
+)
+

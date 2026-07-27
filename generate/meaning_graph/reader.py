@@ -51,7 +51,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from generate.lexicon import READER_IRREGULAR_SINGULARS
+from generate.morphology import singularize as _shared_singularize
 from generate.meaning_graph.model import (
     Entity,
     MeaningGraph,
@@ -62,9 +62,17 @@ from generate.meaning_graph.model import (
 
 _ARTICLES = frozenset({"a", "an"})
 
-# Common irregular plurals the corpus exercises. Conservative + closed; an
-# unrecognized plural REFUSES rather than guessing a wrong singular (wrong=0).
-_IRREGULAR_PLURALS = READER_IRREGULAR_SINGULARS
+# Phase 2B: this reader used to carry its own 8-entry plural table plus a
+# private copy of the suffix rules. Both now live in generate/morphology.py,
+# which reads lexicon.IRREGULAR_SINGULARS — 29 entries, the widest number
+# table CORE has.
+#
+# The old comment here claimed "an unrecognized plural REFUSES rather than
+# guessing a wrong singular (wrong=0)". That was false: the code fell through
+# to a bare -s strip, so wolves -> wolve, news -> new, species -> specy, and
+# those corrupted ids reached served text ("all wolve are mammal"). The shared
+# singularizer treats the table as authoritative and returns None instead of
+# guessing, so the comment is now true of the code.
 
 # Categorical quantifier -> the MeaningGraph predicate it mints. The predicate
 # vocabulary is shared between facts and the "therefore" conclusion query, and is
@@ -152,15 +160,7 @@ class _Reject(Exception):
 
 def _singularize(word: str) -> str | None:
     """Conservative plural -> singular. None when not confidently a plural."""
-    if word in _IRREGULAR_PLURALS:
-        return _IRREGULAR_PLURALS[word]
-    if word.endswith("ies") and len(word) > 3:
-        return word[:-3] + "y"
-    if word.endswith(("ses", "xes", "zes", "ches", "shes")):
-        return word[:-2]
-    if word.endswith("s") and not word.endswith("ss") and len(word) > 1:
-        return word[:-1]
-    return None
+    return _shared_singularize(word)
 
 
 def _chunk(words: list[str], detail: str) -> str:

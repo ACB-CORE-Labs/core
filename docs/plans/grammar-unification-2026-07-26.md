@@ -558,6 +558,12 @@ Deliver:
    `wolves`→`wolve`, `news`→`new`, `species`→`specy`. Its own comment claims it
    refuses; it does not. Those five are pinned as current behaviour in
    `tests/test_lexicon_single_source.py` and this phase must flip them.
+
+   *Delivered differently than written:* the reader no longer holds a table at
+   all. `generate/morphology.py` became the single owner of the number **rules**
+   (2A owned the tables), and the reader calls `singularize`. That removed a
+   second copy of the regular suffix rules, which was the actual reason the two
+   sides disagreed about coverage.
 3. Updated lane SHA pins — **surgical single-line edits only**, never
    `--update` — with the old and new hash recorded per lane.
 
@@ -571,7 +577,98 @@ Deliver:
 | hash movement is intended | every moved pin explained; no pin changed that shouldn't move |
 
 **Why gated:** this changes what users see. Fixing a defect is still a serving
-change, and serving changes are Shay's call.
+change, and serving changes are Shay's call. *Authorized 2026-07-26.*
+
+**RESULT.**
+
+| criterion | measured |
+|---|---|
+| surfaces well-formed | **0 malformed of 47** (from 4); `ds-v1-0023/0024/0026/0028` all render plurals |
+| readers agree | **20/20**, 0 silently wrong (from 8/20) |
+| soundness preserved | `wrong=0` holds on all 7 bands; deductive **403 passed**, smoke **621** |
+| round-trip | `s_surface_match_rate` **0.0 → 0.625**, and it now *equals* `s_renderable_rate` — every renderable surface returns its input exactly |
+| hash movement is intended | **criterion void — the pins cannot see surfaces.** See below. |
+
+#### The lane SHA pins are blind to served English
+
+2B changed 4 of 47 served surfaces and the pins came back **11/11
+byte-identical**. That is not evidence of no change; it is evidence the
+instrument cannot see this kind of change.
+
+Verified two ways rather than argued:
+
+1. **By inspection.** The `deduction_serve_v1` hashed report contains only
+   `n`, `counts`, `by_gold`, `correct_by_gold`, `all_cases_correct`,
+   `mismatch_examples`. **No surface prose at all** — verdict classifications
+   only.
+2. **By sabotage** (the [[feedback-ask-what-if-the-thing-were-absent]] control).
+   Making `render._display_noun` return `"SABOTAGE_" + …`, so every categorical
+   clause reads `all SABOTAGE_dogs are SABOTAGE_animals`:
+
+   | guard | caught it? |
+   |---|---|
+   | 11 lane SHA pins | **no — 11/11 still byte-identical** |
+   | `test_deduction_serve_lane` + `_license` (20 tests) | **no — 20 passed** |
+   | Phase 1 `grammar_roundtrip` | **yes — 3 tests red** |
+
+⇒ **Correction to #129.** That PR established the arc's arbiter as "make the
+change, run the 11 pinned lanes, let byte-identity decide." For *values and
+verdicts* that holds. For **surface text it decides nothing**, so the 2A/2B
+split it defines is not a partition of "changes users can see." Phase 2A's
+11/11 conclusion is still sound — 2A changed no value, confirmed independently
+by 24/24 table-equality checks against the pre-migration literals — but the
+justification was thinner than claimed, and 2B is what exposed it.
+
+⇒ **Before Phase 1, no test in the tree would have noticed CORE's served prose
+turning into word salad.** That is precisely how `all dog are mammal` survived
+on a ratified, flag-ON band with `wrong=0` intact for the whole arc. The
+round-trip lane is not a nice-to-have measurement; it is the only guard that
+reads what the user reads.
+
+⇒ **Carried forward:** any future phase touching surfaces must gate on
+`grammar_roundtrip`, not on the lane pins. Adding surface text to the pinned
+lane payloads would be the durable fix and is *not* done here — it would move
+every pin at once and deserves its own unit.
+
+The Phase 1 instrument moved on its own, having been built with no knowledge of
+this fix. That is the whole argument for building the instrument first.
+
+**The near-miss worth recording — widening a reader can break soundness.**
+Routing the reader through the full 29-entry singularizer initially produced
+**wrong=1 on band v6-EX**: `ds-ex-0012` ("No fish are mammals. Therefore some
+fish are mammals.") answered `invalid` where gold is `refuted`.
+
+Cause: `_singularize` returning `None` makes the reader *refuse*, and the
+serving composer tries the categorical band **first**, falling through to later,
+more capable bands. `fish` previously returned `None` (it matches no suffix
+rule), so v6-EX got the case and decided it correctly. Resolving `fish` made
+**v1b accept a sentence it cannot decide** and answer wrongly.
+
+Fix, and it is a principle rather than a patch: **a number-invariant form is
+ambiguous in number** — "fish are mammals" is plural, "a fish is a mammal" is
+singular, and the token cannot tell you which — so a reader that must not guess
+number declines it. That simultaneously restores the fall-through *and* is the
+honest reading. `lexicon.INVARIANT_NUMBER` is derived from the singularizer's
+own `key == value` rows, so the rule cannot drift from the table.
+
+⇒ **Coverage and correctness are different axes.** Fixing a corrupted *value*
+(`wolves`→`wolve`) is safe; widening *acceptance* changes which band answers,
+and in a first-match composer that can convert a right answer into a wrong one.
+Same family as ADR-0261 §5.1 refuse-don't-drop. Bundling the two is how a
+plural fix silently becomes a soundness regression.
+
+**Also fixed, found by testing the inverse law:** the two number tables were not
+mutual inverses — the pluralizer lacked `cactus→cacti`, `fungus→fungi`,
+`die→dice` and the invariants `aircraft`/`means`/`offspring`, so CORE could
+*read* `cacti` but wrote `cactuses`, and would have written "aircrafts",
+"meanses", "offsprings". No round trip can close across a table that is not
+invertible. Pinned by `test_the_two_number_directions_are_mutual_inverses`.
+
+**Deliberately not fixed:** mass-noun verb agreement. "all evidence are truth"
+should be "all evidence **is** truth", but the copula is fixed text inside the
+A/E/I/O templates, so agreeing it changes the template shape rather than a slot.
+No mass noun reaches a categorical clause in any serve corpus today. Recorded in
+`render.py::_display_noun` rather than silently left.
 
 ### Phase 3 — Fix the 9-of-26 agreement defect
 

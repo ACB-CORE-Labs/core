@@ -11,6 +11,7 @@ renders realized-structure DETERMINE answers — a different gear entirely).
 
 from __future__ import annotations
 
+from generate.morphology import pluralize
 from generate.proof_chain.entail import (
     INCONSISTENT_PREMISES,
     Entailment,
@@ -18,6 +19,12 @@ from generate.proof_chain.entail import (
 )
 
 #: A/E/I/O categorical form → an English sentence template over (subject, predicate).
+#:
+#: Every template takes a PLURAL noun on both sides — ``all``/``no``/``some``
+#: with ``are``. The slots are filled from canonical entity ids, which are
+#: SINGULAR lowercase lemmas (``dog``, ``mammal``), so filling them raw emitted
+#: ``all dog are mammal``. Phase 2B re-inflects at render time; see
+#: :func:`_display_noun`.
 _CATEGORICAL_PHRASE = {
     "A": "all {s} are {p}",
     "E": "no {s} are {p}",
@@ -208,10 +215,37 @@ def render_entailment_exist(
     return f"Given: {given}. I can't evaluate {query_text} from that as stated."
 
 
+def _display_noun(term: str) -> str:
+    """A canonical entity id → the plural noun phrase a categorical clause needs.
+
+    Two transformations, both required for well-formed output:
+
+    1. **Number.** Ids are singular lemmas but every A/E/I/O template supplies
+       ``all``/``no``/``some`` + ``are``, which demand a plural. Mass nouns are
+       left alone by :func:`generate.morphology.pluralize` ("all evidence", not
+       "all evidences").
+    2. **Word separator.** Ids join tokens with ``_`` (``guard_dog``), which is
+       machine syntax, not English. Compounds inflect on the head, so
+       pluralizing before the swap gives "guard dogs" rather than "guards dog".
+
+    Deliberately NOT done here: mass-noun verb agreement. "all evidence are
+    truth" should read "all evidence is truth", but the copula is fixed text
+    inside the templates, and making it agree changes the template shape rather
+    than the slot. Left as a separate, smaller defect — no mass noun currently
+    reaches a categorical clause in any serve corpus.
+    """
+    if not term:
+        return term
+    return pluralize(term).replace("_", " ")
+
+
 def _categorical_clause(prop: dict) -> str:
     """One categorical proposition dict → its English clause."""
     template = _CATEGORICAL_PHRASE.get(prop.get("form", ""), "{s} ~ {p}")
-    return template.format(s=prop.get("subject", "?"), p=prop.get("predicate", "?"))
+    return template.format(
+        s=_display_noun(prop.get("subject", "?")),
+        p=_display_noun(prop.get("predicate", "?")),
+    )
 
 
 def render_syllogism(trace: EntailmentTrace, structure: dict, query: dict) -> str:

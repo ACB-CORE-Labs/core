@@ -1,10 +1,26 @@
 """Deterministic English morphology for the realizer.
 
-Handles inflection of predicates for tense, aspect, and negation.
+Handles inflection of predicates for tense, aspect, and negation, and
+(Phase 2B) **noun number** in both directions.
+
 This is intentionally rule-based and limited to the seed vocabulary.
 Irregular forms are listed explicitly; regular forms follow English rules.
+
+Phase 2A gave every *table* one owner (``generate/lexicon.py``); this module
+is the single owner of the *rules* that read them. Before 2B the regular
+number rules were written twice — ``templates.pluralize`` and
+``meaning_graph/reader._singularize`` — and the two disagreed about which
+irregulars they knew, which is how CORE came to serve ``all wolve are
+mammal``.
 """
 from __future__ import annotations
+
+from generate.lexicon import (
+    INVARIANT_NUMBER,
+    IRREGULAR_PLURALS,
+    IRREGULAR_SINGULARS,
+    MASS_NOUNS,
+)
 
 
 # Genuinely irregular English verbs (the previous tables held only
@@ -208,6 +224,104 @@ def past_participle(verb_3sg: str) -> str:
     if verb_3sg in _IRREGULAR_PAST_PARTICIPLE:
         return _IRREGULAR_PAST_PARTICIPLE[verb_3sg]
     return past_tense(verb_3sg)
+
+
+_SIBILANT_PLURAL_ENDINGS = ("s", "sh", "ch", "x", "z")
+
+
+def is_mass_noun(noun: str) -> bool:
+    """Uncountable ⇒ never pluralized, even under a quantifier."""
+    return noun.lower() in MASS_NOUNS
+
+
+def _head_and_prefix(noun: str) -> tuple[str, str]:
+    """Split a canonical id into (everything-before-head, head).
+
+    Reader ids are lowercase tokens joined with ``_`` (``guard_dog``), and
+    number marks the **head**, which in English compounds is the last token:
+    ``guard_dog`` → ``guard_dogs``, never ``guards_dog``. Space-joined input is
+    handled the same way so display strings and ids behave alike.
+    """
+    for sep in ("_", " "):
+        if sep in noun:
+            prefix, _, head = noun.rpartition(sep)
+            return prefix + sep, head
+    return "", noun
+
+
+def pluralize(noun: str) -> str:
+    """Singular → plural. Table first, then closed regular rules.
+
+    Mass nouns and the empty string are returned unchanged. Compound ids
+    inflect on the head only.
+    """
+    if not noun:
+        return noun
+    if is_mass_noun(noun):
+        return noun
+    prefix, head = _head_and_prefix(noun)
+    if head in IRREGULAR_PLURALS:
+        return prefix + IRREGULAR_PLURALS[head]
+    # Invariant number (sheep, aircraft, means, offspring, ...) — derived from
+    # the singularizer's own invariant rows, so the two directions agree.
+    if head in INVARIANT_NUMBER:
+        return noun
+    if is_mass_noun(head):
+        return noun
+    if head.endswith(_SIBILANT_PLURAL_ENDINGS):
+        return prefix + head + "es"
+    if head.endswith("y") and len(head) > 1 and head[-2] not in "aeiou":
+        return prefix + head[:-1] + "ies"
+    if head.endswith("fe"):
+        return prefix + head[:-2] + "ves"
+    if head.endswith("f"):
+        return prefix + head[:-1] + "ves"
+    return prefix + head + "s"
+
+
+def singularize(noun: str) -> str | None:
+    """Plural → singular, or ``None`` when not confidently a plural.
+
+    The table is consulted first and is **authoritative**: if the token
+    appears there, its value wins and no suffix rule runs. That is what keeps
+    ``news``/``new`` and ``species``/``specy`` unlinked — a bare ``-s`` strip
+    corrupts both, and did, in served text.
+
+    ``None`` (rather than a guess) is returned for anything the closed rules
+    do not confidently cover, so a caller can refuse instead of minting a
+    corrupted id.
+    """
+    if not noun:
+        return None
+    prefix, head = _head_and_prefix(noun)
+    # An INVARIANT form is ambiguous in number — "fish are mammals" is plural,
+    # "a fish is a mammal" is singular, and the token cannot tell you which. A
+    # reader that must not guess number therefore has to DECLINE these, even
+    # though the table technically maps fish -> fish.
+    #
+    # This is load-bearing for soundness, not tidiness. The serving composer
+    # tries the categorical band (v1b) FIRST and falls back to later, more
+    # capable bands. Resolving an invariant makes v1b ACCEPT a sentence it
+    # cannot decide, which steals the case from the band that can: with
+    # "No fish are mammals. Therefore some fish are mammals." v1b answers
+    # "invalid" where v6-EX correctly answers "refuted" (ds-ex-0012). Declining
+    # keeps the fall-through intact. Same family as ADR-0261 §5.1
+    # refuse-don't-drop.
+    if head in INVARIANT_NUMBER:
+        return None
+    if head in IRREGULAR_SINGULARS:
+        return prefix + IRREGULAR_SINGULARS[head]
+    # A singular that the pluralizer knows is irregular is not a plural at all
+    # ("child" must not become "chil"), and neither is a known mass noun.
+    if head in IRREGULAR_PLURALS or is_mass_noun(head):
+        return None
+    if head.endswith("ies") and len(head) > 3:
+        return prefix + head[:-3] + "y"
+    if head.endswith(("ses", "xes", "zes", "ches", "shes")):
+        return prefix + head[:-2]
+    if head.endswith("s") and not head.endswith("ss") and len(head) > 1:
+        return prefix + head[:-1]
+    return None
 
 
 def base_form(verb_3sg: str) -> str:
