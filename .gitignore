@@ -33,8 +33,23 @@ frontier_wave1.json
 workbench-ui/test-results/
 workbench-ui/playwright-report/
 
-# Claude Code local session artifacts (per-developer, never tracked)
-.claude/
+# Claude Code. Session artifacts and per-developer state are never tracked, but
+# the agent harness IS project source: it encodes the invariant guards, the
+# model routing, and the validation lanes that every agent on this repo must
+# obey. A guard that lives outside the repo cannot be reviewed in a PR and does
+# not exist on a fresh clone. Deny the directory, then re-admit the harness.
+# NOTE: this must be `.claude/*`, not `.claude/`. Git does not descend into an
+# excluded DIRECTORY, so a `!` re-include underneath one never applies. Excluding
+# the contents instead lets the negations below be evaluated.
+.claude/*
+!.claude/settings.json
+!.claude/guard-paths.json
+!.claude/agents/
+!.claude/skills/
+!.claude/hooks/
+!.claude/bin/
+# ...but never the per-developer overlay (holds local absolute paths):
+.claude/settings.local.json
 
 # Local macro->micro system map — a per-developer NAVIGATION INDEX (like an IDE
 # symbol index), NOT a project artifact. Regenerated on demand; never tracked.

@@ -5,15 +5,20 @@
 # Codex / Gemini environment startup guard for CORE.
 #
 # PURPOSE
-#   Catch stale-base worktrees before they create replay/conflict PRs.
-#   Every new implementation task must run from HEAD == origin/main on a
-#   clean tree.  PR-resume tasks may run from a branch, but only when
-#   origin/main is a proper ancestor of HEAD.
+#   Catch stale-base worktrees before they create replay/conflict PRs, and
+#   verify the agent harness actually does what it claims.
+#   Every new implementation task must run from HEAD == the base ref on a
+#   clean tree.  PR-resume tasks may run from a branch, but only when the
+#   base ref is a proper ancestor of HEAD.
+#
+#   The base ref is <base remote>/main, where the base remote is the first of
+#   forgejo-https, forgejo, origin that exists — Forgejo is CORE's source of
+#   truth and origin is the GitHub push-mirror.
 #
 # USAGE
 #   source scripts/agent_startup.sh        # default (strict)
 #   CODEX_ALLOW_DIRTY=1 source ...         # allow dirty worktree (debug only)
-#   CODEX_ALLOW_NON_MAIN_BASE=1 source ... # allow HEAD ahead of origin/main
+#   CODEX_ALLOW_NON_MAIN_BASE=1 source ... # allow HEAD ahead of the base ref
 #                                          # (PR-resume; ancestry still checked)
 #
 # EXIT CODES
@@ -22,8 +27,9 @@
 #
 # ENVIRONMENT CONTROLS
 #   CODEX_ALLOW_DIRTY=1           Bypass dirty-tree check (debug/wip only).
-#   CODEX_ALLOW_NON_MAIN_BASE=1   Allow HEAD ahead of origin/main, but only
-#                                 when origin/main is a strict ancestor of HEAD.
+#   CODEX_ALLOW_NON_MAIN_BASE=1   Allow HEAD ahead of the base ref, but only
+#                                 when it is a strict ancestor of HEAD.
+#   CODEX_BASE_REMOTE=<name>      Override base-remote auto-detection.
 #
 # NON-GOALS
 #   This script does NOT touch runtime, evals, reports, teaching proposals,
@@ -63,30 +69,53 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || {
 }
 _ok "repo root: $REPO_ROOT"
 
-# ── 1. fetch origin --prune ───────────────────────────────────────────────────
+# ── 1. resolve the base remote ────────────────────────────────────────────────
+#
+# Forgejo is the source of truth for CORE; `origin` is the GitHub push-mirror
+# and its Actions are billing-locked dead signals. Basing a staleness check on
+# the mirror measures the wrong tree. Prefer Forgejo, fall back to origin so
+# this script still works in repos where origin IS the truth.
+#
+# Override with CODEX_BASE_REMOTE=<name>.
 
-printf 'Fetching origin --prune …\n'
-if git fetch origin --prune --quiet; then
-    _ok "fetch origin --prune"
+if [ -n "${CODEX_BASE_REMOTE:-}" ]; then
+    BASE_REMOTE="$CODEX_BASE_REMOTE"
 else
-    _die "git fetch origin --prune failed.  Check network / remote config."
+    BASE_REMOTE=""
+    for _candidate in forgejo-https forgejo origin; do
+        if git remote get-url "$_candidate" >/dev/null 2>&1; then
+            BASE_REMOTE="$_candidate"
+            break
+        fi
+    done
+fi
+[ -n "$BASE_REMOTE" ] || _die "No usable remote found (looked for: forgejo-https, forgejo, origin)."
+
+BASE_REF="$BASE_REMOTE/main"
+_ok "base remote: $BASE_REMOTE (truth = $BASE_REF)"
+
+printf 'Fetching %s --prune …\n' "$BASE_REMOTE"
+if git fetch "$BASE_REMOTE" --prune --quiet; then
+    _ok "fetch $BASE_REMOTE --prune"
+else
+    _die "git fetch $BASE_REMOTE --prune failed.  Check network / remote config."
 fi
 
-# ── 2. diagnostic: HEAD, branch, origin/main, merge-base ──────────────────────
+# ── 2. diagnostic: HEAD, branch, base ref, merge-base ─────────────────────────
 
 HEAD_SHA="$(git rev-parse HEAD)"
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-ORIGIN_MAIN_SHA="$(git rev-parse origin/main 2>/dev/null)" || {
-    _die "origin/main does not exist.  Ensure origin is correctly configured."
+ORIGIN_MAIN_SHA="$(git rev-parse "$BASE_REF" 2>/dev/null)" || {
+    _die "$BASE_REF does not exist.  Ensure $BASE_REMOTE is correctly configured."
 }
-MERGE_BASE="$(git merge-base HEAD origin/main 2>/dev/null)" || {
-    _die "Could not compute merge-base between HEAD and origin/main."
+MERGE_BASE="$(git merge-base HEAD "$BASE_REF" 2>/dev/null)" || {
+    _die "Could not compute merge-base between HEAD and $BASE_REF."
 }
 
 printf '\n'
 printf '  HEAD         : %s\n' "$HEAD_SHA"
 printf '  branch       : %s\n' "$BRANCH"
-printf '  origin/main  : %s\n' "$ORIGIN_MAIN_SHA"
+printf '  %-13s: %s\n' "$BASE_REF" "$ORIGIN_MAIN_SHA"
 printf '  merge-base   : %s\n' "$MERGE_BASE"
 printf '\n'
 
@@ -105,40 +134,40 @@ else
     _ok "working tree is clean"
 fi
 
-# ── 4. base guard: HEAD == origin/main (default) or ancestry check (resume) ───
+# ── 4. base guard: HEAD == $BASE_REF (default) or ancestry check (resume) ───
 
 if [ "$HEAD_SHA" = "$ORIGIN_MAIN_SHA" ]; then
-    _ok "HEAD == origin/main (fresh base, new task allowed)"
+    _ok "HEAD == $BASE_REF (fresh base, new task allowed)"
 else
     if [ "${CODEX_ALLOW_NON_MAIN_BASE:-0}" = "1" ]; then
-        # PR-resume mode: origin/main must be an ancestor of HEAD.
+        # PR-resume mode: $BASE_REF must be an ancestor of HEAD.
         if [ "$MERGE_BASE" = "$ORIGIN_MAIN_SHA" ]; then
-            _ok "CODEX_ALLOW_NON_MAIN_BASE=1 — origin/main is ancestor of HEAD (PR-resume allowed)"
+            _ok "CODEX_ALLOW_NON_MAIN_BASE=1 — $BASE_REF is ancestor of HEAD (PR-resume allowed)"
         else
-            _fail "CODEX_ALLOW_NON_MAIN_BASE=1 is set, but origin/main is NOT an ancestor of HEAD."
+            _fail "CODEX_ALLOW_NON_MAIN_BASE=1 is set, but $BASE_REF is NOT an ancestor of HEAD."
             _fail "  HEAD         : $HEAD_SHA"
-            _fail "  origin/main  : $ORIGIN_MAIN_SHA"
+            _fail "  $BASE_REF  : $ORIGIN_MAIN_SHA"
             _fail "  merge-base   : $MERGE_BASE"
-            _die "Your branch has diverged from origin/main.  Rebase onto origin/main before resuming."
+            _die "Your branch has diverged from $BASE_REF.  Rebase onto $BASE_REF before resuming."
         fi
     else
-        _fail "HEAD is not origin/main."
+        _fail "HEAD is not $BASE_REF."
         _fail "  HEAD        : $HEAD_SHA  (branch: $BRANCH)"
-        _fail "  origin/main : $ORIGIN_MAIN_SHA"
+        _fail "  $BASE_REF : $ORIGIN_MAIN_SHA"
         _fail ""
-        _fail "For a new implementation task, the worktree must start from origin/main."
+        _fail "For a new implementation task, the worktree must start from $BASE_REF."
         _fail "If you are resuming a PR, set CODEX_ALLOW_NON_MAIN_BASE=1 and ensure"
-        _fail "origin/main is an ancestor of your branch."
+        _fail "$BASE_REF is an ancestor of your branch."
         _die "Stale base detected.  This is the condition that caused #844 conflict PRs."
     fi
 fi
 
-# ── 5. changed files vs origin/main ───────────────────────────────────────────
+# ── 5. changed files vs $BASE_REF ───────────────────────────────────────────
 
-printf '\nChanged files vs origin/main:\n'
-DIFF_FILES="$(git diff --name-status origin/main HEAD 2>/dev/null)"
+printf '\nChanged files vs %s:\n' "$BASE_REF"
+DIFF_FILES="$(git diff --name-status "$BASE_REF" HEAD 2>/dev/null)"
 if [ -z "$DIFF_FILES" ]; then
-    printf '  (none — HEAD is origin/main)\n'
+    printf '  (none — HEAD is %s)\n' "$BASE_REF"
 else
     printf '%s\n' "$DIFF_FILES" | sed 's/^/  /'
 fi
@@ -167,7 +196,46 @@ else
     _warn "uv.lock not found — skipping uv sync (expected for projects without a lock file)"
 fi
 
-# ── 8. final git status ────────────────────────────────────────────────────────
+# ── 8. agent harness ──────────────────────────────────────────────────────────
+#
+# Check that the harness WORKS, not that its files are present. Presence checks
+# are how a fabricated mechanism survives: a config that parses is not a config
+# that does anything. tests/test_agent_harness.py is the single source of truth
+# for what "works" means here, so run it rather than reimplementing it.
+
+if [ -d "$REPO_ROOT/.claude" ]; then
+    printf 'Validating agent harness …\n'
+    if uv run python -m pytest "$REPO_ROOT/tests/test_agent_harness.py" -q >/dev/null 2>&1; then
+        _ok "agent harness verified (guard fires, models pinned, no phantom config)"
+    else
+        _fail "Agent harness verification failed."
+        _fail "Run: uv run python -m pytest tests/test_agent_harness.py -q"
+        _die "The invariant guard or model routing is not doing what it claims."
+    fi
+else
+    _warn ".claude/ not present — agent harness unavailable (guards will not fire)"
+fi
+
+# Ollama is an optimization, never a dependency. Missing it costs speed, not
+# correctness: ollama-offload exits 4 and the caller does the work itself.
+if command -v ollama >/dev/null 2>&1; then
+    OFFLOAD_MODEL="${OLLAMA_OFFLOAD_MODEL:-gemma4:e2b}"
+    # Capture first, then match. Under `set -o pipefail`, `ollama list | grep -q`
+    # fails the whole pipeline: grep exits on the first match and ollama takes
+    # SIGPIPE. Match the full tag, too -- a `gemma4` prefix would match
+    # gemma4:12b and report a model ready that is not installed.
+    OLLAMA_MODELS="$(ollama list 2>/dev/null || true)"
+    if printf '%s\n' "$OLLAMA_MODELS" | grep -qF "$OFFLOAD_MODEL"; then
+        _ok "ollama ready — local offload available ($OFFLOAD_MODEL)"
+    else
+        _warn "ollama installed but $OFFLOAD_MODEL not pulled — local offload unavailable"
+        _warn "Optional: ollama pull $OFFLOAD_MODEL"
+    fi
+else
+    _warn "ollama not in PATH — local offload unavailable (not required)"
+fi
+
+# ── 9. final git status ────────────────────────────────────────────────────────
 
 _sep
 printf 'Final git status:\n'

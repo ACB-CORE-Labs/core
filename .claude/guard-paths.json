@@ -1,0 +1,114 @@
+{
+  "_comment": [
+    "CORE's path -> invariant map, consumed by .claude/hooks/guard_paths.py.",
+    "This file is the ONLY place project knowledge lives; the hook itself is generic.",
+    "Every 'reminder' line must name an invariant that exists in AGENTS.md or",
+    "docs/specs/runtime_contracts.md. If a line cannot be traced to one, delete it --",
+    "an unfalsifiable reminder is noise that trains agents to skim the real ones.",
+    "action: 'context' informs and proceeds | 'ask' prompts the human | 'deny' refuses."
+  ],
+  "rules": [
+    {
+      "id": "field-invariant",
+      "title": "Versor closure substrate",
+      "paths": ["algebra/", "field/", "core/physics/"],
+      "action": "context",
+      "reminder": [
+        "versor_condition(F) < 1e-6 must hold for every runtime field state. Do not weaken the threshold to make a test pass; fix the operator or construction boundary that violated it.",
+        "Closure of field transitions is owned solely by algebra/versor.py (_close_applied_versor). No other site may 'fix' it.",
+        "The bright line: semantic anchoring preserves versor_condition BY CONSTRUCTION and expresses a cognitive relation. Drift repair restores an invariant a prior function should have preserved -- and is forbidden. Naming must not disguise the distinction.",
+        "State the post-change versor_condition value and which assertion it protects. Lane: uv run core test --suite algebra -q"
+      ]
+    },
+    {
+      "id": "normalization-hot-path",
+      "title": "Hot path -- normalization forbidden",
+      "paths": ["generate/stream.py", "field/propagate.py", "vault/store.py"],
+      "action": "context",
+      "reminder": [
+        "Forbidden here: unitize(), normalize(), grade-projection, watchdog normalization, post-hoc algebra fixes.",
+        "Allowed normalization boundaries are exhaustive and listed in AGENTS.md: ingest/gate.py, packs/compiler.py, algebra/versor.py, sensorium/*/canonical.py, session/context.py.",
+        "If you believe this site needs normalization, the correct change is upstream at a construction boundary, not here. A repair added here restores a versor_condition that a prior function should have preserved -- that is drift repair, and it is forbidden.",
+        "Lane: uv run core test --suite algebra -q, plus the lane covering the organ you edited."
+      ]
+    },
+    {
+      "id": "learning-boundary",
+      "title": "Vault / teaching learning boundary",
+      "paths": ["vault/", "teaching/", "session/"],
+      "action": "context",
+      "reminder": [
+        "INV-21: only allowlisted modules may call VaultStore.store(...). Never create a parallel memory path.",
+        "INV-22 / INV-23: an unmarked pack row and an unmarked store() default to SPECULATIVE. COHERENT requires an explicit stamp -- never a default.",
+        "INV-24: every vault.recall callsite is categorized; user-facing evidence must pass min_status=COHERENT.",
+        "INV-29: only vault/store.py may transition an epistemic_status.",
+        "The boundary is durable vs provisional, not 'everything is proposal-only'. Provisional state may update autonomously iff typed, isolated, replayable, and unable to masquerade as ratified truth.",
+        "Lane: uv run core test --suite teaching -q"
+      ]
+    },
+    {
+      "id": "cognition-fail-closed",
+      "title": "Cognition pipeline -- typed refusal",
+      "paths": ["core/cognition/", "generate/"],
+      "action": "context",
+      "reminder": [
+        "INV-34: failures are typed, never silent. Every refusal carries an explicit failing condition and reason. A None ContractAssessment is itself a typed violation. Unresolvable referents refuse rather than fill.",
+        "INV-30: the open-world determine() gear constructs only Determined(answer=True) or refuses. It can NEVER assert answer=False. Closed-world entailed-negation needs a distinct type and entry point.",
+        "No stochastic generation, hidden LLM fallback, or probabilistic substitute inside the deterministic cognitive path.",
+        "Lane: uv run core test --suite cognition -q"
+      ]
+    },
+    {
+      "id": "pack-serve-boundary",
+      "title": "Pack compilation / serve boundary",
+      "paths": ["packs/"],
+      "action": "context",
+      "reminder": [
+        "INV-33: serve entrypoints never import draft language trees (packs/he, packs/grc, ...) as Python packages. Runtime packs load only from packs/data/<pack_id>/ via packs.compiler.load_pack.",
+        "Pack mutation is proposal-only until reviewed.",
+        "Lane: uv run core test --suite packs -q"
+      ]
+    },
+    {
+      "id": "identity-wave",
+      "title": "Identity manifold -- wave-only scoring",
+      "paths": ["core/physics/identity.py"],
+      "action": "context",
+      "reminder": [
+        "INV-32: identity scoring is wave-only. IdentityCheck.check requires an explicit Cl(4,1) wave_field; absence raises typed MissingWaveStateError, malformed fields raise ValueError. No scalar-L2 fallback exists -- do not add one.",
+        "Live refusal stays flag-gated (identity_wave_gate, default off, not authorized). Do not flip the default."
+      ]
+    },
+    {
+      "id": "exact-recall",
+      "title": "Runtime recall must stay exact",
+      "paths": ["recognition/", "vault/"],
+      "action": "context",
+      "reminder": [
+        "Runtime recall remains exact and deterministic. Do not add cosine similarity, ANN / approximate nearest neighbor, HNSW, or embedding ranking as runtime memory truth. Use exact CGA recall primitives only.",
+        "This is the AGENTS.md 'Exact recall' invariant. It is unnumbered but non-negotiable; an approximate recall path is a silent correctness regression that no lane will fail on.",
+        "Lane: uv run core test --suite algebra -q (vault recall + Rust parity)."
+      ]
+    },
+    {
+      "id": "governance-artifact",
+      "title": "Governance artifact",
+      "paths": [
+        "AGENTS.md",
+        "CLAIMS.md",
+        "CLAUDE.md",
+        "GEMINI.md",
+        "docs/specs/",
+        "docs/adr/"
+      ],
+      "action": "ask",
+      "reminder": [
+        "This file is load-bearing governance, not documentation. Changing it changes what every agent on this repo is permitted to do.",
+        "Before a new ADR or invariant: grep ALL existing ADRs and code for prior art. Numbering is sequential in docs/adr/ADR-XXXX-<slug>.md (docs/decisions/ is a legacy stub -- do not add there).",
+        "Provider-file policy: CLAUDE.md / GEMINI.md stay under 600 bytes, point at AGENTS.md as canonical, and introduce no provider-only truth.",
+        "A new INV-nn added here must be falsifiable and must have a test that fails when it is violated. If you cannot name that test, you are adding prose, not an invariant.",
+        "Lane: uv run core test --suite smoke -q at minimum; tests/test_architectural_invariants.py covers the structural pins."
+      ]
+    }
+  ]
+}

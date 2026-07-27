@@ -139,6 +139,79 @@ under the 2026-07-22 weekly-audit T1 ruling. Full contracts:
 New derivation work should consume `KernelFacts` / `ProblemFrame` where the substrate can represent the meaning.
 Do not introduce new local prose parsers inside derivation organs unless explicitly marked as legacy exception with migration rationale.
 
+## Agent harness and model routing
+
+The harness lives in `.claude/` and is versioned project source, not per-developer
+state. A guard that lives outside the repo cannot be reviewed in a PR and does not
+exist on a fresh clone.
+
+Each item below is marked **enforced** (a mechanism fails when it is violated) or
+**advisory** (doctrine an agent is expected to follow, with nothing checking).
+Keep the distinction honest: a rule written as configuration but enforced by
+nothing is a decoration, and `tests/test_agent_harness.py` exists to catch exactly
+that class of drift.
+
+### Model routing is per-agent, in frontmatter — enforced
+
+Routing happens in one place: the `model:` field of `.claude/agents/*.md`.
+There is no path-based routing table. `settings.json` has no `modelRouting`
+key — it accepts unknown keys silently, so such a block parses, validates, and
+does nothing.
+
+| Agent | Model | Scope |
+| :-- | :-- | :-- |
+| `core-scout` | haiku | read-only recon, call-site and lane sweeps |
+| `core-implementer` | sonnet | implementation and tests **outside** invariant paths |
+| `core-invariant-guardian` | opus | the invariant-critical substrate; **serial only** |
+| `core-adr-author` | opus | ADRs and governance artifacts |
+
+Opus is reserved for work where a wrong answer is not recoverable by retry:
+invariant substrate and governance. Every agent pins its model — an unpinned
+agent inherits the caller's, which turns cost routing into a coincidence.
+
+### The invariant guard — enforced
+
+`.claude/hooks/guard_paths.py` is a PreToolUse hook. It is project-agnostic; all
+CORE knowledge lives in `.claude/guard-paths.json`, which maps paths to the
+invariants live for them. On an `Edit`/`Write`/`Bash` touching a guarded path it
+injects those invariants into context; on a governance artifact it escalates to a
+permission prompt. It exits 0 on every path including internal failure — a guard
+that crashes must degrade to "no guard", never to "no session".
+
+Adding a rule requires citing an INV number or a validation lane, and every path
+in the map must exist. Both are tested.
+
+### Subagent merge protocol — advisory
+
+Subagents touching `algebra/`, `field/`, `vault/`, or `generate/` must
+re-assert `versor_condition < 1e-6` independently on the merged state, contribute
+their own `[Verification]:` evidence, and reconcile **serially**. Never trust a
+sibling's claim that its output is versor-valid: two agents each proving their own
+edit proves nothing about their composition.
+
+### Local models are an epistemic tier, not a cost tier — enforced
+
+`.claude/bin/ollama-offload` routes bounded, checkable work to a local Ollama
+model at zero cost. The governing rule: **a local model may point, it may never
+assert.** Output is stamped SPECULATIVE and is a pointer to look at something,
+never a fact to repeat.
+
+Only four modes exist — `classify`, `extract`, `summarize`, `triage` — chosen
+because each has an output space small enough to check, and each is constrained
+by a JSON schema at sampling time. There is deliberately no mode that writes,
+decides, or answers; adding one would be the wrong fix. Never route to a local
+model anything that writes to the repo, touches an invariant path, or would be
+consumed as truth.
+
+Before reaching for it, apply the absence test: if `rg`, `jq`, or a three-line
+script gets the same answer deterministically, use those.
+
+### Token discipline per role — advisory
+
+Scout 500–800 · planner 800–1,500 · editor 1,500–3,000 or diff-only · invariant
+reviewer 700–1,200. Nothing measures or truncates these; they are targets stated
+in the agent briefs, not limits.
+
 ## Working doctrine
 
 Before editing:

@@ -29,6 +29,13 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_audit_ledger_r7.py",
         "tests/test_architectural_invariants.py",
         "tests/test_cli_runner_contract.py",
+        # Agent harness (.claude/) — the invariant guard, the model pinning, and
+        # the local-model trust boundary. In smoke because the failure mode is
+        # silence: settings.json accepts unknown keys, so a routing block that
+        # Claude Code never reads parses, validates, and does nothing. These
+        # tests are written to fail when the mechanism is removed, which is the
+        # only way that class of defect is visible at all. ~1s, no network.
+        "tests/test_agent_harness.py",
         # Audio sensorium lane — part of the smoke.yml PR gate (compiler,
         # CRDT merge, eval gates, pack manifest, mount, teachers; ~3s).
         # Listed explicitly so the local-first pre-push gate (AGENTS.md

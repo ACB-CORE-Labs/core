@@ -1,0 +1,299 @@
+#!/usr/bin/env python3
+"""Offload bounded, verifiable work to a local Ollama model. Project-agnostic.
+
+Why this exists
+---------------
+A local model is not a cheap tier of the same thing. It is a different
+epistemic class. It may *point* -- narrow a search, bucket a log, rank what
+deserves a real look -- but it may never *assert*. Every result this tool
+returns is stamped SPECULATIVE, and the four supported modes are exactly the
+ones whose output space is small enough to check:
+
+  classify   one label from a closed set        -> checkable against the set
+  extract    named fields out of supplied text  -> checkable against the keys
+  summarize  N bullets from text you still hold -> lossy, source retained
+  triage     a subset of the items you passed   -> checkable against the range
+
+There is deliberately no "answer", "write", "fix", or "decide" mode. If a task
+needs one of those, it does not belong on a local model.
+
+Robustness is structural, not hopeful:
+  * output is grammar-constrained by a JSON schema, so malformed output cannot
+    be sampled in the first place
+  * temperature 0 -- same input, same output
+  * a truncated generation (done_reason != "stop") is a hard failure, never a
+    partial result. Ollama returns an EMPTY response body on truncation, which
+    would otherwise read as a confident empty answer.
+  * distinct exit codes, so a caller can never confuse "the model failed" with
+    "the model said nothing"
+
+Exit codes
+  0  validated result on stdout
+  2  usage error
+  3  model reachable but output failed validation (incl. truncation)
+  4  ollama unreachable, timed out, or model not installed
+
+Usage
+  ollama-offload classify  --labels a,b,c  [--task "..."] < input
+  ollama-offload extract   --fields x,y,z  [--task "..."] < input
+  ollama-offload summarize --bullets 5     [--task "..."] < input
+  ollama-offload triage    --max 3         [--task "..."] < input   (one item per line)
+
+Common flags
+  --model M      default $OLLAMA_OFFLOAD_MODEL or gemma4:e2b
+  --timeout S    default 90
+  --host URL     default $OLLAMA_HOST or http://127.0.0.1:11434
+  --max-input N  characters of stdin to send, default 40000 (refuses silently
+                 truncating a bigger payload -- it errors instead)
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import time
+import urllib.error
+import urllib.request
+from typing import Any, Dict, List
+
+DEFAULT_MODEL = os.environ.get("OLLAMA_OFFLOAD_MODEL", "gemma4:e2b")
+DEFAULT_HOST = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434")
+
+EXIT_USAGE = 2
+EXIT_INVALID = 3
+EXIT_UNREACHABLE = 4
+
+# Generous on purpose. A small num_predict makes the model spend its budget
+# before emitting the closing brace, and Ollama then returns done_reason
+# "length" with an empty body -- observed with gemma4:e2b at num_predict=64.
+NUM_PREDICT = 1024
+
+
+def _die(code: int, message: str) -> "None":
+    sys.stderr.write("ollama-offload: {0}\n".format(message))
+    raise SystemExit(code)
+
+
+def _chat(host: str, model: str, prompt: str, schema: Dict[str, Any], timeout: float) -> Dict[str, Any]:
+    """One deterministic, grammar-constrained turn."""
+    body = json.dumps(
+        {
+            "model": model,
+            "stream": False,
+            "think": False,
+            "format": schema,
+            "options": {"temperature": 0, "num_predict": NUM_PREDICT},
+            "messages": [{"role": "user", "content": prompt}],
+        }
+    ).encode("utf-8")
+
+    request = urllib.request.Request(
+        host.rstrip("/") + "/api/chat",
+        data=body,
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")[:200]
+        _die(EXIT_UNREACHABLE, "ollama HTTP {0}: {1}".format(exc.code, detail))
+    except urllib.error.URLError as exc:
+        _die(EXIT_UNREACHABLE, "cannot reach ollama at {0} ({1})".format(host, exc.reason))
+    except (OSError, ValueError) as exc:
+        _die(EXIT_UNREACHABLE, "ollama call failed: {0}".format(exc))
+
+    reason = payload.get("done_reason")
+    if reason != "stop":
+        _die(
+            EXIT_INVALID,
+            "generation did not complete (done_reason={0}). Output is truncated and "
+            "must not be used as a result.".format(reason),
+        )
+
+    content = (payload.get("message") or {}).get("content") or ""
+    try:
+        parsed = json.loads(content)
+    except ValueError:
+        _die(EXIT_INVALID, "model returned non-JSON despite schema constraint: {0!r}".format(content[:200]))
+    if not isinstance(parsed, dict):
+        _die(EXIT_INVALID, "model returned a non-object result")
+    return parsed
+
+
+def _prompt(task: str, instruction: str, text: str) -> str:
+    header = task.strip() if task else instruction
+    return (
+        "{0}\n\n"
+        "Rules: use ONLY the material below. Do not infer, guess, or add anything "
+        "that is not present. If the material is insufficient, say so through the "
+        "schema rather than inventing a value.\n\n"
+        "--- MATERIAL START ---\n{1}\n--- MATERIAL END ---\n"
+    ).format(header, text)
+
+
+def _emit(mode: str, model: str, result: Any, started: float) -> None:
+    json.dump(
+        {
+            "mode": mode,
+            "model": model,
+            "epistemic_status": "SPECULATIVE",
+            "note": "Local-model output. May point; may not assert. Verify before use as truth.",
+            "elapsed_ms": int((time.time() - started) * 1000),
+            "result": result,
+        },
+        sys.stdout,
+        indent=2,
+    )
+    sys.stdout.write("\n")
+
+
+def _csv(value: str, flag: str) -> List[str]:
+    items = [part.strip() for part in value.split(",") if part.strip()]
+    if not items:
+        _die(EXIT_USAGE, "{0} needs at least one comma-separated value".format(flag))
+    return items
+
+
+def main(argv: List[str]) -> int:
+    parser = argparse.ArgumentParser(prog="ollama-offload", description=__doc__)
+    parser.add_argument("mode", choices=["classify", "extract", "summarize", "triage"])
+    parser.add_argument("--labels", help="classify: comma-separated closed label set")
+    parser.add_argument("--fields", help="extract: comma-separated field names")
+    parser.add_argument("--bullets", type=int, default=5, help="summarize: max bullets")
+    parser.add_argument("--max", dest="max_items", type=int, default=3, help="triage: max items to select")
+    parser.add_argument("--task", default="", help="one-line description of the job")
+    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--host", default=DEFAULT_HOST)
+    parser.add_argument("--timeout", type=float, default=90.0)
+    parser.add_argument("--max-input", type=int, default=40000)
+    args = parser.parse_args(argv)
+
+    text = sys.stdin.read()
+    if not text.strip():
+        _die(EXIT_USAGE, "no input on stdin")
+    if len(text) > args.max_input:
+        _die(
+            EXIT_USAGE,
+            "input is {0} chars, over the {1} limit. Narrow the input rather than "
+            "letting it be truncated -- a summary of a truncated log is a lie about "
+            "the log.".format(len(text), args.max_input),
+        )
+
+    started = time.time()
+
+    if args.mode == "classify":
+        if not args.labels:
+            _die(EXIT_USAGE, "classify requires --labels")
+        labels = _csv(args.labels, "--labels")
+        schema = {
+            "type": "object",
+            "properties": {"label": {"type": "string", "enum": labels}},
+            "required": ["label"],
+        }
+        prompt = _prompt(
+            args.task,
+            "Classify the material into exactly one of these labels: {0}.".format(", ".join(labels)),
+            text,
+        )
+        parsed = _chat(args.host, args.model, prompt, schema, args.timeout)
+        label = parsed.get("label")
+        if label not in labels:
+            _die(EXIT_INVALID, "label {0!r} is outside the declared set".format(label))
+        _emit("classify", args.model, {"label": label}, started)
+        return 0
+
+    if args.mode == "extract":
+        if not args.fields:
+            _die(EXIT_USAGE, "extract requires --fields")
+        fields = _csv(args.fields, "--fields")
+        schema = {
+            "type": "object",
+            "properties": {name: {"type": "string"} for name in fields},
+            "required": fields,
+        }
+        prompt = _prompt(
+            args.task,
+            "Extract these fields verbatim from the material: {0}. Use an empty "
+            "string for any field that is genuinely absent.".format(", ".join(fields)),
+            text,
+        )
+        parsed = _chat(args.host, args.model, prompt, schema, args.timeout)
+        missing = [name for name in fields if not isinstance(parsed.get(name), str)]
+        if missing:
+            _die(EXIT_INVALID, "fields missing or non-string: {0}".format(", ".join(missing)))
+        _emit("extract", args.model, {name: parsed[name] for name in fields}, started)
+        return 0
+
+    if args.mode == "summarize":
+        if args.bullets < 1:
+            _die(EXIT_USAGE, "--bullets must be >= 1")
+        schema = {
+            "type": "object",
+            "properties": {
+                "bullets": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "maxItems": args.bullets,
+                }
+            },
+            "required": ["bullets"],
+        }
+        prompt = _prompt(
+            args.task,
+            "Summarize the material in at most {0} short bullets. Every bullet must "
+            "be supported by a specific line of the material.".format(args.bullets),
+            text,
+        )
+        parsed = _chat(args.host, args.model, prompt, schema, args.timeout)
+        bullets = parsed.get("bullets")
+        if not isinstance(bullets, list) or not all(isinstance(b, str) for b in bullets):
+            _die(EXIT_INVALID, "bullets is not a list of strings")
+        _emit("summarize", args.model, {"bullets": bullets[: args.bullets]}, started)
+        return 0
+
+    # triage
+    items = [line for line in text.splitlines() if line.strip()]
+    if not items:
+        _die(EXIT_USAGE, "triage needs one item per line on stdin")
+    if args.max_items < 1:
+        _die(EXIT_USAGE, "--max must be >= 1")
+    numbered = "\n".join("{0}: {1}".format(i, item) for i, item in enumerate(items))
+    schema = {
+        "type": "object",
+        "properties": {
+            "indices": {
+                "type": "array",
+                "items": {"type": "integer", "minimum": 0, "maximum": len(items) - 1},
+                "maxItems": args.max_items,
+            }
+        },
+        "required": ["indices"],
+    }
+    prompt = _prompt(
+        args.task,
+        "Each line below is numbered. Select at most {0} indices worth a closer "
+        "look. Return indices only -- you are narrowing a search, not deciding "
+        "the outcome.".format(args.max_items),
+        numbered,
+    )
+    parsed = _chat(args.host, args.model, prompt, schema, args.timeout)
+    indices = parsed.get("indices")
+    if not isinstance(indices, list) or not all(
+        isinstance(i, int) and 0 <= i < len(items) for i in indices
+    ):
+        _die(EXIT_INVALID, "indices outside the input range")
+    chosen = list(dict.fromkeys(indices))[: args.max_items]
+    _emit(
+        "triage",
+        args.model,
+        {"selected": [{"index": i, "item": items[i]} for i in chosen], "considered": len(items)},
+        started,
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
