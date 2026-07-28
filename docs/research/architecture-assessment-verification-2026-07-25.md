@@ -1,3 +1,12 @@
+> **Correction note — 2026-07-27, at `ed06dd64` (holistic assessment Phase 6).**
+> One claim in this document is false and is corrected here rather than silently edited, because this document is itself a *corrective* one and its error was inherited downstream.
+>
+> **The claim:** that `accrue_realized_knowledge` *"is enabled by the production L10 process."*
+> **The code:** `CONTINUOUS_LIFE_CONFIG_FLAGS` (`chat/always_on_daemon.py:45-49`) forces `persist_session_state`, `consolidate_determinations`, and `strict_identity_continuity` — **not** `accrue_realized_knowledge`. The daemon therefore consolidates determinations while the only turn-path writer of realized facts stays off, which is finding F-6: *as coded, the continuous life may consolidate an empty set.*
+> **Not this document's fault alone:** `core/config.py`'s own docstrings for both flags make the same claim (recorded as H-8d in `docs/assessment/31-hindrance-audit.md`). Whether the flag set is incomplete or the dormancy is intended is ruling R-3 in `docs/assessment/50-rulings.md`; whichever way it goes, either one line of code or three records change.
+>
+> Everything else in this document was re-verified in the holistic assessment's Phases 2–3 and stands.
+
 # Independent verification of the Tier-S arc assessment (2026-07-25)
 
 **Input:** an external architectural assessment of the deduction-serve generalization arc
@@ -61,7 +70,7 @@ turns flow through the *deduction* path. That comment has been stale since the f
 | T12 weekly-ledger entry is "completely missing" | **False.** `docs/analysis/weekly-audit-2026-07-22-stragglers-todo.md:170` — an open pattern-watch item. The claim came from grepping commit messages only. |
 | `assert_corpus_sound()` has one impl; a second subject must reimplement it | **False.** `evals/curriculum_serve/runner.py:71` is already `assert_corpus_sound(domain, cases)`, and `build_report()` calls it plus `assert_provenance` plus `assert_anti_recall_coverage` unconditionally (`:105-108`). Structural, not discipline-based. |
 | Manual promotion sweeps need an automated Promotion Oracle | **Already exists.** `docs/research/tier-s-housekeeping-2026-07-24.md` §3: "*not a one-time manual check… The sweep's proof is the passing gate, not a separate pass.*" `ds-mem-0020` surfaced *as* a lane failure. |
-| `accrue_realized_knowledge` is "dark," a closing temporal-consistency window | **Misread.** `core/config.py:316-321` gates **session** memory, is `False` for eval/one-shot runtimes, and is enabled by the production L10 process. A deployment profile, not an epistemic debt clock. |
+| `accrue_realized_knowledge` is "dark," a closing temporal-consistency window | **Misread** — *and this correction was itself wrong on one point; see the note below.* `core/config.py:316-321` gates **session** memory and is `False` for eval/one-shot runtimes. A deployment profile, not an epistemic debt clock. |
 | Cross-subject proof could "emerge accidentally" | **Structurally impossible.** `curriculum_surface.resolve_domain` requires both terms in one subject's vocabulary and refuses `ambiguous_reading` rather than picking. Deduction has no subject notion at all. |
 
 ## 3. The flagship item is diagnosed at the wrong layer

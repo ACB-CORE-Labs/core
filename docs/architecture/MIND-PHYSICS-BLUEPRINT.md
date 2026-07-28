@@ -2,7 +2,9 @@
 
 **Version:** 0.1.0  
 **Date:** 2026-05-12  
-**Status:** Draft — Under Active Development
+**Status:** Draft — **stale since 2026-05-12; not under active development**
+
+> **Staleness banner — 2026-07-27 (holistic assessment Phase 6).** This blueprint has not moved since its authoring date and was one of CORE's five unreconciled macro articulations of its own cognitive cycle. Those five were dissolved into the two-axis taxonomy in `docs/assessment/02-layer-taxonomy.md` (decision D1) — read that first for the current structural account. What this document uniquely contributed, the allocation/attention physics layer (ADR-0008), was verified **live** in Phase 2 (`generate/stream.py:255-263`, `use_salience` defaults `True`) and is ungoverned rather than absent; it is registered as G-14 awaiting a one-page ADR. Nothing here is authoritative; it is kept for its intent.
 
 ---
 

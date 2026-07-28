@@ -5,6 +5,8 @@
 
 Ranked by leverage (cognitive/structural load removed ÷ effort), per the AGENTS.md protocol — not by ease.
 
+**Amended:** 2026-07-27 at `ed06dd64` (Opus 5, Phase 6). **H-12 added** (the two smoke gates have diverged). **H-8 gains a fourth instance**, located inside the source rather than the documents. **H-1 gains a note**: its exposure is already pinned. Derivations in [`50-execution-plan.md`](50-execution-plan.md) §0.
+
 ---
 
 ## H-1 · License evidence counted on an independence assumption replay violates
@@ -12,7 +14,8 @@ Ranked by leverage (cognitive/structural load removed ÷ effort), per the AGENTS
 **Evidence:** Wilson lower-bound licensing (θ_SERVE=0.99, ADR-0175 lineage) assumes independent trials; a replay of the same sealed case is one trial observed again, not a new one. Measured consequence recorded in the prior arc: **21 of 25 ratified bands fall short** of their floor when replays are deduplicated.
 **Why it hinders:** the entire earned-license architecture — CORE's mechanism for *deserving* to serve — rests on the evidence count. An overstated count grants licenses the evidence doesn't support, which is precisely the failure the mechanism exists to prevent. The gate is right; the arithmetic feeding it is not.
 **Better home:** distinct-evidence counting at the seal boundary (count distinct cases; a replay refreshes, never increments), declared in the ledger schema the way ADR-0263 Rule 5 declares absence policy — in the table, not the call site.
-**Authority:** ADR amendment (0175/0263 lineage) + a re-count of the 25 bands. The re-count may demote licenses; that is the mechanism working.
+**Note (Phase 6):** the exposure is **already pinned in-repo**. `tests/test_volume_honesty.py` (ADR-0264 R9, in the local smoke gate) pins *"21 of 25 bands do not clear θ_SERVE on distinct evidence"* **in both directions**, measured 2026-07-25 at `6ada6f7a` with every band at 720 committed decisions, and its own comment calls the inventory *"an EXPOSURE INVENTORY, not an approved baseline."* The audit source is `docs/research/distinct-evidence-audit-2026-07-25.md`. The open work is therefore **applying** the shortfall, not discovering it — and that pin moves in the same PR.
+**Authority:** ADR amendment (0175/0263 lineage) + a re-count of the 25 bands, authorized by R-13. The re-count may demote licenses; that is the mechanism working.
 
 ## H-2 · Decoration in the runtime constructor — objects built and never read
 **Verdict:** decoration (fails the sabotage test) · **Layers:** M6/M3
@@ -58,10 +61,10 @@ Ranked by leverage (cognitive/structural load removed ÷ effort), per the AGENTS
 
 ## H-8 · The record contradicts the code at three load-bearing points
 **Verdict:** `wrong-solution` as *record-keeping* — divergence that reasoners inherit · **Layers:** governance
-**Evidence:** (a) ADR-0146 rejects the daemon shape; an unowned daemon ships. (b) ADR-0252's headline "34 organs" has no reproducible basis (18 entry organs at the ratification commit itself; ~32 modules). (c) `architecture-assessment-verification-2026-07-25.md` asserts accrual "is enabled by the production L10 process"; the flag set says otherwise.
-**Why it hinders:** demonstrated, not hypothetical — this assessment's own Phase 0 inherited a stale-record error, and the 2026-07-25 doc (itself a *corrective* document) introduced one. Every divergence is a future wrong analysis.
-**Better home:** three one-paragraph amendments (ADR-0146 addendum owning the daemon or superseding the rejection; ADR-0252 basis sentence; a correction note on the 07-25 doc).
-**Authority:** docs PRs + ruling signatures.
+**Evidence:** (a) ADR-0146 rejects the daemon shape and places *"cross-process file locking, daemon synchronization, and signal handling"* out of scope; `chat/always_on_daemon.py` ships all three (`fcntl.flock` single-instance lock, SIGINT/SIGTERM, load-time identity guard) and is unowned. (b) ADR-0252's headline "34 organs" has no reproducible basis (18 `resolve_promotable_*` entry organs at the ratification commit *and* at `ed06dd64`; ~32 modules). (c) `architecture-assessment-verification-2026-07-25.md` asserts accrual "is enabled by the production L10 process"; the flag set says otherwise. **(d) — added Phase 6, and it is inside the code.** `core/config.py`'s docstring for `accrue_realized_knowledge` states *"the production L10 process enables it alongside `persist_session_state`"*, and the docstring for `consolidate_determinations` states the same about *"`accrue_realized_knowledge` + `persist_session_state`"*. `CONTINUOUS_LIFE_CONFIG_FLAGS` (`chat/always_on_daemon.py:45-49`) contains neither claim's subject: it forces `persist_session_state`, `consolidate_determinations`, `strict_identity_continuity`, and **not** `accrue_realized_knowledge`.
+**Why it hinders:** demonstrated, not hypothetical — this assessment's own Phase 0 inherited a stale-record error, and the 2026-07-25 doc (itself a *corrective* document) introduced one. Every divergence is a future wrong analysis. Instance (d) is the sharpest: it is one layer *below* the documents, where a reader checking the code against the docs would stop and believe.
+**Better home:** four amendments — ADR-0146 addendum owning the daemon (drafted in `50-rulings.md` R-12a); ADR-0252 basis footnote (drafted, R-12b); a correction note on the 07-25 doc; and the two docstrings corrected or the flag added, per R-3.
+**Authority:** docs PRs + ruling signatures (R-12 for the two ratified ADRs, R-3 for the docstrings).
 
 ## H-9 · Dead instruments still standing as if live
 **Verdict:** `superseded-in-place` (unratified) · **Layers:** MV/governance
@@ -82,6 +85,14 @@ Ranked by leverage (cognitive/structural load removed ÷ effort), per the AGENTS
 **Evidence:** `_accrue_in_turn`'s broad guard converts any exception in the read→realize→determine chain into a no-op accrual with no telemetry (F-10). Defensible as a backstop; invisible as a signal — in the one layer whose constitution is "failures are typed, never silent" (INV-34).
 **Better home:** count the swallow (a telemetry field on `IdleTickResult`/turn accrual), not a behavior change.
 **Authority:** mechanical PR.
+
+## H-12 · The two smoke gates have diverged by ten files, and one comment says they cannot
+**Verdict:** `strained` — a real asymmetry, *smaller* than it first looks · **Layers:** MV
+**Evidence:** `TEST_SUITES["smoke"]` is **23** files; `.github/workflows/smoke.yml` is 8 path patterns expanding to **13**. The ten local-only files are `test_audit_ledger_r7`, `test_cli_runner_contract`, `test_pack_draft_serve_boundary`, `test_workbench_deduction_provenance`, `test_prior_surface_deduction_binding`, `test_negation_survives_articulation`, `test_adr_status_governance`, `test_adr_index`, `test_volume_honesty`, `test_curriculum_polarity`.
+**State the counter-evidence first.** AGENTS.md §CI/CD is explicit that `.github/workflows/*.yml` are *"secondary observability only — never a substitute for local gates"*: the merge gate **is** the in-worktree run, and the in-worktree run is the **superset**. Eight of the ten files carry in-code comments saying they belong *"on the pre-push gate"* — which is exactly where they are. **Under doctrine, nothing is unguarded**, and any reading of this entry as "ten pins run nowhere" is wrong.
+**Why it hinders, precisely:** (1) one comment overstates — the audio block says it is listed explicitly *"so the local-first pre-push gate (AGENTS.md protocol) **equals** the CI gate rather than silently narrowing it,"* which is accurate about the six audio files and false as the statement about the suite a reader will take it for; (2) the real exposure is the **push that skipped the local gate** — from a cloud session, another machine, or an agent — for which CI is the only automatic check, and for which ADR-0265's denial pin, both ADR-governance pins, volume honesty, and curriculum polarity currently run nowhere before merge. Six of these files were promoted *after* real silent-regression incidents (#136, #113, the 2026-07-20..24 register-axis drift), so the failure mode they exist to catch is demonstrated, not hypothetical.
+**Better home:** the gate-parity pin in G-7 — the drift is only invisible because nothing measures it. Measured parity cost: **429 tests in 46s** on the Act runner's own hardware (`ubuntu-latest:host` = native macOS host).
+**Authority:** R-14 sets the direction (raise CI, or lower local, or keep them different and correct the comment); the pin itself is mechanical.
 
 ---
 

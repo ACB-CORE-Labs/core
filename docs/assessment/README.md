@@ -14,8 +14,8 @@ A read-only, evidence-bearing assessment of CORE's cognitive-cycle design versus
 | [`04-phase2-findings.md`](04-phase2-findings.md) | 2 | Stage-coverage audit; corrections to Phase 0; findings F-1…F-5 |
 | [`20-component-cards/`](20-component-cards/) | 3 | Eight component cards: the four zero-subsystem zones + always-on, derivation organs, surface selection, attention |
 | [`05-phase3-findings.md`](05-phase3-findings.md) | 3 | Corrections C-1…C-5; findings F-6…F-10; the consolidated Phase-4 seed list |
-| [`30-gap-register.md`](30-gap-register.md) | 4 | **The live gap register** — 20 entries, 4 tiers, each with evidence + deciding authority (proposes superseding `docs/gaps.md`) |
-| [`31-hindrance-audit.md`](31-hindrance-audit.md) | 4 | Eleven hindrances with fitness verdicts and better homes; five candidates examined and cleared |
+| [`30-gap-register.md`](30-gap-register.md) | 4 | **The live gap register** — 20 entries, 4 tiers, each with evidence + deciding authority (proposes superseding `docs/gaps.md`); four entries amended in Phase 6 |
+| [`31-hindrance-audit.md`](31-hindrance-audit.md) | 4 | Twelve hindrances with fitness verdicts and better homes; five candidates examined and cleared |
 | [`40-assessment.md`](40-assessment.md) | 5 | The synthesis |
 | [`50-execution-plan.md`](50-execution-plan.md) | 6 | **The execution plan** — five waves + five frontier tracks over every G/H entry, with the dependency gates and the risks. §0 carries seven corrections to the assessment found while sizing it |
 | [`50-rulings.md`](50-rulings.md) | 6 | **The ruling packet** — R-1…R-14, each with evidence, options, a recommendation, and the exact diff that follows from each choice. Wave 0's deliverable |
