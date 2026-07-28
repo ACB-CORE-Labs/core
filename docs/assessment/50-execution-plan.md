@@ -480,6 +480,8 @@ The arc closes when:
 
 **What does *not* close with this arc:** the widening program (G-3) and the chooser (G-4). Those are the next arc, and they should be entered with the registers clean, the paradigm decided, and the evidence loops turning — which is precisely what this plan buys.
 
+**Post-arc addendum (2026-07-28, at `0e1be8be`):** the next arc is now specified and G-3's original formulation is **superseded**. The arc-closing diagnosis (G-24) found the perception layer implements the inversion of ADR-0252 §2 stage 1 — surface-slot templates over the wrong relation set, reading 1.28% of the held-out corpus — and that no served byte is geometric. Widening the template inventory is the one move guaranteed to produce only overfit slivers. The successor plan, with measured findings F-A…F-E, a pre-registered GO/NO-GO experiment on the untested operator-composition branch, and the deletion wave: **`docs/plans/2026-07-28-perception-arc.md`**.
+
 ---
 
 *Sequenced per `docs/conceptualizing_engineering_mastery.md`: scrub, delete, simplify, accelerate, automate last. Nothing above optimizes a thing that Wave 1 might delete, and nothing above automates a loop that Wave 3 has not proven turns. Nine corrections in §0 were found by reading code, workflows, branch tips, and ADR supersession banners — none by re-reading the assessment.*
