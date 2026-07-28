@@ -156,6 +156,13 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # ON surface being the only part where staleness is immediately dangerous.
         # Four sabotages observed red. Pure file parsing, <1s.
         "tests/test_flag_register.py",
+        # Perception Arc Phase 0 / G-21 / G-24 — the read-rate floor. 23 of 1,798
+        # holdout sentences read (1.28%): the binding constraint every substrate
+        # experiment independently hit, and the baseline the keel's perception
+        # layer is accountable for moving in chunks. Both directions pinned: a
+        # regression fails; an improvement must move the recorded constants in
+        # the same reviewed commit. Deterministic, ~0.8s.
+        "tests/test_read_rate_floor.py",
         # PR-11 / G-5 / R-9 — the soak's evidence is committed, pinned, and CURRENT.
         # Two failure modes, deliberately separated: the digest catches a regression,
         # and the attested-source hashes catch STALENESS — evidence that no longer
