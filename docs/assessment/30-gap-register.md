@@ -94,6 +94,8 @@ Pin 1 exists because the two gates have **already** drifted (see H-12): the loca
 
 **What pin 3 deliberately does not do — and what is now Shay's to decide:** *which* of the 19 belong on the gate. That costs gate time and is a real decision. `teaching` is the obvious first candidate: it just shipped a red ratification pin that no gate ran. Recorded as the open half of this entry.
 
+**The gap is 15, not 19, and the open half is now a scheduled plan item.** PR-3b (Wave 1, per R-7) deleted four aliases with zero `--suite` references anywhere — `refusal`, `margin`, `rotor`, `inner-loop` — taking the curated set 21 → 17 and the unreachable set **19 → 15, by deletion**, which costs no gate time at all. That is the ratchet turning the way it is meant to. The remaining fifteen are each named in AGENTS.md, CLI help, a README or an ADR, so deletion is not available for them and promotion is the only way the number falls further. The decision was a parenthetical in this entry and in PR-4 — which is precisely how fifteen suites came to be unreachable without anyone choosing it — so it is now **PR-4b** in `50-execution-plan.md` §4, sized, recommended (`teaching` alone, first), and prepared so ruling costs one word.
+
 *One real gap the entry was circling, now fixed:* the parity pin lived in `fast`, which the pre-push gate does not run — **the pin guarding the gate did not run on the gate**. It is now in `smoke`.
 **Evidence:** `tests/test_suite_membership.py`; `tests/full_only_baseline.txt`; `tests/test_cli_test_suites.py:49`; `50fa287d`; `AGENTS.md:275-280`. · **Authority:** discharged mechanically; **no R-14 ruling is owed** for any of it.
 

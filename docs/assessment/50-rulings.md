@@ -2,6 +2,14 @@
 
 **Prepared by:** Opus 5 · 2026-07-27 · every claim verified at `forgejo/main` @ `ed06dd64`
 **Deciding authority:** Shay, for all fourteen.
+**RULED 2026-07-28 — twelve adopted, two stricken.** Recorded here because it was adopted in conversation and, for several hours, existed *only* there: the packet said `PENDING` fourteen times while PR-3 was already executing against R-7. That is H-8's failure mode — the record contradicting reality at a load-bearing point — committed inside the arc whose subject is that failure, and caught by Shay asking whether the plan docs were current.
+
+**Adopted:** R-1 A · R-2 B · R-3 A · R-4 A · R-5 A · R-6 A · R-7 A · R-8 C · R-9 A · R-11 B · R-12 A/A · R-13 A.
+**Stricken:** R-10 (already discharged — #138 merged before the arc began) · R-14 (dissolved by N-9; the pin exists one-directionally by a recorded 2026-07-25 decision).
+**Also ratified:** the ADR-0252 §5 **NO-GO** verdict.
+
+**Execution order (corrected):** R-12 → R-7 → R-3+R-4 → R-9+R-2 → R-13 → R-8 → R-1/R-5/R-6/R-11.
+**Executed so far:** R-7 (PR-3, PR-3b landed 2026-07-28).
 **Contract:** each ruling below is prepared so that answering it costs **one word**. The evidence is gathered, the options are enumerated, a recommendation is made with its reasoning, and the exact change that follows from each option is written out. Nothing here recommends reversing a ratified decision; R-12 amends two ADRs' *records* without touching either decision.
 
 **How to rule:** reply with the item and your choice — e.g. `R-1 A · R-3 B · R-8 C`. Anything left unruled stays `PENDING` and blocks only the wave named in its **Blocks** line.
@@ -12,7 +20,7 @@
 
 ## R-1 · CR-3 efferent action — deferred, or out of telos?
 
-**Status:** PENDING · **Register:** G-12 · **Blocks:** nothing; leaving it silent is the cost.
+**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *deferred with the entry criterion named* · **Register:** G-12 · **Blocks:** nothing; leaving it silent is the cost.
 
 **The question.** CORE's telos ends at articulate/learn/replay. AGI-grade generality ordinarily implies acting on the world. No system-level statement exists either way.
 
@@ -34,7 +42,7 @@
 
 ## R-2 · CR-4 temporal self-location — the stance on "now"
 
-**Status:** PENDING · **Register:** G-13 · **Blocks:** PR-11 (the soak's contract paragraph).
+**Status:** **RULED B** — 2026-07-28, Shay (explicit adoption) · *beats govern cognition; wall-clock in telemetry only, pinned* · **Register:** G-13 · **Blocks:** PR-11 (the soak's contract paragraph).
 
 **The question.** A continuous life experiences sequence and duration; determinism bans clocks from cognition. Both commitments are correct and their intersection is undesigned. The 24h+ no-drift requirement cannot be *stated* precisely without a stance.
 
@@ -56,7 +64,7 @@
 
 ## R-3 · The F-6 accrual flag — incomplete set, or intended dormancy?
 
-**Status:** PENDING · **Register:** G-6 / H-6 · **Blocks:** Wave 4 (hard gate), PR-5.
+**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *incomplete flag set — add `accrue_realized_knowledge` to the daemon profile* · **Register:** G-6 / H-6 · **Blocks:** Wave 4 (hard gate), PR-5.
 
 **The question.** `CONTINUOUS_LIFE_CONFIG_FLAGS` (`chat/always_on_daemon.py:45-49`) forces `persist_session_state`, `consolidate_determinations`, `strict_identity_continuity` — and **not** `accrue_realized_knowledge`. The only turn-path writer of realized facts sits behind the unforced flag. **As coded, the continuous life may consolidate an empty set.**
 
@@ -82,7 +90,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-4 · Flag profiles — one-shot / eval / continuous-life
 
-**Status:** PENDING · **Register:** G-8 / H-6 · **Blocks:** PR-5.
+**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *profiles + register + pin, 32 flags, incl. the `chain_depth` collapse candidate* · **Register:** G-8 / H-6 · **Blocks:** PR-5.
 
 **The question.** `RuntimeConfig` defines **32 boolean fields: 28 default `False`, 4 default `True`** (`allow_cross_language_recall`, `use_salience`, `discourse_planner`, `deduction_serving_enabled`). Three are daemon-forced. No document states the set, which defaults are deliberate posture versus accumulated hesitancy, or what evidence would flip each. *(The assessment said "seventeen"; the real number is 28 — N-7. Two counts of the same set differing by eleven is itself the finding: nothing in the repo distinguishes capability flags from policy flags.)*
 
@@ -104,7 +112,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-5 · The identity-enforcement authorization bar
 
-**Status:** PENDING · **Register:** G-11 · **Blocks:** nothing; it makes an honest posture *stay* honest.
+**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *discrimination bar, corpus and floor named in advance* · **Register:** G-11 · **Blocks:** nothing; it makes an honest posture *stay* honest.
 
 **The question.** `identity_wave_gate` is off and `identity_action_surface` is off and documented as **"NOT authorized for live activation."** That is a deliberate, well-reasoned posture. What is missing is the *criterion*: no document states what evidence would authorize live refusal.
 
@@ -123,7 +131,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-6 · Non-text ingest — entry criterion, or explicit deferral?
 
-**Status:** PENDING · **Register:** G-17 · **Blocks:** nothing.
+**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *deferral with the falsification bench as the standard* · **Register:** G-17 · **Blocks:** nothing.
 
 **The question.** 59 sensorium modules exist and reach no serving path. Projection heads do not exist. The position paper is honest about this. There is no entry criterion and no deferral ruling — so it reads as neither built nor deliberately postponed.
 
@@ -143,7 +151,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-7 · Register supersession — this directory vs `docs/gaps.md` and the ratchet
 
-**Status:** PENDING · **Register:** H-9 · **Blocks:** PR-3.
+**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *supersede both; 7 OPEN items into G-5 — **EXECUTED, PR-3*** · **Register:** H-9 · **Blocks:** PR-3.
 
 **The question.** `docs/gaps.md` is 26/26 closed with no entry from any 2026-06+ arc. The substrate-liveness ratchet is v5, stale since ~2026-05-24, with **7 OPEN items, all L10-chained**. The local system map is gitignored, 48 days stale, and carries a phantom `L12` stratum that exists nowhere else. Two dead registers plus a live one is worse than one live one.
 
@@ -162,7 +170,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-8 · The curriculum outcome-mix rule — *now the sole blocker of an entire frontier*
 
-**Status:** PENDING · **Register:** G-10 · **Blocks:** PR-14, Track E in full.
+**Status:** **RULED C** — 2026-07-28, Shay (explicit adoption) · *separate `unknown`- and `entailed`-serving licenses* · **Register:** G-10 · **Blocks:** PR-14, Track E in full.
 
 **The question changed shape since the register was written (N-5).** G-10 named the 16-premise compilation cap as the blocking engineering item. ADR-0264 §4.1 carries a banner directly beneath its own heading:
 
@@ -189,7 +197,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-9 · The soak's evidence standard and cadence
 
-**Status:** PENDING · **Register:** G-5 · **Blocks:** PR-11.
+**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *commit the artifact, pin the digest, change-triggered cadence* · **Register:** G-5 · **Blocks:** PR-11.
 
 **The question changed shape since the register was written (N-4).** G-5 says *"the soak has never produced an artifact."* It has: `evals/l10_always_on/contract.md` §"The measured result" records a **5000-beat soak with a reboot at beat 2500** (landed 2026-07-19 in `aed273b1`) in which **all four predicates pass** — `versor_condition` flat at `1.389e-07` across all 5000 beats, vault bounded at 6 entries, convergence at beat 1 with the 4999-beat tail at rest, reboot resuming the same life with derived learning intact.
 
@@ -215,7 +223,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-10 · PR #138 disposition
 
-**Status:** PENDING · **Register:** G-2 / G-3 · **Blocks:** Track B in full.
+**Status:** **RULED STRICKEN** — 2026-07-28, Shay (explicit adoption) · *already discharged — #138 merged pre-arc; `797ebad5` *is* that merge* · **Register:** G-2 / G-3 · **Blocks:** Track B in full.
 
 **The question.** PR #138 — *"the reader/writer construction overlap is 6 — and the reader fabricates on 22 more"* — is open at `c69f9948` and is the only open PR in the repository. It is the measurement that established the reading frontier: writer 1739 constructions, reader 19, overlap **6**, fabrication on **22** beyond the verified inventory.
 
@@ -237,7 +245,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-11 · An interim defensive gate for the fabrications?
 
-**Status:** PENDING · **Register:** G-2 · **Blocks:** nothing; it is a posture choice while the ADR is pending.
+**Status:** **RULED B** — 2026-07-28, Shay (explicit adoption) · *measure the out-of-inventory rate first, then re-ask* · **Register:** G-2 · **Blocks:** nothing; it is a posture choice while the ADR is pending.
 
 **The question.** The fixes are held for their ADR. In the meantime CORE *serves* readings it fabricated — `member(every_dog, mammal)` from `every dog is a mammal`, and `asserted(furthermore)` recited back as a premise. Is there an interim posture that is neither the held fix nor the status quo?
 
@@ -259,7 +267,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-12 · The two ratified-ADR record amendments
 
-**Status:** PENDING · **Register:** G-15 / H-8 · **Blocks:** PR-1's completion (H-8 cannot close without this).
+**Status:** **RULED A/A** — 2026-07-28, Shay (explicit adoption) · *both drafted amendment texts applied as written* · **Register:** G-15 / H-8 · **Blocks:** PR-1's completion (H-8 cannot close without this).
 
 **The question.** Two ratified ADRs' *records* contradict the code. Neither amendment changes a decision; both are text. Editing a ratified ADR is Shay's authority even when the edit changes nothing, which is why they are here and not in PR-1.
 
@@ -292,7 +300,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-13 · Wilson re-count — authorize, knowing licenses may be demoted
 
-**Status:** PENDING · **Register:** H-1 / G-19 · **Blocks:** PR-12, and PR-14 through it.
+**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *authorize the re-count; **served capability will shrink, and that is the mechanism working*** · **Register:** H-1 / G-19 · **Blocks:** PR-12, and PR-14 through it.
 
 **The question.** Wilson lower-bound licensing (θ_SERVE=0.99, ADR-0175 lineage) assumes independent trials. A replay of the same sealed case is one trial observed again, not a new one. Re-counting on a distinct-evidence basis will demote licenses.
 
@@ -314,7 +322,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-14 · Gate parity — raise CI to the local suite, or lower the local suite to CI?
 
-**Status:** PENDING — but **substantially dissolved by N-9 (2026-07-28); read this box before ruling.** · **Register:** N-3 / G-7 / H-12 · **Blocks:** nothing that is still open.
+**Status:** **STRICKEN 2026-07-28** — no ruling owed; dissolved by N-9 (2026-07-28); read this box before ruling.** · **Register:** N-3 / G-7 / H-12 · **Blocks:** nothing that is still open.
 
 > **The premise below is wrong, and the question is much smaller than it appears.**
 >

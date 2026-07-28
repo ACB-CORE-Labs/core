@@ -3,25 +3,27 @@
 **Planner:** Opus 5 · 2026-07-27 · verified at `forgejo/main` @ `ed06dd64`
 **Governs:** everything in `30-gap-register.md` (G-1…G-21) and `31-hindrance-audit.md` (H-1…H-14), sequenced by `40-assessment.md` §6.
 **Method:** `docs/conceptualizing_engineering_mastery.md` — scrub → **delete** → simplify/enforce → accelerate → automate last. Nothing is automated that Waves 0–3 have not proven.
-**Status (2026-07-28, at `39331dbc`):** **every plan item that needs neither a ruling nor an ADR is landed.**
+**Status (2026-07-28, at `d0bedfc1`):** **Wave 0 is closed.** Twelve rulings adopted, two stricken, the §5 NO-GO ratified — recorded in `50-rulings.md`. Every plan item that needed neither a ruling nor an ADR was already landed; the ruling-gated items are now *unblocked and owed*, in the order fixed in §2.1 below.
 
 | Landed | Blocked, and on what |
 |---|---|
-| PR-0 ruling packet (#140) · PR-1 record amendments · R-10 discharged (#138 merged) | PR-2, PR-3 — **R-7**, plus CR-1/CR-2 decisions that do not yet exist |
-| **Track A — ADR-0252 §5 run to NO-GO**, criterion pre-registered, artifact + digest committed | PR-5 — **R-3, R-4** |
-| PR-4 membership ratchet · PR-6 three doctrine pins · PR-7 M2 trust table · PR-9 count-the-swallow | PR-8 — a small ADR (H-3/G-20) · PR-10 — a refactor ADR (H-4) |
-| H-13 (served-marker defect) · H-8e (closure docstring) | PR-11 — **R-2, R-9** · PR-12 — **R-13** · PR-14 — **R-8** |
-| **Closed:** G-7, G-9, H-7, H-11, H-13, H-8e · **Answered:** G-1 · **Discharged:** H-10 | Tracks B–E — the above, plus §5 ratification |
+| PR-0 ruling packet (#140) · PR-1 record amendments · R-10 discharged (#138 merged) | PR-2 — CR-1/CR-2 design briefs that do not yet exist (**not** a ruling) |
+| **Track A — ADR-0252 §5 run to NO-GO**, criterion pre-registered, artifact + digest committed, **verdict ratified 2026-07-28** | PR-8 — a small ADR (H-3/G-20) · PR-10 — a refactor ADR (H-4) |
+| PR-4 membership + reachability ratchets · PR-6 three doctrine pins · PR-7 M2 trust table · PR-9 count-the-swallow | PR-12 — an ADR **amendment** (R-13 authorizes it; the amendment is still owed) |
+| PR-3 + PR-3b (**R-7**, Wave 1) · H-13 (served-marker defect) · H-8e (closure docstring) · G-22 (main was red; `CLAIMS.md` stale) | Track B — the fabrication ADR (standing instruction, unchanged) |
+| **Closed:** G-7, G-9, G-22, H-7, H-11, H-13, H-8e · **Answered:** G-1 · **Discharged:** H-10 | Track C — invention, deliberately last |
 
-**New this arc, not in the original assessment:** **N-8** (the §5 experiment had already returned GO twice, on unmerged branches, both unsound), **N-9** (the gate "drift" was a recorded decision — PR-4's pin 1 **withdrawn** rather than built, R-14 dissolved), **G-21** (the math reader decides **1.0%** of `holdout_dev/v1`), **H-13**, **H-14**, **H-8e**.
+**New this arc, not in the original assessment:** **N-8** (the §5 experiment had already returned GO twice, on unmerged branches, both unsound), **N-9** (the gate "drift" was a recorded decision — PR-4's pin 1 **withdrawn** rather than built, R-14 dissolved), **G-21** (the math reader decides **1.0%** of `holdout_dev/v1`), **G-22** (`main` was red before the arc, and `CLAIMS.md` published a superseded evidence digest for two days), **H-13**, **H-14**, **H-8e**.
 
-**What has not moved, stated plainly:** comprehension breadth and proof-of-life. The reader is still 19 constructions wide and decides 1.0% of the held-out corpus; the 5000-beat soak is still prose with no pinned digest. Everything landed this arc is enforcement and evidence machinery. PR-11, PR-12, PR-14 and Track B are where capability moves, and all four are ruling-gated.
+**What has not moved, stated plainly:** comprehension breadth and proof-of-life. The reader is still 19 constructions wide and decides 1.0% of the held-out corpus; the 5000-beat soak is still prose with no pinned digest. Everything landed this arc is enforcement and evidence machinery. PR-11, PR-12, PR-14 and Track B are where capability moves — and after the rulings, **none of them is blocked on a question any more.** Three are blocked on work.
+
+**The one strategic finding of the whole arc, stated once here so it is not lost in the registers:** every defect found this arc — G-22, H-13, H-14, N-8, N-9, the fourteen `PENDING` statuses, the four unused suite aliases, the fifteen unreachable ones — is a **record/reality divergence**, not a substrate defect. Nothing found says the geometry is wrong. The recurring class is **mechanisms whose failure state is indistinguishable from their success state**: a suite nobody runs, a pin nobody sees fail, a digest nobody re-derives, a verdict on an unmerged branch, a ruling adopted in conversation. That is what Waves 1–2 are for, and it is why the correct response to "too much going on" is deletion and enforcement rather than redesign.
 
 ---
 
-## 0. Seven corrections to the assessment, found while sizing and executing this plan
+## 0. Nine corrections to the assessment, found while sizing and executing this plan
 
-The assessment's authority rests on its self-correction chain — *"nothing in the chain was ever caught by re-reading documents"* (§8). Planning it produced seven more, all caught by reading code, workflows, and the ADRs' own supersession banners. Four of them change planned work: two change the design of the highest-leverage mechanical item, one **deletes a Wave-3 PR** because the work already shipped, and one **halves the severity** of a claim this plan made in its own first draft.
+The assessment's authority rests on its self-correction chain — *"nothing in the chain was ever caught by re-reading documents"* (§8). Planning it produced seven more and executing it produced two, all caught by reading code, workflows, branch tips, and the ADRs' own supersession banners. Six of them change planned work: two change the design of the highest-leverage mechanical item, one **deletes a Wave-3 PR** because the work already shipped, one **halves the severity** of a claim this plan made in its own first draft, one **withdraws a pin** this plan proposed re-adding after a prior agent had removed it for recorded reasons, and one **re-scopes a whole track** from *run the experiment* to *run it soundly*.
 
 | # | Corrects | Effect on the plan |
 |---|---|---|
@@ -194,7 +196,39 @@ The assessment directory's own corrections (N-1…N-7 applied to `30-gap-registe
 
 ### Track A opens here (see §6) — the §5 experiment does not wait for Wave 1.
 
-**Wave 0 exit:** every G/H entry has either a settled ruling or a named owner-wave. No later item is blocked on an unasked question.
+**Wave 0 exit:** every G/H entry has either a settled ruling or a named owner-wave. No later item is blocked on an unasked question. **Met 2026-07-28.**
+
+---
+
+## 2.1 The adopted docket — twelve rulings, and the order they execute in
+
+**Ruled 2026-07-28 by Shay, explicitly.** Full text, options, and per-option diffs stay in [`50-rulings.md`](50-rulings.md); this section exists so the *plan* carries the order and the consequences, and so neither survives only in a conversation. (It did survive only in a conversation for several hours — see the note at the head of the ruling packet. That is the failure mode this arc is about, committed inside the arc.)
+
+**Adopted:** R-1 A · R-2 B · R-3 A · R-4 A · R-5 A · R-6 A · R-7 A · R-8 C · R-9 A · R-11 B · R-12 A/A · R-13 A
+**Stricken:** R-10 (discharged before the arc — #138 merged) · R-14 (dissolved by N-9)
+**Also ratified:** the ADR-0252 §5 **NO-GO** verdict.
+
+### The order, and why it is this order
+
+The packet's original order was by register number. That is the wrong axis: it interleaves cheap record repairs with expensive capability work and puts the two ADR-record amendments last, when they are the only items that cost nothing and unblock reading everything else. The corrected order is **by what each item unblocks, cheapest first inside each tier.**
+
+| Rank | Ruling(s) | Deliverable | Size | Why here |
+|---|---|---|---|---|
+| 1 | **R-12** | Two ratified-ADR record amendments — ADR-0146 (daemon) and ADR-0252 ("34 organs" basis footnote). Text already drafted in the packet | **S** | Zero-risk, changes no decision, and both ADRs are read as authority by everything downstream. A record that contradicts the code is the arc's whole subject. |
+| 2 | ~~R-7~~ | ~~Register supersession~~ | — | **EXECUTED** — PR-3 + PR-3b, landed 2026-07-28. Listed so the order stays readable. |
+| 3 | **R-3 + R-4** | PR-5 — the flag register (`docs/specs/flag_register.md`), all 32 `RuntimeConfig` booleans, profiles as units, the pin that forbids an unregistered flag, `accrue_realized_knowledge` added to the daemon profile, the two N-6 docstrings corrected | **M** | R-3 is a **hard gate on Wave 4**; nothing automates until it resolves. R-4 is the mechanism R-3's fix must land inside, so they are one PR. |
+| 4 | **R-9 + R-2** | PR-11 — the L10 soak to a committed artifact with a pinned `deterministic_digest`, the ruled cadence, and R-2's "now" paragraph written into the contract *before* the re-run | **M** | Proof of life. R-2 must land first inside the same PR or the soak answers a design question by accident (the packet's own reasoning for R-2). |
+| 5 | **R-13** | PR-12 — distinct-evidence counting at the seal boundary + the honest re-count of 25 ratified bands, demotions applied, `test_volume_honesty.py` moved in the same PR | **L** | Needs an ADR **amendment** (0175/0263 lineage). R-13 authorizes the demotions; it does not write the amendment. Expect served capability to shrink — that is the mechanism working. |
+| 6 | **R-8** | PR-14 — the outcome-mix rule, then seal `curriculum_serve_ledger.json`. Four bands qualify on sealing (N-5) | **M** | Depends on PR-12's counting basis. This is the entire throughput frontier, one ruling wide. |
+| 7 | **R-1 · R-5 · R-6 · R-11** | Posture statements: efferent-action deferral with entry criterion (G-12) · the identity-enforcement discrimination bar (G-11) · non-text ingest deferral with the falsification bench as its standard (G-17) · **R-11 B — measure before gating** | **S** each | All four are prose with a criterion. None blocks anything; leaving them silent is the cost. They go last because they are the only items where lateness is cheap. |
+
+**R-11's measurement is owed now, not later — and R-11 is the one adopted ruling that does not end in a decision.** Option B is *measure first, then re-ask*: an instrumentation PR (counts only, no behavior change) reporting how often the out-of-inventory reading path is taken on the practice corpora, after which **R-11 is put back to Shay with the number in hand.** So the docket owes two things here, not one: the measurement, and the second ruling. Until the number exists, R-11 has been ruled and nothing follows from it — which is a state worth naming, because a ruled-but-inert item is indistinguishable from a settled one at a glance. It lands with the R-1/R-5/R-6 batch at the latest and may land sooner, since the instrumentation is small and independent.
+
+### Two items the docket added that were not rulings
+
+**The claims register — HELD, deliberately, on my recommendation.** Proposed in the same message as the adoptions: a register mapping each pinned claim to the lane that verifies it. It is a good idea and it is **not scheduled yet.** The reason is G-22: `CLAIMS.md` published a superseded evidence digest for two days because one commit updated the lane and the verifier but not the published claim. A register built *now* would be a second surface with the same failure mode and no evidence yet that the first one holds. **Entry criterion:** it is scheduled once Wave 1's deletions and Wave 2's ratchets have gone one full arc without a record/reality divergence being found by hand. Building the index before the indexed things are trustworthy is exactly the pattern H-9 names.
+
+**Gate width — promoted to a first-class plan item.** See PR-4b in §4. It was a parenthetical ("still open, and it is a decision") and parentheticals are how the fifteen got there.
 
 ---
 
@@ -240,7 +274,17 @@ The cut is much smaller than the sprawl suggests, and the measurement is why. `c
 
 **STILL OWED — a third pin, found by this arc's own full-tree run (G-7 reopened-partly).** The ratchet closes membership; it does not close **execution**. The run found `tests/test_ratification_ceremony.py` red on `main`, **in a curated suite (`teaching`) that no gate invokes** — the gate runs `smoke` + warmed_session + `deductive`. Membership was satisfied and bought nothing, which is this item's own hollow-gate objection turned on its own fix. **Pin 3 — LANDED 2026-07-28**, `tests/test_suite_reachability.py`. Measured **21 curated suites, 2 gate-reachable**; the gap is **19**, not the handful first estimated. Shipped as baseline + ratchet for the same reason the membership pin was: 19 justifications written in one sitting is ceremony, not a decision. Freezes the gap, fails on growth, both directions enforced, declared gate set verified against `pre-push`/`local-ci.sh` so it cannot go vacuous. Two sabotages observed red.
 
-**Still open, and it is a decision rather than an engineering task:** which of the 19 go on the gate. `teaching` first — it shipped a red ratification pin that no gate ran (G-22).
+### PR-4b · Gate width — which of the fifteen go on the gate · **S** · *new, Wave 2* · G-7
+
+Promoted out of a parenthetical in PR-4, because a parenthetical is how fifteen suites got to be unreachable without anyone deciding it. Pin 3 froze the gap; **it deliberately does not choose**, and an unmade choice does not improve by being frozen.
+
+**The decision, stated so it costs one reply.** The gate today is `smoke` + warmed_session + `deductive`. Fifteen curated suites have members and no gate caller. Every promotion costs gate time on every push, forever, which is why this is Shay's and not mine.
+
+**Recommended first promotion: `teaching`, alone.** The evidence is not a preference — it is G-22: `tests/test_ratification_ceremony.py` was **red on `main`**, was **in `teaching`**, and no gate ran it. That is the only suite in the fifteen with a demonstrated escape. Promote it, measure the added wall-clock, and let the next promotion be argued from that measurement rather than from taste.
+
+**Explicitly not recommended:** promoting all fifteen. That is the ceremony failure this plan rejected twice already (749 exclusion reasons; nineteen justifications in one sitting). Nor is deletion the default — PR-3b deleted the four with *zero* references anywhere; the remaining fifteen are all named in AGENTS.md, CLI help, READMEs or ADRs, so deleting them breaks documented commands.
+
+**Verification:** `teaching` invoked from `scripts/hooks/pre-push` and `local-ci.sh --tier gate`, `GATE_SUITES` updated, `teaching` removed from `UNREACHABLE_BASELINE` in the same edit (`test_suite_reachability.py` fails in both directions if either half is missed — it has already caught this author twice), and the ratchet's `<= 15` lowered to `<= 14`. The added gate seconds reported as a number in the PR body.
 
 ### PR-5 · The flag-default register · **M** · G-8/H-6
 `docs/specs/flag_register.md`: all **28** default-off flags plus the 4 default-on — current default, deliberate-posture vs accumulated-hesitancy, **what evidence flips it**, and named profiles (one-shot / eval / continuous-life) per R-4. Declared in the table, not the call site (ADR-0263 Rule 5). A pin asserts the register lists exactly the flags `core/config.py` defines — so a new flag cannot land unregistered. Includes the F-6 accrual resolution from R-3 and the N-6 docstring correction.
@@ -285,8 +329,12 @@ Distinct-evidence counting at the seal boundary: a replay refreshes, never incre
 ### ~~PR-13 · Curriculum query-scoping~~ · **WITHDRAWN** · N-5
 Shipped as ADR-0264 R5, discharged 2026-07-26. The 16-premise cap does not exist in the running system. G-10 is re-scoped to R-8 alone.
 
-### PR-14 · The earning ledger · **M** · G-10
-`chat/data/curriculum_serve_ledger.json` exists and is an *earning* ledger, under R-8's outcome-mix ruling. Four bands qualify the moment it is sealed (N-5). Depends on PR-12 (counting basis) and on R-8 — **no longer on any engineering prerequisite**.
+### PR-14 · The earning ledger · **M** · G-10 — *unblocked by R-8 C*
+`chat/data/curriculum_serve_ledger.json` exists and is an *earning* ledger. Four bands qualify the moment it is sealed (N-5). Depends on PR-12 (counting basis) — **no longer on any ruling and no longer on any engineering prerequisite**.
+
+**Under R-8 C the deliverable is now specific:** two entries in `CAPABILITY_LEDGERS` — `unknown`-serving and `entailed`-serving licensed as **different capabilities on different evidence** — the mix rule declared in the table rather than at the call site (ADR-0263 Rule 5), an **ADR-0264 §5 amendment** recording the ruling, then the seal. The four bands license the thing they have actually demonstrated at 660 decisions (correct refusal); nothing licenses entailment on a maximum of 9 cases.
+
+**One sub-question the ruling leaves open, stated rather than assumed.** The packet's recommendation was *"C, with a floor from A applied to the entailed capability only"* — and **N was never named.** Adopting C adopts the floor in principle; the number is not derivable from the evidence, because the whole point is that no band is near it (max entailed volume = 9). This PR must therefore either carry a proposed N with its consequence measured, or land the two capabilities with the entailed one explicitly unlicensable-pending-N. It may not quietly ship without a floor — that would license entailment on 9 cases through an omission, which is the exact outcome C exists to prevent.
 
 ### Track B · The fabrications and the widening — *gated, see §6*
 G-2's fix lands only under its ratified ADR (R-11 may add an interim defensive gate first). G-3's widening program is **shape-dependent on Track A's verdict** and does not start before it.
@@ -297,7 +345,7 @@ G-2's fix lands only under its ratified ADR (R-11 may add an interim defensive g
 
 Waves are hygiene and enforcement. The frontiers are the project. Track A runs **in parallel with Wave 0**, because it is execution-authorized already and everything else gets cheaper once it returns.
 
-### Track A · **Run ADR-0252 §5 to a verdict** · G-1/H-10 · **DONE 2026-07-28 — NO-GO, awaiting ratification**
+### Track A · **Run ADR-0252 §5 to a verdict** · G-1/H-10 · **DONE 2026-07-28 — NO-GO, RATIFIED 2026-07-28**
 Protocol followed as written: criterion pre-registered at `299c92be` **before** the run (that commit carries the thresholds as importable constants and no results); corpus built with provenance on every case; full experiment run; `docs/research/sme-experiment-verdict-797ebad5.md` written with the criterion, the run, the numbers, and the verdict; report artifact committed with a pinned `deterministic_digest`.
 
 **Verdict: NO-GO**, and it is the well-controlled kind the ADR pre-declares as full credit. Structure-sensitivity fails at every attribute weight tested — not a knife-edge on a constant. The mechanism is stated in one sentence and measured rather than argued: *the similarity quotient that would deliver attribute-invariance is the same quotient that annihilates structural contrast.* An `add`-vs-`subtract` minimal pair — one entity, identical numbers, one relation kind changed — aligns at residual exactly `0.0`, its two configurations being related by a proper rotation. Sweeping the attribute weight, every regime in which the SME property survives is a regime in which attributes contribute nothing (AUC 1.00 → 0.83 → 0.69 as they start to matter).
@@ -305,6 +353,15 @@ Protocol followed as written: criterion pre-registered at `299c92be` **before** 
 **Scope, deliberately narrow:** this refutes H1 for embeddings that encode role-structure as *point positions* aligned by conformal Procrustes *under similarity* — the argument is about the quotient, so it generalises across that class. It does not refute every Cl(4,1) representation, and it does not touch the symbolic structure-mapping lane already in `evals/structure_mapping/`.
 
 **Two things the track found that were not on anyone's list.** (1) The experiment was **already run twice**, returning GO twice, on unmerged branches — see N-8; both verdicts are unsound and are voided by the verdict document. (2) The math reader decides **5 of 500** `holdout_dev/v1` cases (1.0%), all one skeleton, which is why §5.1's four-structure corpus was not extractable and is now registered as **G-21**.
+
+**Ratified 2026-07-28, and it leaves one obligation the ADR itself cannot discharge.** ADR-0252 **§6 names an organ-retirement condition that a NO-GO makes unsatisfiable as written**: it retires the symbolic structure-mapping organs *on the strength of the geometric replacement*, and names **no replacement** for the NO-GO branch. A ratified NO-GO therefore has to be written back into the ADR or the ADR's §6 stands as a live instruction that can never fire — an instrument in the H-9 class, authoritative-looking and dead.
+
+**Owed, and it is an amendment rather than a new decision (Shay's authority, drafted for one-word approval):**
+1. **§5 gains its verdict banner** — NO-GO, the run SHA, the report digest, the scope sentence (*point-position role encodings aligned by conformal Procrustes under similarity*, not every Cl(4,1) representation, and not the symbolic lane already in `evals/structure_mapping/`).
+2. **§6's retirement condition is amended to state the NO-GO branch explicitly**: the symbolic organs are **retained**, and the condition that would retire them is re-stated as *a demonstrated replacement passing the §5 criterion*, which no longer exists. Retiring a working organ because a *hypothesis about its replacement* was written down is precisely backwards.
+3. **The "34 organs" basis footnote** from R-12 lands in the same amendment — same file, same authority, one review instead of two.
+
+*(Registered here rather than only in the verdict document because a verdict document is a research artifact and §6 is an instruction. The instruction is what has to change.)*
 
 ### Track B · **The reading** · G-2 → G-3 · **XL**
 Sequenced and gated: merge #138 (R-10) → fabrication ADR + ratification → the two known mutations land → **then** widen from 19, in whatever shape Track A's verdict dictates. G-16's latent defect class in `_inflect_predicate`'s aspect arms must be cleared *by* the widening program, not after it. This is the intelligence frontier and the largest capability gap to the telos.
@@ -362,13 +419,15 @@ The arc closes when:
 2. Every H-1…H-14 entry is resolved, relocated to its better home, or explicitly accepted with a reason.
 3. ADR-0252 §5 has a recorded verdict and the §6 question is settled either way.
 4. A **committed** L10 soak artifact exists with a **pinned `deterministic_digest`**, and its pins run on a ruled cadence.
-5. `smoke.yml` and `TEST_SUITES["smoke"]` are mechanically identical, and no test file hides in `full`.
-6. The flag register exists and lists all 32 `RuntimeConfig` booleans, with no flag in `core/config.py` unlisted.
-7. No document **and no docstring** in the repository contradicts the code at a load-bearing point.
-8. Every card in `docs/assessment/` carries a `verified_at` no older than the last arc that touched its layer.
+5. ~~`smoke.yml` and `TEST_SUITES["smoke"]` are mechanically identical, and no test file hides in `full`.~~ **Superseded by N-9 and by PR-4's measurement.** Both halves were wrong. Gate parity with `smoke.yml` is not a goal — `AGENTS.md:280` makes the workflows dead signals, and the surviving direction has been pinned since before this assessment. And "no test file hides in `full`" is unreachable at 747 files without ceremony that changes nothing about what executes. **Replaced by:** the membership baseline only shrinks, the gate-unreachable baseline only shrinks, and both are enforced in both directions.
+6. **At least one gate-unreachable suite has been promoted onto the gate by decision** (PR-4b), with the added wall-clock recorded as a number.
+7. The flag register exists and lists all 32 `RuntimeConfig` booleans, with no flag in `core/config.py` unlisted.
+8. No document **and no docstring** in the repository contradicts the code at a load-bearing point.
+9. Every card in `docs/assessment/` carries a `verified_at` no older than the last arc that touched its layer.
+10. **Every ruling in `50-rulings.md` carries a status that matches what has actually executed** — the arc's own closing check, added because for several hours it did not.
 
 **What does *not* close with this arc:** the widening program (G-3) and the chooser (G-4). Those are the next arc, and they should be entered with the registers clean, the paradigm decided, and the evidence loops turning — which is precisely what this plan buys.
 
 ---
 
-*Sequenced per `docs/conceptualizing_engineering_mastery.md`: scrub, delete, simplify, accelerate, automate last. Nothing above optimizes a thing that Wave 1 might delete, and nothing above automates a loop that Wave 3 has not proven turns. Seven corrections in §0 were found by reading code, workflows, and ADR supersession banners — none by re-reading the assessment.*
+*Sequenced per `docs/conceptualizing_engineering_mastery.md`: scrub, delete, simplify, accelerate, automate last. Nothing above optimizes a thing that Wave 1 might delete, and nothing above automates a loop that Wave 3 has not proven turns. Nine corrections in §0 were found by reading code, workflows, branch tips, and ADR supersession banners — none by re-reading the assessment.*
