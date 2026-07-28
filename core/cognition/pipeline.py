@@ -15,7 +15,6 @@ Constraint: ChatRuntime.chat() and ChatResponse contract are unchanged.
 
 from __future__ import annotations
 
-import hashlib
 import json
 from collections import OrderedDict
 
@@ -35,11 +34,7 @@ from core.physics.wave_manifold import multivector_content_digest
 from core.reasoning.adapters import evidence_from_entailment_trace
 from generate.intent import classify_compound_intent
 from generate.intent_bridge import _is_useful_surface
-from generate.intent_ratifier import (
-    RatificationOutcome,
-    RatifiedIntent,
-    ratify_intent,
-)
+from generate.intent_ratifier import ratify_intent
 from generate.graph_planner import (
     GraphNode,
     PropositionGraph,
@@ -159,19 +154,27 @@ class CognitiveTurnPipeline:
         # Iteration order matches insertion / refresh order; lookups
         # remain O(1).
         #
-        # H-13 (external-assessment triage, 2026-07-28) — the value is a
-        # REFERENCE COUNT, not a placeholder.  Seeding splits a subject
-        # into tokens, so two independent proposals can claim the same
-        # token ("wisdom" from both ``wisdom`` and ``practical wisdom``).
-        # While this was a flat set, promoting either one popped the
-        # shared token and the *other* proposal — still unreviewed — lost
-        # its marker, serving speculative material as though reviewed.
-        # A token now survives while any unpromoted proposal still claims
-        # it.  Seeding and eviction walk the same source list, so the
-        # counts balance; where they disagree the count stays positive
-        # and the subject keeps its marker, which is the honest direction
-        # to fail.
-        self._speculative_subjects: OrderedDict[str, int] = OrderedDict()
+        # H-13 (external-assessment triage, 2026-07-28) — the value is the
+        # set of SUBJECTS CLAIMING this token, not a placeholder and not a
+        # count.  Seeding indexes a subject under itself *and* under each
+        # of its ≥4-char tokens, so two independent subjects can land on
+        # one token ("wisdom" from both ``wisdom`` and ``practical
+        # wisdom``).  While this was a flat set, teaching ``practical
+        # wisdom`` coherently popped the shared token and an unrelated,
+        # still-unreviewed ``wisdom`` proposal lost its marker — serving
+        # speculative material as though reviewed.
+        #
+        # A reference count does not fix it, and the reason is the branch
+        # structure at the call site: a proposal is EITHER seeded (when
+        # SPECULATIVE) OR released (when COHERENT), never both, so a
+        # release never balances a claim the same proposal made.  A
+        # COHERENT proposal always releases claims it never held.
+        # Claimants make that a no-op on other subjects' tokens: a token
+        # dies only when the subject that actually claimed it is
+        # reviewed.  Token derivation lives in these methods rather than
+        # at the call site, because ownership is exactly what the call
+        # site cannot see.
+        self._speculative_subjects: OrderedDict[str, set[str]] = OrderedDict()
 
     # ------------------------------------------------------------------
     # Public API
@@ -737,19 +740,19 @@ class CognitiveTurnPipeline:
             if proposal.epistemic_status is EpistemicStatus.SPECULATIVE:
                 for src in sources:
                     self._remember_speculative_subject(src)
-                    for tok in _SUBJECT_SPLIT_RE.split(src.lower()):
-                        if len(tok) >= 4 and tok not in _SUBJECT_STOPWORDS:
-                            self._remember_speculative_subject(tok)
             elif proposal.epistemic_status is EpistemicStatus.COHERENT:
                 # Finding 5 (audit 2026-05-20) — once teaching review
-                # promotes a proposal to COHERENT, the subject is no
-                # longer speculative; evict its tokens so the marker
-                # stops appearing on subsequent probes about it.
+                # returns COHERENT, the subject is no longer speculative;
+                # release its claims so the marker stops appearing on
+                # subsequent probes about it.
+                #
+                # H-13 — the split-and-add loop that used to live here has
+                # moved inside the cache.  Doing it out here made every
+                # token its own claimant, so releasing "practical wisdom"
+                # also released the token "wisdom" that an unrelated,
+                # still-unreviewed proposal was relying on.
                 for src in sources:
                     self._forget_speculative_subject(src)
-                    for tok in _SUBJECT_SPLIT_RE.split(src.lower()):
-                        if len(tok) >= 4 and tok not in _SUBJECT_STOPWORDS:
-                            self._forget_speculative_subject(tok)
 
         # Advance turn counter and remember surface for next correction binding.
         # The truth-path surface (not the served, register-decorated bytes)
@@ -1039,53 +1042,76 @@ class CognitiveTurnPipeline:
         prompt_versor = field_state.F
         return ratify_intent(intent, prompt_versor, vocab=vocab)
 
+    @staticmethod
+    def _speculative_index_tokens(subject: str) -> tuple[str, tuple[str, ...]]:
+        """Return ``(owner, tokens)`` — how one subject is indexed.
+
+        The owner is the normalized subject itself; the tokens are the
+        owner plus each ≥4-char non-stopword fragment, so a prefixed
+        parse like ``"correction: wisdom"`` still matches a probe about
+        ``"wisdom"``.  Both the claim and the release derive their
+        tokens here, so the two can never disagree about what a subject
+        covers.
+        """
+        owner = subject.lower().strip()
+        if not owner:
+            return "", ()
+        tokens = [owner]
+        for tok in _SUBJECT_SPLIT_RE.split(owner):
+            if len(tok) >= 4 and tok not in _SUBJECT_STOPWORDS and tok != owner:
+                tokens.append(tok)
+        return owner, tuple(tokens)
+
     def _remember_speculative_subject(self, subject: str) -> None:
-        """Claim a speculative subject token (and refresh its LRU position).
+        """Record ``subject`` as claiming its index tokens (refreshing LRU).
 
         Finding 5 (audit 2026-05-20).  Caps the cache at
         ``_MAX_SPECULATIVE_SUBJECTS`` via insertion-order eviction.
         Empty / whitespace-only inputs are dropped silently so callers
         can pass raw fragments without guarding.
 
-        H-13 — increments the token's reference count rather than
-        re-seating a placeholder, so a token claimed by two unreviewed
-        proposals needs two promotions to clear.
+        H-13 — the subject is recorded as the *claimant* of each token it
+        indexes under, so a later release can tell its own tokens from a
+        neighbour's.
         """
-        subject = subject.lower().strip()
-        if not subject:
+        owner, tokens = self._speculative_index_tokens(subject)
+        if not owner:
             return
-        count = self._speculative_subjects.get(subject, 0)
-        self._speculative_subjects[subject] = count + 1
-        self._speculative_subjects.move_to_end(subject)
+        for token in tokens:
+            claimants = self._speculative_subjects.get(token)
+            if claimants is None:
+                self._speculative_subjects[token] = {owner}
+            else:
+                claimants.add(owner)
+            self._speculative_subjects.move_to_end(token)
         while len(self._speculative_subjects) > _MAX_SPECULATIVE_SUBJECTS:
             self._speculative_subjects.popitem(last=False)
 
     def _forget_speculative_subject(self, subject: str) -> None:
-        """Release one claim on a subject; evict it once no claim remains.
+        """Release ``subject``'s claims; evict each token no one still claims.
 
-        Called when a SPECULATIVE proposal is promoted to COHERENT via
-        the teaching review loop, so reviewed material stops being
-        marked speculative on later probes.  No-op if the subject is
-        not present.
+        Called when teaching review returns a COHERENT proposal, so
+        material that has now been reviewed stops being marked
+        speculative on later probes.  No-op for subjects that hold no
+        claim.
 
-        H-13 — decrements rather than pops.  Token seeding is
-        subject-split, so two proposals can claim one token; popping
-        outright let a promotion strip the marker from a *different*
-        proposal that was still unreviewed.  An unmatched release (the
-        promoted proposal's token set differing from what it seeded)
-        floors at removal and never goes negative, so it cannot borrow
-        against a later proposal's claim.
+        H-13 — releases only what *this* subject claimed.  A COHERENT
+        proposal never seeded anything (the call site's branches are
+        mutually exclusive), so it holds no claim on a neighbour's
+        token: discarding an absent claimant leaves that token live, and
+        the still-unreviewed subject keeps its marker.  A token is
+        evicted exactly when its last claimant is reviewed.
         """
-        subject = subject.lower().strip()
-        if not subject:
+        owner, tokens = self._speculative_index_tokens(subject)
+        if not owner:
             return
-        count = self._speculative_subjects.get(subject)
-        if count is None:
-            return
-        if count <= 1:
-            self._speculative_subjects.pop(subject, None)
-        else:
-            self._speculative_subjects[subject] = count - 1
+        for token in tokens:
+            claimants = self._speculative_subjects.get(token)
+            if claimants is None:
+                continue
+            claimants.discard(owner)
+            if not claimants:
+                self._speculative_subjects.pop(token, None)
 
     def _should_mark_speculative(self, text: str, surface: str) -> bool:
         """Decide whether ``surface`` should carry the SPECULATIVE marker.

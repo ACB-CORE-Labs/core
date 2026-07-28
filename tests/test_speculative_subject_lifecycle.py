@@ -107,63 +107,74 @@ def test_should_mark_speculative_still_iterates_correctly(
 # unpromoted proposal still claims it.
 
 
-def _seed_proposal(pipeline: CognitiveTurnPipeline, subject: str) -> None:
-    """Mirror the seeding the pipeline performs for one SPECULATIVE proposal."""
+# The pipeline calls the cache once per source string and lets the cache do its
+# own token indexing (H-13).  These helpers mirror that exactly — a test that
+# split tokens itself would be testing a call pattern production no longer uses,
+# which is how the first attempt at this fix passed while the bug survived.
+
+
+def _teach_speculative(pipeline: CognitiveTurnPipeline, subject: str) -> None:
+    """One SPECULATIVE proposal lands (pipeline.py 10b, SPECULATIVE arm)."""
     pipeline._remember_speculative_subject(subject)
-    for tok in subject.lower().split():
-        if len(tok) >= 4:
-            pipeline._remember_speculative_subject(tok)
 
 
-def _promote_proposal(pipeline: CognitiveTurnPipeline, subject: str) -> None:
-    """Mirror the eviction the pipeline performs when that proposal goes COHERENT."""
+def _teach_coherent(pipeline: CognitiveTurnPipeline, subject: str) -> None:
+    """One COHERENT proposal lands (pipeline.py 10b, COHERENT arm).
+
+    Note this arm is reached by proposals that were **never seeded** — review
+    returns COHERENT on the same turn the correction is captured.  So a release
+    routinely names tokens this subject never claimed.
+    """
     pipeline._forget_speculative_subject(subject)
-    for tok in subject.lower().split():
-        if len(tok) >= 4:
-            pipeline._forget_speculative_subject(tok)
 
 
-def test_promoting_one_proposal_keeps_a_sibling_token_live(
+def test_coherent_proposal_does_not_unmark_an_unrelated_subject(
     pipeline: CognitiveTurnPipeline,
 ) -> None:
-    """Promoting 'practical wisdom' must not un-mark an unreviewed 'wisdom'."""
-    _seed_proposal(pipeline, "wisdom")
-    _seed_proposal(pipeline, "practical wisdom")
+    """The load-bearing case: the COHERENT proposal never seeded anything.
 
-    _promote_proposal(pipeline, "practical wisdom")
+    An unreviewed ``wisdom`` is outstanding.  A *different* correction about
+    ``practical wisdom`` passes review on its own turn — it was never
+    SPECULATIVE, so it holds no claim on the token ``wisdom``.  Releasing it
+    must leave the unreviewed subject marked.
+    """
+    _teach_speculative(pipeline, "wisdom")
+    _teach_coherent(pipeline, "practical wisdom")
 
     assert "wisdom" in pipeline._speculative_subjects, (
-        "the independent 'wisdom' proposal is still SPECULATIVE — promoting a "
-        "different proposal that merely shares the token must not evict it"
+        "a COHERENT proposal released a token it never claimed, stripping the "
+        "marker from an unrelated proposal that is still unreviewed"
     )
-    # The promoted proposal's own exclusive tokens are gone.
-    assert "practical wisdom" not in pipeline._speculative_subjects
-    assert "practical" not in pipeline._speculative_subjects
-
-
-def test_sibling_survives_at_the_served_surface(
-    pipeline: CognitiveTurnPipeline,
-) -> None:
-    """The consequence that matters: the marker still fires for the sibling."""
-    _seed_proposal(pipeline, "wisdom")
-    _seed_proposal(pipeline, "practical wisdom")
-    _promote_proposal(pipeline, "practical wisdom")
-
     assert pipeline._should_mark_speculative(
         text="Tell me about wisdom",
         surface="Wisdom is the application of knowledge.",
     ), "unreviewed material must keep its speculative marker"
 
 
-def test_token_clears_once_every_claimant_is_promoted(
+def test_promoting_one_proposal_keeps_a_sibling_token_live(
     pipeline: CognitiveTurnPipeline,
 ) -> None:
-    """Reference counting must still reach zero — no marker that never clears."""
-    _seed_proposal(pipeline, "wisdom")
-    _seed_proposal(pipeline, "practical wisdom")
+    """Both taught speculatively; reviewing one must not clear the other."""
+    _teach_speculative(pipeline, "wisdom")
+    _teach_speculative(pipeline, "practical wisdom")
 
-    _promote_proposal(pipeline, "practical wisdom")
-    _promote_proposal(pipeline, "wisdom")
+    _teach_coherent(pipeline, "practical wisdom")
+
+    assert "wisdom" in pipeline._speculative_subjects
+    # The reviewed subject's own exclusive tokens are gone.
+    assert "practical wisdom" not in pipeline._speculative_subjects
+    assert "practical" not in pipeline._speculative_subjects
+
+
+def test_token_clears_once_its_own_claimant_is_reviewed(
+    pipeline: CognitiveTurnPipeline,
+) -> None:
+    """Eviction must still happen — no marker that can never clear."""
+    _teach_speculative(pipeline, "wisdom")
+    _teach_speculative(pipeline, "practical wisdom")
+
+    _teach_coherent(pipeline, "practical wisdom")
+    _teach_coherent(pipeline, "wisdom")
 
     assert "wisdom" not in pipeline._speculative_subjects
     assert not pipeline._should_mark_speculative(
@@ -172,37 +183,44 @@ def test_token_clears_once_every_claimant_is_promoted(
     )
 
 
-def test_repeated_speculative_teaching_needs_matching_promotions(
+def test_claim_is_idempotent_per_subject(
     pipeline: CognitiveTurnPipeline,
 ) -> None:
-    """Two unreviewed proposals on one subject take two promotions to clear."""
-    _seed_proposal(pipeline, "wisdom")
-    _seed_proposal(pipeline, "wisdom")
+    """Re-teaching one subject speculatively does not require two reviews.
 
-    _promote_proposal(pipeline, "wisdom")
-    assert "wisdom" in pipeline._speculative_subjects, (
-        "one proposal reviewed, one still outstanding — still speculative"
-    )
+    The claimant is the subject, so the same subject claiming twice is one
+    claim — a single review clears it.  (Distinct subjects sharing a token is
+    the case that needs both reviewed, pinned above.)
+    """
+    _teach_speculative(pipeline, "wisdom")
+    _teach_speculative(pipeline, "wisdom")
 
-    _promote_proposal(pipeline, "wisdom")
+    _teach_coherent(pipeline, "wisdom")
     assert "wisdom" not in pipeline._speculative_subjects
 
 
-def test_unmatched_forget_never_underflows(
+def test_release_of_an_unheld_subject_is_a_noop(
     pipeline: CognitiveTurnPipeline,
 ) -> None:
-    """A promotion whose seeding never happened must not push a count negative.
+    """Releasing a subject nobody claimed must not disturb live claims."""
+    _teach_speculative(pipeline, "wisdom")
 
-    Seeding and eviction derive their token sets from the proposal object at
-    two different moments, so they can disagree.  When they do, the safe
-    direction is to keep marking (a stale marker is honest-conservative; a
-    missing one is not) — never a negative count that would let a later
-    promotion strip a live sibling.
-    """
-    pipeline._remember_speculative_subject("wisdom")
-    pipeline._forget_speculative_subject("wisdom")
-    pipeline._forget_speculative_subject("wisdom")  # unmatched
-    pipeline._remember_speculative_subject("wisdom")
+    _teach_coherent(pipeline, "entirely unrelated topic")
+    _teach_coherent(pipeline, "practical")  # shares no claim on "wisdom"
 
-    assert "wisdom" in pipeline._speculative_subjects
-    assert pipeline._speculative_subjects["wisdom"] == 1
+    assert pipeline._speculative_subjects["wisdom"] == {"wisdom"}
+
+
+def test_index_tokens_are_shared_by_claim_and_release(
+    pipeline: CognitiveTurnPipeline,
+) -> None:
+    """Both sides derive tokens from one helper, so they cannot disagree."""
+    owner, tokens = pipeline._speculative_index_tokens("  Correction: Practical WISDOM ")
+    assert owner == "correction: practical wisdom"
+    # "correction" is a subject stopword — indexing it would match every
+    # correction turn, so it is filtered out of the token set.
+    assert set(tokens) == {"correction: practical wisdom", "practical", "wisdom"}
+    # The owner is always indexed, even when it is shorter than the token floor.
+    owner_short, tokens_short = pipeline._speculative_index_tokens("ash")
+    assert owner_short == "ash"
+    assert tokens_short == ("ash",)

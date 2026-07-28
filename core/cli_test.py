@@ -79,6 +79,19 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # creates it, per the #136 finding that an unregistered pin runs
         # nowhere. ~6s, mostly two real pipeline turns per denial pair.
         "tests/test_negation_survives_articulation.py",
+        # The speculative marker must survive a neighbour's review. Teaching
+        # indexes a subject under its tokens, so one COHERENT correction used
+        # to release a token an unrelated, still-unreviewed proposal was
+        # relying on — serving unreviewed material with no "(speculative, not
+        # yet reviewed)" prefix. That is a truth-on-the-served-surface defect,
+        # so it belongs on the pre-push gate rather than under `full`. The file
+        # predates the fix but ran in NO curated suite, which is why the
+        # regression was invisible; it is registered here **and in smoke.yml**
+        # in the same PR as the fix, per the #136 finding that an unregistered
+        # pin runs nowhere. Registering it in both keeps the local/CI delta at
+        # the same ten files (H-12), so it settles nothing R-14 has to rule.
+        # ~9s, cache-level with two served-surface assertions.
+        "tests/test_speculative_subject_lifecycle.py",
         # ADR governance. An ADR that governs a default-ON flag records a
         # decision already in force, so leaving it "Proposed" makes the
         # governance record assert something false about the running system —
