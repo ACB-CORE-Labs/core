@@ -271,7 +271,6 @@ tests/test_cga_f64_exactness.py
 tests/test_cga_incidence.py
 tests/test_cga_rust_surface_parity.py
 tests/test_chiral_orientation_gate.py
-tests/test_claims_md_is_current.py
 tests/test_claude_hybrid_verification_demo.py
 tests/test_claude_tool_authority_demo.py
 tests/test_cli.py

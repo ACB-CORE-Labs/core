@@ -90,7 +90,16 @@ def test_row_is_byte_compatible_with_the_committed_corpus() -> None:
     changed and make the real change unreviewable."""
     committed = corpus_path_for("physics")[1].read_text(encoding="utf-8").splitlines()[0]
     row = existing_rows("physics")[0]
-    rebuilt = ChainRecord(**{k: row[k] for k in ChainRecord.__slots__}).as_jsonl_line()
+    # Build from the keys the committed row ACTUALLY carries, letting absent
+    # fields take their dataclass defaults. ``polarity`` (ADR-0264 R1) is
+    # defaulted to AFFIRMATIVE and deliberately OMITTED from affirmative rows
+    # (``ChainRecord.as_row``), so iterating ``__slots__`` and indexing the row
+    # raises KeyError on every correctly-serialized affirmative row. That is
+    # what made this pin red — the schema moved and the pin did not, leaving
+    # byte-compatibility unverified since R1 landed (G-22).
+    rebuilt = ChainRecord(
+        **{k: row[k] for k in ChainRecord.__slots__ if k in row}
+    ).as_jsonl_line()
     assert rebuilt.rstrip("\n") == committed
 
 
@@ -144,7 +153,10 @@ def test_duplicate_edge_is_refused() -> None:
 
 def test_unreviewed_status_is_refused() -> None:
     row = existing_rows("physics")[0]
-    record = ChainRecord(**{**{k: row[k] for k in ChainRecord.__slots__},
+    # See the note in test_row_is_byte_compatible_with_the_committed_corpus:
+    # affirmative rows omit ``polarity`` by design, so only the row's own keys
+    # may be indexed (G-22).
+    record = ChainRecord(**{**{k: row[k] for k in ChainRecord.__slots__ if k in row},
                             "chain_id": "physics-causal-900",
                             "subject": "entropy", "object": "temperature",
                             "review_status": "pending"})

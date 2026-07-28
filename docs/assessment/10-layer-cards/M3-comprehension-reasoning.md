@@ -40,7 +40,7 @@ Operationally, the live path enters M3 after ingest: intent classification → `
 - **Design:** **ADR-0252 (Accepted, governing)** — the problem-solving paradigm and its §4 conformance bar; ADR-0251 (halt bespoke per-case regex work; the prohibition governing every math-reader increment); ADR-0249/0250 (reader→Hamiltonian compiler); ADR-0256–0261 (six deduction bands); ADR-0262/0264 (curriculum); ADR-0265 (negation in the proposition graph); ADR-0243 (wave-field lifecycle); ADR-0142 (epistemic taxonomy).
 - **Build:** `partial-wiring-debt`.
 - **Evidence:**
-  - Deduction serving decides real arguments end-to-end, `wrong=0` across all splits — lane — `evals/deduction_serve/report.json`, pinned SHA `0b461a5a…` in `CLAIMS.md` — would-fail-if-absent: **yes**.
+  - Deduction serving decides real arguments end-to-end, `wrong=0` across all splits — lane — `evals/deduction_serve/report.json`, pinned SHA `c855d55c…` in `CLAIMS.md` *(corrected 2026-07-28, G-22: the card cited the digest superseded by `f9e9cc0c`, which strengthened the lane to hash the prose it serves; `CLAIMS.md` had not been regenerated, so three artifacts published a stale evidence pointer for two days)* — would-fail-if-absent: **yes**.
   - Propositional entailment scored against an independent truth-table oracle, 716/716 correct, `wrong=0`, `refused=0` — lane — `evals/deductive_logic/report.json`, pinned `97a23094…` — would-fail-if-absent: **yes**.
   - `deductive` suite exists and carries 20 test files — code-read — `core/cli_test.py` — would-fail-if-absent: **yes**.
   - 25 sealed bands / 18,000 cases / `wrong=0`; capability index breadth 13, `wrong_total=0` — measurement — `chat/data/deduction_serve_ledger.json`, `evals/capability_index/baseline.json` (confirmed mechanically 2026-07-25).

@@ -119,6 +119,20 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # full-only files stay a declared, shrinking number rather than 749
         # invented justifications (N-9). Filesystem + glob only, <1s.
         "tests/test_suite_membership.py",
+        # G-22 — CLAIMS.md is a PUBLISHED capability artifact, deterministically
+        # regenerable from the capability ledger + PINNED_SHAS. It published a
+        # superseded evidence digest for deduction_serve_v1 for two days after
+        # f9e9cc0c moved the lane, because that commit updated the lane, the
+        # verifier and the lane test but not the published claim — and this pin,
+        # which would have caught it, ran in no curated suite. A claim whose
+        # evidence digest does not match its evidence is the exact failure the
+        # digest exists to prevent. <1s.
+        "tests/test_claims_md_is_current.py",
+        # G-22 — ratification-corpus byte compatibility and unreviewed-status
+        # refusal. Red on main and unverified since ADR-0264 R1 landed, because
+        # the pins iterated ChainRecord.__slots__ while affirmative rows omit
+        # `polarity` by design. Governance-path contract; belongs on the gate.
+        "tests/test_ratification_ceremony.py",
         # PR-6 / G-9 — three AGENTS.md prohibitions enforced by test instead of
         # review: exact recall (no cosine/ANN/HNSW on any path that decides
         # recalled truth — the prior ban covered ONE physics module while
