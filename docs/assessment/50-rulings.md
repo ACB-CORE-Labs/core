@@ -9,9 +9,9 @@
 **Also ratified:** the ADR-0252 §5 **NO-GO** verdict.
 
 **Execution order (corrected):** R-12 → R-7 → R-3+R-4 → R-9+R-2 → R-13 → R-8 → R-1/R-5/R-6/R-11.
-**Executed so far:** R-7 (PR-3, PR-3b) · **R-12** (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment) · **R-3 + R-4** (PR-5 — the flag register, the profile mechanism, the daemon's fourth flag) · **R-9 + R-2** (PR-11 — the soak's committed artifact, pinned digest, change-triggered cadence) · **R-13** (PR-12 — the Wilson re-count; 21 of 25 licences revoked) · **R-8** (PR-14 — the outcome-mix rule; the four expected licences dissolve under it) — all landed 2026-07-28.
+**Executed so far:** R-7 (PR-3, PR-3b) · **R-12** (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment) · **R-3 + R-4** (PR-5 — the flag register, the profile mechanism, the daemon's fourth flag) · **R-9 + R-2** (PR-11 — the soak's committed artifact, pinned digest, change-triggered cadence) · **R-13** (PR-12 — the Wilson re-count; 21 of 25 licences revoked) · **R-8** (PR-14 — the outcome-mix rule; the four expected licences dissolve under it) · **R-1/R-5/R-6/R-11** (`docs/specs/postures.md` — three posture statements with criteria, and R-11's interim gate withdrawn on measurement) — all landed 2026-07-28.
 
-**Remaining:** R-1/R-5/R-6/R-11 (the four posture statements) + R-11's measurement and its second ruling.
+**Remaining: none.** All twelve adopted rulings are executed.
 
 ---
 
@@ -38,7 +38,7 @@
 
 ## R-1 · CR-3 efferent action — deferred, or out of telos?
 
-**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *deferred with the entry criterion named* · **Register:** G-12 · **Blocks:** nothing; leaving it silent is the cost.
+**Status:** **RULED A — EXECUTED 2026-07-28** · *deferred; criterion recorded as **P-1** in `docs/specs/postures.md` — no efferent surface until the chooser exists AND an efferent falsification bench exists* · **Register:** G-12 · **Blocks:** nothing; leaving it silent is the cost.
 
 **The question.** CORE's telos ends at articulate/learn/replay. AGI-grade generality ordinarily implies acting on the world. No system-level statement exists either way.
 
@@ -130,7 +130,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-5 · The identity-enforcement authorization bar
 
-**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *discrimination bar, corpus and floor named in advance* · **Register:** G-11 · **Blocks:** nothing; it makes an honest posture *stay* honest.
+**Status:** **RULED A — EXECUTED 2026-07-28** · *bar recorded as **P-2** in `docs/specs/postures.md` — held-out benign/adversarial corpus, separation on the certified metric, floor named BEFORE the run* · **Register:** G-11 · **Blocks:** nothing; it makes an honest posture *stay* honest.
 
 **The question.** `identity_wave_gate` is off and `identity_action_surface` is off and documented as **"NOT authorized for live activation."** That is a deliberate, well-reasoned posture. What is missing is the *criterion*: no document states what evidence would authorize live refusal.
 
@@ -149,7 +149,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-6 · Non-text ingest — entry criterion, or explicit deferral?
 
-**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *deferral with the falsification bench as the standard* · **Register:** G-17 · **Blocks:** nothing.
+**Status:** **RULED A — EXECUTED 2026-07-28** · *deferral recorded as **P-3** in `docs/specs/postures.md` — a modality enters serving on the SAME falsification standard as text* · **Register:** G-17 · **Blocks:** nothing.
 
 **The question.** 59 sensorium modules exist and reach no serving path. Projection heads do not exist. The position paper is honest about this. There is no entry criterion and no deferral ruling — so it reads as neither built nor deliberately postponed.
 
@@ -263,7 +263,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-11 · An interim defensive gate for the fabrications?
 
-**Status:** **RULED B** — 2026-07-28, Shay (explicit adoption) · *measure the out-of-inventory rate first, then re-ask* · **Register:** G-2 · **Blocks:** nothing; it is a posture choice while the ADR is pending.
+**Status:** **RULED B — MEASURED, AND OPTION A WITHDRAWN 2026-07-28 (DELEGATED second ruling)** · *the measurement dissolved the premise: `atom_fact`'s template is `{p}`, a universal match, so "outside the verified inventory" is not a well-defined property and the proposed gate would refuse nothing while looking like a safety mechanism. **C** is operative; the fabrication ADR inherits the boundary question. See **P-4** in `docs/specs/postures.md`.* · **Register:** G-2 · **Blocks:** nothing; it is a posture choice while the ADR is pending.
 
 **The question.** The fixes are held for their ADR. In the meantime CORE *serves* readings it fabricated — `member(every_dog, mammal)` from `every dog is a mammal`, and `asserted(furthermore)` recited back as a premise. Is there an interim posture that is neither the held fix nor the status quo?
 
