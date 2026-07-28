@@ -42,6 +42,20 @@ What remains owed is the **ceremony**, and it is this assessment's own §8 maint
 
 A recorded prose result with no pinned digest is **testimony, not evidence** — the same failure mode as the map, the ratchet, and the blueprint.
 
+**Absorbed 2026-07-28 (R-7, PR-3) — the substrate-liveness ratchet's seven OPEN items.** The ratchet is now historical; every one of its open entries was L10-chained, which is this entry, so they live here rather than in a stale instrument:
+
+| Item | What it is | Chain |
+|---|---|---|
+| **W-003** | `VaultPromotionPolicy` dormant | audit-dependency on L10 |
+| **W-005** | E0/E2 readback modulation absent | W-004 → W-005 |
+| **W-007** | `DerivedRecognizer` not integrated into the live turn loop | W-003 → recognizer-storage ADR → W-007 |
+| **W-008** | Runtime model (L10) scope adoption | scope landed (#236); spike/ADR pending |
+| **W-009** | HITL async queue surface | W-008 → W-009 |
+| **W-017** | Automated T1/T2 → T3 promotion absent | W-009 → W-017 |
+| **W-018** | ADR-0080 contemplation not autonomous | W-008 → W-018 |
+
+Their dependency reasoning is still sound and is the ratchet's lasting contribution; its *status column* was not, which is why the instrument is retired and its content is not.
+
 **Two prior claims in this entry were wrong and are withdrawn.** (a) *"No suite contains any `l10`/`always_on` test"* was a scan artifact: `TEST_SUITES["full"] = ("tests/",)` is a **directory**, so every test file is trivially in a suite. The true statement is that the five `tests/test_l10_*.py` files are in **no curated suite tuple** — reachable only through `full`. (b) *"nothing runs its pins"* is false: CI never invokes `core test --suite`, it runs raw pytest with marker filters, and no L10 file carries `quarantine` or `slow` — so the pins **execute twice a day**, in `full-pytest.yml` (post-merge) and `nightly-full-pytest.yml` (cron `0 2 * * *`). The correct statement is that **nothing runs them on any pre-merge gate**.
 **Evidence:** `M6` + `always-on-process` cards; `evals/l10_always_on/contract.md`; `core/cli_test.py:13`; `.github/workflows/{smoke,full-pytest,nightly-full-pytest}.yml`. · **Authority:** execution + the R-9 evidence-standard and cadence ruling.
 

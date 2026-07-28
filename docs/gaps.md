@@ -1,3 +1,14 @@
+> **HISTORICAL — superseded 2026-07-28 (R-7, ruled).**
+> This register closed its 26th and last entry and has taken no entry from any
+> 2026-06+ arc. The live register is
+> [`docs/assessment/30-gap-register.md`](assessment/30-gap-register.md).
+>
+> It is kept for its history, not its authority. H-9's mechanism is why this
+> banner exists: *an instrument that looks authoritative converts "I should
+> check" into "I already checked"* — and Phase 0 of the holistic assessment was
+> that mechanism operating on the assessment itself. Two dead registers plus a
+> live one is worse than one live one.
+
 # Capability Gaps
 
 This file tracks registered blockers for capability progression. Open

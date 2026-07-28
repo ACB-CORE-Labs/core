@@ -11,7 +11,7 @@ PR-4 itself raised against G-7's original formulation: *a curated suite nobody
 runs is the same non-guarantee as ``full``, wearing a different name.* The fix
 had the same blind spot as the thing it fixed.
 
-Measured at 2026-07-28: **21 curated suites, 2 gate-reachable.** ``smoke`` and
+Measured at 2026-07-28: **21 curated suites, 2 gate-reachable** — then **17 and 2** after PR-3b deleted four aliases nothing invoked. ``smoke`` and
 ``deductive`` are invoked by ``scripts/hooks/pre-push`` and
 ``scripts/ci/local-ci.sh --tier gate``; the other nineteen have members and no
 caller. That is why this is a **baseline plus ratchet** and not a flat rule —
@@ -47,7 +47,11 @@ _ROOT = Path(__file__).resolve().parents[1]
 #: So the set is declared here and *verified* against the shell below.
 GATE_SUITES: frozenset[str] = frozenset({"smoke", "deductive"})
 
-#: Curated suites with members and no gate caller, measured 2026-07-28.
+#: Curated suites with members and no gate caller.
+#: 19 at first measurement; **15 after PR-3b (Wave 1) deleted four unreferenced
+#: per-phase aliases** — `refusal`, `margin`, `rotor`, `inner-loop`. That is the
+#: ratchet turning the way it is supposed to: the gap shrank by deletion rather
+#: than by promotion, which costs no gate time at all.
 #: This list may only SHRINK. A suite leaves it by being invoked from a gate
 #: tier — not by being deleted from this file.
 UNREACHABLE_BASELINE: frozenset[str] = frozenset(
@@ -58,16 +62,12 @@ UNREACHABLE_BASELINE: frozenset[str] = frozenset(
         "fast",
         "formation",
         "full",
-        "inner-loop",
-        "margin",
         "math",
         "packs",
         "phase5",
         "phase6",
         "proof",
         "pulse",
-        "refusal",
-        "rotor",
         "runtime",
         "sensorium",
         "teaching",
@@ -164,13 +164,14 @@ def test_baseline_has_no_stale_entries() -> None:
 def test_recorded_gate_gap_matches_the_measurement() -> None:
     """Pin the number so the gap moving is a reviewed decision, not a drift.
 
-    19 of 21 at 2026-07-28. Shrinking this is the point — it shrinks by putting
+    15 of 17, after PR-3b. (19 of 21 before it.) Shrinking this is the point — it shrinks by putting
     a suite on the gate, which costs gate time and is therefore a decision
     someone has to make deliberately.
     """
-    assert len(UNREACHABLE_BASELINE) <= 19, (
-        f"gate-unreachable suites grew to {len(UNREACHABLE_BASELINE)} (was 19). "
-        "The ratchet only turns one way."
+    assert len(UNREACHABLE_BASELINE) <= 15, (
+        f"gate-unreachable suites grew to {len(UNREACHABLE_BASELINE)} (was 15; "
+        "19 before PR-3b deleted four unreferenced aliases). The ratchet only "
+        "turns one way."
     )
 
 

@@ -85,6 +85,7 @@ The surviving delta is **not a containment hole** — refusal is fail-closed and
 **Why it hinders:** an instrument that *looks* authoritative converts "I should check" into "I already checked." Phase 0's error was this mechanism operating on this assessment.
 **Better home:** this register supersedes `docs/gaps.md` (marked historical); the ratchet's 7 OPEN items migrate here (G-5 absorbs their L10 dependency); the map stays a regeneratable local index per D5, with "L12" dropped; the assessment directory becomes the standing ruled record, `verified_at`-stamped.
 **Authority:** ruling (one PR).
+**Status (2026-07-28): CLOSED — R-7 ruled A; PR-3 landed.** `docs/gaps.md` and the substrate-liveness ratchet both carry historical banners naming this entry's own mechanism as the reason. The ratchet's seven OPEN items (W-003/005/007/008/009/017/018, all L10-chained) migrated into G-5 with their dependency chains. `L12` had no in-repo generator — the map is local and gitignored — so the phantom is recorded as ruled rather than deleted, which is the honest form.
 
 ## H-10 · The demotion that mispriced the paradigm experiment
 **Verdict:** `strained` framing — a correct ruling casting an incorrect shadow · **Layers:** M3/governance

@@ -205,8 +205,21 @@ The assessment directory's own corrections (N-1…N-7 applied to `30-gap-registe
 ### PR-2 · Delete the decoration · **S** · H-2
 `DriveGradientMap` construction at `chat/runtime.py:716` and the class; `InhibitionMask`/`InhibitionOperator` exports from `core/physics/__init__.py`. Their *intents* are preserved in writing first: drive → the CR-2 design brief (G-4), the mask → the CR-1 ADR (G-14). **Verification:** the sabotage test in reverse — full `smoke` plus the deduction and cognition suites must be byte-identical before and after; a deletion that changes a surface means the object was not decoration and the PR is abandoned.
 
-### PR-3 · Retire the dead instruments · **S** · H-9
+### PR-3 · Retire the dead instruments · **S** · H-9 — **LANDED 2026-07-28** (R-7 ruled A)
 `docs/gaps.md` → historical banner pointing at `30-gap-register.md`; substrate-liveness ratchet → historical, 7 OPEN items migrated into G-5; the phantom `L12` stratum dropped from the local map generator. Per R-7.
+
+**Landed.** Both banners written, naming *why* rather than just *what* — H-9's mechanism (an authoritative-looking instrument converts "I should check" into "I already checked") is quoted in the banner it explains. All seven OPEN ratchet items (**W-003, W-005, W-007, W-008, W-009, W-017, W-018** — every one L10-chained) migrated into G-5 with their dependency chains intact, because that reasoning is the ratchet's lasting contribution and its status column is not.
+
+**One deliverable could not be executed as written, and is recorded rather than claimed:** `L12` has **no in-repo generator to drop it from**. The system map is local and gitignored (D5: a regeneratable index carrying no authority), so the phantom existed only in that local artifact and in one taxonomy row. The row now records the ruling instead of the flag.
+
+### PR-3b · Collapse the suite aliases · **S** · *new, Wave 1* — **LANDED 2026-07-28**
+Not in the original plan. Added when PR-4's two ratchets made the question unavoidable: *what exactly are they policing?* Measured — **21 curated suites, 9 holding exactly one file, 12 holding ≤4, and 2 reachable from any gate.**
+
+The cut is much smaller than the sprawl suggests, and the measurement is why. `cognition`, `teaching`, `packs`, `algebra` are named in **AGENTS.md's own pre-merge-gate instruction**; `fast`, `pulse`, `proof` in the CLI's help text; `phase5`, `phase6`, `adr-0024`, `math`, `formation` in READMEs and ADRs. Deleting those breaks documented commands — worse than the sprawl.
+
+**Four suites had zero `--suite` references anywhere in code, docs, ADRs, workflows or CLI help: `refusal`, `margin`, `rotor`, `inner-loop`.** Per-phase ADR-0024 aliases offered so reviewers could run a phase independently; nothing ever did. All seven of their files remain covered by `adr-0024`, so **nothing was orphaned and no coverage moved** — verified before the cut, not after.
+
+**21 → 17 suites.** Pin 3's gate-unreachable gap went **19 → 15 by deletion**, which costs no gate time — the ratchet turning the way it should. An alias nobody calls is not a curation decision; it is one more name that has to be kept true, and two ratchets were policing these.
 
 ---
 

@@ -289,18 +289,18 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
     ),
     "formation": ("tests/formation",),
     "proof": ("tests/test_proof_properties.py",),
-    # ADR-0024 chain suites (Phases 2-6). Each phase has its own contract
-    # tests so reviewers can run them independently; ``adr-0024`` runs the full
-    # chain end-to-end.
-    "refusal": ("tests/test_refusal_contract.py",),
-    "margin": ("tests/test_margin_admissibility.py",),
-    "rotor": ("tests/test_rotor_admissibility.py",),
-    "inner-loop": (
-        "tests/test_inner_loop_admissibility.py",
-        "tests/test_inner_loop_phase2.py",
-        "tests/test_inner_loop_phase3.py",
-        "tests/test_inner_loop_phase4.py",
-    ),
+    # ADR-0024 chain suites (Phases 2-6). ``adr-0024`` runs the full chain
+    # end-to-end; ``phase5``/``phase6`` survive because README.md and the
+    # forward_semantic_control READMEs invoke them by name.
+    #
+    # PR-3b (Wave 1, 2026-07-28) — four per-phase aliases deleted: ``refusal``,
+    # ``margin``, ``rotor``, ``inner-loop``. Each was offered so reviewers could
+    # run a phase independently, and measured across the repository, **nothing
+    # invoked any of them** — zero `--suite` references in code, docs, ADRs,
+    # workflows or the CLI's own help. Every one of their seven files is still
+    # covered by ``adr-0024``, so no coverage moved and nothing was orphaned.
+    # An alias nobody calls is not a curation decision; it is a name that has to
+    # be kept true. Two ratchets (membership, reachability) were policing these.
     "phase5": ("tests/test_phase5_corpus.py",),
     "phase6": ("tests/test_phase6_demo.py",),
     "adr-0024": (

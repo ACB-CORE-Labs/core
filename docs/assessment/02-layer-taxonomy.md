@@ -137,7 +137,7 @@ All 33 zones, mapped once. Liveness is the map's 2026-06-09 label — **48 days 
 | ingest-boundary | M2 | partial-wiring-debt | |
 | ingest-compiler | M2 | partial-wiring-debt | |
 | sensorium-afferent | M2 | inert | |
-| sensorium-falsification | M2 | live-internal | map labels it "L12" — a stratum no other document uses; flag for ruling |
+| sensorium-falsification | M2 | live-internal | map labelled it "L12" — a stratum no other document uses. **Ruled 2026-07-28 (R-7): dropped.** No in-repo generator emits it (the system map is local and gitignored, per D5 a regeneratable index carrying no authority), so nothing in the repository was changed — the phantom existed only in a local artifact and in this row. Recorded rather than silently deleted, so the next reader does not re-derive it. |
 | L4-recognition | M3 | partial-wiring-debt | |
 | L5-cognition | M3 | partial-wiring-debt | |
 | comprehend-organ ⚑ | M3 | live-serving | zero subsystems mapped |

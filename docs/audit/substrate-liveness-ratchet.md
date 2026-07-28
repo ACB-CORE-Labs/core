@@ -1,3 +1,13 @@
+> **HISTORICAL — superseded 2026-07-28 (R-7, ruled).**
+> Last revised ~2026-05-24 and stale since. Its **seven OPEN items — W-003,
+> W-005, W-007, W-008, W-009, W-017, W-018 — are all L10-chained** and have
+> migrated into **G-5** of the live register
+> ([`docs/assessment/30-gap-register.md`](../assessment/30-gap-register.md)),
+> which carries the L10 proof debt with current evidence.
+>
+> Kept for its dependency reasoning, which is still good; not for its status
+> column, which is not. Do not add entries here.
+
 # Substrate Liveness Ratchet — v5 (quick-wins lane cleared: W-011/W-012/W-015/W-016 closed)
 
 **Scope:** [substrate-liveness-audit-scope](../adr/substrate-liveness-audit-scope.md) (v2)
