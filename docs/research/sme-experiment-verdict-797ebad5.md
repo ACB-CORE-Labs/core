@@ -1,7 +1,7 @@
 # ADR-0252 §5 — the structure-mapping experiment, run to a verdict
 
 **Date:** 2026-07-28 · **Runner:** Opus 5 (Track A, `docs/assessment/50-execution-plan.md` §6)
-**Base:** `forgejo/main` @ `797ebad5` · **Criterion:** pre-registered at `dfc394d2`, before the run
+**Base:** `forgejo/main` @ `797ebad5` · **Criterion:** pre-registered at `299c92be`, before the run
 **Artifact:** `evals/structure_mapping/adr0252_s5/results/report-797ebad5.json`
 **`deterministic_digest`:** `b3d9d27592e213104c51bcace7415fd819d722a1b06f7d0a5ca65bd5a234e4ec`
 **Reproduce:** `uv run python -m evals.structure_mapping.adr0252_s5.experiment`
@@ -205,6 +205,15 @@ its held-out standard. It belongs in the gap register on its own.
 *Every number above is produced by `uv run python -m
 evals.structure_mapping.adr0252_s5.experiment` at `797ebad5` and is reproduced by
 the committed report artifact and its digest. The criterion constants in
-`experiment.py` are unchanged since `dfc394d2`, which carried them before the run
+`experiment.py` are unchanged since `299c92be`, which carried them before the run
 and carried no results; the only post-run edit to that file is the additive
 `diagnostic_sweep` block, and `git log -p` shows it.*
+
+*Provenance note on that SHA. The pre-registration commit was authored as
+`dfc394d2` and re-created as `299c92be` when the branch was re-signed before
+landing on `main` — same tree, same message, same ordering, an SSH signature
+added. The claim the verdict rests on is unchanged and independently checkable
+at `299c92be`: **that commit contains the thresholds and no results.** It is
+recorded here rather than left as a silent SHA change, because a document citing
+a commit that is not in its own repository's history is the exact failure this
+verdict's §1 catalogues.*
