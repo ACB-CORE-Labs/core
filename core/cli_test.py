@@ -129,6 +129,16 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # It deliberately does NOT decide which of the 19 belong on the gate —
         # that costs gate time and is Shay's call. <1s.
         "tests/test_suite_reachability.py",
+        # G-23 — DOMAIN_PACKS and the pack manifests state one fact twice, and
+        # only one direction was checked. domain_contract_predicates P3 validates
+        # domain_id -> a known domain; NOTHING validated DOMAIN_PACKS -> the
+        # manifest agrees, and P3 passes VACUOUSLY on a manifest with no
+        # domain_id at all. Measured 7 of 9 bound, 0 contradictory, 2 absent —
+        # both in philosophy_theology, a band queued to earn SERVE behind R-8.
+        # The existing predicate tests run only on synthetic tmp_path manifests
+        # and sit in no curated suite, so they could not have caught it.
+        # Reads 30 small JSON files, <1s.
+        "tests/test_domain_pack_binding.py",
         # G-22 — CLAIMS.md is a PUBLISHED capability artifact, deterministically
         # regenerable from the capability ledger + PINNED_SHAS. It published a
         # superseded evidence digest for deduction_serve_v1 for two days after

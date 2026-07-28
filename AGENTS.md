@@ -227,54 +227,76 @@ alias, flag, suite, and document is something that has to be kept true forever.
 Prefer removing to adding, and prefer shrinking a gap by deletion (costs
 nothing) over closing it by addition (costs forever).
 
-**2. Master the little details and the big ones handle themselves.**
-This is not a metaphor about care — it is a claim about causation. Large
-architectural failures in this repo have consistently decomposed into small,
+**2. Don't build a ratchet to guard a ratchet.**
+The corollary of 1, and the one this repository paid for: when the fix for an
+enforcement mechanism is another enforcement mechanism, the smell is not
+insufficient enforcement — it is that the thing being policed should not exist.
+A membership ratchet needed a reachability ratchet to mean anything; what
+actually shrank the gap was deleting four suites nobody called, which cost
+nothing and needed no pin at all. Look downstream of where the pain is felt.
+
+**3. Master the little details and the big ones handle themselves.**
+Not a metaphor about care — a claim about causation. Large architectural
+failures in this repo have consistently decomposed into small,
 individually-boring divergences that nobody closed. Get the small ones exactly
 right and the large ones do not form.
 
-**3. A mechanism whose failure state is indistinguishable from its success
+**4. A mechanism whose failure state is indistinguishable from its success
 state is not a guarantee.**
-The dominant defect class here: a curated suite no gate invokes, a pin never
-observed failing, a digest nothing re-derives, a verdict on an unmerged
-branch, a decision recorded only in conversation. All of them look exactly
-like working. **Red before green** — if you cannot make a new pin fail on
-purpose, you have not shipped a guarantee, you have shipped a story about one.
+The dominant defect class in this repository: a curated suite no gate invokes,
+a pin never observed failing, a digest nothing re-derives, a verdict on an
+unmerged branch, a predicate that passes vacuously on the input it was written
+for, a decision recorded only in conversation. Every one of them looks exactly
+like working.
+**So design the failure to look different, and prove that it does.** Red before
+green: if you cannot make a new pin fail on purpose, you have not shipped a
+guarantee, you have shipped a story about one.
 
-**4. Prefer a record that contradicts nothing to a record that impresses.**
+**5. Prefer a record that contradicts nothing to a record that impresses.**
 A document, docstring, banner, or status field that disagrees with the code at
 a load-bearing point is worse than its absence, because it converts *"I should
 check"* into *"I already checked."* Recorded prose with no re-derivable
 artifact is testimony, not evidence. When a record and reality diverge, that
 is a defect with the same severity as a wrong answer.
 
-**5. Consecutive unclear problems are a signal to stop and look wider.**
+**6. Consecutive unclear problems are a signal to stop and look wider.**
 One surprising failure is a bug. Several in a row that are not individually
 obvious means the frame is wrong. Stop patching, step back, and ask what the
 failures have in common before writing another fix. Almost always the answer
 is that there is too much going on, not too little.
 
-**6. Be quick to be humble about mistakes, and quick to investigate yourself
-for them. Always.**
-When a result is challenged, check your own work before defending it. When you
-were wrong, say so plainly, fix it, and **record the error next to the fix**
-rather than overwriting the history so that the tree looks clean. An arc's
-self-correction chain is the strongest evidence it has; deleting a mistake
-deletes that evidence.
+**7. Investigate yourself first.**
+When a result is challenged, turn the standard inward before defending outward
+— not because it is polite, but because it is where the error usually is. The
+H-13 refcount fix was wrong on a claim stated confidently, and its tests passed
+only because they mirrored a call pattern production no longer used. Two
+adopted rulings were about to be recorded stronger than they were made: R-11 B
+authorizes no gate, and R-8 C's floor had no number. All three were caught by
+re-reading my own work against the source, none by anyone disagreeing with me.
+Then say so plainly, fix it, and **record the error next to the fix** rather
+than tidying the history. An arc's self-correction chain is its strongest
+evidence; deleting a mistake deletes that evidence.
 
-**7. Do not cut corners because the plan is large.**
+**8. Do not cut corners because the plan is large.**
 Volume of work is not a licence for lower diligence — it is the condition that
 makes diligence load-bearing. Meticulousness is cheapest exactly when it feels
 most expensive.
 
-**8. Fix what you find, when you find it.**
+**9. Fix what you find, when you find it.**
 Do not leave a discovered defect unfixed and unrecorded on the grounds that it
-is off-topic. The two exceptions, both explicit: work a later planned item is
-*expected* to fix (say so, and name the item), and work that requires an
-authority you do not hold (say so, and prepare it so the decision costs one
-word).
+is off-topic. Two exceptions, both explicit: work a later planned item is
+*expected* to fix (say so, and name the item), and work requiring an authority
+you do not hold (say so, and prepare it so the decision costs one word).
 
-**9. Let the tree settle, then run the gate once.**
+**10. A closed issue is not evidence the problem is gone.**
+It is evidence that someone decided to stop tracking it. The closure is a
+governance artifact; the condition it describes is a fact about the system, and
+the two drift. G-7 was CLOSED and REOPENED-PARTLY inside a single arc — the
+closure was accurate about *membership* and manufactured confidence about
+*execution*. H-13 was closed with a fix that did not work. Before trusting a
+closed item, a merged PR, or a passing suite, ask what it actually observed.
+
+**11. Let the tree settle, then run the gate once.**
 Never mutate the working tree while a validation run is in flight — the result
 describes a tree that no longer exists, and you will not notice. Land all
 edits, let it settle, run once, read the whole output.
