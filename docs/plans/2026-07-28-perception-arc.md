@@ -116,6 +116,20 @@ One front end replacing both readers, structured as the repo's own governing pat
 
 ---
 
+## 2b. Pass-3 amendments — from the third external audit (2026-07-28), verified in-tree
+
+A red-team audit was cross-examined against the source. Three of its six faults were stale or mis-attributed (see the triage in `31-hindrance-audit.md`), **but its direction flushed out two subsystems this plan's own author had missed** — and they change Phases 1–2 from "build" to "connect and test":
+
+- **The faithful §2 reader already exists, dark.** `core/semantic_primitives/` (typed `Container`, `ConservationLaw`, `DimensionalType` — *"linguistic → field compilation"*) feeds `generate/linguistic_pipeline/` (layers A/B/C + `field_integration.py`, **51 geometric refs**): surface text → typed constraints → **conformal points / composed rotors** → `versor_condition` + GoldTether closure. **Nothing on the serving side calls it.** So F-B sharpens: the ratified design was not merely inverted by the serving reader — it was *also implemented faithfully* in a parallel pipeline that never reached dispatch. Two readers: the wrong one serving, the right one dark.
+- **The recognizer junction is built, not blocked.** `core/cognition/pipeline.py` step 0b (ADR-0144) attaches `DerivedRecognizer` (anti-unification) and can derive the articulation graph from the admitted `EpistemicNode` — behind `recognition_grounded_graph = False`, one of the flag register's four *"waiting on a transition window that has not been closed"* entries.
+
+**The pattern, named once:** `linguistic_pipeline`, the ADR-0144 recognizer step, and `relation_compiler` are three instances of one class — **correct mechanisms built dark behind unruled flags while enumerative stopgaps serve.** The flag register's §3a hesitancy cluster (`recognition_grounded_graph`, `realizer_grounded_authority`, `forward_graph_constraint`, `unified_ingest`) is this same unfinished migration, seen flag-side. The disease is not "never built"; it is **transition windows that never close.**
+
+**Consequences for the phases:**
+1. **Phase 1 (H2) runs on existing machinery, not new scaffolding** — extend `layer_a_english` to the four ratified primitives and encode relations as operators through `field_integration`'s composed-rotor path. Adopted from the audit verbatim into the pre-registration: an explicit **non-collapse criterion** — the §5 `add`-vs-`subtract` minimal pair (residual exactly 0.0 under similarity alignment) must show non-zero relational contrast under operator composition, as a named must-pass case.
+2. **Phase 2 starts from the dark-bridge inventory** (the four §3a flags + the linguistic pipeline), wiring and measuring before writing anything new — "less machinery" made concrete.
+3. **The `use_salience` ruling moves from Phase 5 to before Phase 3** — the read-rate lane (Phase 0) is pre-salience and unconfounded, but serving evals are not; an undocumented default-ON attention mask must be ruled before licences are measured through it.
+
 ## 3. What this plan deliberately does not do
 
 - It does not touch `core/physics`, the algebra, the reliability gate, or the ledger discipline. Those are correct and load-bearing.
