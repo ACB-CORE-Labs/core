@@ -4,6 +4,8 @@
 **Supersedes:** Track B's "widen from 19 constructions" (G-3, as previously specified) — see §4.
 **Governed by:** `AGENTS.md` standing philosophy; the pre-registration discipline that produced the §5 NO-GO.
 
+> **RE-GATED 2026-07-28 (same day, later):** the [Foundations Audit](2026-07-28-foundations-audit.md) now **precedes** this arc — bottom-up, logos-first (FA-1/G-25). Phase 0 (read-rate ratchet) and Phase 4 (deletions) stand and may run; **Phase 1 as written below is CORRECTED and superseded** — the operator hypothesis has *three* prior negative results (see the audit charter §4), found by reachability census after this document shipped. The next experiment is FA-1's holonomy-resonance question, which tests the geometry on the job ADR-0015 actually assigned it.
+
 ---
 
 ## 0. The question this answers
@@ -78,7 +80,11 @@ Sequenced per `docs/conceptualizing_engineering_mastery.md`: measure → decide 
 - **G-24** in the gap register: findings F-A…F-E, Tier A (it re-scopes Track B and Track C's entry conditions).
 - **The read-rate lane** (discharges G-21's open ask): `evals/perception/read_rate.py` measuring sentence-level read rate on `holdout_dev/v1` — logic reader and math reader, refusal taxonomy included. Pinned as a **floor ratchet** (1.28% / 1.0% at `0e1be8be`): the number may only rise, and a rise is a reviewed decision. This is the metric the arc is accountable to — capability, not machinery.
 
-### Phase 1 · The §2 experiment — compositional core-primitive reading · **M** · *pre-registered, GO/NO-GO*
+### Phase 1 · ~~The §2 experiment~~ — **CORRECTED 2026-07-28: substantially already run, three negatives** · see Foundations Audit §4
+
+*(Original text preserved below for the record. The wedge ablation (2026-06-04, verdict C3), the relational operator ablation (2026-07-19, identical-to-baseline), and §5 (NO-GO) jointly cover the operator-encoding branch this phase proposed. Reopening requires a domain where the geometry is not isomorphic to trivial symbolic computation — FA-1's holonomy gate is that domain candidate.)*
+
+#### Original Phase 1 text (superseded)
 
 The §5-shaped experiment for the untested branch. **Hypothesis H2:** a reader that (a) maps text onto the **four ratified primitives** — containment, transfer, accumulation, comparison — plus the Number and Object core-systems; (b) encodes each relation as an **operator** (the `relation_compiler` pattern, generalized); and (c) derives sentence meaning by **composition** of operators — generalizes **multiplicatively**: built from *k* atomic constructions, it reads novel compositions it was never shown.
 
