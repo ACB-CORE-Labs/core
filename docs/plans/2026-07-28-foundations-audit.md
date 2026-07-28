@@ -1,6 +1,8 @@
 # The Foundations Audit — bottom-up, inside-out, logos-first
 
 **Charter** · 2026-07-28 · opened at `339bfd37` · **precedes and re-gates the Perception Arc**
+
+> **RATIFIED 2026-07-28 (Shay): the KEEL.** The audit's findings feed a clean-trunk rebuild at `../coreai` — assembly rebuilt, parts and evidence carried over by admission, the diseases designed out structurally rather than policed. Charter set: `coreai/docs/charter/`. This repository remains the serving system and the evidence source throughout the migration; components are admitted to the keel per its migration protocol, and the legacy surface shrinks under ratchet. **FA-1 (the holonomy-gate experiment) runs here**, where the machinery lives; its verdict gates the keel's L2/L3 design.
 **Standing question:** for every part of the cognitive design — is it masterfully implemented *intrinsically*, in *the role it plays in its subsystem*, in *the role its subsystem plays in the system*, and at *every seam it is supposed to share with other organs, packs, and components*? Nothing is "understood" until all four can be articulated with evidence.
 
 ---
