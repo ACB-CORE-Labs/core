@@ -119,6 +119,16 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # full-only files stay a declared, shrinking number rather than 749
         # invented justifications (N-9). Filesystem + glob only, <1s.
         "tests/test_suite_membership.py",
+        # PR-4 pin 3 / G-7 — MEMBERSHIP WAS NEVER THE GUARANTEE; EXECUTION IS.
+        # The membership ratchet closed "no new orphans" and, within the hour,
+        # this arc's full-tree run found test_ratification_ceremony.py RED, in
+        # the curated suite `teaching`, invoked by no gate tier. Measured: 21
+        # curated suites, 2 gate-reachable. This freezes the 19-suite gap so it
+        # cannot grow silently, enforced in both directions, with the declared
+        # gate set verified against the shell so the pin cannot go vacuous.
+        # It deliberately does NOT decide which of the 19 belong on the gate —
+        # that costs gate time and is Shay's call. <1s.
+        "tests/test_suite_reachability.py",
         # G-22 — CLAIMS.md is a PUBLISHED capability artifact, deterministically
         # regenerable from the capability ledger + PINNED_SHAS. It published a
         # superseded evidence digest for deduction_serve_v1 for two days after
