@@ -1,8 +1,8 @@
 # docs/assessment/ — The Holistic Macro→Micro Assessment (2026-07-27)
 
-A read-only, evidence-bearing assessment of CORE's cognitive-cycle design versus implementation fulfillment, conducted under `docs/conceptualizing_engineering_mastery.md` at `forgejo/main` @ `8927c563`. It changes no runtime behavior, fixes no defect, and decides nothing — it produces evidence and judgments for ruling.
+A read-only, evidence-bearing assessment of CORE's cognitive-cycle design versus implementation fulfillment, conducted under `docs/conceptualizing_engineering_mastery.md` at `forgejo/main` @ `8927c563`. Phases 0–5 change no runtime behavior, fix no defect, and decide nothing — they produce evidence and judgments for ruling. Phase 6 adds the execution plan built on them and the ruling packet they require.
 
-**Start here:** [`40-assessment.md`](40-assessment.md) — the synthesis (the verdict, the five frontiers, the recommended attack order). Then the registers. The cards are the evidence base.
+**Start here:** [`40-assessment.md`](40-assessment.md) — the synthesis (the verdict, the five frontiers, the recommended attack order). Then [`50-execution-plan.md`](50-execution-plan.md) for what follows from it, and [`50-rulings.md`](50-rulings.md) for what is waiting on a decision. The registers rank the work; the cards are the evidence base.
 
 | File / dir | Phase | What it is |
 |---|---|---|
@@ -17,6 +17,8 @@ A read-only, evidence-bearing assessment of CORE's cognitive-cycle design versus
 | [`30-gap-register.md`](30-gap-register.md) | 4 | **The live gap register** — 20 entries, 4 tiers, each with evidence + deciding authority (proposes superseding `docs/gaps.md`) |
 | [`31-hindrance-audit.md`](31-hindrance-audit.md) | 4 | Eleven hindrances with fitness verdicts and better homes; five candidates examined and cleared |
 | [`40-assessment.md`](40-assessment.md) | 5 | The synthesis |
+| [`50-execution-plan.md`](50-execution-plan.md) | 6 | **The execution plan** — five waves + five frontier tracks over every G/H entry, with the dependency gates and the risks. §0 carries seven corrections to the assessment found while sizing it |
+| [`50-rulings.md`](50-rulings.md) | 6 | **The ruling packet** — R-1…R-14, each with evidence, options, a recommendation, and the exact diff that follows from each choice. Wave 0's deliverable |
 
 **Maintenance contract** (from §8 of the synthesis): a card whose `verified_at` falls behind a load-bearing arc is testimony, not evidence. Update cards when their subsystems move, or this directory becomes the next dead instrument it was built to replace.
 
