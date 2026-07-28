@@ -22,6 +22,12 @@ caused all four. So the pin with teeth is the one that blocks new orphans and
 makes the legacy set a declared, monotonically shrinking number.
 
 Recorded as N-9 in ``docs/assessment/50-execution-plan.md``.
+
+It caught its author within the hour: PR-6 promoted ``tests/test_safety_pack.py``
+onto the gate and left it listed here, and ``test_baseline_has_no_stale_entries``
+failed the smoke run. That is the both-directions half doing the work it was
+written for — a baseline that silently keeps entries it no longer needs stops
+being a measurement and becomes a story about one.
 """
 
 from __future__ import annotations

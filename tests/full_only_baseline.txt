@@ -674,7 +674,6 @@ tests/test_rust_backend.py
 tests/test_rust_scalar_zero_copy_boundary.py
 tests/test_safe_display.py
 tests/test_safety_check.py
-tests/test_safety_pack.py
 tests/test_safety_refusal.py
 tests/test_salience.py
 tests/test_salience_vectorize_parity.py
