@@ -3,7 +3,7 @@
 **Planner:** Opus 5 · 2026-07-27 · verified at `forgejo/main` @ `ed06dd64`
 **Governs:** everything in `30-gap-register.md` (G-1…G-20) and `31-hindrance-audit.md` (H-1…H-12), sequenced by `40-assessment.md` §6.
 **Method:** `docs/conceptualizing_engineering_mastery.md` — scrub → **delete** → simplify/enforce → accelerate → automate last. Nothing is automated that Waves 0–3 have not proven.
-**Status:** Wave 0 in progress. Waves 1–4 and Tracks A–E are PROPOSED and unstarted.
+**Status (2026-07-28):** Wave 0's builds are **done** — PR-0 merged (#140), PR-1 landed, R-10 discharged by merging #138. **Track A is run and returned NO-GO** (`docs/research/sme-experiment-verdict-797ebad5.md`), awaiting ratification. R-1…R-14 remain PENDING and gate Waves 1–4; Tracks B–E are unstarted behind them.
 
 ---
 
@@ -20,6 +20,7 @@ The assessment's authority rests on its self-correction chain — *"nothing in t
 | N-5 | G-10 "SERVE blocked by the 16-premise cap" | **the cap was removed 2026-07-26**; PR-13 withdrawn |
 | N-6 | *(new)* H-8 has a fourth instance, in the code | strengthens R-3 toward "incomplete flag set" |
 | N-7 | G-8 "seventeen capability flags" | the real number is 28 of 32; G-8 grows |
+| N-8 | G-1 / this §6 "the §5 experiment is unrun" | **it had been run twice, returning GO twice, on unmerged branches** — both unsound; Track A's job was re-scoped from *run it* to *run it soundly* |
 
 ### N-1 · "No suite contains any `l10`/`always_on` test" is a scan artifact — the same artifact class caught twice before
 
@@ -93,6 +94,16 @@ G-10 says curriculum SERVE is "fully blocked by one engineering item," the 16-pr
 `core/config.py`'s docstring for `accrue_realized_knowledge` states: *"the production L10 process enables it alongside `persist_session_state`."* The docstring for `consolidate_determinations` states the same about *"accrue_realized_knowledge + persist_session_state."* The production flag set — `CONTINUOUS_LIFE_CONFIG_FLAGS` at `chat/always_on_daemon.py:45-49` — contains `persist_session_state`, `consolidate_determinations`, `strict_identity_continuity`, and **not** `accrue_realized_knowledge`.
 
 Two flags' own documentation asserts a production configuration the production configuration does not have. This is H-8's failure mode located inside the source, one layer below the documents, and it moves R-3's evidence decisively: F-6 reads as an **incomplete flag set**, not intended dormancy. Dormancy remains a coherent ruling — but it would now require correcting two docstrings that say otherwise.
+
+### N-8 · The §5 experiment was not unrun — it had returned GO twice, on branches nobody merged
+
+*(Added 2026-07-28, while executing Track A. It is the eighth correction, and like the other seven it came from reading code — here, a branch tip's commit message and the script under it.)*
+
+`rnd/sme-experiment-v2` @ `96e5f468` is titled **"Verdict: GO"** and carries a completed feasibility document dated 2026-07-19. `rnd/structure-mapping-experiment` @ `fc9d0c14` carries an earlier one. This plan described both branches as "scaffolding" and the item as "unrun," which is what G-1 said, which is what the ADR's §5 status implied. All three were wrong on the same point for nine days.
+
+Neither verdict survives inspection — attempt 1 leaked the label into the embedding, and attempt 2 measured separability with `except ValueError: res = 1000.0`, a solver exception counted as a distance — so **the plan's conclusion was right and its premise was wrong**. Track A still needed doing; what it needed was not "run the experiment" but "run it under a binding criterion, and say what the existing verdicts are worth."
+
+The mechanism is worth naming because it is H-9's, one level up: *work that finishes on an unmerged branch is invisible to every instrument that describes the project.* The register, the plan, and the ADR all read the same absence and inherited the same error. A branch tip is not a record.
 
 ### N-7 · The flag count is 28 of 32, not seventeen
 
@@ -221,12 +232,14 @@ G-2's fix lands only under its ratified ADR (R-11 may add an interim defensive g
 
 Waves are hygiene and enforcement. The frontiers are the project. Track A runs **in parallel with Wave 0**, because it is execution-authorized already and everything else gets cheaper once it returns.
 
-### Track A · **Run ADR-0252 §5 to a verdict** · G-1/H-10 · **L** · *leverage 1 in the whole assessment*
-The scaffolding exists on two branches — `rnd/structure-mapping-experiment` @ `fc9d0c14` (feasibility doc + 214-line experiment script) and `rnd/sme-experiment-v2` @ `bed29a09` (corpus extractor with the `holdout_dev/v1` scope pin + single-pair probe). **Both worktrees are pruned from disk; both branches survive locally and on `forgejo`.** Nothing needs re-deriving.
+### Track A · **Run ADR-0252 §5 to a verdict** · G-1/H-10 · **DONE 2026-07-28 — NO-GO, awaiting ratification**
+Protocol followed as written: criterion pre-registered at `dfc394d2` **before** the run (that commit carries the thresholds as importable constants and no results); corpus built with provenance on every case; full experiment run; `docs/research/sme-experiment-verdict-797ebad5.md` written with the criterion, the run, the numbers, and the verdict; report artifact committed with a pinned `deterministic_digest`.
 
-Protocol: reconstruct one worktree from `rnd/sme-experiment-v2`; state the GO/NO-GO criterion **in writing before running** (the ADR's §5 conformance bar, not a criterion chosen after seeing results); extract the corpus; run the probe; run the full experiment; write `docs/research/sme-experiment-verdict-<sha>.md` with the criterion, the run, the numbers, and the verdict; bring it to Shay for ratification.
+**Verdict: NO-GO**, and it is the well-controlled kind the ADR pre-declares as full credit. Structure-sensitivity fails at every attribute weight tested — not a knife-edge on a constant. The mechanism is stated in one sentence and measured rather than argued: *the similarity quotient that would deliver attribute-invariance is the same quotient that annihilates structural contrast.* An `add`-vs-`subtract` minimal pair — one entity, identical numbers, one relation kind changed — aligns at residual exactly `0.0`, its two configurations being related by a proper rotation. Sweeping the attribute weight, every regime in which the SME property survives is a regime in which attributes contribute nothing (AUC 1.00 → 0.83 → 0.69 as they start to matter).
 
-**A well-controlled NO-GO is full credit by the ADR's own terms** and is the cheapest possible outcome — it retires the §6 build authorization question permanently and redirects the widening program. This item has been mispriced as math-lane housekeeping (H-10); it governs the comprehension paradigm for everything.
+**Scope, deliberately narrow:** this refutes H1 for embeddings that encode role-structure as *point positions* aligned by conformal Procrustes *under similarity* — the argument is about the quotient, so it generalises across that class. It does not refute every Cl(4,1) representation, and it does not touch the symbolic structure-mapping lane already in `evals/structure_mapping/`.
+
+**Two things the track found that were not on anyone's list.** (1) The experiment was **already run twice**, returning GO twice, on unmerged branches — see N-8; both verdicts are unsound and are voided by the verdict document. (2) The math reader decides **5 of 500** `holdout_dev/v1` cases (1.0%), all one skeleton, which is why §5.1's four-structure corpus was not extractable and is now registered as **G-21**.
 
 ### Track B · **The reading** · G-2 → G-3 · **XL**
 Sequenced and gated: merge #138 (R-10) → fabrication ADR + ratification → the two known mutations land → **then** widen from 19, in whatever shape Track A's verdict dictates. G-16's latent defect class in `_inflect_predicate`'s aspect arms must be cleared *by* the widening program, not after it. This is the intelligence frontier and the largest capability gap to the telos.

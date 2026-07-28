@@ -282,9 +282,9 @@ def sensitivity_pairs() -> list[tuple[str, Case, Case]]:
     out.append(
         (
             "add-vs-subtract",
-            case("sens-add", _s4(p[0], unit, 40.0, 3.0)),
+            case("sens-subtract", _s4(p[0], unit, 40.0, 3.0)),
             case(
-                "sens-sub",
+                "sens-add",
                 graph_from_dict(
                     {
                         "entities": [p[0]],

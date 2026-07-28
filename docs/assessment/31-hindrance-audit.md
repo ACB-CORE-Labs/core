@@ -78,6 +78,7 @@ Ranked by leverage (cognitive/structural load removed ÷ effort), per the AGENTS
 **Evidence:** GSM8K was demoted to diagnostic (correct — the flags-and-benchmarks reasoning stands). The §5 SME experiment lives in GSM8K's neighborhood (`holdout_dev/v1`, math structures), so it inherited the demotion's priority — but its verdict governs the *comprehension paradigm for everything*, per ADR-0252's own §4 conformance bar.
 **Why it hinders:** the highest-leverage open item in the project (G-1) has been priced as math-lane housekeeping.
 **Better home:** none needed — G-1's execution *is* the fix; this entry exists so the mispricing mechanism is named and not repeated.
+**Status (2026-07-28): confirmed and discharged.** G-1 ran to a recorded NO-GO in hours, not an arc (`docs/research/sme-experiment-verdict-797ebad5.md`) — which is the mispricing demonstrated rather than asserted. The entry also understated itself: the experiment had *already been run twice* and returned GO both times, and both results sat unmerged on `rnd/` branches while the highest-leverage item in the project was recorded as unstarted. The demotion's shadow fell not only on the priority but on the *retrieval* of work already done.
 **Authority:** already covered by G-1's ruling.
 
 ## H-11 · A silent-failure pinhole inside a typed layer

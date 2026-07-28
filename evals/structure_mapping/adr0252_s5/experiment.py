@@ -16,7 +16,7 @@ import argparse
 import hashlib
 import json
 import statistics
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Final, Sequence
 
@@ -189,6 +189,70 @@ def run_variant(name: str, attr_scale: float) -> dict[str, Any]:
     }
 
 
+#: Diagnostic sweep. Added AFTER the run, and it touches no threshold above —
+#: it exists to answer "is the verdict an artifact of ATTR_SCALE=0.02?" with a
+#: curve instead of an opinion. The criterion constants are unchanged; `git log
+#: -p` on this file shows the only post-run edit is this block.
+SWEEP_SCALES: Final[tuple[float, ...]] = (0.0, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1)
+
+
+def sweep() -> list[dict[str, Any]]:
+    """Re-run (a), (b) and (c) across ATTR_SCALE, under the same thresholds."""
+    cases, labels = corpus_mod.build_corpus()
+    inv_pairs = corpus_mod.invariance_pairs()
+    sens = corpus_mod.sensitivity_pairs()
+    rows: list[dict[str, Any]] = []
+    for scale in SWEEP_SCALES:
+        clouds = {c.case_id: emb.embed(c.graph, attr_scale=scale) for c in cases}
+        ids = [c.case_id for c in cases]
+        same: list[float] = []
+        cross: list[float] = []
+        for i in range(len(ids)):
+            for j in range(i + 1, len(ids)):
+                r = residual(clouds[ids[i]], clouds[ids[j]])
+                if r is None:
+                    continue
+                (same if labels[ids[i]] == labels[ids[j]] else cross).append(r)
+        auc = roc_auc(same, cross)
+        tau, below, above = best_threshold(same, cross)
+        inv_values = [
+            residual(emb.embed(left.graph, attr_scale=scale), emb.embed(right.graph, attr_scale=scale))
+            for _, left, right in inv_pairs
+        ]
+        rescale_values = [
+            v for (kind, _, _), v in zip(inv_pairs, inv_values) if kind == "rescale" and v is not None
+        ]
+        sens_values = {
+            kind: residual(emb.embed(left.graph, attr_scale=scale), emb.embed(right.graph, attr_scale=scale))
+            for kind, left, right in sens
+        }
+        clean_inv = [v for v in inv_values if v is not None]
+        cross_median = statistics.median(cross) if cross else float("nan")
+        rows.append(
+            {
+                "attr_scale": scale,
+                "auc": auc,
+                "threshold": tau,
+                "same_below_rate": below,
+                "cross_above_rate": above,
+                "invariance_median": statistics.median(clean_inv) if clean_inv else None,
+                "rescale_median": statistics.median(rescale_values) if rescale_values else None,
+                "cross_median": cross_median,
+                "minimal_pairs": sens_values,
+                "separability_pass": auc >= AUC_FLOOR
+                and below >= CLASSIFY_FLOOR
+                and above >= CLASSIFY_FLOOR,
+                "invariance_pass": len(clean_inv) == len(inv_values)
+                and all(v < tau for v in clean_inv)
+                and statistics.median(clean_inv) <= INVARIANCE_RATIO_CEILING * cross_median,
+                "sensitivity_pass": all(
+                    v is not None and v > tau for v in sens_values.values()
+                ),
+            }
+        )
+    return rows
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=None, help="write the JSON report here")
@@ -204,6 +268,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "verdict_rule": "GO iff separability AND attribute-invariance AND structure-sensitivity on the same variant",
         },
         "variants": [run_variant(name, scale) for name, scale in VARIANTS.items()],
+        "diagnostic_sweep": sweep(),
     }
     verdicts = {v["variant"]: v["verdict"] for v in report["variants"]}
     report["verdict_by_variant"] = verdicts
