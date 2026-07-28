@@ -91,6 +91,24 @@ only when it passes the following gates in order:
 7. **Alignment gate** — pack publishes anchor records verifiable against trilingual template
 8. **Coverage gate** — probe set covers minimum lexical and morphological surface
 
+> **Amendment · 2026-07-28 — what gate 7 actually verified, measured.** The alignment gate
+> presupposes that publishing anchor records establishes cross-language alignment. Measured at
+> `472fc0a8`, the mechanism behind those records **destroyed** what it claimed to align:
+> `packs.compiler._blend_feature_versors` ignored its strength argument and returned the target
+> verbatim, so an "aligned" Hebrew token was *overwritten* by its Greek or English partner
+> rather than drawn toward it, and mounting the depth packs removed 37 distinct coordinates
+> (`docs/analysis/logos-substrate-collapse-2026-07-28.md`). The eight gates are also not
+> enforced as a sequence anywhere in the loader — `gate_engaged` is a single manifest boolean
+> consulted by `sensorium/registry.py`, and the seven other gates have no code that runs them.
+>
+> Two things follow, and only two. **(a)** Alignment must be *interpolation on the versor
+> group*, never replacement — `algebra/rotor.py` has shipped that operation since the algebra
+> layer's first commit. **(b)** Gate 7's stronger sibling — that alignment establishes
+> resonance strong enough to *validate meaning* (ADR-0015's Crown Proof) — was measured and
+> refused: `docs/analysis/fa1-holonomy-gate-verdict-2026-07-28.md`. The alignment data itself
+> stands: 24 aligned concepts across three languages, and Hebrew root folding into geometry is
+> unaffected. What is retired is the claim that alignment, by existing, proves anything.
+
 ## Design Rules
 
 ### 1. Lemma-first

@@ -173,6 +173,16 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # observed red. See docs/analysis/logos-substrate-collapse-2026-07-28.md.
         # Bit-exact comparison, no tolerances, ~2.1s.
         "tests/test_manifold_collapse_floor.py",
+        # FA-1 verdict / G-25 — the CORE-Logos validation-gate claim, measured and refused.
+        # On a ground with ZERO collisions and a genuinely closed loop, cross-language
+        # holonomy separates aligned from meaning-breaking clauses at AUC 0.557 (chance is
+        # 0.500) and the ADR's own word-order test holds 64.4% of the time: NO-GO against a
+        # criterion registered before the run. Pinned because the interesting failure mode
+        # is the GOOD one — a future encoding making the gate real while four documents still
+        # say it was refused. Two sabotages observed red (thresholds lowered to chance ->
+        # verdict flips; geodesic reverted to the shipped overwrite -> G4 fails). Cost 16s,
+        # stated rather than estimated, for the tripwire on the system's central design claim.
+        "tests/test_fa1_gate_verdict.py",
         # PR-11 / G-5 / R-9 — the soak's evidence is committed, pinned, and CURRENT.
         # Two failure modes, deliberately separated: the digest catches a regression,
         # and the attested-source hashes catch STALENESS — evidence that no longer

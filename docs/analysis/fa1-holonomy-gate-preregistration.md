@@ -108,6 +108,23 @@ repaired design earns its place there.
      clause of triple *j ≠ i*. This is the strongest negative class: same corpus, same
      lengths, same construction, different meaning.
 
+**Amendment A1 (recorded before the run, no numbers seen).** R3 resolves more of the corpus
+than this registration assumed: **24 aligned concepts**, of which 6 carry all three languages
+and 18 carry two. Clause sets are therefore all `C(24,3) = 2,024` combinations rather than the
+"20–40 triples" estimated above — a larger corpus than registered, in the direction that makes
+the test harder to pass, not easier.
+
+That makes negative class 3 complete-enumeration quadratic (≈4 M pairs). It is bounded by a
+rule stated here, before any measurement: **for each aligned pair, the cross negatives are the
+first 5 clause sets following it in the deterministic sorted enumeration that share no concept
+with it.** Position in a sorted enumeration of concept keys is unrelated to meaning, so the
+bound is unbiased; it is deterministic, so the experiment is reproducible; and the count of
+generated negatives is reported, so nothing is dropped in silence. Classes 1 and 2 remain
+**complete** — every valid substitution, every non-identity permutation.
+
+The G2 threshold is **not** relaxed to compensate. A bound on how many negatives are drawn
+does not change how well the aligned pairs must separate from them.
+
 ## 4. The criterion — committed, and deliberately unforgiving
 
 Let `d(A,B)` be the loop-closure deviation of the cross-language loop (transport along clause

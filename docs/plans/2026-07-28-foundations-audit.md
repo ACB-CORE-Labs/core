@@ -30,7 +30,7 @@ The suspicion that CORE-Logos is not integrated as designed was tested against t
 | Alignment data | ~~**Seed-scale: 11 edges**~~ → **83 edges authored, 20 resolve** | Four packs carry `alignment.jsonl`. The two the serving path actually grounds HE/GRC against (`he_core_cognition_v1` 22, `grc_logos_cognition_v1` 41) contribute **zero** — a hardcoded three-entry prefix map drops every one of their edges. The corpus was grown 7.5×; the growth was never connected. |
 | EN lexicon tagging | Present | 91 entries carrying `logos.core` semantic domains |
 | Serving-path role | **Veto only, no-ops on English** | `pipeline.py:544-583` — `evaluate_logos_on_text` can force a refusal against observed HE plural morphology; *"English-only turns with no HE surface → no-op"* |
-| Recall bridge | **ON, undocumented** | `allow_cross_language_recall` — one of the two default-ON flags with no recorded rationale (flag register §1) — gates `recall_top_k=3 vs 0`. **The pillar's own switch was mystery flag #1** |
+| Recall bridge | ~~**ON, undocumented — the pillar's own switch**~~ → **misnamed; not the pillar's switch at all** | `allow_cross_language_recall` gates `recall_top_k=3 vs 0` into `vault.recall(state.F, top_k)` — a nearest-versor search over stored field states with **no language argument, no pack, no cross-language path**. Its output feeds the generation walk, which is telemetry-only (`runtime_contracts.md:44`). Ruled 2026-07-28: stays ON, reclassified DEPLOYMENT. **This row's original claim read the flag's name instead of its call graph — the exact error this audit exists to find, committed by the audit.** |
 | Curriculum | Registered, bandless | `hebrew_greek_textual_reasoning` in `DOMAIN_PACKS` with corpora; produced **zero** curriculum bands at the PR-14 measurement |
 | Validation-gate role | **Never assumed** | ADR-0015 §"Establishes holonomy-level resonance as the validation gate" — no serving or licensing path consults cross-language holonomy; template match became the de-facto gate instead |
 
@@ -69,6 +69,34 @@ Bottom-up. A layer's audit is complete only when each component in it has all fo
 | **X** | Cross-cuts | teaching/learning loop, governance/ledgers, always-on life | Docket executed; teaching gated; daemon profile fixed | Audited per-layer at each seam they touch |
 
 **Instrument** (from the census at `339bfd37`): 666 modules, **293 reachable from serving, 373 dark**. Every dark module gets exactly one of: *seam scheduled* · *deliberately-dark with recorded reason* · *deletion candidate*. The census script becomes a pinned lane so this number is a ratchet, not a snapshot.
+
+### FA-1 · CLOSED 2026-07-28 — all four work-order items discharged
+
+| Item | Outcome |
+|---|---|
+| 1 · map the designed logos contract | Done as the defect map: `docs/analysis/logos-substrate-collapse-2026-07-28.md` — six defects, each with its site, its measurement, and its cure |
+| 2 · decide the holonomy-gate question | **NO-GO**, pre-registered, G4 held: `docs/analysis/fa1-holonomy-gate-verdict-2026-07-28.md`. AUC 0.557 (chance 0.500, bar 0.80); word-order sensitivity 64.4% against the ADR's own test. ADR-0005 and ADR-0015 amended; tripwire pinned |
+| 3 · rule `allow_cross_language_recall` | **Ruled by measurement:** it gates vault-recall depth, has no cross-language path, and reaches only telemetry. Stays ON, reclassified DEPLOYMENT, with the flip condition recorded (`docs/specs/flag_register.md` §1) |
+| 4 · grow-or-declare the alignment corpus | **Answered before it started:** 83 edges authored, 63 resolving to nothing. Not a growth problem — a connection problem |
+
+**L2 verdict: DEFECTIVE (repairable), and its central design claim RETIRED.** The repairs are
+real and measured — the geodesic blend removes every coordinate collision (37 on the
+trilingual mount, 53 on the six-pack logos mount), and mount-wide edge resolution connects 39
+of the 63 dead edges. What does not survive is the claim that the repaired ground *validates*
+meaning by holonomy closure.
+
+**A sixth defect, found while building the experiment:** `en_collapse_anchors_v1` declares
+`role: "collapse_anchor"`, which is not a member of `packs.schema.LanguageRole`, so
+`load_pack()` raises before reading it. It is listed in `chat/pack_resolver.py`, consumed by
+`chat/pack_grounding.py` **by opening `lexicon.jsonl` on a raw path** — bypassing the loader
+that would reject it — and is the target of all 24 still-unresolved alignment edges. The enum
+carries a comment recording this exact failure once before (ADR-0097, `domain_seed`): a
+registry widened by hand falls behind by hand.
+
+**What this changes downstream.** L3's audit no longer waits on an open question — it inherits
+a ruled one. A reader over this ground cannot get its meaning criterion from cross-language
+closure, which converts the 1.28% read rate from *"a reader problem we might solve with better
+grounding"* into *"a reader problem, full stop."* That is a smaller and more honest question.
 
 ## 3. Sequencing
 

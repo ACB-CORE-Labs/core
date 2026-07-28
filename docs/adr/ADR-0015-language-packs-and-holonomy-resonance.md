@@ -1,9 +1,43 @@
 # ADR-0015 — Language Packs as Compiled Linguistic Manifolds
 
-**Status:** Accepted  
+**Status:** Accepted — **Crown Proof section AMENDED 2026-07-28: measured and not supported**  
 **Date:** 2026-05-13
 
 ---
+
+> ## Amendment · 2026-07-28 · the Crown Proof was tested and failed
+>
+> This ADR's "Crown Proof: Holonomy Resonance" section makes cross-language holonomy
+> resonance **the validation gate of meaning** — *"This is the CORE-Logos proof"* — and the
+> Consequences section lists *"Establishes holonomy-level resonance as the validation gate"*
+> as a positive. **That claim is retired.** It was measured against a criterion registered
+> before the run (`docs/analysis/fa1-holonomy-gate-preregistration.md`) and refused:
+>
+> * **AUC 0.557** separating aligned clauses from meaning-breaking ones (chance = 0.500,
+>   required ≥ 0.80), over 1,016 aligned pairs and 58,375 mechanically-generated negatives;
+> * **64.4%** word-order sensitivity against this ADR's own stated test (*"word-order changes
+>   should change holonomy"*, required ≥ 0.90) — a third of permutations close the loop
+>   *tighter* than the correct order;
+> * measured on a ground with **zero coordinate collisions** and with a **genuinely closed
+>   loop**, both of which had to be built first — the shipped compiler collapsed 37–53
+>   coordinates and the shipped `holonomy_encode` never closed
+>   (`docs/analysis/logos-substrate-collapse-2026-07-28.md`).
+>
+> **Diagnosis:** the encoding reacts more strongly to reordering a clause (median deviation
+> 41.2) than to changing what the clause is *about* (32.2). It measures path shape, not
+> content. The negative classes do order themselves correctly by meaning-distance, so the
+> geometry is not noise — it is a weak correlation where the design asked for a gate.
+>
+> **What survives, unamended:** the three-language architecture with distinct roles, the pack
+> contract, the compiled-manifold discipline, morphology as structure, and Hebrew root folding
+> into geometry at compile time. What is struck is only the claim that holonomy closure
+> *validates* meaning.
+>
+> **Verdict:** `docs/analysis/fa1-holonomy-gate-verdict-2026-07-28.md` ·
+> **Tripwire:** `tests/test_fa1_gate_verdict.py` — if a future encoding makes the gate real,
+> that test fails, and this amendment is withdrawn in the same commit that replaces it with a
+> proof. The hypothesis was honestly stated and honestly testable; that is why it could be
+> settled at all.
 
 ## Context
 

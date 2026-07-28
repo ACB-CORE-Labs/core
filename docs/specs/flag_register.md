@@ -34,14 +34,22 @@ These four are live in every default `RuntimeConfig`. They are the only flags wh
 
 | flag | class | governing ADR | recorded rationale | what would turn it OFF |
 |---|---|---|---|---|
-| `allow_cross_language_recall` | CAPABILITY | **none** | **none — no comment block in `core/config.py`** | *no criterion recorded* |
+| `allow_cross_language_recall` | ~~CAPABILITY~~ → **DEPLOYMENT (telemetry depth)** | **FA-1 verdict, 2026-07-28** | see the ruling below | flips if walk output is ever routed into the user-facing surface |
 | `use_salience` | CAPABILITY | **none** | **none — no comment block in `core/config.py`** | *no criterion recorded* |
 | `discourse_planner` | CAPABILITY | **none** | yes — builds a deterministic `DiscoursePlan`; BRIEF mode is byte-identical to single-clause output | evidence that multi-clause rendering degrades a served lane |
 | `deduction_serving_enabled` | POSTURE | **ADR-0256** | yes — ROBDD entailment intercepts argument-shaped turns; 716/716 `wrong=0` | a `wrong>0` result on the sealed band, which revokes the license by construction |
 
 **Finding (measured 2026-07-28).** Of the four flags that are ON in production, **one** has a governing ADR and **two have no recorded reason of any kind** — no ADR, no comment, no criterion. In an architecture whose entire posture is *earned* licenses and *refuse-don't-guess*, two permanently-on capability flags with no recorded decision is the mirror image of the hesitancy problem this register was built to find: **accumulated permissiveness**.
 
-This is registered, not fixed. Writing a rationale for `allow_cross_language_recall` after the fact would be inventing a decision that was never made, which is worse than recording that it is missing. **Owed:** a one-line rationale-or-flip for each, from whoever knows why they are on. Until then their "what flips it" column stays honest.
+This was registered, not fixed. Writing a rationale after the fact would be inventing a decision that was never made, which is worse than recording that it is missing. **Owed:** a one-line rationale-or-flip for each, from whoever knows why they are on. `use_salience` remains owed; the other has since been **ruled by measurement** rather than by recollection:
+
+> ### Ruling · `allow_cross_language_recall` · 2026-07-28 (FA-1 work-order item 3)
+>
+> **It does not do what its name says, and its blast radius is telemetry.** The flag has exactly one consumer: `chat/runtime.py:2844`, which passes `recall_top_k = 3 if allow_cross_language_recall else 0` into `generate()`. That parameter reaches `generate.stream._recall_state`, which calls `vault.recall(state.F, top_k)` — a **nearest-versor search over stored field states by CGA inner product**. It has no language argument, no pack, and no cross-language path of any kind. The flag sets vault-recall *depth*, and the word "cross_language" in its name describes nothing in the code it controls.
+>
+> Its effect is also bounded away from the user. `_recall_state`'s own INV-24 note records that recalled versors become rotor transitions on the **generation walk**, which feeds `walk_surface` — *"retained telemetry/evidence"* per `docs/specs/runtime_contracts.md:44` — while the user-facing surface comes from `realize(proposition, vocab)`. So the flag adjusts how much recalled context colours an evidence trace, not what anyone is told.
+>
+> **Ruled: stays ON, reclassified DEPLOYMENT, renamed in the keel.** Turning it off would reduce evidence richness to buy nothing, and it is not the CORE-Logos switch. **This also corrects the Foundations Audit's own characterisation of it as "the pillar's own switch"** — that read the name, not the call graph, which is the error the audit exists to find. **What flips it:** the condition `_recall_state` states itself — if walk output is ever routed into the user-facing surface, this becomes a CAPABILITY flag, must pass `min_status=COHERENT`, and needs a fresh ruling.
 
 **A second-order gap, closed with this register.** `tests/test_adr_status_governance.py::test_default_on_flag_is_not_governed_by_a_proposed_adr` is parameterized over *(default-on flag × cited ADR)*. Three of the four ON flags cite no ADR, so they generate **zero** cases — the pin covers exactly one flag. Its non-vacuity guard asserts that *some* flag cites an ADR, which stays green even if the parametrization drops to zero. That guard is tightened alongside this register.
 
