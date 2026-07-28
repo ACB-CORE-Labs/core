@@ -3,6 +3,7 @@
 **Assessor:** Fable 5 (Phase 4) · **Verified at:** `8927c563` (2026-07-27)
 **Standing:** This is CORE's first *live* gap register since `docs/gaps.md` closed its 26th entry. Proposal (for ruling): this register supersedes `docs/gaps.md`, which is marked historical; two dead registers plus a live one is worse than one live one.
 **Discipline:** A gap is an *absence the telos requires filled* with no explicit deferral ruling. Deferred-with-ruling is not a gap (scripture content is the model). Every entry carries evidence, its **deciding authority**, and a leverage rank. The register decides nothing.
+**Amended:** 2026-07-27 at `ed06dd64` (Opus 5, Phase 6). Four entries carried claims that code, workflows, and an ADR's own supersession banner falsify. Each amendment is marked **[AMENDED N-x]** inline and derived in [`50-execution-plan.md`](50-execution-plan.md) §0: **G-5** (the soak ran and passed; the pins run twice a day), **G-7** (the orphan scan was an artifact; the mechanism is respecified), **G-8** (28 flags, not 17), **G-10** (the engineering blocker was discharged 2026-07-26). G-19 gains a note: its exposure is already pinned in-repo.
 
 ---
 
@@ -28,10 +29,19 @@ The comprehension frontier itself, measured. Standing ruling: close fabrications
 Confirmed at component depth: drive objects exist (`DriveGradientMap` — constructed, never read; `ExertionMeter` — telemetry only); idle mechanisms exist (consolidation, proposal review, contemplation — each flag-gated, each doing one thing); **nothing ranks what matters next**. The daemon heartbeat advances `idle_tick` and nothing more ambitious. This is the AGI-grade conceptual absence: everything CORE does is chosen by the operator. Design work, not a flag flip.
 **Evidence:** `attention-allocation` + `always-on-process` cards; `02-layer-taxonomy.md` CR-2. · **Authority:** design + ruling (does the L10 process own an agenda, governed by what).
 
-### G-5 · L10 proof debt — the soak has never produced an artifact, and nothing runs its pins
+### G-5 · L10 proof debt — the soak ran and passed; what is owed is the artifact, the pinned digest, and a cadence **[AMENDED N-1/N-2/N-4]**
 **Layer:** M6 / MV · **Leverage: 5**
-The always-on process is built; the falsifiable harness (H1–H4, holds/bites pairs, vacuity-guarded) is built; **no recorded long-horizon artifact exists, no suite contains any `l10`/`always_on` test, no nightly cadence exists** — and the local-first/Mac-runner doctrine makes "nightly" itself need a ruling rather than a cron line. The still-owed ADR-0146 Phase-4 spike, in its modern form: run the soak, record the artifact, schedule the pins.
-**Evidence:** `M6` + `always-on-process` cards; suite-membership scan. · **Authority:** execution + MV suite ruling + cadence ruling.
+The always-on process is built; the falsifiable harness (H1–H4, holds/bites pairs, vacuity-guarded) is built; **and it was run.** `evals/l10_always_on/contract.md` §"The measured result" records a **5000-beat soak with a reboot at beat 2500** (landed 2026-07-19 in `aed273b1`) in which all four predicates pass: `versor_condition` flat at `1.389e-07` across all 5000 beats, vault bounded at 6 entries, convergence at beat 1 with the 4999-beat tail at rest, reboot resuming the same life with derived learning intact.
+
+What remains owed is the **ceremony**, and it is this assessment's own §8 maintenance contract operating on this assessment's own frontier:
+- the result is **prose in a contract file** — no committed machine-readable report, no run SHA, no rerun path;
+- `deterministic_digest` is computed by `report.py` and **pinned nowhere**, though the contract's closing line says *"Pin it once the lane is trusted so a regression flips it"*;
+- **no cadence** rules the lane, and the local-first/Mac-runner doctrine makes "nightly" itself a ruling rather than a cron line.
+
+A recorded prose result with no pinned digest is **testimony, not evidence** — the same failure mode as the map, the ratchet, and the blueprint.
+
+**Two prior claims in this entry were wrong and are withdrawn.** (a) *"No suite contains any `l10`/`always_on` test"* was a scan artifact: `TEST_SUITES["full"] = ("tests/",)` is a **directory**, so every test file is trivially in a suite. The true statement is that the five `tests/test_l10_*.py` files are in **no curated suite tuple** — reachable only through `full`. (b) *"nothing runs its pins"* is false: CI never invokes `core test --suite`, it runs raw pytest with marker filters, and no L10 file carries `quarantine` or `slow` — so the pins **execute twice a day**, in `full-pytest.yml` (post-merge) and `nightly-full-pytest.yml` (cron `0 2 * * *`). The correct statement is that **nothing runs them on any pre-merge gate**.
+**Evidence:** `M6` + `always-on-process` cards; `evals/l10_always_on/contract.md`; `core/cli_test.py:13`; `.github/workflows/{smoke,full-pytest,nightly-full-pytest}.yml`. · **Authority:** execution + the R-9 evidence-standard and cadence ruling.
 
 ### G-6 · F-6 — the lived learning loop is half-gated
 **Layer:** M6/M5 · **Leverage: 6**
@@ -42,25 +52,37 @@ The daemon forces `consolidate_determinations` but not `accrue_realized_knowledg
 
 ## Tier B — Enforcement & instrument debt (capability exists; the guarantee doesn't)
 
-### G-7 · No orphaned-pin meta-check
-**Layer:** MV · **Leverage: 7**
-Suite tuples are hand-curated; a test file in zero suites is indistinguishable from one that runs everywhere. This is the *mechanism* by which G-5 happened. A meta-pin — every `tests/**/*.py` belongs to ≥1 suite or an explicit exclusion list — converts the doctrine "a pin in no suite never runs" into a failing test. Likely the highest-leverage *single mechanical change* in the repository.
-**Evidence:** `MV` card; the M6 case as the demonstration. · **Authority:** mechanical (small PR); no ruling needed.
+### G-7 · No gate-parity pin and no *curated*-suite membership check **[AMENDED N-1/N-3]**
+**Layer:** MV · **Leverage: 7** — **the highest-leverage single mechanical change in the repository**
+Suite tuples are hand-curated; a test file in zero *curated* suites is indistinguishable from one that runs everywhere.
 
-### G-8 · No flag-default register
+**The mechanism this entry originally proposed would not have worked.** "Every `tests/**/*.py` belongs to ≥1 suite or an explicit exclusion list" is **already satisfied**, because `TEST_SUITES["full"] = ("tests/",)` is a directory — the pin would ship green and prove nothing. A hollow gate by the Third-Door criterion, in the entry proposing to abolish hollow gates.
+
+**The correct mechanism is two pins:**
+1. **Gate parity** — `smoke.yml`'s path set must equal `TEST_SUITES["smoke"]`, parsed from the workflow file, failing on drift in either direction.
+2. **Curated-suite membership** — every `tests/**/test_*.py` is in ≥1 suite **excluding `full`**, or in a registered exclusion list with a one-line reason.
+
+Pin 1 exists because the two gates have **already** drifted (see H-12): the local suite is 23 files, `smoke.yml` is 13, and the 10-file delta includes ADR-0265's denial pin, both ADR-governance pins, volume honesty, and curriculum polarity. Measured parity cost: **429 tests in 46s** on the Act runner's own hardware.
+**Evidence:** `MV` card; `core/cli_test.py:13`; `.github/workflows/smoke.yml`; H-12. · **Authority:** mechanical (small PR) for the pins; the R-14 ruling for the parity *direction*.
+
+### G-8 · No flag-default register **[AMENDED N-7]**
 **Layer:** cross-cut · **Leverage: 8**
-Seventeen capability flags default `False`; one is ratified ON (`deduction_serving_enabled`); three are daemon-forced (`persist_session_state`, `consolidate_determinations`, `strict_identity_continuity`). No document states the set, which defaults are deliberate posture vs accumulated hesitancy, or what evidence would flip each. The largest lever in the system, unregistered. The register format already exists in-repo: the ratified-ledger pattern (declare absence policy in the table, not the call site — ADR-0263 Rule 5).
-**Evidence:** `core/config.py` scan (Phase 2); daemon trio (Phase 3). · **Authority:** documentation PR + per-flag evidence bars set by ruling.
+`RuntimeConfig` is a single frozen dataclass with **32 boolean fields: 28 default `False`, 4 default `True`** (`allow_cross_language_recall`, `use_salience`, `discourse_planner`, `deduction_serving_enabled` — the last ratified ON by ADR-0256). Three are daemon-forced (`persist_session_state`, `consolidate_determinations`, `strict_identity_continuity`). No document states the set, which defaults are deliberate posture vs accumulated hesitancy, or what evidence would flip each. The largest lever in the system, unregistered. The register format already exists in-repo: the ratified-ledger pattern (declare absence policy in the table, not the call site — ADR-0263 Rule 5).
+
+*(This entry originally said "seventeen." The verified count is 28 default-off. That two counts of the same set differ by eleven is itself the finding: nothing in the repository distinguishes a capability flag from a policy or deployment flag, which is exactly the classification the register must make.)*
+**Evidence:** `core/config.py` at `ed06dd64` (32 `bool` fields, 28 `= False`, 4 `= True`); daemon trio (Phase 3). · **Authority:** documentation PR + per-flag evidence bars set by ruling (R-4).
 
 ### G-9 · Enforcement pins unverified for three doctrine-level prohibitions
 **Layer:** M1 / MG · **Leverage: 9**
 (a) No verified failing pin for the no-approximate-recall law (would a cosine ranker actually fail a test?); (b) no pin that fails when a layer *bypasses* governance entirely (as distinct from governance working when called); (c) safety-pack non-swappability not verified as mechanically enforced. All three are law in `AGENTS.md`; law-enforced-by-review is weaker than law-enforced-by-test.
 **Evidence:** `M1`/`MG` cards (flagged, not resolved, in Phase 2–3). · **Authority:** verification pass, then mechanical PRs.
 
-### G-10 · Curriculum SERVE is fully blocked by one engineering item, and its ledger doesn't exist
+### G-10 · Curriculum SERVE is blocked by **one ruling**, and its ledger doesn't exist **[AMENDED N-5]**
 **Layer:** M5 · **Leverage: 10**
-ADR-0264 §4.1: the 16-premise compilation cap holds every band to ≤16 entailed cases, so **no curriculum band can earn SERVE until query-scoping lands** — an engineering blocker gating a content problem that is itself quantified at 24×–73× under-fed. Downstream, `chat/data/curriculum_serve_ledger.json` is absent (the one honest `missing_ok=True` in production), and a committed ledger is necessarily an *earning* one — the outcome-mix ruling remains the binding constraint.
-**Evidence:** `M5` card; ADR-0264 §4.1; `chat/curriculum_serve_license.py:46`. · **Authority:** engineering (scoping) + outcome-mix ruling.
+**The engineering blocker this entry named does not exist.** ADR-0264 §4.1 carries a banner directly beneath its own heading: *"**SELF-SUPERSEDED by this ADR's own R5, discharged 2026-07-26. The heading is no longer true of the running system.** … R5 removed that: compilation is query-scoped, so a family of any size answers. With the cap gone, **four bands would earn SERVE the moment a ledger is sealed** — `physics·causal`, `systems_software·causal`, and `philosophy_theology·{modal,contrast}`."* Query-scoping already landed; this entry quoted a superseded heading past its own correction.
+
+What survives, and is now the **whole** of the blockage: reliability is commitment precision and a correct UNKNOWN *is* a commitment, so a band clears θ_SERVE **on non-commitments alone** (`conservative_floor(660,660) = 0.990046`). The licensable evidence is 99.0–99.98% non-entailed and **max entailed volume in any band is 9**. `chat/data/curriculum_serve_ledger.json` is deliberately absent (the one honest `missing_ok=True` in production) and `core proposal-queue reseal` refuses a license without `--allow-new-licenses`, so nothing is licensed while the outcome-mix ruling is unmade. A committed ledger is necessarily an *earning* one.
+**Evidence:** `M5` card; ADR-0264 §4.1 supersession banner + §5 (open); `docs/research/curriculum-practice-producer-2026-07-26.md` §1; `chat/curriculum_serve_license.py:40-52`. · **Authority:** the outcome-mix ruling (R-8) **alone** — no engineering prerequisite remains.
 
 ### G-11 · Identity enforcement has no stated authorization bar
 **Layer:** MG · **Leverage: 11**
@@ -90,7 +112,7 @@ Own `use_salience`, the two underived constants, the self-narrowing budget feedb
 - **G-16 · ADR-0265's defect class survives in `_inflect_predicate`'s aspect arms** (`generate/templates.py:79`) — 10,530/16,146 template points, *not reachable today*. Latent, recorded from the prior arc; becomes live if aspect arms become reachable. **Authority:** the widening program (G-3) must clear it first.
 - **G-17 · Non-text ingest** — 59 sensorium modules, no serving path, no entry criterion; projection heads do not exist. Position paper is honest about this. Needs either an entry criterion or an explicit deferral ruling (the falsification bench is the standard the track should be held to when it moves). **Authority:** ruling.
 - **G-18 · Identity-divergence curriculum may still bypass formation's gates** — known gap since 2026-05-17 (`teaching_order.md`); unverified at this SHA. **Authority:** Phase-3-style verification pass, then a routing PR.
-- **G-19 · Wilson/replay evidence shortfall** — 21/25 ratified bands short if replays were counted as independent trials (see H-1 for the mechanism). Recorded here as *evidence debt on existing licenses*; the counting fix is the hindrance entry. **Authority:** ADR amendment + re-count.
+- **G-19 · Wilson/replay evidence shortfall** — 21/25 ratified bands short if replays were counted as independent trials (see H-1 for the mechanism). Recorded here as *evidence debt on existing licenses*; the counting fix is the hindrance entry. **Note (Phase 6):** the exposure is **already pinned in-repo** — `tests/test_volume_honesty.py` (ADR-0264 R9, in the local smoke gate) pins the 21-of-25 shortfall *"in BOTH directions"* and calls its inventory *"an EXPOSURE INVENTORY, not an approved baseline."* So the open work is **applying** the demotions, not discovering them, and that pin moves in the same PR. **Authority:** ADR amendment + re-count, authorized by R-13.
 - **G-20 · The `refusal_reason` materialisation** — typed refusal evidence exists and is discarded at the public `str` boundary; the plumbing for materialisation already landed. Cross-listed as H-3. **Authority:** small ADR (anticipated by the ADR-0024 chain).
 
 ---

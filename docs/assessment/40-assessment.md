@@ -2,6 +2,7 @@
 
 **Phase 5 synthesis · Fable 5 · 2026-07-27 · verified at `forgejo/main` @ `8927c563`**
 **Method:** `docs/conceptualizing_engineering_mastery.md`, applied per `00-scope-and-method.md`. Everything below is traceable to a card or register entry; nothing below is new evidence.
+**Amended:** 2026-07-27 at `ed06dd64` (Opus 5, Phase 6) — sizing the execution plan produced seven corrections, four of which touch statements made here. They are applied inline and marked **[AMENDED N-x]**; the derivations are in [`50-execution-plan.md`](50-execution-plan.md) §0. The chain in §8 continues: *nothing in it was ever caught by re-reading documents.*
 
 ---
 
@@ -22,7 +23,7 @@ From the evidence-bearing stage-coverage audit (Phase 2, corrected by Phase 3):
 | **articulate** | covered | Selection-not-rewrite, disclosed estimates, typed refusal — served as an empty string (H-3). |
 | **learn** | covered, throttled | The single reviewed path is proven by pinned lanes; volume is 24×–73× under the floor and every curriculum band is capped at 16 entailed cases by one engineering item. |
 | **replay** | covered | Eleven SHA-pinned lanes failing CI on drift; the strongest sustained discipline in the repository. |
-| ***the runner of the cycle*** | **built, unproven** | The continuous life exists as code and has never been observed living longer than a test. Its learning loop is half-gated (F-6). Its guardian tests are orphaned (G-5/G-7). |
+| ***the runner of the cycle*** | **built, evidenced as prose** | The continuous life exists as code and **has been observed over 5000 idle beats with a reboot at 2500, all four falsifiable gates passing** — recorded as prose in a contract file, with no committed artifact and no pinned digest. Its learning loop is half-gated (F-6), and no pre-merge gate runs its pins. **[AMENDED N-4]** |
 
 ## 3. What is excellent — the standard the rest should be held to
 
@@ -41,8 +42,8 @@ The layer table (Phase 2, with Phase 3 corrections applied): **no layer is `wron
 
 Three structural facts dominate the macro picture:
 
-- **Built-and-dark.** Seventeen capability flags default off; one is ratified on; three are daemon-forced. The gap between what CORE *is* and what CORE *does by default* is the widest gap in the system, and it is a governance artifact, not an engineering one (G-8).
-- **Capability outruns proof.** The daemon, Shape B+ persistence, the soak harness, the SME scaffolding — all built; none carried to verdict. The pattern is consistent enough to be cultural: *this project finishes machinery and defers ceremonies.* The mastery framework's step 4 (accelerate cycle time) applies to evidence loops, not just build loops.
+- **Built-and-dark.** **Twenty-eight** of `RuntimeConfig`'s 32 boolean flags default off; one of the four on is ratified on; three of the off ones are daemon-forced. The gap between what CORE *is* and what CORE *does by default* is the widest gap in the system, and it is a governance artifact, not an engineering one (G-8). *(This section originally said seventeen; two counts of one set differing by eleven is the finding — nothing distinguishes a capability flag from a policy flag.)* **[AMENDED N-7]**
+- **Capability outruns proof — and the ceremony, not the run, is what is missing.** The daemon, Shape B+ persistence, the soak harness, the SME scaffolding — all built. The soak was even *run*, at 5000 beats, and passed; what it never got was a committed artifact and a pinned digest. The SME experiment was never run at all. The pattern is consistent enough to be cultural: *this project finishes machinery and defers ceremonies.* The mastery framework's step 4 (accelerate cycle time) applies to evidence loops, not just build loops. **[AMENDED N-4]**
 - **The record decays faster than the code.** Five articulations, three record/code contradictions, two dead registers, one stale map, and an assessment (this one) that had to correct itself twice using the only method that works. The cure is not more documents — it is `verified_at` stamps, failing pins for laws, and instruments that supersede rather than accumulate (H-8, H-9, G-7, G-9).
 
 ## 5. The five frontiers
@@ -52,8 +53,8 @@ Everything separating CORE-as-built from CORE-as-intended reduces to five named 
 1. **The reading** — close the fabrications (G-2, held for your ADR), then widen from 19 under whatever paradigm G-1's verdict selects. This is the intelligence frontier.
 2. **The verdict** — run ADR-0252 §5 (G-1). One experiment, already authorized, already scaffolded, NO-GO defined as full credit. It decides the *shape* of frontier 1 and retires or redeems the 18 condemned organs. Highest leverage in the project.
 3. **The chooser** — CR-2 (G-4). The continuous life needs something to want; today every goal is operator-supplied and the drive machinery is decoration. This is the only frontier requiring genuine design invention.
-4. **The proof of life** — run the soak, record the artifact, schedule the pins, rule on the half-gated loop (G-5, G-6). The telos's own claim, made falsifiable by CORE's own harness, awaiting execution.
-5. **The throughput** — curriculum query-scoping, the ledger, the outcome-mix ruling, the Wilson re-count (G-10, H-1, G-19). The learning engine is sound and starved; this frontier is volume with integrity.
+4. **The proof of life** — the soak *passed* at 5000 beats; commit the artifact, pin the digest, schedule the pins, rule on the half-gated loop (G-5, G-6). The telos's own claim, made falsifiable by CORE's own harness and answered in prose that nothing can regress against. **[AMENDED N-4]**
+5. **The throughput** — the ledger, the outcome-mix ruling, the Wilson re-count (G-10, H-1, G-19). Curriculum query-scoping **already landed** (ADR-0264 R5, discharged 2026-07-26), so this frontier has no engineering prerequisite left: four bands earn SERVE the moment one content-policy ruling is made. The learning engine is sound and starved; this frontier is volume with integrity. **[AMENDED N-5]**
 
 ## 6. The recommended attack order
 
@@ -82,12 +83,14 @@ Soak cadence under a ruled schedule; flag profiles flipped per their registered 
 
 **What is the metadata?** The card schema (`03-card-schema.md`) — liveness ⊥ fitness, design ⊥ build, evidence with the would-fail-if-absent bit, capacity with ceilings, `verified_at` stamps — plus 17 filled cards and two registers. This directory is the instrument you asked for: each layer and component now has a philosophical intent, a functional contract, an implementation status with evidence, and a fitness judgment, in one greppable place that travels with the repository.
 
-**What is hindering us?** Eleven audited entries (H-1…H-11), each with evidence, better home, and authority — headlined by the license-counting basis, decoration-as-testimony, and record/code divergence — plus five candidates examined and *cleared*, so the audit's negative space is as deliberate as its findings. No ratified ADR was found to be a wrong decision; three were found to have wrong *records*.
+**What is hindering us?** Twelve audited entries (H-1…H-12), each with evidence, better home, and authority — headlined by the license-counting basis, decoration-as-testimony, and record/code divergence — plus five candidates examined and *cleared*, so the audit's negative space is as deliberate as its findings. No ratified ADR was found to be a wrong decision; three were found to have wrong *records*, and a fourth divergence was later found **inside the code** (H-8d). **[AMENDED N-3/N-6]**
 
 ## 8. Method, and what it earned
 
 Four phases, three self-corrections, one direction: **Phase 0 trusted a map and was wrong; Phase 2 read code and corrected it, then overstated twice; Phase 3 read deeper and corrected Phase 2; nothing in the chain was ever caught by re-reading documents.** The assessment's authority rests on exactly this: every liveness claim traces to an import, a call site, a flag default, or a pinned lane, at a named SHA — and where verification stopped short (suite membership of individual pins, Shape B+ exact coverage, the curriculum-formation bypass), the cards say so instead of rounding up.
 
 That is also the maintenance contract for this directory: a card whose `verified_at` falls behind a load-bearing arc is testimony, not evidence — the same failure mode as the map, the ratchet, and the blueprint. The registers supersede the dead instruments only for as long as they are kept live. The cheapest way to keep them live is Wave 2's mechanical enforcement; the most expensive way is another assessment like this one.
+
+**Phase 6 continued the chain, and it is worth naming what caught what.** Seven further corrections (`50-execution-plan.md` §0) came from reading `core/cli_test.py`, three workflow files, `core/config.py`, `evals/l10_always_on/contract.md`, and one ADR's own supersession banner. The banner case is the instructive one: ADR-0264 had already corrected itself, in place, directly under the superseded heading — and Phase 4 quoted the heading anyway. **A document that corrects itself only helps a reader who reads past the heading.** That is an argument for the failing pin over the amended paragraph, everywhere it is available.
 
 *— End of assessment. All deliverable sets complete: scope/method, ground truth, taxonomy, schema, 9 layer cards, 8 component cards, both registers, this synthesis.*
