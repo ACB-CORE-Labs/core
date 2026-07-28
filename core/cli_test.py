@@ -270,6 +270,14 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # reason smoke stayed at 621 across two PRs that added 13 tests.
         # ~0.4s; it belongs with the other grammar pins.
         "tests/test_realizer_quantifier_agreement.py",
+        # Phase 5 item 1 — the reader/writer construction overlap, plus the
+        # fabrication pins. Gated rather than left to the `full` lane because
+        # three of its pins are wrong=0 hazards on a serving path: the reader
+        # accepts `every dog is a mammal` as an assertion about `every_dog`,
+        # and recites `Given: furthermore; ...` back to the user. Those must
+        # not be able to worsen silently. ~9.5s (sweeps the writer's whole
+        # parameter space three times, once per vocabulary).
+        "tests/test_construction_inventory.py",
     ),
     "full": ("tests/",),
 }
