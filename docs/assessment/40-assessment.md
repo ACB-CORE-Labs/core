@@ -2,7 +2,7 @@
 
 **Phase 5 synthesis · Fable 5 · 2026-07-27 · verified at `forgejo/main` @ `8927c563`**
 **Method:** `docs/conceptualizing_engineering_mastery.md`, applied per `00-scope-and-method.md`. Everything below is traceable to a card or register entry; nothing below is new evidence.
-**Amended:** 2026-07-27 at `ed06dd64` (Opus 5, Phase 6) — sizing the execution plan produced seven corrections, four of which touch statements made here. They are applied inline and marked **[AMENDED N-x]**; the derivations are in [`50-execution-plan.md`](50-execution-plan.md) §0. The chain in §8 continues: *nothing in it was ever caught by re-reading documents.*
+**Amended:** 2026-07-27 at `ed06dd64` (Opus 5, Phase 6) · **re-verified 2026-07-28 at `797ebad5`** — sizing the execution plan produced seven corrections, four of which touch statements made here. They are applied inline and marked **[AMENDED N-x]**; the derivations are in [`50-execution-plan.md`](50-execution-plan.md) §0. The chain in §8 continues: *nothing in it was ever caught by re-reading documents.*
 
 ---
 
