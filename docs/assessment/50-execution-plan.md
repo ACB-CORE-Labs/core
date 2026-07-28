@@ -3,7 +3,19 @@
 **Planner:** Opus 5 · 2026-07-27 · verified at `forgejo/main` @ `ed06dd64`
 **Governs:** everything in `30-gap-register.md` (G-1…G-21) and `31-hindrance-audit.md` (H-1…H-14), sequenced by `40-assessment.md` §6.
 **Method:** `docs/conceptualizing_engineering_mastery.md` — scrub → **delete** → simplify/enforce → accelerate → automate last. Nothing is automated that Waves 0–3 have not proven.
-**Status (2026-07-28):** Wave 0's builds are **done** — PR-0 merged (#140), PR-1 landed, R-10 discharged by merging #138. **Track A is run and returned NO-GO** (`docs/research/sme-experiment-verdict-797ebad5.md`), awaiting ratification. R-1…R-14 remain PENDING and gate Waves 1–4; Tracks B–E are unstarted behind them.
+**Status (2026-07-28, at `39331dbc`):** **every plan item that needs neither a ruling nor an ADR is landed.**
+
+| Landed | Blocked, and on what |
+|---|---|
+| PR-0 ruling packet (#140) · PR-1 record amendments · R-10 discharged (#138 merged) | PR-2, PR-3 — **R-7**, plus CR-1/CR-2 decisions that do not yet exist |
+| **Track A — ADR-0252 §5 run to NO-GO**, criterion pre-registered, artifact + digest committed | PR-5 — **R-3, R-4** |
+| PR-4 membership ratchet · PR-6 three doctrine pins · PR-7 M2 trust table · PR-9 count-the-swallow | PR-8 — a small ADR (H-3/G-20) · PR-10 — a refactor ADR (H-4) |
+| H-13 (served-marker defect) · H-8e (closure docstring) | PR-11 — **R-2, R-9** · PR-12 — **R-13** · PR-14 — **R-8** |
+| **Closed:** G-7, G-9, H-7, H-11, H-13, H-8e · **Answered:** G-1 · **Discharged:** H-10 | Tracks B–E — the above, plus §5 ratification |
+
+**New this arc, not in the original assessment:** **N-8** (the §5 experiment had already returned GO twice, on unmerged branches, both unsound), **N-9** (the gate "drift" was a recorded decision — PR-4's pin 1 **withdrawn** rather than built, R-14 dissolved), **G-21** (the math reader decides **1.0%** of `holdout_dev/v1`), **H-13**, **H-14**, **H-8e**.
+
+**What has not moved, stated plainly:** comprehension breadth and proof-of-life. The reader is still 19 constructions wide and decides 1.0% of the held-out corpus; the 5000-beat soak is still prose with no pinned digest. Everything landed this arc is enforcement and evidence machinery. PR-11, PR-12, PR-14 and Track B are where capability moves, and all four are ruling-gated.
 
 ---
 

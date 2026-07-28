@@ -1,6 +1,7 @@
 # M3 — Comprehension & Reasoning
 
 **Kind:** layer · **Parent:** CORE · **Assessor:** Opus 5 (Phase 2)
+**Re-verified:** `39331dbc` (2026-07-28) — see the arc note below.
 **Verified at:** `8927c563` (2026-07-27)
 **Liveness:** `partial-wiring-debt` · **Fitness:** `strained` (with one `superseded-in-place` sub-region) · **Topology role:** runtime boundary
 
@@ -8,6 +9,9 @@
 
 **Telos stages:** comprehend, think/reason (primary); recall (in-turn)
 **Macro role:** Turns admitted input into a decided, evidence-bearing proposition graph — or a typed refusal.
+
+
+**Arc note — 2026-07-28 (`39331dbc`).** Track A ran ADR-0252 §5 to a **NO-GO** (`docs/research/sme-experiment-verdict-797ebad5.md`), settling the paradigm question this layer's successor path depended on. New measurement **G-21**: the math reader returns a selected graph for **5 of 500** `holdout_dev/v1` cases (1.0%), all one skeleton — a sharper statement of the comprehension frontier than the 19-construction count. H-8e corrected an inductive-closure docstring that described a cycle check the code does not (and must not) perform.
 
 ---
 

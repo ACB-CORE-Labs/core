@@ -1,6 +1,7 @@
 # M2 — Afferent Boundary
 
 **Kind:** layer · **Parent:** CORE · **Assessor:** Opus 5 (Phase 2)
+**Re-verified:** `39331dbc` (2026-07-28) — see the arc note below.
 **Verified at:** `8927c563` (2026-07-27)
 **Liveness:** `partial-wiring-debt` (text) / `inert` (non-text) · **Fitness:** `strained` · **Topology role:** runtime boundary
 
@@ -8,6 +9,9 @@
 
 **Telos stages:** listen/ingest
 **Macro role:** Admits input into the field under a closure-preserving construction boundary, or refuses it.
+
+
+**Arc note — 2026-07-28 (`39331dbc`).** PR-7 wrote the M2 trust-boundary table (`docs/specs/runtime_contracts.md`). Measured against formation's six declared boundaries: two already met, **three are category differences and are now CLOSED** (they presuppose a persisted artifact with citations, which this boundary does not produce), one real delta — no audit record per rejection. Forensic, not containment.
 
 ---
 

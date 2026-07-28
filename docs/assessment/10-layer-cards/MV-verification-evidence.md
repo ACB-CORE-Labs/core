@@ -1,6 +1,7 @@
 # MV — Verification & Evidence (cross-cutting)
 
 **Kind:** layer (cross-cut) · **Parent:** CORE · **Assessor:** Opus 5 (Phase 2)
+**Re-verified:** `39331dbc` (2026-07-28) — see the arc note below.
 **Verified at:** `8927c563` (2026-07-27)
 **Liveness:** `partial-wiring-debt` · **Fitness:** `strained` · **Topology role:** benchmark/eval artifact + tooling surface
 
@@ -8,6 +9,9 @@
 
 **Telos stages:** replay deterministically (primary); learn (evidence for calibration)
 **Macro role:** Produces the evidence that every other layer's claims are measured against, and fails loudly when a claim drifts.
+
+
+**Arc note — 2026-07-28 (`39331dbc`).** PR-4 (curated-suite membership ratchet + the gate-guarding pin promoted onto the gate), PR-6 (three doctrine prohibitions pinned), G-7 and G-9 CLOSED. The layer's central finding is sharper than the card states: the recurring defect is not absent pins but **pins that exist and do not run** — four instances found this arc (the H-13 lifecycle pin, the smoke/CI parity pin, the safety-pack fail-closed contract, the ANN import ban), each indistinguishable from coverage in any document.
 
 ---
 

@@ -22,4 +22,6 @@ A read-only, evidence-bearing assessment of CORE's cognitive-cycle design versus
 
 **Maintenance contract** (from §8 of the synthesis): a card whose `verified_at` falls behind a load-bearing arc is testimony, not evidence. Update cards when their subsystems move, or this directory becomes the next dead instrument it was built to replace.
 
+**Execution status (2026-07-28, `39331dbc`).** Phases 0–6 produced the evidence; the arc that followed executed everything in it that needed no ruling. Landed: Track A's §5 verdict (**NO-GO**, pre-registered), PR-4, PR-6, PR-7, PR-9, PR-1, and two defect fixes (H-13, H-8e). Closed: **G-7, G-9, H-7, H-11, H-13**. Added: **N-8, N-9, G-21, H-13, H-14**. Everything remaining is gated on **R-1…R-14** or on an ADR. See [`50-execution-plan.md`](50-execution-plan.md) §Status for the full board.
+
 **Standing note:** the PR #138 fabrication findings appear throughout as *measured & pinned, fix held for ADR + ratification* — recorded, never re-discovered, never fixed here, per explicit instruction.

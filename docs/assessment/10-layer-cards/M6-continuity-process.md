@@ -1,6 +1,7 @@
 # M6 — Continuity & Process
 
 **Kind:** layer · **Parent:** CORE · **Assessor:** Opus 5 (Phase 2)
+**Re-verified:** `39331dbc` (2026-07-28) — see the arc note below.
 **Verified at:** `8927c563` (2026-07-27)
 **Liveness:** `partial-wiring-debt` · **Fitness:** `strained` · **Topology role:** runtime boundary
 
@@ -8,6 +9,9 @@
 
 **Telos stages:** replay/determinism, backbone-runtime · hosts every other stage (the cycle's runner)
 **Macro role:** Holds field, vault, session, and identity continuity over indefinite time; runs the heartbeat that lets the engine learn when nobody is talking to it.
+
+
+**Arc note — 2026-07-28 (`39331dbc`).** PR-9 instrumented the accrual backstop (`_accrue_in_turn`): the guard stays broad, but a swallowed exception is now counted and named rather than writing the same `None` a quiet turn writes. H-11 CLOSED.
 
 ---
 

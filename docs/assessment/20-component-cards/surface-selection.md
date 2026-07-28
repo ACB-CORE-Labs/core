@@ -1,8 +1,12 @@
 # surface-selection — the arms and the resolver
 
 **Kind:** component (mechanism spanning `chat/runtime.py` + `core/cognition/surface_resolution.py`) · **Parent:** M4 · **Assessor:** Fable 5 (Phase 3)
+**Re-verified:** `39331dbc` (2026-07-28) — see the arc note below.
 **Verified at:** `8927c563` (2026-07-27)
 **Liveness:** `live-serving` · **Fitness:** `strained` — refined from Phase 2 · **Topology role:** runtime boundary
+
+
+**Arc note — 2026-07-28 (`39331dbc`).** H-13: the speculative-marker cache over-evicted. A COHERENT proposal released index tokens it never claimed, stripping the marker from an unrelated proposal still awaiting review — unreviewed material served without its disclosure prefix. Now claimant-tracked; a token dies only when the subject that claimed it is reviewed.
 
 > The mechanism that decides which of several candidate surfaces the user actually reads. Every truth property CORE claims converges here.
 

@@ -1,8 +1,12 @@
 # always-on-process — `chat/always_on.py`, `chat/always_on_daemon.py`, `engine_state/`, `evals/l10_*`
 
 **Kind:** component (M6's built half) · **Parent:** M6 · **Assessor:** Fable 5 (Phase 3)
+**Re-verified:** `39331dbc` (2026-07-28) — see the arc note below.
 **Verified at:** `8927c563` (2026-07-27)
 **Liveness:** `live-internal` (CLI-reachable, suite-orphaned) · **Fitness:** `strained` (proof debt, not design debt) · **Topology role:** runtime boundary
+
+
+**Arc note — 2026-07-28 (`39331dbc`).** PR-9 (H-11) made the accrual backstop visible: `_accrue_in_turn`'s broad guard stays — accrual is additive and must never crash a turn — but a swallowed exception is now counted and named instead of writing the same `None` a quiet turn writes. `_last_turn_accrual` is unchanged on failure, so consumer behavior is byte-identical by construction.
 
 > The process that runs the continuous-life heartbeat. Its design center is a single sentence from the daemon module: a restart is *the same life or it stops — never a silent fork*.
 

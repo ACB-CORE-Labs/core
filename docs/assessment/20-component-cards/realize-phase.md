@@ -1,8 +1,12 @@
 # realize-phase — `generate/realize/` (and the reader that feeds it)
 
 **Kind:** zone→component descent · **Parent:** M3 · **Assessor:** Fable 5 (Phase 3)
+**Re-verified:** `39331dbc` (2026-07-28) — see the arc note below.
 **Verified at:** `8927c563` (2026-07-27)
 **Liveness:** `live-internal`, flag-gated (**demoted** from the map's `live-serving`) · **Fitness:** `fit` (the phase) — with its *feeder* under held fabrication findings · **Topology role:** runtime boundary
+
+
+**Arc note — 2026-07-28 (`39331dbc`).** PR-6 pinned the exact-recall prohibition over this component's own path. Before it, `generate/realize/recall.py` asserted *"an exact, deterministic equality scan (no cosine / HNSW / ANN)"* in its module docstring with **nothing enforcing it**; the only import ban in the repository covered one unrelated physics module. The law is now scanned across `generate/realize/` and four sibling roots, for banned ANN libraries and hand-rolled `cosine*` definitions alike.
 
 > REALIZE — "integrate comprehended structure into the held self" (roadmap Step 3). If M1 is knowledge at rest and DETERMINE is answering from it, REALIZE is the moment comprehension becomes *held*: a reading of the user's words is written into session memory as a typed, SPECULATIVE, as-told record. It is the exact point where a misreading becomes a belief — which is why the fabrication findings matter most here.
 

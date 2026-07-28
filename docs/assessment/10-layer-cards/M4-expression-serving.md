@@ -1,6 +1,7 @@
 # M4 — Expression & Serving
 
 **Kind:** layer · **Parent:** CORE · **Assessor:** Opus 5 (Phase 2)
+**Re-verified:** `39331dbc` (2026-07-28) — see the arc note below.
 **Verified at:** `8927c563` (2026-07-27)
 **Liveness:** `live-serving` · **Fitness:** `strained` · **Topology role:** runtime boundary
 
@@ -8,6 +9,9 @@
 
 **Telos stages:** articulate (primary); replay/determinism (trace emission)
 **Macro role:** Selects, governs, decorates, and emits the served surface; emits the telemetry that makes the turn auditable.
+
+
+**Arc note — 2026-07-28 (`39331dbc`).** H-13 fixed: the speculative-marker cache un-marked a sibling proposal's still-unreviewed material on promotion, serving it without the `(speculative, not yet reviewed)` prefix. Claimant-tracked now; the served-surface honesty contract holds where it previously leaked.
 
 ---
 
