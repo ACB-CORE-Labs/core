@@ -1,7 +1,7 @@
 # The Execution Plan
 
 **Planner:** Opus 5 · 2026-07-27 · verified at `forgejo/main` @ `ed06dd64`
-**Governs:** everything in `30-gap-register.md` (G-1…G-20) and `31-hindrance-audit.md` (H-1…H-12), sequenced by `40-assessment.md` §6.
+**Governs:** everything in `30-gap-register.md` (G-1…G-21) and `31-hindrance-audit.md` (H-1…H-14), sequenced by `40-assessment.md` §6.
 **Method:** `docs/conceptualizing_engineering_mastery.md` — scrub → **delete** → simplify/enforce → accelerate → automate last. Nothing is automated that Waves 0–3 have not proven.
 **Status (2026-07-28):** Wave 0's builds are **done** — PR-0 merged (#140), PR-1 landed, R-10 discharged by merging #138. **Track A is run and returned NO-GO** (`docs/research/sme-experiment-verdict-797ebad5.md`), awaiting ratification. R-1…R-14 remain PENDING and gate Waves 1–4; Tracks B–E are unstarted behind them.
 
@@ -197,8 +197,10 @@ Formation's six-boundary standard written for `ingest/gate.py` in `runtime_contr
 ### PR-8 · Materialise the typed refusal · **M** · H-3/G-20 — *needs a small ADR (the ADR-0024 chain reserved the seam)*
 `InnerLoopExhaustion`'s reason/region/rejected-attempt evidence reaches `ChatResponse.refusal_reason` and a minimal honest served surface, instead of `""`. **Verification:** a refusing turn serves a non-empty, typed, replayable refusal, and `trace_hash` behavior is unchanged for non-refusing turns.
 
-### PR-9 · Count the swallow · **S** · H-11
+### PR-9 · Count the swallow · **S** · H-11 — *scope widened 2026-07-28*
 A telemetry field on the turn/idle accrual result when `_accrue_in_turn`'s broad guard fires. **Behavior unchanged by construction** — the backstop stays; it stops being invisible.
+
+**Widened to the same failure class elsewhere on the spine** (external-assessment triage): the logos-authority block's bare `except Exception` (`core/cognition/pipeline.py:555`) and the three layered OOV-probe swallows (`:605-657`) get the same remedy shape — record `probe_error = repr(e)` in the telemetry, keep the backstop. Observability that fails silently cannot distinguish "probe ran, found nothing" from "probe crashed first," which poisons the very roadmap data the OOV block exists to produce. **Explicitly not the narrow-catch alternative** (catching only `ImportError`/`OSError`): that converts a malformed decision object into a turn-spine crash — trading silent failure for served-surface failure.
 
 ### PR-10 · Extend declared precedence to the composer arms · **L** · H-4 — *refactor ADR*
 Lift `core/cognition/surface_resolution.py`'s declared-precedence pattern to arm selection in `chat/runtime.py`. **Do this while one arm is live** — the cost triples after the next three arms. Carries an in-code prospective sabotage note in the `surface_resolution.py` style. **Verification:** byte-identical serving on the full deduction + curriculum + register lanes; this refactor may not change a single served surface.
@@ -293,8 +295,8 @@ Hard gates, non-negotiable:
 
 The arc closes when:
 
-1. Every G-1…G-20 entry is CLOSED, or DEFERRED-WITH-RULING with the ruling recorded in-register.
-2. Every H-1…H-12 entry is resolved, relocated to its better home, or explicitly accepted with a reason.
+1. Every G-1…G-21 entry is CLOSED, or DEFERRED-WITH-RULING with the ruling recorded in-register.
+2. Every H-1…H-14 entry is resolved, relocated to its better home, or explicitly accepted with a reason.
 3. ADR-0252 §5 has a recorded verdict and the §6 question is settled either way.
 4. A **committed** L10 soak artifact exists with a **pinned `deterministic_digest`**, and its pins run on a ruled cadence.
 5. `smoke.yml` and `TEST_SUITES["smoke"]` are mechanically identical, and no test file hides in `full`.

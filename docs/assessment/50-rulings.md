@@ -93,6 +93,8 @@ Two flags' documentation describes a production profile the production profile d
 
 **Recommendation: A.** The pattern already exists in-repo, is already correct, and is already applied to the wrong subset (H-6). B does the expensive half (classifying 32 flags) and skips the cheap half that prevents recurrence. The pin is what makes A permanent: after it, a new flag *cannot* land unregistered — which is the same mechanical-enforcement move as PR-4, applied to configuration instead of tests.
 
+**Packet addition (2026-07-28, external-assessment triage).** The register work should carry the first *collapse candidate* alongside the classification: `composed_surface` + `transitive_surface` + `transitive_max_depth` → a single `chain_depth: int = 0`. The byte-identity ladder justifying it is documented in the flag's own ADR-0083 docstring (`core/config.py:80-86`: depth 0 ≡ single-chain, depth 1 ≡ ADR-0062's composed surface, `transitive_surface=True` already "supersedes `composed_surface`"). Ruled here, within the ADR-0062/0083 lineage — not ad-hoc: the same proposal arrived from an external assessment claiming it needed no ruling, which is exactly the path this register exists to close.
+
 **What follows.**
 - **A** → `docs/specs/flag_register.md` + three profile constants + one pin (PR-5).
 - **B** → the register without profiles or constants; H-6 stays open.
@@ -273,6 +275,7 @@ Two flags' documentation describes a production profile the production profile d
 
 - **Option A** — apply as written. **Option B** — a new short ADR owning the daemon instead, with a one-line pointer here. **Option C** — leave; H-8a stays open.
 - **Recommendation: A.** The reasoning was never wrong; only the scope sentence went stale. A new ADR for a shape already shipped adds a document without adding a decision.
+- *Note (2026-07-28, external-assessment triage): a related open question was surfaced and is recorded here as a question only — `lived_life.json` (the workbench-facing evidence artifact, distinct from the identity-guarded checkpoint) carries no staleness or authorship stamp tying it to the run that wrote it. The proposed fix from that assessment — PID attestation with a refuse-on-mismatch load check — is rejected: a reboot-resumed life's writer PID is dead by definition, so the check refuses every legitimate resume, and PID reuse defeats attestation. If the question ever matters, the answer is a run-id or digest stamp, not a PID.*
 
 ### R-12b · ADR-0252 — the "34 organs" headline
 
