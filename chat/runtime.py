@@ -21,13 +21,11 @@ from chat.pack_grounding import (
     pack_grounded_relation_confirmation_surface,
     pack_grounded_unknown_surface,
     gloss_aware_cause_surface,
-    PACK_ID as _COGNITION_PACK_ID,
 )
 from chat.teaching_grounding import (
     teaching_grounded_surface,
     teaching_grounded_surface_composed,
     teaching_grounded_surface_transitive,
-    TEACHING_CORPUS_ID as _TEACHING_CORPUS_ID,
 )
 from chat.refusal import (
     TYPED_REFUSAL_PREFIX,
@@ -61,7 +59,6 @@ from engine_state import EngineStateStore
 from core.engine_identity import (
     ENGINE_IDENTITY_SCHEME,
     IdentityReconciliation,
-    engine_identity_for_config,
     reconcile_loaded_identity,
     compute_engine_identity,
     DEFAULT_SAFETY_PACK,
@@ -767,6 +764,15 @@ class ChatRuntime:
         # realized into the held self, or determined over it). Introspectable; the
         # surface contract is unchanged (slice B-1 records, does not surface).
         self._last_turn_accrual: TurnAccrual | None = None
+        # PR-9 (H-11) — the accrual guard's visibility. ``_accrue_in_turn``'s
+        # broad ``except`` is a deliberate backstop (accrual is additive and must
+        # never crash a turn), but it wrote the same ``None`` a quiet turn
+        # writes, so a raising read→realize→determine chain was
+        # indistinguishable from nothing-to-accrue. These count and name it.
+        # Observational only: never read by any serving path, never folded into
+        # ``trace_hash``.
+        self._accrual_swallows: int = 0
+        self._last_accrual_error: str | None = None
         self._relational_pack_lemmas: frozenset[str] | None = None
         self._engine_state_store: EngineStateStore | None = (
             None if no_load_state else EngineStateStore(engine_state_path)
@@ -1344,6 +1350,20 @@ class ChatRuntime:
         accrual is off or did not complete. Introspection only — never surfaced."""
         return self._last_turn_accrual
 
+    def accrual_swallow_telemetry(self) -> tuple[int, str | None]:
+        """PR-9 (H-11) — ``(swallows, last_error)`` for the accrual backstop.
+
+        ``swallows`` counts how many times ``_accrue_in_turn``'s defensive guard
+        absorbed an exception this session; ``last_error`` is the most recent
+        ``repr``.  Both are zero/None on a healthy session, which is the point:
+        a nonzero count means the read→realize→determine chain raised somewhere,
+        and that fact used to be unrecoverable from a ``None`` accrual.
+
+        Observational only.  Nothing on a serving path reads this, and it is
+        never folded into ``trace_hash``.
+        """
+        return self._accrual_swallows, self._last_accrual_error
+
     def _accrue_in_turn(self, text: str) -> None:
         """Inline realization (Step B): a comprehensible declarative turn accrues a
         realized fact into the held self (session vault, SPECULATIVE / as-told); a
@@ -1393,7 +1413,17 @@ class ChatRuntime:
                     )
                     return
             self._last_turn_accrual = TurnAccrual(kind="none")
-        except Exception:  # additive: accrual must never crash a turn  # noqa: BLE001
+        except Exception as exc:  # additive: accrual must never crash a turn  # noqa: BLE001
+            # PR-9 (H-11) — count the swallow. The backstop stays exactly as it
+            # was: ``_last_turn_accrual`` is still None, so every consumer sees
+            # byte-identical behavior (``_maybe_surface_determination`` returns
+            # the response unchanged on None). What changes is that the guard is
+            # no longer invisible. A None accrual previously had two
+            # indistinguishable causes — "nothing to accrue" and "the chain
+            # raised" — inside the one layer whose constitution is that failures
+            # are typed, never silent (INV-34). These fields separate them.
+            self._accrual_swallows += 1
+            self._last_accrual_error = repr(exc)
             self._last_turn_accrual = None
 
     def _accrue_estimate_if_refused(self, comprehension: Any, determination: Any) -> "TurnAccrual":

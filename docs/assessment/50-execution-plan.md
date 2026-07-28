@@ -197,10 +197,12 @@ Formation's six-boundary standard written for `ingest/gate.py` in `runtime_contr
 ### PR-8 · Materialise the typed refusal · **M** · H-3/G-20 — *needs a small ADR (the ADR-0024 chain reserved the seam)*
 `InnerLoopExhaustion`'s reason/region/rejected-attempt evidence reaches `ChatResponse.refusal_reason` and a minimal honest served surface, instead of `""`. **Verification:** a refusing turn serves a non-empty, typed, replayable refusal, and `trace_hash` behavior is unchanged for non-refusing turns.
 
-### PR-9 · Count the swallow · **S** · H-11 — *scope widened 2026-07-28*
+### PR-9 · Count the swallow · **S** · H-11 — **LANDED 2026-07-28**
 A telemetry field on the turn/idle accrual result when `_accrue_in_turn`'s broad guard fires. **Behavior unchanged by construction** — the backstop stays; it stops being invisible.
 
 **Widened to the same failure class elsewhere on the spine** (external-assessment triage): the logos-authority block's bare `except Exception` (`core/cognition/pipeline.py:555`) and the three layered OOV-probe swallows (`:605-657`) get the same remedy shape — record `probe_error = repr(e)` in the telemetry, keep the backstop. Observability that fails silently cannot distinguish "probe ran, found nothing" from "probe crashed first," which poisons the very roadmap data the OOV block exists to produce. **Explicitly not the narrow-catch alternative** (catching only `ImportError`/`OSError`): that converts a malformed decision object into a turn-spine crash — trading silent failure for served-surface failure.
+
+**Landed.** All three instances instrumented; `_last_turn_accrual` still becomes `None` so every consumer is byte-identical (additive by construction, and pinned). `tests/test_accrual_swallow_telemetry.py` — 7 pins, the two behavioral ones **observed red** against a build with the fields present but the recording stripped. Registered in both gates on creation; delta unchanged at ten.
 
 ### PR-10 · Extend declared precedence to the composer arms · **L** · H-4 — *refactor ADR*
 Lift `core/cognition/surface_resolution.py`'s declared-precedence pattern to arm selection in `chat/runtime.py`. **Do this while one arm is live** — the cost triples after the next three arms. Carries an in-code prospective sabotage note in the `surface_resolution.py` style. **Verification:** byte-identical serving on the full deduction + curriculum + register lanes; this refactor may not change a single served surface.

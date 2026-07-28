@@ -230,3 +230,10 @@ class CognitiveTurnResult:
     logos_decision_reason: str = ""
     logos_rule_id: str = ""
     logos_constraint_id: str = ""
+    #: PR-9 (H-11) — ``repr`` of the exception the logos backstop absorbed, or
+    #: "" when it did not fire. The guard stays deliberately broad (narrowing it
+    #: would turn a malformed decision into a turn-spine crash); this is what
+    #: stops it being silent. An empty ``logos_decision_kind`` used to mean
+    #: either "not consulted" or "raised", which are very different facts about
+    #: a turn. Observational; never folded into trace_hash.
+    logos_error: str = ""

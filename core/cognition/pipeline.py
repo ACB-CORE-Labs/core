@@ -542,6 +542,7 @@ class CognitiveTurnPipeline:
         # certified singular-exclusivity claim against observed plural HE.
         # English-only turns with no HE surface → no-op (None).
         logos_decision_kind = ""
+        logos_error = ""
         logos_decision_reason = ""
         logos_rule_id = ""
         logos_constraint_id = ""
@@ -568,9 +569,18 @@ class CognitiveTurnPipeline:
                     hash_surface = surface
                     articulation_surface = surface
                     authority_source = "logos_morph_constraint"
-        except Exception:
+        except Exception as exc:
             # Pack load / catalog failure must not crash the turn spine;
             # English path continues without morph authority.
+            #
+            # PR-9 (H-11, widened by the 2026-07-28 triage) — the backstop is
+            # kept deliberately broad: narrowing it to ImportError/OSError would
+            # convert a malformed decision object into a turn-spine crash,
+            # trading silent failure for served-surface failure. What it stops
+            # being is invisible. Without this, a logos decision that raised
+            # looked exactly like a turn where logos never fired, so a
+            # constraint failing to block a certified answer left no trace.
+            logos_error = repr(exc)
             logos_decision = None
 
         # SUBSTRATE_BYPASS_HAZARD telemetry (data-driven roadmap).
@@ -619,7 +629,9 @@ class CognitiveTurnPipeline:
         if grounding_src == "oov" or has_pending:
             # Active conformal neighborhood probe (exact cga_inner over vault).
             probe_performed = False
+            probe_error = ""
             probe_neighbors: list[dict[str, object]] = []
+            neighbor_scan_errors = 0
             try:
                 from algebra.backend import cga_inner as _cga_inner
 
@@ -636,6 +648,11 @@ class CognitiveTurnPipeline:
                         try:
                             s = float(_cga_inner(F_probe, versor))
                         except Exception:
+                            # PR-9 — a shape mismatch on one vault entry skips
+                            # that entry, as before; the count makes a
+                            # systematically unscannable vault visible instead
+                            # of reading as an empty neighborhood.
+                            neighbor_scan_errors += 1
                             continue
                         label = str(getattr(entry, "id", "") or getattr(entry, "key", "") or "")
                         scores.append((s, label))
@@ -644,12 +661,20 @@ class CognitiveTurnPipeline:
                         {"cga_inner": s, "ref": lab} for s, lab in scores[:5]
                     ]
                     probe_performed = True
-            except Exception:
+            except Exception as exc:
+                # PR-9 (H-11) — observability that fails silently is worse than
+                # none: "probe ran, found nothing" and "probe crashed before it
+                # could look" were the same record, and this block's whole job
+                # is producing the data that prices the anti-unification
+                # roadmap. The backstop stays; the reason is now recorded.
                 probe_performed = False
+                probe_error = repr(exc)
             oov_geometric_context = {
                 "unresolved_topology": effective_graph.get_unresolved_topology() if effective_graph else (),
                 "intent_tag": getattr(intent, "tag", None).value if intent and getattr(intent, "tag", None) else "unknown",
                 "geometric_probe_performed": probe_performed,
+                "probe_error": probe_error,
+                "neighbor_scan_errors": neighbor_scan_errors,
                 "conformal_neighbors": probe_neighbors,
                 "note": "Conformal anti-unification probe: vault neighbors via exact cga_inner.",
                 "node_depths": node_depths,
@@ -670,9 +695,13 @@ class CognitiveTurnPipeline:
                 if oov_geometric_context is None:
                     oov_geometric_context = {}
                 oov_geometric_context["graph_anti_unify"] = graph_anti_unify(topo, node_depths)
-            except Exception:
-                # Best-effort telemetry only; anti-unify failure must not affect main path.
-                pass
+            except Exception as exc:
+                # Best-effort telemetry only; anti-unify failure must not affect
+                # main path. PR-9 — but an ABSENT key and a FAILED call are
+                # different facts about the turn, and only one of them is a bug.
+                if oov_geometric_context is None:
+                    oov_geometric_context = {}
+                oov_geometric_context["graph_anti_unify_error"] = repr(exc)
 
         # Capture depths (post-enrich) to attrs for recognize chaining (AC1) + runtime contemplate depth= (real).
         # Propagation contract (3-lang depth on PropGraph spine): pipeline (after OOV/PropGraph construction)
@@ -955,6 +984,7 @@ class CognitiveTurnPipeline:
             logos_decision_reason=logos_decision_reason,
             logos_rule_id=logos_rule_id,
             logos_constraint_id=logos_constraint_id,
+            logos_error=logos_error,
         )
 
     # ------------------------------------------------------------------

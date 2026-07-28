@@ -92,6 +92,15 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # the same ten files (H-12), so it settles nothing R-14 has to rule.
         # ~9s, cache-level with two served-surface assertions.
         "tests/test_speculative_subject_lifecycle.py",
+        # PR-9 (H-11) — the turn spine's three defensive backstops must stay
+        # broad AND stay visible. Each used to write a value indistinguishable
+        # from its healthy case: a raising accrual chain left the same None a
+        # quiet turn leaves, a logos decision that raised looked like one never
+        # consulted, a crashed probe recorded the same empty neighborhood as a
+        # probe that found nothing. Silence in the one layer whose constitution
+        # is "failures are typed, never silent" (INV-34). Registered in both
+        # gates on creation, per #136. ~6s.
+        "tests/test_accrual_swallow_telemetry.py",
         # ADR governance. An ADR that governs a default-ON flag records a
         # decision already in force, so leaving it "Proposed" makes the
         # governance record assert something false about the running system —

@@ -90,6 +90,14 @@ Ranked by leverage (cognitive/structural load removed ÷ effort), per the AGENTS
 **Evidence:** `_accrue_in_turn`'s broad guard converts any exception in the read→realize→determine chain into a no-op accrual with no telemetry (F-10). Defensible as a backstop; invisible as a signal — in the one layer whose constitution is "failures are typed, never silent" (INV-34).
 **Better home:** count the swallow (a telemetry field on `IdleTickResult`/turn accrual), not a behavior change.
 **Authority:** mechanical PR.
+**Status (2026-07-28): CLOSED — PR-9 landed, across all three instances.**
+- `chat/runtime.py::_accrue_in_turn` — `_accrual_swallows` / `_last_accrual_error`, read via `accrual_swallow_telemetry()`. `_last_turn_accrual` still becomes `None`, so `_maybe_surface_determination` returns byte-identically: **additive by construction**, and pinned as such.
+- `core/cognition/pipeline.py` logos authority — `logos_error` on `CognitiveTurnResult`. An empty `logos_decision_kind` previously meant *either* "not consulted" *or* "raised"; those are now distinguishable.
+- The OOV geometric probe — `probe_error`, `neighbor_scan_errors`, and `graph_anti_unify_error`. This block exists to price the anti-unification roadmap, and a crashed probe used to serialize identically to one that ran and found nothing.
+
+Every guard stays **deliberately broad**. Narrowing them to `ImportError`/`OSError`, as an external assessment proposed, converts a malformed decision object into a turn-spine crash — trading silent failure for served-surface failure, the worse trade. What changed is visibility, not tolerance.
+
+`tests/test_accrual_swallow_telemetry.py`, 7 pins, **the two behavioral ones observed red** against a build with the fields present but the recording removed — so they discriminate rather than merely pass. Registered in **both** gates on creation (#136); local/CI delta unchanged at ten (local 25, CI 15, CI-only 0).
 
 ## H-12 · The two smoke gates have diverged by ten files, and one comment says they cannot
 **Verdict:** `strained` — a real asymmetry, *smaller* than it first looks · **Layers:** MV

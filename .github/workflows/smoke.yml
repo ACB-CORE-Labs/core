@@ -61,4 +61,5 @@ jobs:
             tests/test_audio_*.py \
             tests/test_pack_measurements_phase2.py \
             tests/test_register_substantive_consumption.py \
-            tests/test_speculative_subject_lifecycle.py
+            tests/test_speculative_subject_lifecycle.py \
+            tests/test_accrual_swallow_telemetry.py
