@@ -59,6 +59,15 @@ Ranked by leverage (cognitive/structural load removed ÷ effort), per the AGENTS
 **Why it hinders:** asymmetric rigor invites the assumption that the un-tabled boundary is the less important one; it is the opposite.
 **Better home:** an M2 trust-boundary table in `runtime_contracts.md`, formation-style; hardening PRs only where the table exposes real deltas.
 **Authority:** documentation first; evidence decides whether code follows.
+**Status (2026-07-28): CLOSED — table written, and the measurement reframes the entry.** `docs/specs/runtime_contracts.md` §"M2 trust-boundary table" measures `ingest/gate.py` against all six of formation's declared boundaries at `edf6c2a4`. The result is not "five of six missing":
+
+| | |
+|---|---|
+| **Already met** | no floats in hashed payloads (`_stable_digest` hashes strings only); no pickle anywhere under `ingest/` |
+| **Category differences — closed, not owed** | content-addressing, self-sealing, and the source allow-list all presuppose a *persisted artifact with citations*. Formation validates artifacts it will store; the gate transforms text it will not. Writing these as obligations would have manufactured three gaps and sent someone to close them |
+| **REAL DELTA (one)** | **no audit record per rejection.** The gate refuses with typed exceptions and records nothing about what it refused |
+
+The surviving delta is **not a containment hole** — refusal is fail-closed and nothing unvalidated crosses. It costs forensics, and it is the *same failure class as H-11*: a guard that works correctly and leaves no trace of having worked. It also has a downstream consumer worth naming — a widening program (G-3) must be able to ask "what shapes is the boundary refusing, and how often?", which today it cannot. Hardening is a separate PR per this entry's own authority.
 
 ## H-8 · The record contradicts the code at three load-bearing points
 **Verdict:** `wrong-solution` as *record-keeping* — divergence that reasoners inherit · **Layers:** governance

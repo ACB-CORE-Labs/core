@@ -1087,3 +1087,63 @@ under complete provenance:
 
 Enforcement pin: `tests/test_observed_he_morph_constraint_v0.py` (four-arm
 ablation).
+
+---
+
+## M2 trust-boundary table — `ingest/gate.py` (PR-7, H-7)
+
+**Why this table exists.** `formation/` declares its trust boundary explicitly:
+the Forge's five ordered validation rules (`formation/forge.py`) plus the
+hashing contract (`formation/hashing.py` — content-addressed artifacts, no
+floats in hashed payloads, no pickle, self-sealing SHAs). `ingest/gate.py` is
+the *production* boundary — the only point where raw data enters the versor
+manifold, facing untrusted user text on every turn — and it had no comparable
+declared table. H-7's charge: asymmetric rigor invites the assumption that the
+un-tabled boundary is the less important one, when it is the opposite.
+
+**Method: measured, not assumed.** Each row states what formation declares,
+what the gate actually does at `edf6c2a4`, and a verdict. Three of the six
+turn out **not to transfer at all**, and saying so is the point — formation
+validates *artifacts it will persist*; the gate transforms *text it will not*.
+Writing those three as owed obligations would have manufactured four gaps that
+do not exist and sent someone to close them.
+
+| # | Formation's boundary | `ingest/gate.py` at `edf6c2a4` | Verdict |
+|---|---|---|---|
+| B1 | **Content-addressed artifacts** — canonical JSON + SHA over every artifact | Produces a `FieldState` in memory; persists no artifact | **Category difference** — nothing is stored, so there is nothing to address |
+| B2 | **No floats in hashed payloads** (`canonical_json` rejects them; float repr is platform-dependent) | `_stable_digest` (`:135`) hashes `salt + "\0" + name`, both UTF-8 strings. No float reaches a digest | **Already met** |
+| B3 | **No pickle anywhere** (code-execution surface; defeats replay determinism) | No `pickle` import anywhere under `ingest/` | **Already met** |
+| B4 | **Self-sealing** — SHA computed over the payload with its own `sha` field blanked | No persisted artifact to seal | **Category difference** |
+| B5 | **Source allow-list** (Forge R3 — every cited source SHA must be allow-listed) | Input is live user text, not mined corpus with citations | **Category difference** |
+| B6 | **An audit record per rejection** — quarantine is recorded, not merely refused | Refuses with typed exceptions (`KeyError` `:235`/`:286`, `RuntimeError` `:318`/`:424`). `vocab.record_unknown_token` (`:331`) records OOV *observation*, which is not a rejection record | **REAL DELTA — the only one** |
+
+### The one real delta, stated precisely
+
+The production boundary facing untrusted text **refuses correctly and records
+nothing about what it refused.** Formation quarantines with a record; the gate
+raises and the fact is gone unless a caller happens to log it. Two consequences
+worth separating:
+
+- **Not a safety hole.** The refusal is typed and fail-closed — nothing
+  unvalidated crosses into the manifold. B6's absence costs *forensics*, not
+  containment.
+- **It is the same failure class as H-11**, which PR-9 closed on the turn
+  spine: a guard that works correctly and leaves no trace of having worked.
+  A boundary that cannot say what it rejected cannot answer "is this input
+  shape common enough to support?" — which is exactly the question a widening
+  program (G-3) has to ask of its own refusals.
+
+### What this table does not do
+
+Per H-7's authority — *"documentation first; evidence decides whether code
+follows"* — this is the evidence, not the fix. B6 is a hardening candidate for
+a separate PR, sized against whether anything actually consumes gate-rejection
+telemetry today. B1/B4/B5 are **closed as category differences** and should not
+be re-derived as gaps by a future reader; that is what this table is for.
+
+**AGENTS.md §"Security and trust boundaries" defaults**, checked against the
+gate for completeness: explicit opt-in for arbitrary execution (n/a — the gate
+executes nothing), reject unsafe paths before filesystem access (n/a — no
+filesystem access), centralize safe display/log handling (met — the gate emits
+no user-controlled text to logs), no hidden background execution (met), no
+broad filesystem mutation (met — the gate mutates nothing).
