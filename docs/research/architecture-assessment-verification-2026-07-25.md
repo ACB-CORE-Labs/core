@@ -6,6 +6,19 @@
 > **Not this document's fault alone:** `core/config.py`'s own docstrings for both flags make the same claim (recorded as H-8d in `docs/assessment/31-hindrance-audit.md`). Whether the flag set is incomplete or the dormancy is intended is ruling R-3 in `docs/assessment/50-rulings.md`; whichever way it goes, either one line of code or three records change.
 >
 > Everything else in this document was re-verified in the holistic assessment's Phases 2–3 and stands.
+>
+> ---
+>
+> **Second note — 2026-07-28: R-3 was ruled, and it made this document's original claim TRUE.**
+> **The correction above is now itself out of date, and is kept rather than deleted because how it went out of date is the point.**
+>
+> R-3 (ruled **A — incomplete flag set**) added `accrue_realized_knowledge` to `CONTINUOUS_LIFE_CONFIG_FLAGS`. The production L10 process **does** now enable it, alongside `persist_session_state` and `consolidate_determinations`. So this document's sentence — *"is enabled by the production L10 process"* — is accurate as of `chat/always_on_daemon.py` at 2026-07-28, and the note above describing it as false is accurate only about the window `ed06dd64` … R-3.
+>
+> **What was actually wrong, restated precisely:** the document asserted a configuration that did not yet exist. It was describing the intended profile, and so were both of `core/config.py`'s docstrings (H-8d). Three records agreed with each other and disagreed with four lines of code — which is why R-3 resolved as *incomplete flag set* rather than *intended dormancy*. The dormancy reading would have required correcting three records that were right about the design.
+>
+> **Why this second note exists at all,** and it is the more useful lesson: a correction note is a record, and records go stale in both directions. This one was written to fix a claim, and was made wrong by that claim being fixed. **A dated correction that names the window it applies to survives its own subject changing; an undated "this is false" does not.** Both notes here now carry their commit range for that reason.
+>
+> F-6 is closed. The always-on life no longer consolidates an empty set — the daemon forces the producer (Step B) alongside the consumer (Step D). The 2026-07-19 soak result recorded in `evals/l10_always_on/contract.md` predates this change and therefore describes a **different configuration than the one that now ships**; re-running it under the corrected profile is PR-11.
 
 # Independent verification of the Tier-S arc assessment (2026-07-25)
 

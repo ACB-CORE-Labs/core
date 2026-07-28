@@ -473,7 +473,6 @@ tests/test_issue_300_versor_margin.py
 tests/test_kernel_facts.py
 tests/test_kernel_no_new_legacy_derivation_surfaces.py
 tests/test_l10_always_on.py
-tests/test_l10_always_on_daemon.py
 tests/test_l10_always_on_soak.py
 tests/test_l10_arbitrary_interruption.py
 tests/test_l10_continuity.py

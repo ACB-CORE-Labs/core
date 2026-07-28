@@ -119,6 +119,35 @@ def test_config_flag_parse_is_not_vacuous() -> None:
         cited for _, cited in flags.values()
     ), "no flag cites an ADR — the comment-block walker has drifted"
 
+    # PR-5, 2026-07-28 — the guard above was one citation away from being hollow.
+    # ``test_default_on_flag_is_not_governed_by_a_proposed_adr`` is parameterized over
+    # (default-ON flag x cited ADR), so a default-ON flag citing NO ADR contributes
+    # ZERO cases and is silently uncovered.  Measured at the time this was added:
+    # of four default-ON flags, three cite nothing -- ``allow_cross_language_recall``,
+    # ``use_salience``, ``discourse_planner`` -- so the parametrization generated
+    # exactly ONE case, for ``deduction_serving_enabled`` (ADR-0256).  The assertion
+    # above stayed green throughout, because default-*off* flags cite ADRs in
+    # abundance.  If ADR-0256's citation were ever reformatted out of that comment
+    # block, the governance test would generate zero cases and every part of this
+    # module would still report success.  That is the failure state looking identical
+    # to the success state, inside the module written to prevent exactly that.
+    #
+    # The three uncited ON flags are a real, recorded gap -- docs/specs/flag_register.md
+    # §1 -- and NOT something this pin should force a fake ADR reference to satisfy.
+    # So the assertion is the honest one: the parametrization must not be empty.
+    governed_on = [
+        (flag, adr)
+        for flag, (default, cited) in flags.items()
+        if default == "True"
+        for adr in cited
+    ]
+    assert governed_on, (
+        "no default-ON flag cites an ADR, so "
+        "test_default_on_flag_is_not_governed_by_a_proposed_adr now generates zero "
+        "cases and passes vacuously. Either a citation was lost from a comment block "
+        "in core/config.py, or the ON surface changed — see docs/specs/flag_register.md §1"
+    )
+
 
 @pytest.mark.parametrize(
     ("flag", "adr"),

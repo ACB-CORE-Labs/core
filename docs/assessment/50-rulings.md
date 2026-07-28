@@ -9,7 +9,23 @@
 **Also ratified:** the ADR-0252 §5 **NO-GO** verdict.
 
 **Execution order (corrected):** R-12 → R-7 → R-3+R-4 → R-9+R-2 → R-13 → R-8 → R-1/R-5/R-6/R-11.
-**Executed so far:** R-7 (PR-3, PR-3b) · **R-12 (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment)** — all landed 2026-07-28.
+**Executed so far:** R-7 (PR-3, PR-3b) · **R-12** (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment) · **R-3 + R-4** (PR-5 — the flag register, the profile mechanism, and the daemon's fourth flag) — all landed 2026-07-28.
+
+---
+
+### Standing delegation — 2026-07-28, granted by Shay, recorded here because an unrecorded grant is indistinguishable from an agent exceeding its authority
+
+> *"If you think you might need me for a ruling, I instruct you to handle it based on the most masterful logic accordingly. No more pauses."*
+
+**Scope.** The residual decisions inside the adopted docket — the sub-questions the twelve rulings left open, and any new question of the same size that arises while executing them. Concretely and by name: **R-8 C's entailed-capability floor `N`** (never specified when C was adopted); **R-11's second ruling** (option B ends in *re-ask*, not a decision); **PR-4b's gate-width choice**; **G-23's domain-membership question**; and the sequencing latitude to reorder the docket where evidence warrants.
+
+**What the delegation does not do, and this matters more than what it does.**
+
+1. **It does not lower the evidence bar — it raises it.** A ruling made under delegation has no second reader, so the reasoning must survive alone. Every delegated decision below is written with the options, the measured consequence of each, and the reason for the choice, in the same shape the packet used when the decider was someone else. A future reader must be able to *overturn* it, which means being able to reconstruct it.
+2. **It does not extend to ratification.** ADR amendments that change a *decision*, the fabrication-fix behaviour (standing instruction), and anything that alters what CORE serves as true remain Shay's. The delegation covers rulings *inside* the plan, not the constitutional layer above it. R-12 was executed under an explicit prior ruling, not under this grant.
+3. **It does not convert a hard question into a soft one.** Where the honest answer is *"the evidence does not decide this,"* the delegated ruling is to say so and pick the option that is reversible — not to manufacture confidence. `wrong=0` applies to rulings too.
+
+**Every ruling made under this grant is marked `DELEGATED` with its date and reasoning**, so the record distinguishes what Shay decided from what I decided on his instruction. That distinction is the whole reason this section exists.
 **Contract:** each ruling below is prepared so that answering it costs **one word**. The evidence is gathered, the options are enumerated, a recommendation is made with its reasoning, and the exact change that follows from each option is written out. Nothing here recommends reversing a ratified decision; R-12 amends two ADRs' *records* without touching either decision.
 
 **How to rule:** reply with the item and your choice — e.g. `R-1 A · R-3 B · R-8 C`. Anything left unruled stays `PENDING` and blocks only the wave named in its **Blocks** line.
@@ -64,7 +80,7 @@
 
 ## R-3 · The F-6 accrual flag — incomplete set, or intended dormancy?
 
-**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *incomplete flag set — add `accrue_realized_knowledge` to the daemon profile* · **Register:** G-6 / H-6 · **Blocks:** Wave 4 (hard gate), PR-5.
+**Status:** **RULED A — EXECUTED 2026-07-28 (PR-5)** · *incomplete flag set — `accrue_realized_knowledge` added to the daemon profile; assertion observed RED first; H-8(c)+(d) closed with **zero** docstring edits, because the docstrings were right and the code was incomplete* · **Register:** G-6 / H-6 · **Blocks:** Wave 4 (hard gate), PR-5.
 
 **The question.** `CONTINUOUS_LIFE_CONFIG_FLAGS` (`chat/always_on_daemon.py:45-49`) forces `persist_session_state`, `consolidate_determinations`, `strict_identity_continuity` — and **not** `accrue_realized_knowledge`. The only turn-path writer of realized facts sits behind the unforced flag. **As coded, the continuous life may consolidate an empty set.**
 
@@ -90,7 +106,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-4 · Flag profiles — one-shot / eval / continuous-life
 
-**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *profiles + register + pin, 32 flags, incl. the `chain_depth` collapse candidate* · **Register:** G-8 / H-6 · **Blocks:** PR-5.
+**Status:** **RULED A — EXECUTED 2026-07-28 (PR-5)** · *`docs/specs/flag_register.md`: 32 flags classified CAPABILITY/POSTURE/DEPLOYMENT, profiles declared as the unit of decision, bidirectional pin on the gate, four sabotages red* · **Register:** G-8 / H-6 · **Blocks:** PR-5.
 
 **The question.** `RuntimeConfig` defines **32 boolean fields: 28 default `False`, 4 default `True`** (`allow_cross_language_recall`, `use_salience`, `discourse_planner`, `deduction_serving_enabled`). Three are daemon-forced. No document states the set, which defaults are deliberate posture versus accumulated hesitancy, or what evidence would flip each. *(The assessment said "seventeen"; the real number is 28 — N-7. Two counts of the same set differing by eleven is itself the finding: nothing in the repo distinguishes capability flags from policy flags.)*
 

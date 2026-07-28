@@ -9,9 +9,9 @@
 |---|---|
 | PR-0 ruling packet (#140) · PR-1 record amendments · R-10 discharged (#138 merged) · **R-12 — both ADR amendments + the §5 verdict banner + the §6 retirement amendment** | PR-2 — CR-1/CR-2 design briefs that do not yet exist (**not** a ruling) |
 | **Track A — ADR-0252 §5 run to NO-GO**, criterion pre-registered, artifact + digest committed, **verdict ratified 2026-07-28** | PR-8 — a small ADR (H-3/G-20) · PR-10 — a refactor ADR (H-4) |
-| PR-4 membership + reachability ratchets · PR-6 three doctrine pins · PR-7 M2 trust table · PR-9 count-the-swallow | PR-12 — an ADR **amendment** (R-13 authorizes it; the amendment is still owed) |
+| PR-4 membership + reachability ratchets · PR-6 three doctrine pins · PR-7 M2 trust table · PR-9 count-the-swallow · **PR-5 the flag register (R-3+R-4)** | PR-12 — an ADR **amendment** (R-13 authorizes it; the amendment is still owed) |
 | PR-3 + PR-3b (**R-7**, Wave 1) · H-13 (served-marker defect) · H-8e (closure docstring) · G-22 (main was red; `CLAIMS.md` stale) | Track B — the fabrication ADR (standing instruction, unchanged) |
-| **Closed:** G-7, G-9, G-22, H-7, H-11, H-13, H-8a, H-8b, H-8e · **Answered:** G-1 · **Discharged:** H-10 · **Pinned:** G-23 | Track C — invention, deliberately last |
+| **Closed:** G-6, G-7, G-8, G-9, G-15, G-22, H-6, H-7, H-8 (**all five instances**), H-11, H-13 · **Answered:** G-1 · **Discharged:** H-10 · **Pinned:** G-23 | Track C — invention, deliberately last |
 
 **New this arc, not in the original assessment:** **N-8** (the §5 experiment had already returned GO twice, on unmerged branches, both unsound), **N-9** (the gate "drift" was a recorded decision — PR-4's pin 1 **withdrawn** rather than built, R-14 dissolved), **G-21** (the math reader decides **1.0%** of `holdout_dev/v1`), **G-22** (`main` was red before the arc, and `CLAIMS.md` published a superseded evidence digest for two days), **H-13**, **H-14**, **H-8e**.
 
@@ -216,7 +216,7 @@ The packet's original order was by register number. That is the wrong axis: it i
 |---|---|---|---|---|
 | 1 | ~~**R-12**~~ | Two ratified-ADR record amendments — ADR-0146 (daemon) and ADR-0252 ("34 organs" footnote) — **plus** the §5 verdict banner and the §6 retirement-condition amendment, landed in the same edit | **S** | **EXECUTED 2026-07-28.** Zero-risk, changed no decision. Closed **H-8(a)** and **H-8(b)**, and discharged Track A's outstanding obligation. |
 | 2 | ~~R-7~~ | ~~Register supersession~~ | — | **EXECUTED** — PR-3 + PR-3b, landed 2026-07-28. Listed so the order stays readable. |
-| 3 | **R-3 + R-4** | PR-5 — the flag register (`docs/specs/flag_register.md`), all 32 `RuntimeConfig` booleans, profiles as units, the pin that forbids an unregistered flag, `accrue_realized_knowledge` added to the daemon profile, the two N-6 docstrings corrected | **M** | R-3 is a **hard gate on Wave 4**; nothing automates until it resolves. R-4 is the mechanism R-3's fix must land inside, so they are one PR. |
+| 3 | ~~**R-3 + R-4**~~ | PR-5 — the flag register, all 32 booleans classified, profiles as units, the bidirectional pin, `accrue_realized_knowledge` into the daemon profile | **M** | **EXECUTED 2026-07-28.** Closed **G-6, G-8, H-6, H-8(c), H-8(d)** — and **H-8 in full**. The N-6 docstring correction **dissolved**: the docstrings were right and the code was incomplete. **Wave 4's hard gate is lifted.** |
 | 4 | **R-9 + R-2** | PR-11 — the L10 soak to a committed artifact with a pinned `deterministic_digest`, the ruled cadence, and R-2's "now" paragraph written into the contract *before* the re-run | **M** | Proof of life. R-2 must land first inside the same PR or the soak answers a design question by accident (the packet's own reasoning for R-2). |
 | 5 | **R-13** | PR-12 — distinct-evidence counting at the seal boundary + the honest re-count of 25 ratified bands, demotions applied, `test_volume_honesty.py` moved in the same PR | **L** | Needs an ADR **amendment** (0175/0263 lineage). R-13 authorizes the demotions; it does not write the amendment. Expect served capability to shrink — that is the mechanism working. |
 | 6 | **R-8** | PR-14 — the outcome-mix rule, then seal `curriculum_serve_ledger.json`. Four bands qualify on sealing (N-5) | **M** | Depends on PR-12's counting basis. This is the entire throughput frontier, one ruling wide. |
@@ -288,6 +288,20 @@ Promoted out of a parenthetical in PR-4, because a parenthetical is how fifteen 
 
 ### PR-5 · The flag-default register · **M** · G-8/H-6
 `docs/specs/flag_register.md`: all **28** default-off flags plus the 4 default-on — current default, deliberate-posture vs accumulated-hesitancy, **what evidence flips it**, and named profiles (one-shot / eval / continuous-life) per R-4. Declared in the table, not the call site (ADR-0263 Rule 5). A pin asserts the register lists exactly the flags `core/config.py` defines — so a new flag cannot land unregistered. Includes the F-6 accrual resolution from R-3 and the N-6 docstring correction.
+
+**LANDED 2026-07-28.** `docs/specs/flag_register.md` + `tests/test_flag_register.py` on the gate. All 32 booleans carry a class (**CAPABILITY** / **POSTURE** / **DEPLOYMENT**), a governing ADR or an honest "none", and *what evidence would flip it*. The classification is the load-bearing half: `estimation_enabled` and `composed_surface` are both `= False` and are not the same kind of thing, and nothing in the repository said so before. R-4's profiles are declared as the **unit of decision** — one-shot/eval and continuous-life — with the deliberate absence of a *serving* profile stated, since grouping the four POSTURE serving flags before the ledger is sealed would license by association.
+
+**Three findings the item did not anticipate, all from measuring rather than reading:**
+
+1. **Accumulated permissiveness.** Of the four default-ON flags, **one** has a governing ADR; **two have no recorded reason of any kind** — `allow_cross_language_recall` and `use_salience` carry no comment block, no ADR, no criterion. Registered, deliberately not fixed: inventing a rationale after the fact would fabricate a decision nobody made. Owed: one line each from whoever knows.
+2. **A hollow gate inside the governance pin.** `test_default_on_flag_is_not_governed_by_a_proposed_adr` is parameterized over *(ON flag × cited ADR)*, so the three uncited ON flags produce **zero cases** — it covered one flag — while its non-vacuity guard only required that *some* flag cite an ADR, which default-off flags satisfy abundantly. One reformatted comment from zero coverage, fully green. Tightened, **observed red**.
+3. **The daemon's own tests ran on no gate.** R-3 changes what the always-on process does every beat, and `tests/test_l10_always_on_daemon.py` was in no curated suite. Promoted with the change it guards — measured **+9.4s, +4.3% of smoke**, paid deliberately rather than estimated.
+
+**Verification:** the R-3 assertion observed **red** before the flag was added; **four sabotages** on the register pin observed red, one caught by two independent pins; the tightened governance guard observed red by stripping ADR-0256's citation.
+
+**One deliverable dissolved rather than shipping, and it is recorded rather than quietly dropped:** "the N-6 docstring correction." Both `core/config.py` docstrings already described the corrected profile, so adding the flag made them **true**. The documents were right about the intent; the code was incomplete. That is what R-3 A means, and a PR that silently ships less than it promised is the divergence class this plan exists to close.
+
+**Consequence handed forward to PR-11:** the 5000-beat soak recorded in `evals/l10_always_on/contract.md` (2026-07-19) predates this change and **describes a configuration that no longer ships**. PR-11's re-run is the first soak of the corrected profile.
 
 **Plus one page this PR is the natural home for (from the 2026-07-28 triage, proposal 6).** The repository's governing pattern is *declared in the table, not the call site* (ADR-0263 Rule 5) and it is implemented in many places — `GROUNDING_SOURCES`, `DOMAIN_PACKS`, `TEST_SUITES`, `GATE_SUITES`, `CONTINUOUS_LIFE_CONFIG_FLAGS`, the quarantine/slow registries, `PINNED_SHAS`. **Nobody can currently enumerate them, or say what enforces each.** That is a one-page index in the flag register's own document — *table → where declared → what pin makes it true* — and explicitly **not** a `contracts.toml` that centralizes them into a fifth copy needing agreement with four generators. The index is a reader's aid; the tables stay where their authority lives.
 
@@ -394,7 +408,7 @@ Wave 0 (rulings) ──┬─→ Wave 1 (delete) ──→ Wave 2 (enforce) ─�
 Hard gates, non-negotiable:
 - **Track B widening ⟸ Track A verdict.** Widening under the wrong paradigm is the most expensive possible mistake in this plan.
 - **Track B fixes ⟸ the fabrication ADR.** Standing instruction; serving-path truth behavior is ratification territory.
-- **Wave 4 ⟸ F-6 resolved (R-3) *and* Track C exists.** An always-on process consolidating an empty set is the mastery framework's "garbage at high speed," and CORE came within one flag of it.
+- ~~**Wave 4 ⟸ F-6 resolved (R-3)**~~ **— half-lifted 2026-07-28.** F-6 is resolved: the daemon now forces the producer (Step B) alongside the consumer (Step D), so the always-on process no longer consolidates an empty set. CORE shipped within one flag of the mastery framework's "garbage at high speed" for six weeks, guarded by tests no gate ran. **Wave 4 still waits on Track C existing** — that half of the gate is untouched.
 - **PR-14 ⟸ PR-12 and R-8.** A ledger built on the old counting basis would have to be rebuilt; a ledger sealed without the mix rule licenses four bands on non-commitments.
 
 ---

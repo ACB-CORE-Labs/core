@@ -38,11 +38,27 @@ from engine_state import EngineStateStore
 
 LOCK_FILENAME = "always_on.lock"
 
-# The continuous-life config: persist the lived field/vault across reboot (Shape B+),
-# learn from determined facts each beat (Step D), and REFUSE to resume a different-identity
-# checkpoint (the load-time identity guard). So a daemon restart is the SAME life or it
-# stops — never a silent fork.
+# The continuous-life config: ACCRUE knowledge from each turn (Step B), persist the lived
+# field/vault across reboot (Shape B+), learn from determined facts each beat (Step D), and
+# REFUSE to resume a different-identity checkpoint (the load-time identity guard). So a
+# daemon restart is the SAME life or it stops — never a silent fork.
+#
+# ``accrue_realized_knowledge`` joined this set on 2026-07-28 (R-3, ruled A). It was absent,
+# and its absence was the assessment's F-6: Step D consolidates realized facts back into the
+# held self, and Step B is the ONLY turn-path writer of the facts Step D consolidates. A
+# daemon forcing D without B is a continuous life that consolidates an empty set — capability
+# machinery running over nothing, which the mastery framework calls "garbage at high speed."
+#
+# The ruling was between "incomplete flag set" and "intended dormancy," and the evidence for
+# incompleteness was in the code rather than the documents: BOTH flags' comment blocks in
+# core/config.py already described this exact profile — accrue_realized_knowledge says "the
+# production L10 process enables it alongside persist_session_state," and
+# consolidate_determinations says "...alongside accrue_realized_knowledge +
+# persist_session_state." Two flags' own documentation asserted a production configuration
+# the production configuration did not have. Adding the flag makes both true; dormancy would
+# have required correcting two docstrings that were right about the intent.
 CONTINUOUS_LIFE_CONFIG_FLAGS: dict[str, Any] = {
+    "accrue_realized_knowledge": True,
     "persist_session_state": True,
     "consolidate_determinations": True,
     "strict_identity_continuity": True,

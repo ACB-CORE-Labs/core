@@ -64,6 +64,14 @@ Their dependency reasoning is still sound and is the ratchet's lasting contribut
 The daemon forces `consolidate_determinations` but not `accrue_realized_knowledge`; the only turn-path writer of realized facts sits behind the unforced flag. As coded, the continuous life may consolidate an empty set. Incomplete flag set, or intended dormancy — **neither is documented**, and a prior verification doc asserts the opposite of the code (C-5).
 **Evidence:** `CONTINUOUS_LIFE_CONFIG_FLAGS` (`chat/always_on_daemon.py:45-49`); `determine-phase` card gating table. · **Authority:** ruling (one flag + one sentence, or a documented dormancy rationale).
 
+**CLOSED 2026-07-28 — R-3 ruled A (incomplete flag set), executed with PR-5.** `accrue_realized_knowledge` joined `CONTINUOUS_LIFE_CONFIG_FLAGS`; the daemon now forces the producer alongside the consumer. **The decisive evidence was in the code, not the documents:** *both* flags' own comment blocks in `core/config.py` already described the corrected profile — `accrue_realized_knowledge` says *"the production L10 process enables it alongside `persist_session_state`"* and `consolidate_determinations` says *"…alongside `accrue_realized_knowledge` + `persist_session_state`."* Three records (two docstrings and the 07-25 verification doc) agreed with each other and disagreed with four lines of code. Dormancy was a coherent ruling and would have cost correcting three records that were **right about the design**; incompleteness cost one line.
+
+**The plan's "N-6 docstring correction" deliverable therefore dissolved rather than shipping** — adding the flag made both docstrings true. Recorded because a PR that quietly ships less than it promised is the same class of divergence this register exists to catch.
+
+**Red before green:** the assertion `cfg.accrue_realized_knowledge is True` was added to `tests/test_l10_always_on_daemon.py` and **observed failing** before the flag was added. That file was in no curated suite, so the change would otherwise have shipped guarded only by tests no gate runs — it is now on the gate (measured +9.4s, +4.3% of smoke).
+
+**Consequence for PR-11, and it is not incidental:** the 5000-beat soak recorded in `evals/l10_always_on/contract.md` (2026-07-19) ran *before* this change and therefore describes **a different configuration than the one that now ships.** PR-11's re-run is the first soak of the corrected profile, and Step B feeding Step D is exactly what a long horizon stresses.
+
 ---
 
 ## Tier B — Enforcement & instrument debt (capability exists; the guarantee doesn't)
@@ -105,6 +113,16 @@ Pin 1 exists because the two gates have **already** drifted (see H-12): the loca
 
 *(This entry originally said "seventeen." The verified count is 28 default-off. That two counts of the same set differ by eleven is itself the finding: nothing in the repository distinguishes a capability flag from a policy or deployment flag, which is exactly the classification the register must make.)*
 **Evidence:** `core/config.py` at `ed06dd64` (32 `bool` fields, 28 `= False`, 4 `= True`); daemon trio (Phase 3). · **Authority:** documentation PR + per-flag evidence bars set by ruling (R-4).
+
+**CLOSED 2026-07-28 — `docs/specs/flag_register.md`, with R-4's profile mechanism, enforced by `tests/test_flag_register.py` on the gate.** All 32 booleans registered with class, governing ADR, recorded rationale, and *what evidence would flip it*. The classification this entry called for is made explicitly and is the document's load-bearing half — **CAPABILITY** (what CORE can do), **POSTURE** (what CORE serves or refuses as true — the `wrong=0` boundary, ruling-only), **DEPLOYMENT** (cost and lifecycle). `estimation_enabled` and `composed_surface` are both `= False` and are not the same kind of thing; nothing in the repository said so before.
+
+**The pin is bidirectional**, because one direction would have passed through both failures it exists to prevent: a flag added to `core/config.py` and not registered fails; a register row outliving its flag fails; and the counts the register's prose states (32 / 4 ON) are pinned, since a stale count is how this entry came to exist. **Four sabotages observed red**, one of them caught by two independent pins.
+
+**Two findings the register produced that this entry did not anticipate.**
+1. **Accumulated permissiveness, not just hesitancy.** Of the **four default-ON flags, one** has a governing ADR (`deduction_serving_enabled` / ADR-0256) and **two have no recorded reason of any kind** — `allow_cross_language_recall` and `use_salience` have no comment block, no ADR, no criterion. In an architecture built on earned licenses, two permanently-on capability flags with no recorded decision is this entry's question inverted. Registered, deliberately **not** fixed: writing a rationale after the fact would invent a decision nobody made.
+2. **A hollow gate inside the governance pin.** `test_default_on_flag_is_not_governed_by_a_proposed_adr` is parameterized over *(default-ON flag × cited ADR)*, so the three uncited ON flags contribute **zero cases** — it covered exactly one flag — while its non-vacuity guard checked only that *some* flag cites an ADR, which default-*off* flags satisfy in abundance. One reformatted comment away from zero coverage with everything green. Guard tightened and **observed red** by stripping ADR-0256's citation.
+
+*Also delivered here, from the 2026-07-28 external-assessment triage:* **§5, the declared-table index** — the eight single-source-of-truth tables in the repository and the pin that makes each true. A reader's aid, explicitly not a central `contracts.toml`, which would add a fifth copy needing agreement with four generators and put four authorities in one merge surface.
 
 ### G-9 · Enforcement pins unverified for three doctrine-level prohibitions
 **Layer:** M1 / MG · **Leverage: 9**

@@ -52,6 +52,9 @@ Ranked by leverage (cognitive/structural load removed ÷ effort), per the AGENTS
 **Why it hinders:** flags that must be coherent *as a set* are owned nowhere as a set. `CONTINUOUS_LIFE_CONFIG_FLAGS` is the right pattern (a named, documented flag *profile*) applied to the wrong subset.
 **Better home:** the flag-default register (G-8) with named profiles (one-shot / eval / continuous-life), each profile ruled as a unit.
 **Authority:** ruling on the accrual flag + the register PR.
+**RESOLVED 2026-07-28 (R-3 + R-4, PR-5) — relocated to its better home, exactly as specified.** `docs/specs/flag_register.md` §4 declares profiles as the unit of decision: **one-shot/eval** (the `RuntimeConfig()` defaults — and the register states *why* that is a real reason rather than hesitancy: a fresh runtime per invocation must not pay for resume, accrual, or snapshotting it does not use) and **continuous-life** (`CONTINUOUS_LIFE_CONFIG_FLAGS`, now the coherent four rather than the incoherent three). The misplaced responsibility this entry named — *"flags that must be coherent as a set are owned nowhere as a set"* — is discharged by making the set the declared unit.
+
+*One profile is deliberately absent and the register says so:* there is **no serving profile**. The four POSTURE serving flags are ruled individually because each rides its own license, and grouping them before the ledger is sealed would license by association — which is the outcome R-8 exists to prevent.
 
 ## H-7 · The production ingest boundary lacks the trust contract its sibling has
 **Verdict:** `strained` — the standard exists and stops one layer short · **Layers:** M2
@@ -86,8 +89,14 @@ The surviving delta is **not a containment hole** — refusal is fail-closed and
 
 **(e) CORRECTED.** `expand_relation_closure`'s docstring now states that termination is structural (monotone growth over a finite triple set) and that **no path-revisit check is performed and none should be** — one would refuse sound transitive derivations. It also records that `path` is the *witnessing* step rather than full ancestry, and that extending it would move `operator_invocation` and `trace_hash`, so it is deliberately not done.
 
-**(c) and (d) remain open**, both on **R-3** (ruled A — incomplete flag set), and both land with PR-5: the 07-25 doc's correction note, and the two `core/config.py` docstrings corrected as `accrue_realized_knowledge` joins the daemon profile.
-**Authority:** docs PRs + ruling signatures (R-12 — **discharged**; R-3 for the docstrings).
+**(c) and (d) CLOSED 2026-07-28 by R-3's execution in PR-5 — and they closed the opposite way round from how this entry framed them.**
+
+The entry assumed the *records* were wrong and would be corrected. They were not. Both `core/config.py` docstrings and the 07-25 verification doc described the **intended** profile accurately; the code was missing one flag. Adding `accrue_realized_knowledge` to `CONTINUOUS_LIFE_CONFIG_FLAGS` made all three statements true, so **(d) closed with zero docstring edits.** That is what "incomplete flag set" means as a ruling, and it is why R-3 A was correct: dormancy would have required correcting three records that were right about the design.
+
+**(c) closed by amending the correction note rather than deleting it — and the amendment is the more useful artifact.** PR-1's note said the document's claim was false. R-3 then made that claim **true**, so the correction note itself went stale, in the direction nobody guards: *a correction made wrong by its own subject being fixed.* Both notes now carry the commit window they apply to. **A dated correction survives its subject changing; an undated "this is false" does not** — recorded in the document itself, since this entry is precisely about records that stop being true.
+
+**H-8 is now fully discharged:** (a) and (b) by R-12, (c) and (d) by R-3/PR-5, (e) by the inductive-closure docstring correction.
+**Authority:** docs PRs + ruling signatures (R-12 — **discharged**; R-3 — **discharged**).
 
 ## H-9 · Dead instruments still standing as if live
 **Verdict:** `superseded-in-place` (unratified) · **Layers:** MV/governance

@@ -139,6 +139,23 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # and sit in no curated suite, so they could not have caught it.
         # Reads 30 small JSON files, <1s.
         "tests/test_domain_pack_binding.py",
+        # R-3 / PR-5 — promoted 2026-07-28 WITH the change it guards. R-3 added
+        # accrue_realized_knowledge to CONTINUOUS_LIFE_CONFIG_FLAGS, which changes
+        # what the always-on daemon does on every beat; the only file covering that
+        # behaviour ran in no curated suite. Shipping a behaviour change to the
+        # continuous-life process guarded solely by tests no gate invokes is the
+        # hollow-gate pattern this arc exists to close. Measured cost: 16 tests,
+        # 9.4s — +4.3% on smoke, paid deliberately rather than estimated.
+        "tests/test_l10_always_on_daemon.py",
+        # PR-5 / G-8 / H-6 — docs/specs/flag_register.md must name exactly the
+        # RuntimeConfig booleans, in BOTH directions: a new flag cannot land
+        # unregistered, and a row cannot outlive its flag. A register nothing checks
+        # is a 33rd copy of the flag set that looks authoritative until it falls
+        # behind — which is precisely how CLAIMS.md (G-22) and DOMAIN_PACKS (G-23)
+        # drifted. Also pins the counts the register's prose states (32 / 4 ON), the
+        # ON surface being the only part where staleness is immediately dangerous.
+        # Four sabotages observed red. Pure file parsing, <1s.
+        "tests/test_flag_register.py",
         # G-22 — CLAIMS.md is a PUBLISHED capability artifact, deterministically
         # regenerable from the capability ledger + PINNED_SHAS. It published a
         # superseded evidence digest for deduction_serve_v1 for two days after

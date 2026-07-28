@@ -74,11 +74,22 @@ def test_daemon_forces_the_continuous_life_config_helper() -> None:
         persist_session_state=False,
         consolidate_determinations=False,
         strict_identity_continuity=False,
+        accrue_realized_knowledge=False,
     )
     cfg = continuous_life_config(base)
     assert cfg.persist_session_state is True
     assert cfg.consolidate_determinations is True
     assert cfg.strict_identity_continuity is True
+    # R-3 (ruled A, 2026-07-28) — the fourth flag, and the reason the set was
+    # incomplete rather than deliberately dormant. Step D consolidates soundly
+    # derived determinations back into the held self; Step B is the ONLY
+    # turn-path writer of the realized facts Step D consolidates. Forcing D
+    # without B is a continuous life that consolidates an empty set, which is
+    # the mastery framework's "garbage at high speed" and the hard gate on
+    # Wave 4. Both flags' own docstrings in core/config.py already asserted
+    # this profile ("the production L10 process enables it alongside ..."):
+    # the documents were right about the intent and the code was incomplete.
+    assert cfg.accrue_realized_knowledge is True
 
 
 def test_run_daemon_applies_the_forced_config_to_the_runtime(tmp_path, monkeypatch) -> None:
