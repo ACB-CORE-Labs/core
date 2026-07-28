@@ -65,7 +65,15 @@ Suite tuples are hand-curated; a test file in zero *curated* suites is indisting
 2. **Curated-suite membership** — every `tests/**/test_*.py` is in ≥1 suite **excluding `full`**, or in a registered exclusion list with a one-line reason.
 
 Pin 1 exists because the two gates have **already** drifted (see H-12): the local suite is 23 files, `smoke.yml` is 13, and the 10-file delta includes ADR-0265's denial pin, both ADR-governance pins, volume honesty, and curriculum polarity. Measured parity cost: **429 tests in 46s** on the Act runner's own hardware.
-**Evidence:** `MV` card; `core/cli_test.py:13`; `.github/workflows/smoke.yml`; H-12. · **Authority:** mechanical (small PR) for the pins; the R-14 ruling for the parity *direction*.
+
+**CLOSED 2026-07-28 — and pin 1 was withdrawn rather than built (N-9).**
+
+*Pin 1 was already in the repository, in the only direction that protects anything.* `test_cli_smoke_suite_covers_ci_smoke_gate` has pinned `smoke.yml ⊆ TEST_SUITES["smoke"]` throughout (which is why every measurement above finds **CI-only = 0** — a pin, not luck), under a comment reading *"DELIBERATELY ONE-DIRECTIONAL."* The symmetric version was written and reverted the same day in `50fa287d` (2026-07-25), because `AGENTS.md:280` makes GitHub Actions *"billing-locked … dead signals"* and §277 makes the workflows *"secondary observability only."* This entry's "the two gates have already drifted" is therefore a **misreading of a design decision**, and the delta is not a defect to close.
+
+*Pin 2 shipped, re-specified.* Measured **749 of 877** test files in no curated suite. The mechanism this entry proposes — assign every orphan, or list it with a reason — is hollow at that scale for the same reason the entry itself identifies: glob topic-suites satisfy the assertion while changing nothing about what runs. All four demonstrated incidents were caused by a *newly landed* orphan, never a legacy one, so what shipped is a **ratchet**: `tests/test_suite_membership.py` + `tests/full_only_baseline.txt`, blocking new orphans, enforced in both directions, count pinned. Three sabotages observed red.
+
+*One real gap the entry was circling, now fixed:* the parity pin lived in `fast`, which the pre-push gate does not run — **the pin guarding the gate did not run on the gate**. It is now in `smoke`.
+**Evidence:** `tests/test_suite_membership.py`; `tests/full_only_baseline.txt`; `tests/test_cli_test_suites.py:49`; `50fa287d`; `AGENTS.md:275-280`. · **Authority:** discharged mechanically; **no R-14 ruling is owed** for any of it.
 
 ### G-8 · No flag-default register **[AMENDED N-7]**
 **Layer:** cross-cut · **Leverage: 8**

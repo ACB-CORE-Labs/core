@@ -2,7 +2,14 @@
 # CORE local-first pre-push gate (weekly-audit T13, 2026-07-22).
 #
 # Automates the AGENTS.md §Local-First CI Validation Protocol "Pre-Push Gate":
-#   (1) the `smoke` suite  — exact CI-gate parity,
+#   (1) the `smoke` suite  — the merge bar itself, and a SUPERSET of the
+#       paths smoke.yml names (corrected 2026-07-28, N-9: this line used to
+#       read "exact CI-gate parity", which has never been true and is not the
+#       goal. AGENTS.md §277/§280 make the workflows secondary observability
+#       and GitHub Actions billing-locked dead signals, so this suite is the
+#       source and is deliberately broader. The invariant that IS enforced —
+#       smoke.yml never names a path this suite lacks — is pinned by
+#       tests/test_cli_test_suites.py::test_cli_smoke_suite_covers_ci_smoke_gate),
 #   (2) the warmed_session consistency lane pin — catches the T13
 #       telemetry-consistency regression class, which `smoke` does NOT cover
 #       (the #96 fail-closed resolve + #97 morph override escaped smoke and

@@ -29,10 +29,19 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         "tests/test_audit_ledger_r7.py",
         "tests/test_architectural_invariants.py",
         "tests/test_cli_runner_contract.py",
-        # Audio sensorium lane — part of the smoke.yml PR gate (compiler,
-        # CRDT merge, eval gates, pack manifest, mount, teachers; ~3s).
+        # Audio sensorium lane — also named in smoke.yml (compiler, CRDT
+        # merge, eval gates, pack manifest, mount, teachers; ~3s).
         # Listed explicitly so the local-first pre-push gate (AGENTS.md
-        # protocol) equals the CI gate rather than silently narrowing it.
+        # protocol) is never NARROWER than smoke.yml. It does not "equal"
+        # it, and must not: this tuple is the SOURCE and is deliberately
+        # broader (AGENTS.md §277/§280 — the workflows are secondary
+        # observability, GitHub Actions are billing-locked dead signals).
+        # The one-directional pin is
+        # tests/test_cli_test_suites.py::test_cli_smoke_suite_covers_ci_smoke_gate,
+        # whose symmetric version was tried and reverted in 50fa287d
+        # (2026-07-25). Corrected 2026-07-28 per N-9: the earlier wording
+        # claimed an equality that has never held and twice sent readers
+        # looking for drift that is a design decision.
         "tests/test_audio_compiler.py",
         "tests/test_audio_crdt_merge.py",
         "tests/test_audio_eval_gates.py",
@@ -101,6 +110,19 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # is "failures are typed, never silent" (INV-34). Registered in both
         # gates on creation, per #136. ~6s.
         "tests/test_accrual_swallow_telemetry.py",
+        # PR-4 / G-7 — a new test file may not land outside every curated
+        # suite. Four times in-repo a pin was written for a real defect,
+        # registered nowhere, ran on no pre-merge gate, and the thing it
+        # pinned regressed anyway (#113, #136, negation-survives-articulation,
+        # speculative-subject-lifecycle). A ratchet against
+        # tests/full_only_baseline.txt blocks the recurrence; the 749 legacy
+        # full-only files stay a declared, shrinking number rather than 749
+        # invented justifications (N-9). Filesystem + glob only, <1s.
+        "tests/test_suite_membership.py",
+        # The smoke/CI parity pin must run on the gate it guards. It enforces
+        # that this tuple is never NARROWER than smoke.yml — and it lived in
+        # `fast`, which the pre-push gate does not run (N-9). ~1s.
+        "tests/test_cli_test_suites.py",
         # ADR governance. An ADR that governs a default-ON flag records a
         # decision already in force, so leaving it "Proposed" makes the
         # governance record assert something false about the running system —

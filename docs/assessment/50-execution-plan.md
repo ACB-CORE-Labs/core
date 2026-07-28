@@ -21,6 +21,7 @@ The assessment's authority rests on its self-correction chain — *"nothing in t
 | N-6 | *(new)* H-8 has a fourth instance, in the code | strengthens R-3 toward "incomplete flag set" |
 | N-7 | G-8 "seventeen capability flags" | the real number is 28 of 32; G-8 grows |
 | N-8 | G-1 / this §6 "the §5 experiment is unrun" | **it had been run twice, returning GO twice, on unmerged branches** — both unsound; Track A's job was re-scoped from *run it* to *run it soundly* |
+| N-9 | N-3 / H-12 / R-14 / PR-4 "the gate drift was never intended" | **it was deliberated and reverted on 2026-07-25** (`50fa287d`); the parity pin already exists, one-directional by decision. PR-4's pin 1 is **withdrawn**; R-14's premise is corrected |
 
 ### N-1 · "No suite contains any `l10`/`always_on` test" is a scan artifact — the same artifact class caught twice before
 
@@ -94,6 +95,28 @@ G-10 says curriculum SERVE is "fully blocked by one engineering item," the 16-pr
 `core/config.py`'s docstring for `accrue_realized_knowledge` states: *"the production L10 process enables it alongside `persist_session_state`."* The docstring for `consolidate_determinations` states the same about *"accrue_realized_knowledge + persist_session_state."* The production flag set — `CONTINUOUS_LIFE_CONFIG_FLAGS` at `chat/always_on_daemon.py:45-49` — contains `persist_session_state`, `consolidate_determinations`, `strict_identity_continuity`, and **not** `accrue_realized_knowledge`.
 
 Two flags' own documentation asserts a production configuration the production configuration does not have. This is H-8's failure mode located inside the source, one layer below the documents, and it moves R-3's evidence decisively: F-6 reads as an **incomplete flag set**, not intended dormancy. Dormancy remains a coherent ruling — but it would now require correcting two docstrings that say otherwise.
+
+### N-9 · The gate "drift" was a decision, and the pin this plan proposes was already written, tried, and reverted
+
+*(Added 2026-07-28, while executing PR-4. It is the most consequential correction in this section because it **prevents work** rather than re-scoping it.)*
+
+N-3 concluded the 23-vs-13 delta was unintended, on the strength of two in-repo comments asserting parity, and called that *"the strongest evidence available that the drift was never intended."* H-12 repeated it. R-14 built three options on it, recommending **A — raise CI to parity, +46s measured**. PR-4 specified a bidirectional parity pin as its first deliverable.
+
+**All of that is answered by a third artifact none of them read.** `tests/test_cli_test_suites.py::test_cli_smoke_suite_covers_ci_smoke_gate` has enforced the surviving direction — `smoke.yml ⊆ TEST_SUITES["smoke"]` — since before this assessment began. (It is why the delta measures **CI-only = 0**: not luck, a pin.) Directly beneath its assertion sits a comment headed *"DELIBERATELY ONE-DIRECTIONAL — do not 'complete' this by also asserting `local_paths <= ci_paths`."*
+
+Its history is `50fa287d`, **2026-07-25**: *"revert(tests): drop the local-to-CI smoke parity assertion — CI is not a gate."* An earlier agent read the same suite comment this plan read, drew the same inference, made the assertion symmetric, and reported the same class of file as drift. The revert's own words: *"That was wrong, and AGENTS.md says so in a line I had already read."*
+
+**The governing line is `AGENTS.md:280`** — *"GitHub (`AssetOverflow/core`) is a **mirror only**; its Actions are billing-locked and produce dead signals — never chase them."* With §275–279: local-first is the merge bar, `.github/workflows/*.yml` are *"secondary observability only,"* and the Forgejo host cannot run workflows either.
+
+Three consequences:
+
+1. **PR-4's pin 1 is withdrawn.** It exists in the only direction that protects anything, and the other direction has been tried and rejected with the reasoning recorded at the assertion site specifically to stop it being re-derived. This plan re-derived it anyway.
+2. **R-14's premise is corrected.** Option A ("raise CI to parity, +46s on the runner's own hardware") spends 46s on a workflow that AGENTS.md says produces dead signals. The measurement was real; the thing measured does not gate.
+3. **N-3's exposure claim was too generous to CI, and the real version is worse.** N-3 said *"CI is the only automatic check"* for a push that skipped the local gate. Under `AGENTS.md:280` there is **no automatic check at all** for such a push. The exposure is real and larger than stated — and it cannot be closed by editing `smoke.yml`. It is closed by the local gate being run, which is a hook-and-discipline question, not a workflow question.
+
+**A fourth thing is genuinely open and is what PR-4 keeps:** the parity pin lives in the `fast` suite, and the pre-push gate runs `smoke` + `deductive` (`scripts/hooks/pre-push`, `scripts/ci/local-ci.sh --tier gate`). **The pin that guards the gate does not itself run on the gate.** That is cheap to fix and is real.
+
+*(Two stale claims in the revert's own reasoning, noted for the record: it says pushing workflow changes "needs an OAuth scope the push credential lacks." This session pushed `smoke.yml` edits successfully in `98a6e8b4`. The constraint is not universal — though under §280 the edits buy observability, not gating.)*
 
 ### N-8 · The §5 experiment was not unrun — it had returned GO twice, on branches nobody merged
 
@@ -179,11 +202,16 @@ The assessment directory's own corrections (N-1…N-7 applied to `30-gap-registe
 
 *Convert doctrine into failing tests. Every item here makes a guarantee mechanical that is currently maintained by attention.*
 
-### PR-4 · Gate parity + curated-suite membership · **M** · G-7 + N-3 — **highest-leverage mechanical change in the repository**
-Two pins in a CI-gated test file:
-1. `smoke.yml`'s path set == `TEST_SUITES["smoke"]`, parsed from the workflow file — fails on drift in either direction.
-2. Every `tests/**/test_*.py` is in ≥1 suite **excluding `full`**, or in `SUITE_EXCLUSIONS` with a one-line reason.
-Then the remediation the pins demand: add the 10 missing files to `smoke.yml` (R-14, +46s measured) and assign every genuine orphan. **Verification:** each pin demonstrated red before green (delete a path from `smoke.yml`, confirm failure).
+### PR-4 · Curated-suite membership ratchet · **M** · G-7 — **LANDED 2026-07-28, re-specified by N-9**
+~~1. `smoke.yml`'s path set == `TEST_SUITES["smoke"]` — fails on drift in either direction.~~ **WITHDRAWN (N-9).** The surviving direction (`smoke.yml ⊆ TEST_SUITES["smoke"]`) has been pinned since before this assessment by `test_cli_smoke_suite_covers_ci_smoke_gate`; the symmetric version was written and reverted on 2026-07-25 (`50fa287d`) because `AGENTS.md:280` makes the workflows dead signals. This plan proposed re-adding exactly what a prior agent removed, with the reasoning recorded at the assertion site to prevent it.
+
+**What landed instead:**
+
+1. **Membership ratchet** — `tests/test_suite_membership.py` + `tests/full_only_baseline.txt`. Measured: **749 of 877** test files belong to no curated suite. The plan's original mechanism ("assign every orphan, or write 749 exclusion reasons") is hollow at that scale — glob topic-suites would satisfy it while changing nothing about what executes, which is the Third-Door objection this plan itself levels at G-7's first formulation. All four demonstrated incidents (#113, #136, negation, speculative-lifecycle) were caused by a **newly landed** orphan, never a legacy one. So the ratchet blocks new orphans, enforces the baseline in **both** directions (a promoted or deleted file must leave the list), and pins the count so bulk movement is a reviewed decision.
+2. **The gate-guarding pin now runs on the gate** — `test_cli_test_suites.py` moved into `smoke`; it had lived in `fast`, which the pre-push gate does not run.
+3. **The two false parity comments corrected** (R-14 option C's live half): `core/cli_test.py`'s audio block and `scripts/hooks/pre-push` step 1 both claimed an equality that has never held and twice sent readers hunting drift that is a design decision.
+
+**Verification:** three sabotages, each observed red — a new unregistered test file, a stale baseline entry, and the parity pin demoted out of `smoke`. Remediation half (adding the ten to `smoke.yml`) is **not owed**: it buys observability, not gating.
 
 ### PR-5 · The flag-default register · **M** · G-8/H-6
 `docs/specs/flag_register.md`: all **28** default-off flags plus the 4 default-on — current default, deliberate-posture vs accumulated-hesitancy, **what evidence flips it**, and named profiles (one-shot / eval / continuous-life) per R-4. Declared in the table, not the call site (ADR-0263 Rule 5). A pin asserts the register lists exactly the flags `core/config.py` defines — so a new flag cannot land unregistered. Includes the F-6 accrual resolution from R-3 and the N-6 docstring correction.

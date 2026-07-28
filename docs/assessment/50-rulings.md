@@ -314,7 +314,21 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-14 · Gate parity — raise CI to the local suite, or lower the local suite to CI?
 
-**Status:** PENDING · **Register:** N-3 / G-7 · **Blocks:** PR-4's remediation half (the pins themselves are unblocked).
+**Status:** PENDING — but **substantially dissolved by N-9 (2026-07-28); read this box before ruling.** · **Register:** N-3 / G-7 / H-12 · **Blocks:** nothing that is still open.
+
+> **The premise below is wrong, and the question is much smaller than it appears.**
+>
+> This ruling was drafted believing the 23-vs-13 delta was unintended drift. It is not. `tests/test_cli_test_suites.py::test_cli_smoke_suite_covers_ci_smoke_gate` already pins the one direction that protects anything (`smoke.yml ⊆ TEST_SUITES["smoke"]`), and carries a comment headed *"DELIBERATELY ONE-DIRECTIONAL."* Commit `50fa287d` (2026-07-25) added the symmetric assertion and **reverted it the same day**, recording the reasoning at the assertion site so it would not be re-derived. This packet re-derived it anyway.
+>
+> **Option A is the one that suffers.** Its "+46s measured on the runner's own hardware" is a real measurement of a workflow that `AGENTS.md:280` calls *"billing-locked … dead signals — never chase them"* and §277 calls *"secondary observability only."* Spending 46s there buys observability, not gating.
+>
+> **Option B is now clearly wrong**, not merely unattractive: lowering the local suite to match a file that gates nothing would delete real protection to satisfy a fiction.
+>
+> **Option C is close to what already exists** — the gates differ deliberately — leaving only its second half live: *correct the two comments that claim an equality that does not hold* (`core/cli_test.py`'s audio block; `scripts/hooks/pre-push`'s "exact CI-gate parity" line). That is a two-line docs fix needing no ruling.
+>
+> **What N-3 got right, and understated:** it named the exposure as "the push that skipped the local gate, for which CI is the only automatic check." Under §280 there is **no automatic check at all** for such a push. That is a real and larger exposure — and no edit to `smoke.yml` touches it. It is a hook-and-discipline question (is the pre-push hook installed on every machine and agent that pushes?), and it deserves its own entry rather than a parity ruling.
+>
+> **Recommendation, revised: rule C's comment-correction and close.** The remaining engineering — promoting the parity pin out of `fast` into the gate it guards — is mechanical, ruling-free, and landed 2026-07-28.
 
 **The question.** `TEST_SUITES["smoke"]` = **23** files. `smoke.yml` = 8 patterns → **13** files. Ten files are on the local gate and not in CI.
 
@@ -355,6 +369,6 @@ What is still wrong: **two independent places in the repository assert a parity 
 | R-11 | Interim fabrication gate | **B** measure the cost, then rule again | — |
 | R-12 | Two ADR record amendments | **A/A** apply both drafted texts | PR-1 / H-8 |
 | R-13 | Wilson re-count | **A** authorize, apply demotions, move the pin | PR-12, PR-14 |
-| R-14 | Gate parity direction | **A** raise CI, +46s measured | PR-4 |
+| R-14 | Gate parity direction | **dissolved by N-9** — rule C's comment-correction and close; the delta is designed, not drift | — |
 
 *Fourteen questions. Every one has its evidence gathered, its options enumerated, and its consequent diff written. Nothing below Wave 0 branches on an unasked question once these are answered.*
