@@ -9,9 +9,9 @@
 **Also ratified:** the ADR-0252 §5 **NO-GO** verdict.
 
 **Execution order (corrected):** R-12 → R-7 → R-3+R-4 → R-9+R-2 → R-13 → R-8 → R-1/R-5/R-6/R-11.
-**Executed so far:** R-7 (PR-3, PR-3b) · **R-12** (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment) · **R-3 + R-4** (PR-5 — the flag register, the profile mechanism, the daemon's fourth flag) · **R-9 + R-2** (PR-11 — the soak's committed artifact, pinned digest, change-triggered cadence) · **R-13** (PR-12 — the Wilson re-count; 21 of 25 licences revoked) — all landed 2026-07-28.
+**Executed so far:** R-7 (PR-3, PR-3b) · **R-12** (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment) · **R-3 + R-4** (PR-5 — the flag register, the profile mechanism, the daemon's fourth flag) · **R-9 + R-2** (PR-11 — the soak's committed artifact, pinned digest, change-triggered cadence) · **R-13** (PR-12 — the Wilson re-count; 21 of 25 licences revoked) · **R-8** (PR-14 — the outcome-mix rule; the four expected licences dissolve under it) — all landed 2026-07-28.
 
-**Remaining:** R-8 → R-1/R-5/R-6/R-11.
+**Remaining:** R-1/R-5/R-6/R-11 (the four posture statements) + R-11's measurement and its second ruling.
 
 ---
 
@@ -19,7 +19,7 @@
 
 > *"If you think you might need me for a ruling, I instruct you to handle it based on the most masterful logic accordingly. No more pauses."*
 
-**Scope.** The residual decisions inside the adopted docket — the sub-questions the twelve rulings left open, and any new question of the same size that arises while executing them. Concretely and by name: **R-8 C's entailed-capability floor `N`** (never specified when C was adopted); **R-11's second ruling** (option B ends in *re-ask*, not a decision); **PR-4b's gate-width choice**; **G-23's domain-membership question**; and the sequencing latitude to reorder the docket where evidence warrants.
+**Scope.** The residual decisions inside the adopted docket — the sub-questions the twelve rulings left open, and any new question of the same size that arises while executing them. Concretely and by name: ~~**R-8 C's entailed-capability floor `N`**~~ (**ruled 2026-07-28: no new constant** — the existing θ_SERVE bar, applied to each separated capability on its own evidence, licenses nothing by a factor of 73; a second weaker constant for the capability that most needs the strong one would institutionalise the two standards option B was rejected for); **R-11's second ruling** (option B ends in *re-ask*, not a decision); **PR-4b's gate-width choice**; **G-23's domain-membership question**; and the sequencing latitude to reorder the docket where evidence warrants.
 
 **What the delegation does not do, and this matters more than what it does.**
 
@@ -188,7 +188,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-8 · The curriculum outcome-mix rule — *now the sole blocker of an entire frontier*
 
-**Status:** **RULED C** — 2026-07-28, Shay (explicit adoption) · *separate `unknown`- and `entailed`-serving licenses* · **Register:** G-10 · **Blocks:** PR-14, Track E in full.
+**Status:** **RULED C — EXECUTED 2026-07-28 (PR-14)** · *`unknown`- and `entailed`-serving separated as two capabilities. **Split, ZERO bands license — not four.** The floor `N` was ruled unnecessary (DELEGATED): the existing θ_SERVE bar suffices and is not close.* · **Register:** G-10 · **Blocks:** PR-14, Track E in full.
 
 **The question changed shape since the register was written (N-5).** G-10 named the 16-premise compilation cap as the blocking engineering item. ADR-0264 §4.1 carries a banner directly beneath its own heading:
 

@@ -400,8 +400,37 @@ band is at its ceiling.
 
 ## 5. What this ADR does not decide
 
+> ### Amendment — 2026-07-28: the mix floor is decided, and it decided nothing licensable
+>
+> *R-8, ruled **C** (`docs/assessment/50-rulings.md`), executed as PR-14. This amendment records a ruling; it reverses no decision in this ADR.*
+>
+> The first bullet below defers **the mix floor** to Phase B. It is now ruled, and the ruling is a *separation* rather than a number:
+>
+> **Committing to an entailment and correctly declining to commit are different capabilities, licensed on different evidence, and may not be pooled.** `CAPABILITY_LEDGERS` carries them as two entries — `curriculum_serve` (non-commitment) and `curriculum_serve_entailed` (commitment).
+>
+> **No new floor constant was introduced, deliberately.** The recommendation was *"C, with a floor from A applied to the entailed capability only,"* and the floor's value was never named. It does not need one: θ_SERVE=0.99 through `conservative_floor` — the bar every other capability already meets, **657** distinct correct decisions — applied to each separated capability on its own evidence is sufficient and is not close. A second, weaker constant for the capability that most needs the strong one would institutionalise two standards, which is the objection that sank option B.
+>
+> **Measured at the ruling (2026-07-28), and it overturns §4.1's expectation:**
+>
+> | | evidence | `conservative_floor` | vs 0.99 |
+> |---|---|---|---|
+> | entailed, best band | **9** | `0.000000` | fails by 648 cases |
+> | non-commitment, best band | **653** | `0.989940` | fails by **4 cases** |
+> | *pooled* (the old basis) | 660 | `0.990046` | *clears by 0.000046* |
+>
+> §4.1's banner says *"four bands would earn SERVE the moment a ledger is sealed."* That is true of the **pooled** basis and false of the ruled one. **Split, zero bands license.** The four leading bands cleared only because 7–8 entailments were counted alongside 652–653 correct refusals to reach 660; the licence was manufactured by the pooling, not by the evidence.
+>
+> **No ledger is sealed, and that is the deliverable.** Under the rule there is nothing to license, and the registered `missing_ok=True` absence already states that once. An artifact whose only content is its own emptiness would be a second statement of the same fact.
+>
+> **The useful result is the shape of the gap.** Non-commitment serving is **four to five distinct query atoms** short per band; entailed serving is ~648 short. Those are content tasks of completely different size, and the pooled figure could not distinguish *"almost there"* from *"two orders of magnitude away."* Pinned in both directions by `tests/test_curriculum_outcome_mix.py`, including the counterfactual — so the moment a band genuinely earns either licence, it is a reviewed decision rather than a drift.
+>
+> **`curriculum_serving_enabled` stays False** (last bullet of this section, unchanged).
+
 - **The bound in R9.** The specific de-duplication tuple and mix floor are
   Phase B's deliverable. R9 fixes only that a bound must exist and be reported.
+  — **The mix floor is ruled; see the amendment above. The de-duplication tuple was
+  discharged separately: the curriculum producer's case identity IS the query atom,
+  so `committed == distinct` by construction.**
 - **Raising `MAX_PREMISE_SENTENCES`.** Rejected as an approach, not deferred: it
   is a shared honesty cap that the 25 deduction bands also decide under, raising
   it would move hash-pinned lanes, and a 219-premise argument is not honest at

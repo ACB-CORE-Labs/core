@@ -163,6 +163,14 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # weeks: the 2026-07-19 soak ran without accrue_realized_knowledge in the
         # daemon profile, and nothing anywhere could notice. Had this pin existed,
         # PR-5 would have failed it, which is exactly right. <1s.
+        # PR-14 / R-8 (ruled C) / G-10 — the curriculum OUTCOME-MIX rule. Committing
+        # to an entailment and correctly declining to are different capabilities and
+        # may not be pooled. Pooled, four bands cleared theta_SERVE by 0.000046 on
+        # 652-653 correct UNKNOWNs plus 7-8 entailments; split, NEITHER half clears.
+        # Pins both directions plus the counterfactual, so the rule cannot become
+        # decorative and the moment a band genuinely earns a licence is a reviewed
+        # decision rather than a drift. ~6s (runs the practice producer).
+        "tests/test_curriculum_outcome_mix.py",
         "tests/test_l10_soak_evidence.py",
         # PR-11 / R-9 — the H1-H4 holds+bites pins, promoted onto the gate.
         # Measured 20.95s for the four real-soak "holds" and 0.46s for the eight

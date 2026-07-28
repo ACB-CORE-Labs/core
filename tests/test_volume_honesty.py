@@ -123,6 +123,29 @@ def _curriculum_keys() -> dict[str, list[Hashable]]:
     return out
 
 
+def _curriculum_entailed_keys() -> dict[str, list[Hashable]]:
+    """Decision keys for the ENTAILED half of the curriculum corpus (R-8, ruled C).
+
+    R-8 split the curriculum earning basis: committing to an entailment and
+    correctly declining to commit are different capabilities, licensed on different
+    evidence. This is the audit source for the committing half — the query atoms
+    whose oracle verdict is ``entailed``.
+
+    It exists so the split cannot be declared in the manifest and left unmeasured.
+    The numbers it reports are small on purpose: 3-9 per band, against the 657 that
+    theta_SERVE=0.99 requires. That gap IS the finding.
+    """
+    from evals.curriculum_serve.practice import all_gold_problems
+    from evals.curriculum_serve.practice.generator import CurriculumOracleTether
+
+    tether = CurriculumOracleTether()
+    out: dict[str, list[Hashable]] = {}
+    for problem in all_gold_problems():
+        if tether.gold_answer(problem) == "entailed":
+            out.setdefault(problem.class_name, []).append(problem.payload.key)
+    return out
+
+
 #: capability -> keys provider, or ``None`` when the producer is not built.
 #: ``None`` is a declaration, not an omission: :func:`test_every_licensed_capability_has_an_audit_source`
 #: accepts it only while the capability's ledger is genuinely absent.
@@ -130,6 +153,7 @@ AUDIT_SOURCES: dict[str, Callable[[], dict[str, list[Hashable]]] | None] = {
     "estimation": _estimation_keys,
     "deduction_serve": _deduction_keys,
     "curriculum_serve": _curriculum_keys,
+    "curriculum_serve_entailed": _curriculum_entailed_keys,
 }
 
 

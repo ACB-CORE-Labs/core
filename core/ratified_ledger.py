@@ -109,7 +109,26 @@ CAPABILITY_LEDGERS: dict[str, LedgerSpec] = {
         note=(
             "ADR-0262 §5 — no band has earned a license from present curriculum "
             "volume; every served band is DISCLOSED. Flips to False when the "
-            "first band earns SERVE and the ledger is committed."
+            "first band earns SERVE and the ledger is committed. R-8 (ruled C, "
+            "2026-07-28) splits the earning basis: see 'curriculum_serve_entailed' "
+            "below. This entry now governs NON-COMMITMENT (correct UNKNOWN) "
+            "serving only."
+        ),
+    ),
+    "curriculum_serve_entailed": LedgerSpec(
+        capability="curriculum_serve_entailed",
+        path=_PROJECT_ROOT / "chat" / "data" / "curriculum_serve_entailed_ledger.json",
+        missing_ok=True,
+        note=(
+            "R-8, ruled C (2026-07-28) — the outcome-mix rule. Committing to an "
+            "entailment and correctly declining to are DIFFERENT capabilities and "
+            "are licensed on DIFFERENT evidence. Pooling them let a band clear "
+            "theta_SERVE=0.99 on correct refusals alone: the four leading bands "
+            "held 652-653 correct UNKNOWNs and 7-8 entailments, and only the "
+            "pooled 660 cleared. Split, NEITHER capability licenses anything "
+            "today — entailed evidence tops out at 9 (conservative_floor(9,9)=0.0 "
+            "against a required 657), and unknown evidence tops out at 653, four "
+            "short (five for two of the four bands). Absent = nothing licensed, which is the honest state."
         ),
     ),
 }
