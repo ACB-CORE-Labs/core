@@ -156,6 +156,22 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # ON surface being the only part where staleness is immediately dangerous.
         # Four sabotages observed red. Pure file parsing, <1s.
         "tests/test_flag_register.py",
+        # PR-11 / G-5 / R-9 — the soak's evidence is committed, pinned, and CURRENT.
+        # Two failure modes, deliberately separated: the digest catches a regression,
+        # and the attested-source hashes catch STALENESS — evidence that no longer
+        # describes the code that ships. The second had already fired silently for six
+        # weeks: the 2026-07-19 soak ran without accrue_realized_knowledge in the
+        # daemon profile, and nothing anywhere could notice. Had this pin existed,
+        # PR-5 would have failed it, which is exactly right. <1s.
+        "tests/test_l10_soak_evidence.py",
+        # PR-11 / R-9 — the H1-H4 holds+bites pins, promoted onto the gate.
+        # Measured 20.95s for the four real-soak "holds" and 0.46s for the eight
+        # mutation "bites". Shipping only the cheap half was considered and rejected:
+        # these four are the ONLY tests on any gate that run chat/always_on's
+        # run_continuous loop end-to-end, and that loop just shipped a six-week silent
+        # divergence. 21s per push to actually run the process that broke is the most
+        # defensible time on this gate.
+        "tests/test_l10_always_on_soak.py",
         # G-22 — CLAIMS.md is a PUBLISHED capability artifact, deterministically
         # regenerable from the capability ledger + PINNED_SHAS. It published a
         # superseded evidence digest for deduction_serve_v1 for two days after

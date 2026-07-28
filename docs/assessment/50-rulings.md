@@ -9,7 +9,9 @@
 **Also ratified:** the ADR-0252 §5 **NO-GO** verdict.
 
 **Execution order (corrected):** R-12 → R-7 → R-3+R-4 → R-9+R-2 → R-13 → R-8 → R-1/R-5/R-6/R-11.
-**Executed so far:** R-7 (PR-3, PR-3b) · **R-12** (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment) · **R-3 + R-4** (PR-5 — the flag register, the profile mechanism, and the daemon's fourth flag) — all landed 2026-07-28.
+**Executed so far:** R-7 (PR-3, PR-3b) · **R-12** (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment) · **R-3 + R-4** (PR-5 — the flag register, the profile mechanism, the daemon's fourth flag) · **R-9 + R-2** (PR-11 — the soak's committed artifact, pinned digest, and change-triggered cadence) — all landed 2026-07-28.
+
+**Remaining:** R-13 → R-8 → R-1/R-5/R-6/R-11.
 
 ---
 
@@ -58,7 +60,7 @@
 
 ## R-2 · CR-4 temporal self-location — the stance on "now"
 
-**Status:** **RULED B** — 2026-07-28, Shay (explicit adoption) · *beats govern cognition; wall-clock in telemetry only, pinned* · **Register:** G-13 · **Blocks:** PR-11 (the soak's contract paragraph).
+**Status:** **RULED B — EXECUTED 2026-07-28 (PR-11)** · *beats govern cognition; wall-clock permitted in telemetry only.* Recorded in the soak contract **before** the re-run, as designed. Measured: the lane carries **no wall-clock at all** — stronger than B requires, and kept rather than "completed" (see the contract's §"The stance on 'now'") · **Register:** G-13 · **Blocks:** PR-11 (the soak's contract paragraph).
 
 **The question.** A continuous life experiences sequence and duration; determinism bans clocks from cognition. Both commitments are correct and their intersection is undesigned. The 24h+ no-drift requirement cannot be *stated* precisely without a stance.
 
@@ -213,7 +215,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-9 · The soak's evidence standard and cadence
 
-**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *commit the artifact, pin the digest, change-triggered cadence* · **Register:** G-5 · **Blocks:** PR-11.
+**Status:** **RULED A — EXECUTED 2026-07-28 (PR-11)** · *artifact committed, digest pinned, cadence enforced by a source-hash pin rather than a clock; H1–H4 promoted onto the gate at a measured +21s* · **Register:** G-5 · **Blocks:** PR-11.
 
 **The question changed shape since the register was written (N-4).** G-5 says *"the soak has never produced an artifact."* It has: `evals/l10_always_on/contract.md` §"The measured result" records a **5000-beat soak with a reboot at beat 2500** (landed 2026-07-19 in `aed273b1`) in which **all four predicates pass** — `versor_condition` flat at `1.389e-07` across all 5000 beats, vault bounded at 6 entries, convergence at beat 1 with the 4999-beat tail at rest, reboot resuming the same life with derived learning intact.
 

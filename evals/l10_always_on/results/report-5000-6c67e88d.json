@@ -1,0 +1,54 @@
+{
+  "n_beats": 5000,
+  "reboot_beat": 2500,
+  "all_gates_pass": true,
+  "deterministic_digest": "f814fd97f367840b0a9d31a48cb9fb28b2ed01961606f7b1e0b4c3a3593972d6",
+  "predicates": [
+    {
+      "name": "H1_closure",
+      "passed": true,
+      "detail": "all 5000 observed beats closed (worst=6.177e-08 < 1e-06)",
+      "metrics": {
+        "observed_beats": 5000,
+        "worst_versor_condition": 6.177101671250627e-08,
+        "violations": []
+      }
+    },
+    {
+      "name": "H2_bounded_idle",
+      "passed": true,
+      "detail": "no idle beat grew the vault (final size 6 over 5000 beats, monotonic=True)",
+      "metrics": {
+        "idle_leaks": [],
+        "final_vault_size": 6,
+        "vault_monotonic": true
+      }
+    },
+    {
+      "name": "H3_convergence",
+      "passed": true,
+      "detail": "converged at beat 1; the 4999-beat tail stayed at rest with closure intact",
+      "metrics": {
+        "convergence_beat": 1,
+        "converged_tail_len": 4999,
+        "reawakenings": []
+      }
+    },
+    {
+      "name": "H4_reboot_resume",
+      "passed": true,
+      "detail": "reboot at 2500 resumed the SAME life: identity guard passed, learning survived, 2500 post-reboot beats closed",
+      "metrics": {
+        "resumed_cleanly": true,
+        "learned_fact_survived": true,
+        "post_reboot_beats": 2500
+      }
+    }
+  ],
+  "not_covered": [
+    {
+      "leg": "H5_learning_life_resource_cost",
+      "reason": "This lane proves the IDLE (converged) life is resource-bounded. The cost of a continuously-LEARNING life under a sustained NEW-fact stream (the full-snapshot checkpoint is O(n^2) in facts; lived_life.json is per-run) is out of scope until an afferent/intake feed and incremental persistence exist; deferred."
+    }
+  ]
+}

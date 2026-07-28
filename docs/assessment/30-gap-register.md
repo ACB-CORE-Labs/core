@@ -31,7 +31,7 @@ The comprehension frontier itself, measured. Standing ruling: close fabrications
 Confirmed at component depth: drive objects exist (`DriveGradientMap` — constructed, never read; `ExertionMeter` — telemetry only); idle mechanisms exist (consolidation, proposal review, contemplation — each flag-gated, each doing one thing); **nothing ranks what matters next**. The daemon heartbeat advances `idle_tick` and nothing more ambitious. This is the AGI-grade conceptual absence: everything CORE does is chosen by the operator. Design work, not a flag flip.
 **Evidence:** `attention-allocation` + `always-on-process` cards; `02-layer-taxonomy.md` CR-2. · **Authority:** design + ruling (does the L10 process own an agenda, governed by what).
 
-### G-5 · L10 proof debt — the soak ran and passed; what is owed is the artifact, the pinned digest, and a cadence **[AMENDED N-1/N-2/N-4]**
+### G-5 · L10 proof debt — **CLOSED 2026-07-28 (PR-11)**; the soak ran and passed, and the artifact, pinned digest and cadence are now committed **[AMENDED N-1/N-2/N-4]**
 **Layer:** M6 / MV · **Leverage: 5**
 The always-on process is built; the falsifiable harness (H1–H4, holds/bites pairs, vacuity-guarded) is built; **and it was run.** `evals/l10_always_on/contract.md` §"The measured result" records a **5000-beat soak with a reboot at beat 2500** (landed 2026-07-19 in `aed273b1`) in which all four predicates pass: `versor_condition` flat at `1.389e-07` across all 5000 beats, vault bounded at 6 entries, convergence at beat 1 with the 4999-beat tail at rest, reboot resuming the same life with derived learning intact.
 
@@ -41,6 +41,16 @@ What remains owed is the **ceremony**, and it is this assessment's own §8 maint
 - **no cadence** rules the lane, and the local-first/Mac-runner doctrine makes "nightly" itself a ruling rather than a cron line.
 
 A recorded prose result with no pinned digest is **testimony, not evidence** — the same failure mode as the map, the ratchet, and the blueprint.
+
+**CLOSED 2026-07-28 — R-9 (A) + R-2 (B), PR-11.** The debt was never the run (N-4): it was the ceremony. Now committed as `evals/l10_always_on/results/report-5000-6c67e88d.json`, digest `f814fd97…` **pinned** by `tests/test_l10_soak_evidence.py` on the gate — the contract's own closing instruction, unmet for nine days, finally met. All four predicates pass at 5000 beats with reboot at 2500.
+
+**The re-run's most useful result was not the pass.** Every *deterministic* fact reproduced exactly (vault bounded at 6, convergence at beat 1 with a 4999-beat tail, clean reboot with derived learning intact) while the machine-variant float moved from the prose's `1.389e-07` to `6.177e-08` — the first real evidence that excluding `versor_condition` from the digest was correct rather than convenient.
+
+**The cadence is a pin, not a clock (R-9 A).** It holds the SHA-256 of every source the soak attests and asks *"does this evidence still describe the code that ships?"* rather than *"when did we last run it?"* — because a nightly that does not run is green for the wrong reason (H-9). **It had already fired silently for six weeks:** the 2026-07-19 soak ran without `accrue_realized_knowledge` in the daemon profile, so from R-3 onward it attested a process that no longer existed. Had the pin existed, PR-5 would have failed it. Verified by sabotage: touching `always_on_daemon.py` turns it red.
+
+**R-2 B ruled and recorded *before* the re-run**, so the soak measured a decided question. Measured result: the lane carries **no wall-clock at all**, in cognition or telemetry — stronger than B requires. Kept rather than "completed": adding a timestamp to match a ruling's letter, then a pin to guard it, is a mechanism whose only purpose is to be guarded, and *"when was this run"* is already the artifact's commit date, stated once.
+
+**The H1–H4 pins are on the gate**, measured at **+21s** (20.95s holds, 0.46s bites). Shipping only the cheap bites was considered and rejected: the four holds are the only tests on any gate that run `chat/always_on`'s `run_continuous` end-to-end, and that loop just shipped a six-week silent divergence.
 
 **Absorbed 2026-07-28 (R-7, PR-3) — the substrate-liveness ratchet's seven OPEN items.** The ratchet is now historical; every one of its open entries was L10-chained, which is this entry, so they live here rather than in a stale instrument:
 
