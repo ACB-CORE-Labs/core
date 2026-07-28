@@ -7,11 +7,11 @@
 
 | Landed | Blocked, and on what |
 |---|---|
-| PR-0 ruling packet (#140) · PR-1 record amendments · R-10 discharged (#138 merged) | PR-2 — CR-1/CR-2 design briefs that do not yet exist (**not** a ruling) |
+| PR-0 ruling packet (#140) · PR-1 record amendments · R-10 discharged (#138 merged) · **R-12 — both ADR amendments + the §5 verdict banner + the §6 retirement amendment** | PR-2 — CR-1/CR-2 design briefs that do not yet exist (**not** a ruling) |
 | **Track A — ADR-0252 §5 run to NO-GO**, criterion pre-registered, artifact + digest committed, **verdict ratified 2026-07-28** | PR-8 — a small ADR (H-3/G-20) · PR-10 — a refactor ADR (H-4) |
 | PR-4 membership + reachability ratchets · PR-6 three doctrine pins · PR-7 M2 trust table · PR-9 count-the-swallow | PR-12 — an ADR **amendment** (R-13 authorizes it; the amendment is still owed) |
 | PR-3 + PR-3b (**R-7**, Wave 1) · H-13 (served-marker defect) · H-8e (closure docstring) · G-22 (main was red; `CLAIMS.md` stale) | Track B — the fabrication ADR (standing instruction, unchanged) |
-| **Closed:** G-7, G-9, G-22, H-7, H-11, H-13, H-8e · **Answered:** G-1 · **Discharged:** H-10 | Track C — invention, deliberately last |
+| **Closed:** G-7, G-9, G-22, H-7, H-11, H-13, H-8a, H-8b, H-8e · **Answered:** G-1 · **Discharged:** H-10 · **Pinned:** G-23 | Track C — invention, deliberately last |
 
 **New this arc, not in the original assessment:** **N-8** (the §5 experiment had already returned GO twice, on unmerged branches, both unsound), **N-9** (the gate "drift" was a recorded decision — PR-4's pin 1 **withdrawn** rather than built, R-14 dissolved), **G-21** (the math reader decides **1.0%** of `holdout_dev/v1`), **G-22** (`main` was red before the arc, and `CLAIMS.md` published a superseded evidence digest for two days), **H-13**, **H-14**, **H-8e**.
 
@@ -214,7 +214,7 @@ The packet's original order was by register number. That is the wrong axis: it i
 
 | Rank | Ruling(s) | Deliverable | Size | Why here |
 |---|---|---|---|---|
-| 1 | **R-12** | Two ratified-ADR record amendments — ADR-0146 (daemon) and ADR-0252 ("34 organs" basis footnote). Text already drafted in the packet | **S** | Zero-risk, changes no decision, and both ADRs are read as authority by everything downstream. A record that contradicts the code is the arc's whole subject. |
+| 1 | ~~**R-12**~~ | Two ratified-ADR record amendments — ADR-0146 (daemon) and ADR-0252 ("34 organs" footnote) — **plus** the §5 verdict banner and the §6 retirement-condition amendment, landed in the same edit | **S** | **EXECUTED 2026-07-28.** Zero-risk, changed no decision. Closed **H-8(a)** and **H-8(b)**, and discharged Track A's outstanding obligation. |
 | 2 | ~~R-7~~ | ~~Register supersession~~ | — | **EXECUTED** — PR-3 + PR-3b, landed 2026-07-28. Listed so the order stays readable. |
 | 3 | **R-3 + R-4** | PR-5 — the flag register (`docs/specs/flag_register.md`), all 32 `RuntimeConfig` booleans, profiles as units, the pin that forbids an unregistered flag, `accrue_realized_knowledge` added to the daemon profile, the two N-6 docstrings corrected | **M** | R-3 is a **hard gate on Wave 4**; nothing automates until it resolves. R-4 is the mechanism R-3's fix must land inside, so they are one PR. |
 | 4 | **R-9 + R-2** | PR-11 — the L10 soak to a committed artifact with a pinned `deterministic_digest`, the ruled cadence, and R-2's "now" paragraph written into the contract *before* the re-run | **M** | Proof of life. R-2 must land first inside the same PR or the soak answers a design question by accident (the packet's own reasoning for R-2). |
@@ -360,7 +360,7 @@ Protocol followed as written: criterion pre-registered at `299c92be` **before** 
 
 **Ratified 2026-07-28, and it leaves one obligation the ADR itself cannot discharge.** ADR-0252 **§6 names an organ-retirement condition that a NO-GO makes unsatisfiable as written**: it retires the symbolic structure-mapping organs *on the strength of the geometric replacement*, and names **no replacement** for the NO-GO branch. A ratified NO-GO therefore has to be written back into the ADR or the ADR's §6 stands as a live instruction that can never fire — an instrument in the H-9 class, authoritative-looking and dead.
 
-**Owed, and it is an amendment rather than a new decision (Shay's authority, drafted for one-word approval):**
+**DISCHARGED 2026-07-28, with R-12** — all three landed in one edit to ADR-0252, since they are one file under one authority and splitting them would have bought two reviews of the same document. The §6 bullet now reads *"the surface organs are RETAINED — that is the operative state, not a pause in a transition,"* and the §6 "Build" bullet is marked **NOT AUTHORIZED** with the reason. What was owed:
 1. **§5 gains its verdict banner** — NO-GO, the run SHA, the report digest, the scope sentence (*point-position role encodings aligned by conformal Procrustes under similarity*, not every Cl(4,1) representation, and not the symbolic lane already in `evals/structure_mapping/`).
 2. **§6's retirement condition is amended to state the NO-GO branch explicitly**: the symbolic organs are **retained**, and the condition that would retire them is re-stated as *a demonstrated replacement passing the §5 criterion*, which no longer exists. Retiring a working organ because a *hypothesis about its replacement* was written down is precisely backwards.
 3. **The "34 organs" basis footnote** from R-12 lands in the same amendment — same file, same authority, one review instead of two.

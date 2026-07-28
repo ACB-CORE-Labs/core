@@ -102,7 +102,7 @@ To preserve the non-negotiable byte-identical replay contract:
 
 To maintain a narrow and robust focus, the following items are explicitly excluded from this design:
 - **VaultStore persistence:** `VaultStore` remains an ephemeral T1 memory layer per ADR-0055. Permanent memory resides in the T3 teaching corpus and is promoted only via HITL.
-- **Concurrency control:** Since Shape B is single-process and synchronous, cross-process file locking, daemon synchronization, and signal handling are out of scope.
+- **Concurrency control:** Since Shape B is single-process and synchronous, cross-process file locking, daemon synchronization, and signal handling are out of scope. — **Superseded for the daemon path only; see the Addendum (2026-07-28) at the end of this ADR. Shape B's own single-process path is unchanged.**
 - **Network surfaces:** The engine remains strictly local-only; no TCP/HTTP servers or sockets are added to support persistence.
 - **Multi-tenancy/multi-instance:** A single repository supports exactly one active engine state checkpoint.
 - **Re-architecting `ChatRuntime`:** The unit of execution is unchanged; `ChatRuntime` merely gains load/save hook methods.
@@ -125,3 +125,25 @@ Establishing this hybrid persistence model directly unlocks the following ratche
   - *Mitigation:* Pin round-trip serialization in unit tests. Verify that schema updates include migrations or clear-slate fallbacks.
 - **Stale Checkpoint after Pack Mutation:** If a user checks out a different git revision or modifies packs, the loaded checkpoint might refer to invalid types or mismatching revisions.
   - *Mitigation:* Compare `written_at_revision` in `manifest.json` with the current git SHA. If they mismatch, log a warning but continue startup (do not refuse to start, as a reboot is recovery, not control flow).
+
+---
+
+## Addendum — 2026-07-28, daemon shape reconciled
+
+*Ruled R-12a, option A (`docs/assessment/50-rulings.md`), 2026-07-28 by Joshua Shay. This addendum changes no decision. It stops the record contradicting the code.*
+
+**The Shape-A rejection stands as reasoning.** A background daemon requires process-supervision infrastructure that Shape B does not — that was true when written and is true now. What changed is that the infrastructure was subsequently built.
+
+`chat/always_on_daemon.py` (landed `18e25580`, 2026-06-14) runs a supervised always-on daemon **over** Shape-B persistence, and implements the three items this ADR's "What is NOT in Scope" places outside it:
+
+| Excluded item | Where it is implemented |
+|---|---|
+| cross-process file locking | advisory `fcntl.flock(LOCK_EX \| LOCK_NB)` single-instance lock (`:82`), acquired *before* any signal or runtime setup so a second life fails fast |
+| signal handling | SIGINT/SIGTERM handlers for a graceful stop (`:145`), with `install_signals=False` for tests that drive their own `stop_event` |
+| daemon synchronization | the load-time **strict-identity guard** — `strict_identity_continuity` is forced (`:48`) and a different-identity checkpoint is refused, so a daemon restart is the *same* life or it is nothing |
+
+**Shape B remains the persistence model and the CLI's default.** The daemon is an *additional* process shape layered on it, not a replacement, and it is owned by this ADR rather than by a new one — the decision here was never wrong, only its scope sentence went stale. A separate ADR for a shape already shipped would add a document without adding a decision (R-12a option B, rejected).
+
+**Scope of the supersession:** the "Concurrency control" bullet under *What is NOT in Scope* no longer describes the daemon path. It continues to describe the single-process CLI path exactly as ratified.
+
+*Recorded because a ratified ADR that contradicts running code converts "I should check" into "I already checked" — the H-8 mechanism, catalogued in `docs/assessment/31-hindrance-audit.md`.*

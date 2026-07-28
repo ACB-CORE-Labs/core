@@ -13,9 +13,13 @@
 
 ## 1. The core claim
 
-CORE was built as geometric / wave cognition. Cognitive science's most unifying account shows that geometric / wave cognition **is** the physical substrate of human problem-solving: perception-and-reasoning as free-energy minimization on a predictive manifold (Friston), generalization as relational structure-alignment (Gentner), founded on geometric and numerical core-knowledge primitives (Spelke/Carey). Therefore **CORE's substrate already instantiates the human problem-solving paradigm** — the founding bet is vindicated. The project's single architectural error was to build a **novice** comprehender (34 bespoke surface organs) bolted onto an **expert** substrate it never used for comprehension.
+CORE was built as geometric / wave cognition. Cognitive science's most unifying account shows that geometric / wave cognition **is** the physical substrate of human problem-solving: perception-and-reasoning as free-energy minimization on a predictive manifold (Friston), generalization as relational structure-alignment (Gentner), founded on geometric and numerical core-knowledge primitives (Spelke/Carey). Therefore **CORE's substrate already instantiates the human problem-solving paradigm** — the founding bet is vindicated. The project's single architectural error was to build a **novice** comprehender (34† bespoke surface organs) bolted onto an **expert** substrate it never used for comprehension.
 
 This ADR ratifies the paradigm CORE already embodies and reorients the reader from novice (surface features) to expert (deep relational structure). It is the single governing source of truth; the six retired formulations were each a partial groping toward one of its layers.
+
+> † **Basis note — 2026-07-28.** The figure "34" has no reproducible derivation. The reproducible count of surface entry organs is **18** `resolve_promotable_*` functions, **all** in `generate/derivation/` and none anywhere else, at this ADR's ratification commit and re-verified unchanged at `ca5e614e`; the derivation package holds **exactly 32 modules**, which is the likeliest origin of the number. The diagnosis, the supersession plan, and the §4 conformance bar are unaffected — none of them depends on the count. Later text saying "the 34 surface organs" (§2, §6, §9) should be read as "the surface organs."
+>
+> *Ruled R-12b, option A, 2026-07-28 by Joshua Shay. Option B — replacing every "34" with "18" — was rejected: it rewrites a ratified document's prose, where recording the correction where a reader meets the number is all that is owed.*
 
 ## 2. The paradigm — five stages and the governing law
 
@@ -51,6 +55,18 @@ The fit is not analogy. `relax_to_ground` *is* Friston's principle in Clifford a
 
 ## 5. The one unknown — resolved with a controlled experiment (the acceptance gate)
 
+> ### §5 VERDICT — **NO-GO**, ratified 2026-07-28 by Joshua Shay
+>
+> Criterion **pre-registered at `299c92be`, before the run** (that commit carries the thresholds as importable constants and no results). Run at `forgejo/main` @ `797ebad5`. Artifact `evals/structure_mapping/adr0252_s5/results/report-797ebad5.json`, `deterministic_digest` `b3d9d27592e213104c51bcace7415fd819d722a1b06f7d0a5ca65bd5a234e4ec`. Reproduce with `uv run python -m evals.structure_mapping.adr0252_s5.experiment`. Full reasoning: `docs/research/sme-experiment-verdict-797ebad5.md`.
+>
+> **H1 is refuted for the embedding class tested.** Structure-sensitivity (§5.3c) fails at *every* attribute weight swept — it is not a knife-edge on a constant. The mechanism, measured rather than argued: **the similarity quotient that delivers attribute-invariance is the same quotient that annihilates structural contrast.** An `add`-vs-`subtract` minimal pair — one entity, identical numbers, one relation kind changed — aligns at residual exactly `0.0`, its two configurations being related by a proper rotation. Sweeping the attribute weight, every regime in which the SME property survives is a regime in which attributes contribute nothing (AUC 1.00 → 0.83 → 0.69 as they begin to matter).
+>
+> **Scope, deliberately narrow.** This refutes H1 for embeddings that encode role-structure as *point positions* aligned by `conformal_procrustes` **under similarity**. The argument is about the quotient, so it generalises across that class. It does **not** refute every Cl(4,1) representation, and it does not touch the symbolic structure-mapping lane already in `evals/structure_mapping/`.
+>
+> Per §5.4, *"a well-controlled NO-GO is a full-credit result."* This is that. **The §6 build is not authorized and cannot become authorized by this experiment** — see the §6 amendment.
+>
+> *Two findings the track produced that were on nobody's list.* (1) The experiment was **already run twice, returning GO twice, on unmerged branches** — `rnd/structure-mapping-experiment` @ `fc9d0c14` leaked the structure label into the embedding; `rnd/sme-experiment-v2` @ `96e5f468` counted a solver exception as a distance (`except ValueError: res = 1000.0`) and passed mixed versor/point sequences to the field-conjugacy branch, so its entire separability signal was that raise. Both are unsound and are voided by the verdict document; the plan, the gap register and this ADR had all read the same absence and called the item "unrun" for nine days (recorded as N-8 — *a branch tip is not a record*). (2) The math reader decides **5 of 500** `holdout_dev/v1` cases (1.0%), all carrying one relational skeleton, which is why §5.1's four-structure corpus was not extractable and is registered as **G-21**.
+
 The paradigm is correct in principle. Exactly one empirical claim is load-bearing and unproven: **can CORE's Cl(4,1) geometry carry a problem's relational structure faithfully enough that `conformal_procrustes` (the SME) aligns same-deep-structure problems and separates different-structure ones — driven by *relations*, invariant to *surface attributes*?** If yes, Structure-Map (stage 2) is buildable on the existing substrate. If no, stage 2 needs a different representation, and we learn that cheaply.
 
 Mastery here means isolating the exact SME property with **controls**, not eyeballing residuals.
@@ -72,10 +88,22 @@ Mastery here means isolating the exact SME property with **controls**, not eyeba
 ## 6. What changes in code
 
 - **Keep, recognized as paradigm layers:** `quantity_kernel` (Number), `cognitive_lifecycle/relax_to_ground` (predictive-processing inference), `conformal_procrustes` (SME), the corridor (`turn_program`/`multi_register` = solve), the certificate + `wrong=0` (precision gate).
-- **Build (the missing expert-comprehension layer, gated on §5 GO):** a Structure-Map path — a role-predicate relational representation, a small library of canonical structures (base domains), and mapping a novel problem to the nearest canonical via `conformal_procrustes`.
+- **Build (the missing expert-comprehension layer, gated on §5 GO):** a Structure-Map path — a role-predicate relational representation, a small library of canonical structures (base domains), and mapping a novel problem to the nearest canonical via `conformal_procrustes`. — **NOT AUTHORIZED. §5 returned NO-GO on 2026-07-28.** This bullet stands as the record of what a GO would have authorized. Stage 2 needs a different representation, and finding one is not scoped by this ADR.
 - **Represent relationally:** treat `MathProblemGraph` (or a layer above it) as a graph of two-argument role predicates, not surface slots.
 - **Revive + reframe:** ADR-0174's held-hypothesis reader as the overlapping-waves candidate-mapping selector.
-- **Supersede, verification-gated, over time:** the 34 surface organs — kept serving until the structure-mapper proves out, then retired.
+- **Supersede, verification-gated, over time:** the surface organs† — kept serving until a structure-mapper proves out, then retired. — **AMENDED 2026-07-28 on the §5 NO-GO; see below.**
+
+> ### §6 amendment — the retirement condition, on a NO-GO
+>
+> *Ratified 2026-07-28 by Joshua Shay, together with the §5 verdict.*
+>
+> As written, this bullet retires the surface organs on the strength of a replacement that **§5 has now tested and refuted**, and it names no replacement for the NO-GO branch. Left alone it would be a live instruction that can never fire — an authoritative-looking dead instrument, which is the exact failure class catalogued as H-9 in `docs/assessment/31-hindrance-audit.md`.
+>
+> **The surface organs are RETAINED. That is the operative state, not a pause in a transition.** The retirement condition is re-stated as: *a demonstrated replacement that passes the §5 criterion.* No such replacement exists, none is proposed by this ADR, and the one hypothesis that was proposed has been falsified for its embedding class.
+>
+> Retiring a working organ on the strength of a *hypothesis about* its replacement is backwards. The hypothesis has now been tested. This amendment records that the pre-condition failed, so that no later reader mistakes "verification-gated supersession" for a decision already taken and merely awaiting execution.
+>
+> *This changes no decision made at ratification. §8's ruling record already states: "The existing 34-organ† reader keeps serving until a proven replacement exists — nothing is torn out on ratification." The amendment makes the NO-GO branch of that same commitment explicit, because the §6 bullet carrying the condition read as though the replacement were coming.*
 
 ## 7. Non-goals
 

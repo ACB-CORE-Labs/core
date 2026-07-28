@@ -145,8 +145,14 @@ Determinism bans clocks; continuity implies lived time; the 24h+ no-drift requir
 ### G-14 · CR-1 attention governance — the one-page ADR
 Own `use_salience`, the two underived constants, the self-narrowing budget feedback, and the `InhibitionMask` disposition. Mechanism verified live and sound; only the governance is absent. **Authority:** ADR (one page — the card is its draft evidence base).
 
-### G-15 · The daemon's ratifying ADR
-`chat/always_on_daemon.py` is unowned while ADR-0146 explicitly rejected the daemon shape it implements. Whatever the right answer, the record currently contradicts the code (see H-8). **Authority:** ADR amendment or a new short ADR.
+### G-15 · The daemon's ratifying ADR — **CLOSED 2026-07-28 (R-12a)**
+`chat/always_on_daemon.py` was unowned while ADR-0146 explicitly rejected the daemon shape it implements. Whatever the right answer, the record contradicted the code (see H-8a). **Authority:** ADR amendment or a new short ADR.
+
+**Closed by amendment, not by a new ADR — and the choice mattered.** ADR-0146 now carries an addendum owning the daemon: the Shape-A rejection **stands as reasoning** (a daemon does require supervision infrastructure Shape B does not), and the infrastructure was subsequently built. The three items its "What is NOT in Scope" excluded are each mapped to where they are implemented — `fcntl.flock` single-instance lock acquired before any signal or runtime setup, SIGINT/SIGTERM graceful stop, and the load-time strict-identity guard that makes a daemon restart *the same life or nothing*. Shape B remains the persistence model and the CLI default; the daemon is an additional process shape layered on it. A new ADR for a shape shipped six weeks earlier would have added a document without adding a decision.
+
+**The stale bullet carries an inline pointer**, not just a note at the end. H-8's mechanism is that an authoritative-looking line converts *"I should check"* into *"I already checked"* — a reader who stops at the excluded-scope list is exactly the reader this gap is about, and they never reach a trailing addendum.
+
+**Evidence:** `docs/adr/ADR-0146-…md` §"What is NOT in Scope" + Addendum; `chat/always_on_daemon.py:48,82,145`; introduced `18e25580` (2026-06-14, the same commit adding both the lock and the signals — established only after deepening a shallow 168-commit clone to 2340, since the shallow boundary was reporting a false date).
 
 ---
 

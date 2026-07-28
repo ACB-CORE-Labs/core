@@ -9,7 +9,7 @@
 **Also ratified:** the ADR-0252 §5 **NO-GO** verdict.
 
 **Execution order (corrected):** R-12 → R-7 → R-3+R-4 → R-9+R-2 → R-13 → R-8 → R-1/R-5/R-6/R-11.
-**Executed so far:** R-7 (PR-3, PR-3b landed 2026-07-28).
+**Executed so far:** R-7 (PR-3, PR-3b) · **R-12 (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment)** — all landed 2026-07-28.
 **Contract:** each ruling below is prepared so that answering it costs **one word**. The evidence is gathered, the options are enumerated, a recommendation is made with its reasoning, and the exact change that follows from each option is written out. Nothing here recommends reversing a ratified decision; R-12 amends two ADRs' *records* without touching either decision.
 
 **How to rule:** reply with the item and your choice — e.g. `R-1 A · R-3 B · R-8 C`. Anything left unruled stays `PENDING` and blocks only the wave named in its **Blocks** line.
@@ -267,7 +267,13 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-12 · The two ratified-ADR record amendments
 
-**Status:** **RULED A/A** — 2026-07-28, Shay (explicit adoption) · *both drafted amendment texts applied as written* · **Register:** G-15 / H-8 · **Blocks:** PR-1's completion (H-8 cannot close without this).
+**Status:** **RULED A/A — EXECUTED 2026-07-28** · both amendments applied, plus the §5 verdict banner and the §6 retirement-condition amendment in the same edit (one file, one authority, one review) · **Register:** G-15 / H-8 — **H-8(a) and H-8(b) now CLOSED** · **Blocks:** nothing further.
+
+> **Executed as written, with the claims re-verified rather than copied.** Every factual assertion in both amendments was re-derived at `ca5e614e` before writing: **18** `resolve_promotable_*` organs, **0** outside `generate/derivation/`, **exactly 32** modules in the package (tightening the draft's "~32"); the daemon's `fcntl.flock` lock, SIGINT/SIGTERM handlers and load-time identity guard each cited by line.
+>
+> **The one draft claim that did not survive first contact was the date.** The addendum said the daemon "landed 2026-06-14"; this container's clone was **shallow — 168 commits, roots grafted at 2026-07-19** — so `git log` reported 2026-07-20, which is the shallow boundary rather than a fact. Deepening the clone (168 → 2340 commits) confirmed the packet was right: `18e25580`, 2026-06-14, the same commit that introduced both the lock and the signal handling. The addendum now cites the SHA, because a date that cannot be re-derived is testimony.
+>
+> **Two errors in my own amendment text, caught before landing:** it cited **§9** for a sentence that is in **§8**, and misquoted *"the existing 34-organ reader"* as *"the existing reader."* Writing a misquote into a ratified document while amending that document for accuracy is this ruling's own failure mode; both were found by re-reading the amendment against the source it quotes.
 
 **The question.** Two ratified ADRs' *records* contradict the code. Neither amendment changes a decision; both are text. Editing a ratified ADR is Shay's authority even when the edit changes nothing, which is why they are here and not in PR-1.
 
