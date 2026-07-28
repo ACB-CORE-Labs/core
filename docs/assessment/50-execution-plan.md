@@ -56,7 +56,7 @@ test_volume_honesty             test_curriculum_polarity
 
 Two things are still true and worth fixing:
 
-1. **One comment overstates.** The audio block says it is listed explicitly "so the local-first pre-push gate (AGENTS.md protocol) **equals** the CI gate rather than silently narrowing it." Read narrowly (about the six audio files) it is accurate. Read as a statement about the smoke suite — the way a reader will read it — it is false.
+1. **Two independent places assert the parity.** The audio block in `core/cli_test.py` says it is listed explicitly "so the local-first pre-push gate (AGENTS.md protocol) **equals** the CI gate rather than silently narrowing it" — read narrowly (about the six audio files) accurate, read as a statement about the smoke suite, false. And `scripts/hooks/pre-push` — the automation of the AGENTS.md protocol — opens by describing its own step 1 as "the `smoke` suite — **exact CI-gate parity**." It is not: 23 files against 13. The claim appears twice, in the enforcement tooling, which is the strongest evidence available that the drift was never intended.
 2. **The real exposure is the push that skipped the local gate.** CI is the only *automatic* check on a push made from a cloud session, another machine, or an agent that did not run the worktree gate. For those pushes, ADR-0265's denial pin, the ADR-governance pins, volume honesty, and curriculum polarity run nowhere before merge.
 
 **Consequence for G-7.** The meta-check as written in the register ("every test file belongs to ≥1 suite") is **already satisfied and would ship green while proving nothing** — a hollow gate by the Third-Door criterion. The correct mechanism is two pins:
