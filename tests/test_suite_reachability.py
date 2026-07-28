@@ -45,13 +45,14 @@ _ROOT = Path(__file__).resolve().parents[1]
 #: that silently matched nothing would make this pin vacuous — the exact
 #: failure mode (N-1) that has produced three false conclusions in this repo.
 #: So the set is declared here and *verified* against the shell below.
-GATE_SUITES: frozenset[str] = frozenset({"smoke", "deductive"})
+GATE_SUITES: frozenset[str] = frozenset({"smoke", "deductive", "teaching"})
 
 #: Curated suites with members and no gate caller.
-#: 19 at first measurement; **15 after PR-3b (Wave 1) deleted four unreferenced
-#: per-phase aliases** — `refusal`, `margin`, `rotor`, `inner-loop`. That is the
-#: ratchet turning the way it is supposed to: the gap shrank by deletion rather
-#: than by promotion, which costs no gate time at all.
+#: 19 at first measurement; **15 after PR-3b (Wave 1)** deleted four unreferenced
+#: per-phase aliases — `refusal`, `margin`, `rotor`, `inner-loop` — the ratchet
+#: turning by deletion, which costs no gate time at all. **14 after PR-4b promoted
+#: `teaching` onto the gate (2026-07-28)** — the first time it turned by PROMOTION,
+#: which is the direction that actually buys coverage and the direction that costs.
 #: This list may only SHRINK. A suite leaves it by being invoked from a gate
 #: tier — not by being deleted from this file.
 UNREACHABLE_BASELINE: frozenset[str] = frozenset(
@@ -70,7 +71,6 @@ UNREACHABLE_BASELINE: frozenset[str] = frozenset(
         "pulse",
         "runtime",
         "sensorium",
-        "teaching",
     }
 )
 
@@ -164,14 +164,16 @@ def test_baseline_has_no_stale_entries() -> None:
 def test_recorded_gate_gap_matches_the_measurement() -> None:
     """Pin the number so the gap moving is a reviewed decision, not a drift.
 
-    15 of 17, after PR-3b. (19 of 21 before it.) Shrinking this is the point — it shrinks by putting
-    a suite on the gate, which costs gate time and is therefore a decision
-    someone has to make deliberately.
+    14 of 17, after PR-4b. (15 after PR-3b; 19 of 21 before it.) Shrinking this is
+    the point, and it shrinks two ways: by deleting a suite nobody calls (free) or by
+    putting one on the gate (costs gate time on every push, and is therefore a
+    decision someone has to make deliberately). PR-4b was the first of the second
+    kind — `teaching`, at a measured 22.1s for 9 net-new files.
     """
-    assert len(UNREACHABLE_BASELINE) <= 15, (
-        f"gate-unreachable suites grew to {len(UNREACHABLE_BASELINE)} (was 15; "
-        "19 before PR-3b deleted four unreferenced aliases). The ratchet only "
-        "turns one way."
+    assert len(UNREACHABLE_BASELINE) <= 14, (
+        f"gate-unreachable suites grew to {len(UNREACHABLE_BASELINE)} (was 14; 15 "
+        "before PR-4b promoted `teaching`, 19 before PR-3b deleted four unreferenced "
+        "aliases). The ratchet only turns one way."
     )
 
 
@@ -182,3 +184,47 @@ def test_the_two_gate_suites_actually_exist() -> None:
     for name in GATE_SUITES:
         assert name in suites, f"gate tier invokes undefined suite {name!r}"
         assert suites[name], f"gate suite {name!r} is empty"
+
+
+#: A gate step in either script, e.g. ``(4/4) teaching suite ... suite teaching``.
+#: The ``(n/m)`` prefix is the discriminator: ``local-ci.sh`` defines other tiers
+#: whose steps are unnumbered, so this scopes the parse to the gate tier without
+#: needing to parse shell control flow.
+_GATE_STEP_RE = re.compile(r"\(\d+/\d+\)[^\n]*?\bsuite[= ]+([a-z0-9-]+)")
+
+
+def _gate_suites_in(rel: str) -> set[str]:
+    text = (_ROOT / rel).read_text(encoding="utf-8")
+    return set(_GATE_STEP_RE.findall(text))
+
+
+def test_the_two_gate_scripts_invoke_the_same_suites() -> None:
+    """``pre-push`` and ``local-ci.sh --tier gate`` must not drift apart.
+
+    Both scripts state that they are the same gate — ``local-ci.sh`` says so in
+    prose ("same four steps as scripts/hooks/pre-push"). Two records asserting the
+    same thing is the shape that goes stale, and until this pin the drift was
+    invisible: :func:`test_declared_gate_suites_match_the_shell` takes the UNION of
+    the two files, so a suite present in either satisfies it. Removing `teaching`
+    from ``local-ci.sh`` alone was sabotage-tested and passed — which is how this
+    gap was found.
+
+    **This is NOT the CI-parity pin that N-9 correctly killed.** That one asserted
+    ``TEST_SUITES["smoke"] == smoke.yml`` and was reverted in ``50fa287d`` because
+    ``AGENTS.md:280`` makes GitHub Actions billing-locked dead signals — parity with
+    a dead signal buys nothing. Both scripts here are live local merge bars, and a
+    developer running one is entitled to the coverage the other advertises.
+    """
+    hook = _gate_suites_in("scripts/hooks/pre-push")
+    local = _gate_suites_in("scripts/ci/local-ci.sh")
+    assert hook, "parsed no numbered gate steps from scripts/hooks/pre-push"
+    assert local, "parsed no numbered gate steps from scripts/ci/local-ci.sh --tier gate"
+    assert hook == local, (
+        "the two gate scripts have drifted — a push through the hook and a run of "
+        "local-ci.sh --tier gate would cover different suites:\n"
+        f"  pre-push only: {sorted(hook - local)}\n"
+        f"  local-ci only: {sorted(local - hook)}"
+    )
+    assert hook <= set(GATE_SUITES), (
+        f"the scripts invoke suites GATE_SUITES does not declare: {sorted(hook - set(GATE_SUITES))}"
+    )

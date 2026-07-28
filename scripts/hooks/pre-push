@@ -53,26 +53,37 @@ if [ "${read_any}" -eq 1 ] && [ "${only_deletes}" -eq 1 ]; then
     exit 0
 fi
 
-echo "[pre-push] CORE local-first gate: smoke + warmed_session lane pin + deductive"
+echo "[pre-push] CORE local-first gate: smoke + warmed_session lane pin + deductive + teaching"
 
-echo "[pre-push] (1/3) smoke suite (core test --suite smoke) ..."
+echo "[pre-push] (1/4) smoke suite (core test --suite smoke) ..."
 if ! uv run core test --suite smoke -q; then
     echo "[pre-push] BLOCKED: smoke suite failed. Fix before pushing." >&2
     echo "[pre-push] (emergency bypass, discouraged: git push --no-verify)" >&2
     exit 1
 fi
 
-echo "[pre-push] (2/3) warmed_session consistency lane ..."
+echo "[pre-push] (2/4) warmed_session consistency lane ..."
 if ! uv run python -m pytest tests/test_warmed_session_lane.py -q; then
     echo "[pre-push] BLOCKED: warmed_session lane failed (T13 regression class)." >&2
     echo "[pre-push] (emergency bypass, discouraged: git push --no-verify)" >&2
     exit 1
 fi
 
-echo "[pre-push] (3/3) deductive suite (core test --suite deductive) ..."
+echo "[pre-push] (3/4) deductive suite (core test --suite deductive) ..."
 if ! uv run core test --suite deductive -q; then
     echo "[pre-push] BLOCKED: deductive suite failed — deduction serving is a" >&2
     echo "[pre-push]          LIVE capability (ADR-0256), not an experiment." >&2
+    echo "[pre-push] (emergency bypass, discouraged: git push --no-verify)" >&2
+    exit 1
+fi
+
+echo "[pre-push] (4/4) teaching suite (core test --suite teaching) ..."
+if ! uv run core test --suite teaching -q; then
+    echo "[pre-push] BLOCKED: teaching suite failed — durable mutation is governed by" >&2
+    echo "[pre-push]          AGENTS.md non-negotiables (INV-21..INV-30). An unmarked" >&2
+    echo "[pre-push]          proposal or reviewed example defaulting to anything but" >&2
+    echo "[pre-push]          SPECULATIVE is a corpus-truth defect, and corpus mutation" >&2
+    echo "[pre-push]          is the one thing here that is irreversible." >&2
     echo "[pre-push] (emergency bypass, discouraged: git push --no-verify)" >&2
     exit 1
 fi

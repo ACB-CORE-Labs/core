@@ -54,7 +54,7 @@ usage: local-ci.sh [--tier TIER] [--allow-interpreter-fallback] [--list] [-- ARG
 
 tiers:
   smoke   smoke suite only                     (~1 min)  = CI smoke.yml parity
-  gate    smoke + warmed_session + deductive   (~2 min)  = the pre-push gate
+  gate    smoke + warmed_session + deductive + teaching  (~9 min) = the pre-push gate
   full    the entire tests/ tree, parallel     (~10 min) = the merge bar
 
 options:
@@ -165,10 +165,11 @@ case "${TIER}" in
         step "smoke suite" suite smoke
         ;;
     gate)
-        echo "[local-ci] tier=gate — same three steps as scripts/hooks/pre-push"
-        step "(1/3) smoke suite" suite smoke
-        step "(2/3) warmed_session lane" pytest_ tests/test_warmed_session_lane.py -q --no-header
-        step "(3/3) deductive suite" suite deductive
+        echo "[local-ci] tier=gate — same four steps as scripts/hooks/pre-push"
+        step "(1/4) smoke suite" suite smoke
+        step "(2/4) warmed_session lane" pytest_ tests/test_warmed_session_lane.py -q --no-header
+        step "(3/4) deductive suite" suite deductive
+        step "(4/4) teaching suite" suite teaching
         ;;
     full)
         jobs="$(nproc 2>/dev/null || echo 4)"
