@@ -21,10 +21,15 @@ Three producers back the three entries in `core.ratified_ledger.CAPABILITY_LEDGE
   record needs, on distinct cases. This is the standard the other producers are
   measured against, and it is why the deduction finding is a regression from an
   established practice rather than a gap nobody had thought about.
-- **deduction_serve** (ADR-0256) — 21 of 25 bands do not clear θ_SERVE on
-  distinct evidence; the worst three inflate 28 distinct cases to 720 committed.
-  Recorded, pinned, and NOT silently repaired: the ledger is SHA-sealed, ratified,
-  and gating a live flag, so changing it is Shay's ratification, not a test's.
+- **deduction_serve** (ADR-0256) — 21 of 25 bands did not clear θ_SERVE on
+  distinct evidence; the worst three inflated 28 distinct cases to 720 committed.
+  For three days this was recorded, pinned, and deliberately NOT repaired, because
+  the ledger is SHA-sealed, ratified, and gates a live flag — changing it was Shay's
+  ratification, not a test's. **That ratification is R-13 (2026-07-28), and it has
+  been applied:** the ledger is re-sealed on distinct evidence, the 21 are demoted
+  and decide with disclosure, four hold earned licences, and the producer now
+  REFUSES to seal a padded ledger at all. The audit below no longer measures an
+  exposure; it pins the repair.
 - **curriculum_serve** (ADR-0262/0264) — clean, and clean *structurally*: the
   producer's case identity IS the query atom, so ``committed == distinct`` cannot
   drift apart the way it did for deduction, where case identity was a quota index.
@@ -128,10 +133,15 @@ AUDIT_SOURCES: dict[str, Callable[[], dict[str, list[Hashable]]] | None] = {
 }
 
 
-#: Measured 2026-07-25 at main @ `6ada6f7a`. Every band is 720 committed.
-#: This is an EXPOSURE INVENTORY, not an approved baseline: 21 of these 25 do not
-#: clear θ_SERVE=0.99 on distinct evidence. It is pinned so the exposure cannot
-#: grow or drift unnoticed while the ratification question is open.
+#: Distinct-evidence counts per band. Measured 2026-07-25 at main @ `6ada6f7a`,
+#: when every band was 720 committed and this was an EXPOSURE INVENTORY: 21 of 25
+#: did not clear θ_SERVE=0.99 on the evidence below.
+#:
+#: **APPLIED 2026-07-28 (R-13).** It is no longer an exposure. The sealed ledger is
+#: re-counted on exactly these numbers — committed == distinct — so the 21 are
+#: demoted and decide with disclosure, and four hold earned licences. This list is
+#: now the *expected* shape of the ledger rather than a measurement of a gap, and
+#: `test_deduction_sealed_ledger_matches_the_producer_it_names` pins that equality.
 DEDUCTION_DISTINCT_EVIDENCE: dict[str, int] = {
     "atomic": 98,
     "categorical": 294,
@@ -386,11 +396,25 @@ def test_deduction_sealed_ledger_matches_the_producer_it_names(
     ledger = json.loads(path.read_text(encoding="utf-8"))
     classes = ledger["classes"]
     assert ledger["provenance"] == "evals.deduction_serve.practice.runner.seal_ledger"
-    produced = {a.band: a.committed for a in deduction_audits}
+    # R-13 (2026-07-28): the sealed ledger now counts DISTINCT evidence, so this
+    # invariant is strictly stronger than it was. Before the re-count it compared the
+    # sealed committed counts to the producer's committed counts and both were the
+    # inflated 720 — the assertion held perfectly while the number it agreed on was
+    # the wrong number. Two records agreeing is not evidence that either is right.
+    # It now pins what the re-count actually guarantees: committed == distinct.
+    produced_distinct = {a.band: a.distinct for a in deduction_audits}
+    produced_raw = {a.band: a.committed for a in deduction_audits}
     sealed = {name: tally["correct"] + tally["wrong"] for name, tally in classes.items()}
-    assert sealed == produced, (
-        "sealed ledger committed counts diverge from the producer — the audit "
-        "below would then be measuring something the engine does not read"
+    assert sealed == produced_distinct, (
+        "sealed ledger committed counts diverge from the producer's DISTINCT counts "
+        "— either the seal is stale, or build_ledger stopped folding the "
+        "de-duplicated corpus and replays are being counted as evidence again"
+    )
+    inflated = sorted(b for b in sealed if produced_raw[b] != produced_distinct[b])
+    assert inflated, (
+        "no band shows any raw-vs-distinct gap, so this assertion proves nothing "
+        "about de-duplication. Either the corpus lost its replays, or the audit has "
+        "gone blind — check before assuming the good news."
     )
     assert all(tally["wrong"] == 0 for tally in classes.values()), "wrong=0 must hold"
 

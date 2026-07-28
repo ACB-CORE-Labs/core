@@ -123,7 +123,13 @@ def test_multiword_conditional_is_decided_band_v2_en() -> None:
     )
     assert surface is not None
     assert "Your premises entail: the ground is wet" in surface
-    assert not surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+    # R-13 (2026-07-28): this band was DEMOTED by the distinct-evidence re-count
+    # — en_conditional_single (474 distinct of 720 committed). The shape is still DECIDED, which is what this
+    # test is actually about; what changed is the claim attached to the answer.
+    # The engine now discloses that it has not earned a track record on this
+    # shape instead of answering authoritatively. Asserting the old behaviour
+    # here would re-assert a licence the evidence never supported.
+    assert surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
 
 
 def test_contraposition_is_decided_band_v2_en() -> None:
@@ -185,7 +191,13 @@ def test_membership_syllogism_is_decided_band_v3_mem() -> None:
     )
     assert surface is not None
     assert "Your premises entail: socrates is mortal" in surface
-    assert not surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+    # R-13 (2026-07-28): this band was DEMOTED by the distinct-evidence re-count
+    # — en_member_single (60 distinct of 720 committed). The shape is still DECIDED, which is what this
+    # test is actually about; what changed is the claim attached to the answer.
+    # The engine now discloses that it has not earned a track record on this
+    # shape instead of answering authoritatively. Asserting the old behaviour
+    # here would re-assert a licence the evidence never supported.
+    assert surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
 
 
 def test_member_negative_universal_is_decided() -> None:
@@ -243,7 +255,13 @@ def test_conditional_membership_fusion_is_decided_band_v4_cm() -> None:
     )
     assert surface is not None
     assert "Your premises entail: socrates is mortal" in surface
-    assert not surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+    # R-13 (2026-07-28): this band was DEMOTED by the distinct-evidence re-count
+    # — en_condmem_conditional (60 distinct of 720 committed). The shape is still DECIDED, which is what this
+    # test is actually about; what changed is the claim attached to the answer.
+    # The engine now discloses that it has not earned a track record on this
+    # shape instead of answering authoritatively. Asserting the old behaviour
+    # here would re-assert a licence the evidence never supported.
+    assert surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
 
 
 def test_conditional_membership_fusion_genuinely_fuses() -> None:
@@ -450,7 +468,13 @@ def test_existential_is_decided_band_v6_ex() -> None:
     )
     assert surface is not None
     assert "Your premises entail: some whales are vertebrates" in surface
-    assert not surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
+    # R-13 (2026-07-28): this band was DEMOTED by the distinct-evidence re-count
+    # — en_exist_universal (46 distinct of 720 committed). The shape is still DECIDED, which is what this
+    # test is actually about; what changed is the claim attached to the answer.
+    # The engine now discloses that it has not earned a track record on this
+    # shape instead of answering authoritatively. Asserting the old behaviour
+    # here would re-assert a licence the evidence never supported.
+    assert surface.startswith(_UNVERIFIED_SHAPE_DISCLOSURE)
 
 
 def test_existential_conclusion_does_not_close_the_domain() -> None:

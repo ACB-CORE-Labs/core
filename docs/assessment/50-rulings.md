@@ -9,9 +9,9 @@
 **Also ratified:** the ADR-0252 §5 **NO-GO** verdict.
 
 **Execution order (corrected):** R-12 → R-7 → R-3+R-4 → R-9+R-2 → R-13 → R-8 → R-1/R-5/R-6/R-11.
-**Executed so far:** R-7 (PR-3, PR-3b) · **R-12** (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment) · **R-3 + R-4** (PR-5 — the flag register, the profile mechanism, the daemon's fourth flag) · **R-9 + R-2** (PR-11 — the soak's committed artifact, pinned digest, and change-triggered cadence) — all landed 2026-07-28.
+**Executed so far:** R-7 (PR-3, PR-3b) · **R-12** (both ADR amendments + the §5 verdict banner + the §6 retirement-condition amendment) · **R-3 + R-4** (PR-5 — the flag register, the profile mechanism, the daemon's fourth flag) · **R-9 + R-2** (PR-11 — the soak's committed artifact, pinned digest, change-triggered cadence) · **R-13** (PR-12 — the Wilson re-count; 21 of 25 licences revoked) — all landed 2026-07-28.
 
-**Remaining:** R-13 → R-8 → R-1/R-5/R-6/R-11.
+**Remaining:** R-8 → R-1/R-5/R-6/R-11.
 
 ---
 
@@ -324,7 +324,7 @@ Two flags' documentation describes a production profile the production profile d
 
 ## R-13 · Wilson re-count — authorize, knowing licenses may be demoted
 
-**Status:** **RULED A** — 2026-07-28, Shay (explicit adoption) · *authorize the re-count; **served capability will shrink, and that is the mechanism working*** · **Register:** H-1 / G-19 · **Blocks:** PR-12, and PR-14 through it.
+**Status:** **RULED A — EXECUTED 2026-07-28 (PR-12)** · *re-counted on distinct evidence: **25 licensed bands → 4**, 21 demoted to disclosed serving; `wrong` stayed 0 throughout. The producer now refuses to seal a padded ledger.* · **Register:** H-1 / G-19 · **Blocks:** PR-12, and PR-14 through it.
 
 **The question.** Wilson lower-bound licensing (θ_SERVE=0.99, ADR-0175 lineage) assumes independent trials. A replay of the same sealed case is one trial observed again, not a new one. Re-counting on a distinct-evidence basis will demote licenses.
 

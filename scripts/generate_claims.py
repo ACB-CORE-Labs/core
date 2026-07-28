@@ -80,7 +80,7 @@ _LANE_ADR: dict[str, tuple[str, str]] = {
     ),
     "deduction_serve_v1": (
         "ADR-0256",
-        "Flag-gated deduction serving decides real English/member/fused/verb/existential arguments end-to-end under earned SERVE licenses; wrong=0 across all splits",
+        "Flag-gated deduction serving decides real English/member/fused/verb/existential arguments end-to-end, wrong=0 across all splits; 4 of 25 shape-bands hold an earned SERVE licence on DISTINCT evidence (R-13 re-count, 2026-07-28) and the other 21 decide with disclosure",
     ),
 }
 

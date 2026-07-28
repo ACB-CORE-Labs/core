@@ -150,14 +150,36 @@ def test_fabricated_premise_reaches_a_served_deduction_surface() -> None:
 
     The verdict is unaffected here, but the *recital* is: CORE tells the user
     they said ``furthermore``. Revise only by removing the fabrication.
+
+    **Updated 2026-07-28 (R-13), and deliberately not weakened.** The re-count
+    demoted ``conditional_single``, so both surfaces now carry the unverified-shape
+    disclosure. The prefix is licensing, not comprehension: it says *"I have not
+    earned a track record on this argument shape"*, which is a true statement about
+    evidence volume and says nothing about whether the recited premises are real.
+    **The fabrication survives the demotion untouched** — that is the finding, and it
+    is sharper now than before: a disclosure prefix might look like it covers the
+    hazard, and it does not. The user is still told they said ``furthermore``.
+
+    The assertion therefore stays exact-match on the full string, including the
+    prefix, so neither the fabrication nor the licence state can drift unnoticed.
     """
     from chat.deduction_surface import deduction_grounded_surface
 
+    disclosure = (
+        "(reasoned, but I haven't yet earned a verified track record on "
+        "arguments of this shape) "
+    )
     clean = deduction_grounded_surface("if p then q. p. therefore q.")
     leaked = deduction_grounded_surface("furthermore, if p then q. p. therefore q.")
 
-    assert clean == "Given: p implies q; p. Your premises entail: q."
-    assert leaked == "Given: furthermore; p implies q; p. Your premises entail: q."
+    assert clean == disclosure + "Given: p implies q; p. Your premises entail: q."
+    assert leaked == disclosure + "Given: furthermore; p implies q; p. Your premises entail: q."
+
+    # The defect, isolated from the licence state: the ONLY difference between a
+    # clean and a leaked recital is the fabricated premise. If this ever passes
+    # because both surfaces became refusals, the exact-match assertions above fail
+    # first — which is why they are kept rather than replaced by this.
+    assert leaked.replace("furthermore; ", "") == clean
 
 
 def test_aspect_arms_drop_negation() -> None:

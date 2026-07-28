@@ -1,42 +1,42 @@
 {
   "classes": {
     "atomic": {
-      "correct": 720,
+      "correct": 98,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "categorical": {
-      "correct": 720,
+      "correct": 294,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "conditional_chain": {
-      "correct": 720,
+      "correct": 294,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "conditional_single": {
-      "correct": 720,
+      "correct": 294,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "disjunctive": {
-      "correct": 720,
+      "correct": 294,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_atomic": {
-      "correct": 720,
+      "correct": 474,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
@@ -50,35 +50,35 @@
       "wrong": 0
     },
     "en_conditional_single": {
-      "correct": 720,
+      "correct": 474,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_condmem_chain": {
-      "correct": 720,
+      "correct": 52,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_condmem_conditional": {
-      "correct": 720,
+      "correct": 60,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_condmem_disjunctive": {
-      "correct": 720,
+      "correct": 28,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_condmem_fused": {
-      "correct": 720,
+      "correct": 60,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
@@ -92,92 +92,92 @@
       "wrong": 0
     },
     "en_exist_chain": {
-      "correct": 720,
+      "correct": 28,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_exist_negative": {
-      "correct": 720,
+      "correct": 28,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_exist_universal": {
-      "correct": 720,
+      "correct": 46,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_exist_witness": {
-      "correct": 720,
+      "correct": 35,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_member_atomic": {
-      "correct": 720,
+      "correct": 60,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_member_chain": {
-      "correct": 720,
+      "correct": 52,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_member_negative": {
-      "correct": 720,
+      "correct": 52,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_member_single": {
-      "correct": 720,
+      "correct": 60,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_verb_chain": {
-      "correct": 720,
+      "correct": 308,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_verb_fact": {
-      "correct": 720,
+      "correct": 660,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_verb_negative": {
-      "correct": 720,
+      "correct": 308,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     },
     "en_verb_universal": {
-      "correct": 720,
+      "correct": 660,
       "refused": 0,
       "t2_agrees_gold": 0,
       "t2_verified": 0,
       "wrong": 0
     }
   },
-  "content_sha256": "a056f899a47bbd4536e3141f47a9131c9058ab55f2e9567fdcb254145e2dc252",
-  "note": "Sealed-practice committed ledger for deduction serving (ADR-0256). Engine reads, never writes. Ceilings stay at safe defaults (theta_SERVE=0.99). A band earns SERVE by demonstrated pipeline reliability (reader+projector+engine) at volume >= 657 committed.",
+  "content_sha256": "8db89aed12aafb68625f4ee0ba994f91964775eef8f8f9e9f92c6ed030ecb1ed",
+  "note": "Sealed-practice committed ledger for deduction serving (ADR-0256). Engine reads, never writes. Ceilings stay at safe defaults (theta_SERVE=0.99). A band earns SERVE by demonstrated pipeline reliability (reader+projector+engine) at volume >= 657 committed. RE-COUNTED 2026-07-28 under R-13: one committed case per DISTINCT decision (case text), so committed == distinct evidence by construction. The prior seal folded the raw corpus and counted replays as independent trials, which the Wilson floor assumes they are not; 21 of 25 bands held SERVE licences their evidence never supported and are demoted here.",
   "provenance": "evals.deduction_serve.practice.runner.seal_ledger",
   "schema": "deduction_serve_ledger_v1"
 }

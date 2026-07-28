@@ -95,7 +95,12 @@ CAPABILITY_LEDGERS: dict[str, LedgerSpec] = {
         capability="deduction_serve",
         path=_PROJECT_ROOT / "chat" / "data" / "deduction_serve_ledger.json",
         missing_ok=False,
-        note="ADR-0256 — ships sealed; 25 bands at 720/720 wrong=0.",
+        note=(
+            "ADR-0256 — ships sealed; 25 bands, wrong=0. RE-COUNTED 2026-07-28 "
+            "(R-13): committed == DISTINCT evidence, so 4 bands hold a SERVE "
+            "licence and 21 decide with disclosure. The prior note said "
+            "'25 bands at 720/720', which counted replays as independent trials."
+        ),
     ),
     "curriculum_serve": LedgerSpec(
         capability="curriculum_serve",
