@@ -163,6 +163,16 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # regression fails; an improvement must move the recorded constants in
         # the same reviewed commit. Deterministic, ~0.8s.
         "tests/test_read_rate_floor.py",
+        # FA-1 / G-25 — the semantic ground's discrimination. Mounting the depth
+        # packs onto English REMOVES 37 distinct coordinates (239 surfaces → 202
+        # points): nine question words share one coordinate, and `דבר`/`λόγος`/`word`
+        # are bit-identical, because every "nudge" in packs/compiler.py returns its
+        # target verbatim instead of blending. Pinned in both directions with the
+        # English-alone control that attributes the loss to the mount, so the
+        # repair — and any further flattening — is a reviewed diff. Two sabotages
+        # observed red. See docs/analysis/logos-substrate-collapse-2026-07-28.md.
+        # Bit-exact comparison, no tolerances, ~2.1s.
+        "tests/test_manifold_collapse_floor.py",
         # PR-11 / G-5 / R-9 — the soak's evidence is committed, pinned, and CURRENT.
         # Two failure modes, deliberately separated: the digest catches a regression,
         # and the attested-source hashes catch STALENESS — evidence that no longer
