@@ -114,7 +114,7 @@ _UNIFY_EPS = 1e-4
 # emits and small enough that the per-turn substring scan in
 # ``_should_mark_speculative`` stays trivially cheap.  LRU eviction: a
 # subject re-encountered as SPECULATIVE refreshes its position; coherent
-# promotion removes it explicitly.
+# promotion decrements its claim and removes it at zero.
 _MAX_SPECULATIVE_SUBJECTS = 64
 
 class CognitiveTurnPipeline:
@@ -158,7 +158,20 @@ class CognitiveTurnPipeline:
         # forever and widened the per-turn substring scan unboundedly.
         # Iteration order matches insertion / refresh order; lookups
         # remain O(1).
-        self._speculative_subjects: OrderedDict[str, None] = OrderedDict()
+        #
+        # H-13 (external-assessment triage, 2026-07-28) — the value is a
+        # REFERENCE COUNT, not a placeholder.  Seeding splits a subject
+        # into tokens, so two independent proposals can claim the same
+        # token ("wisdom" from both ``wisdom`` and ``practical wisdom``).
+        # While this was a flat set, promoting either one popped the
+        # shared token and the *other* proposal — still unreviewed — lost
+        # its marker, serving speculative material as though reviewed.
+        # A token now survives while any unpromoted proposal still claims
+        # it.  Seeding and eviction walk the same source list, so the
+        # counts balance; where they disagree the count stays positive
+        # and the subject keeps its marker, which is the honest direction
+        # to fail.
+        self._speculative_subjects: OrderedDict[str, int] = OrderedDict()
 
     # ------------------------------------------------------------------
     # Public API
@@ -1027,32 +1040,52 @@ class CognitiveTurnPipeline:
         return ratify_intent(intent, prompt_versor, vocab=vocab)
 
     def _remember_speculative_subject(self, subject: str) -> None:
-        """Add (or refresh LRU position of) a speculative subject token.
+        """Claim a speculative subject token (and refresh its LRU position).
 
         Finding 5 (audit 2026-05-20).  Caps the cache at
         ``_MAX_SPECULATIVE_SUBJECTS`` via insertion-order eviction.
         Empty / whitespace-only inputs are dropped silently so callers
         can pass raw fragments without guarding.
+
+        H-13 — increments the token's reference count rather than
+        re-seating a placeholder, so a token claimed by two unreviewed
+        proposals needs two promotions to clear.
         """
         subject = subject.lower().strip()
         if not subject:
             return
-        self._speculative_subjects.pop(subject, None)
-        self._speculative_subjects[subject] = None
+        count = self._speculative_subjects.get(subject, 0)
+        self._speculative_subjects[subject] = count + 1
+        self._speculative_subjects.move_to_end(subject)
         while len(self._speculative_subjects) > _MAX_SPECULATIVE_SUBJECTS:
             self._speculative_subjects.popitem(last=False)
 
     def _forget_speculative_subject(self, subject: str) -> None:
-        """Evict a subject from the speculative-marker cache.
+        """Release one claim on a subject; evict it once no claim remains.
 
         Called when a SPECULATIVE proposal is promoted to COHERENT via
         the teaching review loop, so reviewed material stops being
         marked speculative on later probes.  No-op if the subject is
         not present.
+
+        H-13 — decrements rather than pops.  Token seeding is
+        subject-split, so two proposals can claim one token; popping
+        outright let a promotion strip the marker from a *different*
+        proposal that was still unreviewed.  An unmatched release (the
+        promoted proposal's token set differing from what it seeded)
+        floors at removal and never goes negative, so it cannot borrow
+        against a later proposal's claim.
         """
         subject = subject.lower().strip()
-        if subject:
+        if not subject:
+            return
+        count = self._speculative_subjects.get(subject)
+        if count is None:
+            return
+        if count <= 1:
             self._speculative_subjects.pop(subject, None)
+        else:
+            self._speculative_subjects[subject] = count - 1
 
     def _should_mark_speculative(self, text: str, surface: str) -> bool:
         """Decide whether ``surface`` should carry the SPECULATIVE marker.

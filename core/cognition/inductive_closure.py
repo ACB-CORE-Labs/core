@@ -102,8 +102,25 @@ def expand_relation_closure(
     Rules:
       * Base facts: each input triple (normalized).
       * Step k+1: if (a,r,b) and (b,r,c) known and a≠c and (a,r,c) unknown,
-        derive (a,r,c) with path a…c.
-      * Cycle: if path would revisit a node, skip (no infinite loop).
+        derive (a,r,c) with the witnessing path (a, b, c).
+      * Termination is structural, not path-based: ``work`` grows
+        monotonically over a finite triple set, so the fixed point is
+        reached in at most ``budget`` steps.  The only skips are
+        ``a == c`` (a self-edge is not a new fact) and a triple already
+        in ``work``.  **No path-revisit check is performed, and none
+        should be**: a witness path that revisits a node still proves a
+        true transitive fact, so skipping on revisit would refuse sound
+        derivations and leave the closure incomplete.  (H-8e, 2026-07-28
+        — this rule previously read "Cycle: if path would revisit a
+        node, skip", describing a check the code does not do and must
+        not do.  The code was right; the sentence was wrong.)
+      * ``path`` records the *witnessing* step, ``(head, mid, tail)``, not
+        the full derivation ancestry: a depth-k edge names the one
+        intermediate that produced it, whose own path names the next.
+        Extending it to full ancestry would change ``as_dict`` output,
+        and therefore ``operator_invocation`` and ``trace_hash`` — a
+        trace-bytes change, not a docstring fix, and deliberately not
+        made here.
       * Contradiction: two different tails for the same (head, relation)
         among base facts mark contradiction=True.
       * Geometric admissibility (Stage 3 exit gate): a candidate edge is
