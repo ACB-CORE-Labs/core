@@ -216,8 +216,10 @@ The assessment directory's own corrections (N-1…N-7 applied to `30-gap-registe
 ### PR-5 · The flag-default register · **M** · G-8/H-6
 `docs/specs/flag_register.md`: all **28** default-off flags plus the 4 default-on — current default, deliberate-posture vs accumulated-hesitancy, **what evidence flips it**, and named profiles (one-shot / eval / continuous-life) per R-4. Declared in the table, not the call site (ADR-0263 Rule 5). A pin asserts the register lists exactly the flags `core/config.py` defines — so a new flag cannot land unregistered. Includes the F-6 accrual resolution from R-3 and the N-6 docstring correction.
 
-### PR-6 · Failing pins for three doctrine-level prohibitions · **M** · G-9
+### PR-6 · Failing pins for three doctrine-level prohibitions · **M** · G-9 — **LANDED 2026-07-28**
 (a) no-approximate-recall — a pin that fails if a cosine/ANN ranker is substituted on the recall path; (b) a bypass pin — governance not merely working when called, but *unbypassable*; (c) safety-pack non-swappability mechanically enforced. Each demonstrated red-then-green; a law with a pin that cannot fail is a hollow gate.
+
+**Landed, and the verification pass this item mandated is why the three came out differently.** (a) was the real gap and worse than the register stated: the only import ban covered a single physics module, while `generate/realize/recall.py` — the actual recall path — asserted the law in its docstring with nothing enforcing it. Now scanned across five roots for banned ANN libraries *and* hand-rolled `cosine*` definitions. (b) is now exact: no function may construct `TurnVerdicts` without invoking `safety_check.check`, and every call must pass `self.safety_pack` (substituting the pack is a bypass that skipping-detection would miss). (c) was already well pinned — its gap was **reach**: a fail-closed safety contract running in no curated suite, verified only after merge. Promoted onto the gate. **Four sabotages, each observed red**, each caught by its own pin.
 
 ### PR-7 · The M2 trust-boundary table · **M** · H-7
 Formation's six-boundary standard written for `ingest/gate.py` in `runtime_contracts.md`. **Documentation first** — the table's job is to expose real deltas at the surface facing untrusted user text; hardening PRs follow only where deltas are real, and are separate PRs.

@@ -119,6 +119,20 @@ TEST_SUITES: dict[str, tuple[str, ...]] = {
         # full-only files stay a declared, shrinking number rather than 749
         # invented justifications (N-9). Filesystem + glob only, <1s.
         "tests/test_suite_membership.py",
+        # PR-6 / G-9 — three AGENTS.md prohibitions enforced by test instead of
+        # review: exact recall (no cosine/ANN/HNSW on any path that decides
+        # recalled truth — the prior ban covered ONE physics module while
+        # generate/realize/recall.py stated the law in a docstring and nothing
+        # enforced it), governance non-bypass (a serving path may not assemble
+        # verdicts without running the safety check), and the safety pack's
+        # placement on this gate. Source scan only, <1s.
+        "tests/test_doctrine_prohibitions.py",
+        # The safety pack's fail-closed contract: unratified pack refused in
+        # production, missing companion report refused, seal failure refused,
+        # path traversal rejected, missing pack fails closed. It ran in NO
+        # curated suite — a safety-critical contract verified only after merge
+        # (G-9c). ~2s.
+        "tests/test_safety_pack.py",
         # The smoke/CI parity pin must run on the gate it guards. It enforces
         # that this tuple is never NARROWER than smoke.yml — and it lived in
         # `fast`, which the pre-push gate does not run (N-9). ~1s.

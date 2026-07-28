@@ -85,7 +85,16 @@ Pin 1 exists because the two gates have **already** drifted (see H-12): the loca
 ### G-9 · Enforcement pins unverified for three doctrine-level prohibitions
 **Layer:** M1 / MG · **Leverage: 9**
 (a) No verified failing pin for the no-approximate-recall law (would a cosine ranker actually fail a test?); (b) no pin that fails when a layer *bypasses* governance entirely (as distinct from governance working when called); (c) safety-pack non-swappability not verified as mechanically enforced. All three are law in `AGENTS.md`; law-enforced-by-review is weaker than law-enforced-by-test.
-**Evidence:** `M1`/`MG` cards (flagged, not resolved, in Phase 2–3). · **Authority:** verification pass, then mechanical PRs.
+**CLOSED 2026-07-28 — PR-6. The verification pass found the three in different states, and the differences are the finding.**
+
+**(a) Exact recall — was the real gap, and worse than stated.** The question "would a cosine ranker actually fail a test?" had the answer *no, almost anywhere*. One import ban existed, over exactly one file (`core/physics/wave_manifold.py`, in `test_third_door_cohesion.py` — itself in no curated suite). Meanwhile `generate/realize/recall.py`, which *is* the recall path, states the prohibition in its module docstring — *"an exact, deterministic equality scan (no cosine / HNSW / ANN)"* — with nothing behind it. Law asserted where it executes, enforced nowhere: the H-8 failure mode applied to a prohibition. Now scanned across `vault/`, `generate/realize/`, `generate/meaning_graph/`, `field/`, `recognition/` for banned ANN libraries **and** for hand-rolled `cosine*` definitions — because an import ban only stops the convenient version, and ten lines of numpy is the realistic way a well-meaning contributor violates this.
+
+**(b) Governance bypass — the pin now exists and is exact.** INV-07 proves governance works *when called*; nothing proved it could not be skipped. The mechanism: every function in `chat/runtime.py` that constructs a `TurnVerdicts` must also invoke `safety_check.check`, and every such call must pass `self.safety_pack` (a bypass need not skip the call — it can substitute the pack). Measured at close: two verdict-constructing functions, both governed.
+
+**(c) Safety-pack non-swappability — was already well pinned; its gap was reach, not coverage.** `tests/test_safety_pack.py` pins unratified-pack-refused-in-production, missing-companion-report-refused, seal-failure-refused, path-traversal-rejected, missing-pack-fails-closed. It ran in **no curated suite** — a fail-closed safety contract verified only after merge. Promoted onto the gate; the new pin guards that placement rather than duplicating the substance.
+
+**Verification:** four sabotages, each observed red and each caught by its own pin — a banned library imported on a recall path, a hand-rolled cosine ranker, a serving path assembling verdicts without governing, and the safety pack demoted off the gate.
+**Evidence:** `tests/test_doctrine_prohibitions.py`; `tests/test_safety_pack.py`; `AGENTS.md` §"Exact recall"; `generate/realize/recall.py`. · **Authority:** discharged mechanically; no ruling was owed.
 
 ### G-10 · Curriculum SERVE is blocked by **one ruling**, and its ledger doesn't exist **[AMENDED N-5]**
 **Layer:** M5 · **Leverage: 10**
