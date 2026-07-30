@@ -1,6 +1,6 @@
 # ADR index, keyed by domain
 
-`docs/adr/` holds 312 files under a flat, purely sequential numbering. Sequence
+`docs/adr/` holds 314 ADR-numbered files (333 including non-ADR scope/session notes; see `docs/adr-audit/01-adr-census.md` for the machine-verified count and numbering-collision disambiguation) under a flat, purely sequential numbering. Sequence
 records *when* a decision was made and nothing about *what it governs*, so
 answering "which ADRs constrain the serving flag contract?" or "what governs
 the register axis?" currently means grepping. Past ~300 files that is how a
@@ -15,9 +15,12 @@ Master-Blueprint collision reconciliation and the binding non-ADR notes).
 
 This index covers the **live serving, telemetry, and governance surfaces** — the
 domains a Phase 5 / next-arc session needs to query. It is not a complete index
-of all 312 ADRs, and it does not pretend to be: an index asserting coverage it
+of all 314 ADRs, and it does not pretend to be: an index asserting coverage it
 does not have is worse than none, because it converts "I should grep" into "I
-already checked."
+already checked." For a corpus-wide, evidence-verified (not just cross-referenced)
+pass — implementation status, pillar/axiom alignment, and necessity/generality
+per ADR — see `docs/adr-audit/`, in progress as of 2026-07-29 (`MANIFEST.md`
+tracks completion by batch; Batch 1, ADR-0001–0050, is done).
 
 **Maintenance rule: index on mint.** Adding a row when you write an ADR is
 cheap; back-filling 300 is not. Rows below carry the files each ADR governs so
@@ -128,7 +131,7 @@ complete-with-null-yield).
 
 ## Numbering note
 
-The corpus is at ADR-0263 and minted eight ADRs in roughly 48 hours during the
+The corpus is at ADR-0265 (as of 2026-07-29; was ADR-0263 when this note was last touched) and minted eight ADRs in roughly 48 hours during the
 generalization arc. Sequential numbering is fine and should stay — the cost it
 imposes is discoverability, which is what this file pays down. ADR-0300 is a
 near-term milestone with no structural meaning; do not treat it as one.

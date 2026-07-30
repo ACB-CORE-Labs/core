@@ -1,8 +1,8 @@
 {
   "adr": "0114a.8",
-  "cases_path": "/Users/kaizenpro/Projects/core-adr-0114a-8-adversarial/evals/obligation_8_adversarial/v1/cases.jsonl",
-  "cases_refused": 28,
-  "cases_solved": 8,
+  "cases_path": "/Users/kaizenpro/Projects/acbcore-labs/core/evals/obligation_8_adversarial/v1/cases.jsonl",
+  "cases_refused": 26,
+  "cases_solved": 10,
   "cases_total": 36,
   "cases_wrong": 0,
   "families": [
@@ -14,8 +14,8 @@
       "family": "conditional"
     },
     {
-      "cases_refused": 4,
-      "cases_solved": 0,
+      "cases_refused": 2,
+      "cases_solved": 2,
       "cases_total": 4,
       "cases_wrong": 0,
       "family": "distractor_noise"
@@ -80,7 +80,7 @@
       "case_id": "adv-paraphrase-001",
       "family": "paraphrase",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam possesses 5 apples.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam possesses 5 apples.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -88,7 +88,7 @@
       "case_id": "adv-paraphrase-002",
       "family": "paraphrase",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam owns 5 apples.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam owns 5 apples.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -96,7 +96,7 @@
       "case_id": "adv-paraphrase-003",
       "family": "paraphrase",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam carries 5 apples in his bag.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam carries 5 apples in his bag.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -104,7 +104,7 @@
       "case_id": "adv-paraphrase-004",
       "family": "paraphrase",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam holds 5 apples.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam holds 5 apples.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": 5.0,
@@ -160,7 +160,7 @@
       "case_id": "adv-conditional-003",
       "family": "conditional",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam would have 5 apples if he bought them.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam would have 5 apples if he bought them.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -168,10 +168,10 @@
       "case_id": "adv-conditional-004",
       "family": "conditional",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Suppose Sam has 5 apples.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Suppose Sam has 5 apples.' (category=discrete_count_statement)"
     },
     {
-      "actual_answer": 5.0,
+      "actual_answer": 8.0,
       "actual_unit": "apples",
       "case_id": "adv-pronoun-coref-001",
       "family": "pronoun_coref",
@@ -179,7 +179,7 @@
       "reason": ""
     },
     {
-      "actual_answer": 5.0,
+      "actual_answer": 8.0,
       "actual_unit": "apples",
       "case_id": "adv-pronoun-coref-002",
       "family": "pronoun_coref",
@@ -187,7 +187,7 @@
       "reason": ""
     },
     {
-      "actual_answer": 5.0,
+      "actual_answer": 8.0,
       "actual_unit": "apples",
       "case_id": "adv-pronoun-coref-003",
       "family": "pronoun_coref",
@@ -195,7 +195,7 @@
       "reason": ""
     },
     {
-      "actual_answer": 5.0,
+      "actual_answer": 3.0,
       "actual_unit": "apples",
       "case_id": "adv-pronoun-coref-004",
       "family": "pronoun_coref",
@@ -208,7 +208,7 @@
       "case_id": "adv-hedged-quantity-001",
       "family": "hedged_quantity",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has about 5 apples.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam has about 5 apples.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -216,7 +216,7 @@
       "case_id": "adv-hedged-quantity-002",
       "family": "hedged_quantity",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has almost 5 apples.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam has almost 5 apples.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -224,7 +224,7 @@
       "case_id": "adv-hedged-quantity-003",
       "family": "hedged_quantity",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has approximately 5 apples.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam has approximately 5 apples.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -232,7 +232,7 @@
       "case_id": "adv-hedged-quantity-004",
       "family": "hedged_quantity",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has roughly 5 apples.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam has roughly 5 apples.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -240,7 +240,7 @@
       "case_id": "adv-ordinal-confusion-001",
       "family": "ordinal_confusion",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has the 5th apple.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam has the 5th apple.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -248,7 +248,7 @@
       "case_id": "adv-ordinal-confusion-002",
       "family": "ordinal_confusion",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has the third apple.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam has the third apple.' (category=descriptive_setup_no_quantity)"
     },
     {
       "actual_answer": null,
@@ -256,7 +256,7 @@
       "case_id": "adv-ordinal-confusion-003",
       "family": "ordinal_confusion",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam picks the second apple.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam picks the second apple.' (category=descriptive_setup_no_quantity)"
     },
     {
       "actual_answer": null,
@@ -264,7 +264,7 @@
       "case_id": "adv-ordinal-confusion-004",
       "family": "ordinal_confusion",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam is the first to have 5 apples.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam is the first to have 5 apples.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -272,7 +272,7 @@
       "case_id": "adv-implicit-subject-001",
       "family": "implicit_subject",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: '5 apples were eaten.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: '5 apples were eaten.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -280,7 +280,7 @@
       "case_id": "adv-implicit-subject-002",
       "family": "implicit_subject",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: '3 were taken.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: '3 were taken.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -288,7 +288,7 @@
       "case_id": "adv-implicit-subject-003",
       "family": "implicit_subject",
       "outcome": "refused",
-      "reason": "candidate_graph: no branch produced a solvable graph"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'It has 5 apples.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -304,7 +304,7 @@
       "case_id": "adv-self-reference-001",
       "family": "self_reference",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has 3 more apples than Sam.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam has 3 more apples than Sam.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -312,7 +312,7 @@
       "case_id": "adv-self-reference-002",
       "family": "self_reference",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has twice as many apples as Sam.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam has twice as many apples as Sam.' (category=comparative_with_unit)"
     },
     {
       "actual_answer": null,
@@ -328,7 +328,7 @@
       "case_id": "adv-self-reference-004",
       "family": "self_reference",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has 3 more apples than Sam.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam has 3 more apples than Sam.' (category=discrete_count_statement)"
     },
     {
       "actual_answer": null,
@@ -336,7 +336,7 @@
       "case_id": "adv-distractor-noise-001",
       "family": "distractor_noise",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has 5 shiny red apples in his wicker basket on a sunny Tuesday afternoon.'"
+      "reason": "candidate_graph: no branch produced a solvable graph"
     },
     {
       "actual_answer": null,
@@ -344,23 +344,23 @@
       "case_id": "adv-distractor-noise-002",
       "family": "distractor_noise",
       "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Sam has 5 apples and the weather is nice.'"
+      "reason": "candidate_graph: recognizer matched but produced no injection for statement: 'Sam has 5 apples and the weather is nice.' (category=discrete_count_statement)"
     },
     {
-      "actual_answer": null,
-      "actual_unit": null,
+      "actual_answer": 5.0,
+      "actual_unit": "apples",
       "case_id": "adv-distractor-noise-003",
       "family": "distractor_noise",
-      "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'Tom is happy.'"
+      "outcome": "solved",
+      "reason": ""
     },
     {
-      "actual_answer": null,
-      "actual_unit": null,
+      "actual_answer": 5.0,
+      "actual_unit": "apples",
       "case_id": "adv-distractor-noise-004",
       "family": "distractor_noise",
-      "outcome": "refused",
-      "reason": "candidate_graph: no admissible candidate for statement: 'The sky is blue.'"
+      "outcome": "solved",
+      "reason": ""
     }
   ],
   "refusal_reason": "",
