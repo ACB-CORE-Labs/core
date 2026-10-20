@@ -169,13 +169,120 @@ This findings ledger records observations and facts directly established during 
 
 ---
 
+### FIND-0007: Contradiction Between Conformal Point Embedding (Null Vectors) and VocabManifold Insertion Invariant (Unit Versors)
+
+- **Original obligation:**
+  - `docs/Whitepaper.md` §V (Invariants II & III) and `docs/Yellowpaper.md` §I.1, §III, and §V specify:
+    1. Euclidean point $p = (x, y, z)$ embeds as a null vector on the conformal horosphere: $P = p + \frac{1}{2}|p|^2 \infty + o$, satisfying $P \cdot P = 0$.
+    2. Vocabulary manifold elements are stored as null vectors ($v_w \cdot v_w = 0$).
+    3. The CGA inner product between null vectors yields exact conformal distance: $X \cdot Y = -\frac{1}{2} d(X, Y)^2$.
+    4. Token projection selects $\arg\max_w (F_{\text{current}} \cdot v_w)$, minimizing CGA distance to the field state.
+- **Subsequent change:**
+  - `docs/adr/ADR-0001-vocab-layer-invariants.md` and `vocab/manifold.py` enforce:
+    1. All vocabulary entries must be unit versors. ADR-0001 originally enforced a scalar-only check on the signed scalar part: $\langle V \widetilde{V} \rangle_0 \approx \pm 1$ (specified as `float(geometric_product(v, reverse(v))[0])` between 0.95 and 1.05). In contrast, the implemented `vocab/manifold.py::add()` and `update()` enforce the full multivector unit residual $\|V \widetilde{V} \mp 1\|_F \le 10^{-5}$ (`_MANIFOLD_RESIDUAL_TOLERANCE`), rejecting non-scalar residue as well as scalar deviation.
+    2. Any vector failing this check raises `ValueError`.
+  - **Mathematical Reality:**
+    1. In Clifford algebra $\text{Cl}(4,1)$, for any grade-1 vector $X$, the reverse is $\widetilde{X} = X$.
+    2. Therefore, $X \widetilde{X} = X^2 = X \cdot X + X \wedge X = X \cdot X$.
+    3. For a null vector $X$, $X \cdot X = 0$, which implies $X \widetilde{X} = 0$.
+    4. The unit versor residual is $\|0 \mp 1\| = 1.0 \gg 10^{-5}$ (under both positive and negative unit branches).
+    5. Consequently, any genuine conformal null vector produced by `algebra/cga.py::embed_point(x)` is strictly rejected by `VocabManifold.add()`.
+  - Yet `VocabManifold.nearest(F)` continues to state in its docstring:
+    `cga_inner(X, Y) = -d^2 / 2 for null vectors: maximizing = minimizing distance.`
+    while calculating `cga_inner` against stored unit versors ($V \widetilde{V} \approx \pm 1$), not null vectors.
+- **Stated reason:** ADR-0001 states the grade-norm condition was introduced to prevent callers from inserting raw Euclidean coordinate arrays or external embeddings ("back door problem") without lifting through the algebra. The algebraic conflict between a null point ($X^2 = 0$) and a unit versor ($V \widetilde{V} = 1$) is unstated in source.
+- **Implementation sites and consumers:** `vocab/manifold.py` (lines 40–66, 110–112), `algebra/cga.py` (lines 11–15, 69–76, 99–120), `docs/Whitepaper.md` §V, `docs/Yellowpaper.md` §V, `docs/adr/ADR-0001-vocab-layer-invariants.md`.
+- **Evidence and its scope:** Algebraic and source-inspection evidence (deductive derivation from $\text{Cl}(4,1)$ grade-1 null vector definitions and static code inspection of `_assert_manifold_versor` in `vocab/manifold.py`), not reproduced runtime execution.
+- **Classification:** Formal Contradiction (Algebraic Specification vs. Runtime Invariant).
+- **Architectural consequence:** Vocabulary elements cannot simultaneously satisfy the Whitepaper null-cone invariant and the ADR-0001 manifold versor invariant. If vocabulary elements are unit versors, `cga_inner(F, v_w)` does not compute $-\frac{1}{2} d(F, v_w)^2$ in the Euclidean metric sense, but rather the scalar part of the geometric product between field and vocabulary operators.
+- **Proposed disposition:** Record in Canonical Question Register as formal verification of `REV-Q-002`. Preserve both implementations during assessment for Phase 2 mathematical reconciliation without altering runtime code.
+- **Verification status:** Confirmed directly from source text and algebra implementations.
+- **Unresolved questions:** Was the vocabulary intended to store conformal points (geometric targets) or transformation versors (operators on the Spin manifold), or does a dual mapping exist that was left unrecorded?
+
+---
+
+### FIND-0008: Deletion and Divergence of ADR-0011 Renderer Contract (`generate/render.py` Absent on Disk)
+
+- **Original obligation:** ADR-0011 ("Renderer Layer Contract", 2026-05-13) established a thin renderer interface: `class Renderer(Protocol)` with `def render(self, tokens: Iterable[VocabEntry]) -> str | bytes`. It declared that the default implementation would be `generate/render.py` (`TextRenderer`), joining tokens by language-appropriate separators.
+- **Subsequent change:**
+  - `generate/render.py` was created in commit `0fbc2e92`.
+  - The audit record is dated May 24, 2026; removal of `generate/render.py` was committed in `050b2f92` on May 25, 2026 UTC. The recorded rationale was dormancy: zero live production imports, test imports, and references.
+  - `docs/adr/ADR-0011-renderer.md` was never amended or marked superseded; it remains on disk at `069ceb55` declaring `Status: Accepted` and describing `generate/render.py` as active.
+  - Other modules producing surface strings exist in the tree (`generate/realizer.py`, `core/cognition/surface_resolution.py`). No explicit replacement or supersession decision was identified in the sources reviewed for this unit. Whether one exists elsewhere in the ADR, session, or commit history remains unresolved.
+- **Stated reason:** Explicitly stated in commit `050b2f92` and `docs/audit/substrate-liveness-registry.md` L5 audit: `generate/render.py` was deleted as dormant cleanup.
+- **Implementation sites and consumers:** `docs/adr/ADR-0011-renderer.md`, `generate/render.py` (deleted), `docs/audit/substrate-liveness-registry.md`, `generate/realizer.py`, `core/cognition/surface_resolution.py`.
+- **Evidence and its scope:** Git log history of `generate/render.py` (`0fbc2e92` creation, `050b2f92` deletion) and direct filesystem verification confirming `generate/render.py` does not exist on disk at `069ceb55` or HEAD.
+- **Classification:** Divergence (Documented Decision vs. Working Tree Reality).
+- **Architectural consequence:** ADR-0011 misrepresents the current repository contents. Readers consulting ADR-0011 search for a nonexistent `generate/render.py`. Whether surface realization in `realizer.py` or `surface_resolution.py` fulfills or alters ADR-0011's architectural role remains unestablished in this review.
+- **Proposed disposition:** Document the historical deletion; present proposed documentation amendment to ADR-0011 for owner review during a future governance pass without asserting equivalent replacement.
+- **Verification status:** Confirmed directly from git commit history and disk inspection.
+- **Unresolved questions:** Was the renderer obligation superseded, relocated, left as an external caller responsibility, or removed without a corresponding design update?
+
+---
+
+### FIND-0009: Separation of Algebraic Operator Ownership (ADR-0004) and Metadata Stores in `VocabManifold`
+
+- **Original obligation:** ADR-0004 ("Rotor as Operator, Not Vocabulary Property", 2026-05-12) mandated:
+  1. Remove `edge_rotor()` from `VocabManifold`.
+  2. Relocate transition operator construction to free functions in `algebra/rotor.py` (`word_transition_rotor(A, B)`).
+  3. `VocabManifold` contract is strictly: store word-versor pairs, support relational lookup by CGA inner product, and construct no operators or transformations.
+- **Subsequent change:**
+  - The separation of operator construction into `algebra/rotor.py` was maintained: `VocabManifold` contains zero methods constructing rotors or versor products.
+  - In addition to word-versor storage, `VocabManifold` maintains dictionary mappings for associated metadata:
+    - `_morphology_by_word`: `dict[str, MorphologyEntry]`
+    - `_language_by_word`: `dict[str, str]`
+    - `_energy_by_word`: `dict[str, EnergyProfile]` (ADR-0006)
+    - `_valence_by_word`: `dict[str, ValenceBundle]` (ADR-0007)
+    - `_epistemic_state_by_word`: `dict[str, str]` (ADR-0142)
+    - `_transient_words`: `set[str]`
+    - `_unknown_token_log`: `list[dict[str, object]]`
+- **Stated reason:** ADR-0004 states operators belong in `algebra/` because they describe transformations applied in the field, not properties of the vocabulary. Subsequent ADRs (ADR-0006, ADR-0007, ADR-0142) attached linguistic, energetic, and epistemic metadata to lexical entries.
+- **Implementation sites and consumers:** `vocab/manifold.py` (lines 68–79, 114–127, 223–259), `algebra/rotor.py` (lines 285–317), `docs/adr/ADR-0004-rotor-as-operator-not-property.md`.
+- **Evidence and its scope:** Direct inspection of `vocab/manifold.py` and `algebra/rotor.py`.
+- **Classification:** Architectural Preservation with Layer Observation.
+- **Architectural consequence:** The structural boundary of ADR-0004 (no operator synthesis in `VocabManifold`) holds in code. `VocabManifold` holds linguistic, physical, and epistemic metadata mappings alongside its versor arrays.
+- **Proposed disposition:** Acknowledge that ADR-0004's operator boundary is preserved; note metadata mappings for Phase 2 language pack review.
+- **Verification status:** Confirmed directly from source code.
+- **Unresolved questions:** None.
+
+---
+
+### FIND-0010: Recorded Amendment of ADR-0005 Language Pack Alignment Gate
+
+- **Original obligation:** ADR-0005 ("Language Pack Contract", 2026-05-12) defined an 8-gate activation sequence for language packs (`en`, `he`, `el`/`grc`):
+  1. Schema gate
+  2. Lexical gate
+  3. Morphology gate
+  4. Lift gate
+  5. Readback gate
+  6. Determinism gate
+  7. Alignment gate (publishes anchor records verifiable against trilingual template)
+  8. Coverage gate
+- **Subsequent change:**
+  - An explicit amendment dated 2026-07-28 is recorded directly in `docs/adr/ADR-0005-language-pack-contract.md` lines 94–111.
+  - **Recorded Historical Measurements (Documented in Source, Not Independently Reproduced Here):**
+    1. Measured at commit `472fc0a8`, the alignment mechanism behind Gate 7 was reported to destroy what it claimed to align: `packs.compiler._blend_feature_versors` ignored its strength argument and returned the target verbatim, overwriting Hebrew tokens with Greek/English coordinates and deleting 37 distinct coordinates (`docs/analysis/logos-substrate-collapse-2026-07-28.md`).
+    2. The eight gates were not implemented as an executable sequence in the loader; `gate_engaged` was recorded as a single boolean flag in pack manifests.
+    3. Gate 7's stronger theoretical premise—that alignment resonance validates semantic truth (ADR-0015 Crown Proof)—was reported as measured and refused (`docs/analysis/fa1-holonomy-gate-verdict-2026-07-28.md`).
+    4. The amendment affirmed that alignment must be interpolation on the versor group (`algebra/rotor.py::rotor_power`), never replacement, and that cross-language anchor data stands without asserting that alignment proves semantic resonance.
+- **Stated reason:** Explicitly stated in the 2026-07-28 amendment to ADR-0005 and cited analysis documents.
+- **Implementation sites and consumers:** `docs/adr/ADR-0005-language-pack-contract.md`, `packs/compiler.py`, `docs/analysis/logos-substrate-collapse-2026-07-28.md`, `docs/analysis/fa1-holonomy-gate-verdict-2026-07-28.md`.
+- **Evidence and its scope:** Source-referenced summary of the amendment in `docs/adr/ADR-0005-language-pack-contract.md` and its cited analysis documents. The historical measurements have not been independently reproduced in this assessment.
+- **Classification:** Historical Defect & Documented Empirical Amendment.
+- **Architectural consequence:** The Language Pack Contract cannot be assumed to function as originally written in May 2026; the 2026-07-28 amendment documents structural failure of naive alignment blending and the lack of an active 8-gate runner.
+- **Proposed disposition:** Maintain the historical amendment as documented evidence; evaluate current `packs/compiler.py` implementation in Phase 2 against the versor interpolation requirement.
+- **Verification status:** Confirmed directly from ADR-0005 source text.
+- **Unresolved questions:** Has `packs.compiler._blend_feature_versors` been updated to use geodesic versor interpolation (`rotor_power`), or does coordinate overwrite persist in any loader paths?
+
+---
+
 ## 3. Canonical Question Register: Disputed Invariants & Historical Claims
 
 The following tensions across historical documents, code implementations, and external experiments are held as **Formal Review Questions** rather than premature architectural verdicts. This register is the single canonical question roster for the restoration assessment.
 
 | Question ID | Topic | Source Reference | Historical Claim / Tension | Formal Review Question | Verification Plan |
 |---|---|---|---|---|---|
-| [**`REV-Q-001`**](#rev-q-001-algebraic-tolerance-threshold) | Algebraic Tolerance | `docs/adr-audit/20-finding-register.md` (`AA-4`) | `_MANIFOLD_RESIDUAL_TOLERANCE = 1e-5` is 10× looser than `< 1e-6` in Whitepaper Invariant I. | What is the mathematically and mechanically justified tolerance for Cl(4,1) multivector closure across IEEE 754 float32 operations, and what is the exact empirical margin on live mounts? | Trace `algebra/versor.py` and inspect residual distribution on live states in Phase 2. |
+| [**`REV-Q-001`**](#rev-q-001-algebraic-tolerance-thresholds-and-boundary-regimes) | Algebraic Tolerance | `docs/Whitepaper.md` §V, `algebra/versor.py`, `vocab/manifold.py` | Tolerance locations and regimes differ: Whitepaper & `AGENTS.md` specify runtime closure `< 1e-6` (enforced in `algebra/versor.py` at float64), whereas `vocab/manifold.py` defines `_MANIFOLD_RESIDUAL_TOLERANCE = 1e-5` for vocabulary admission (float32 storage, float64 diagnostics, `allow_negative=True`), and `algebra/versor.py` defines `_NULL_INNER_TOL = 1e-5` for null routing. | What are the mathematically and mechanically justified tolerances for each boundary (vocabulary admission, runtime closure, construction residue, null-input routing), and how do normalization and `_seed_to_rotor` substitution interact? | Trace `algebra/versor.py`, `vocab/manifold.py`, and `algebra/rotor.py` across dtypes and sign branches in Phase 2. |
 | [**`REV-Q-002`**](#rev-q-002-vocabulary-representation-on-the-conformal-manifold) | Vocab Representation | `docs/adr-audit/20-finding-register.md` (`AA-2`) | `VocabManifold.add()` stores unit versors ($V \widetilde{V} = 1$), rejecting conformal null points ($X \cdot X = 0$), conflicting with Whitepaper Invariants II & III. | What is the lawful algebraic relationship between conformal point representations and operator versors in the Logos vocabulary manifold? | Review `algebra/cga.py` point embedding formulas against `VocabManifold.add()` in Phase 2. |
 | [**`REV-Q-003`**](#rev-q-003-geometric-custody-vs-relational-lookup) | Relational Lookup | `docs/adr-audit/20-finding-register.md` (`AA-1`) | `VocabManifold.nearest()` returns single word on production mount; 350/353 stored surfaces fail identity recall. | Does standard conformal inner product support relational lookup, or is nearest-neighbor search an inherited abstraction that conflicts with Cl(4,1) rotor geometry? | Trace `generate/articulation.py` and evaluate retrieval behavior in Phase 2. |
 | [**`REV-Q-004`**](#rev-q-004-role-of-geometry-in-semantic-determination-and-tested-outcomes) | Geometry & Outcomes | `coreai` PR #291 (`LOGOS-ABLATION-1`) | Historical PR #291 report concluded geometric operations failed to perform semantic determination on WA1 test workload. | What role was geometry intended to play, which mechanism actually determined the tested outcomes, and what does the experiment establish within its specific implementation and workload? | Examine PR #291 diff, test data, and ablation scripts in Phase 3. |
@@ -187,14 +294,18 @@ The following tensions across historical documents, code implementations, and ex
 
 ### Detailed Question Records
 
-#### REV-Q-001: Algebraic Tolerance Threshold
-- **Topic:** Algebraic closure condition and numerical tolerance.
-- **Source References:** `docs/Whitepaper.md` §V (Invariant I), `AGENTS.md` (Non-negotiable Field Invariant), `algebra/versor.py` line 22, `docs/adr-audit/20-finding-register.md` claim `AA-4`.
-- **Context & Tension:** Whitepaper Invariant I and `AGENTS.md` specify:
-  $$\text{versor\_condition}(F) = \|F \cdot \widetilde{F} - 1\| < 10^{-6}$$
-  However, `algebra/versor.py` defines `_MANIFOLD_RESIDUAL_TOLERANCE = 1e-5`, which is an order of magnitude looser. Historical finding `AA-4` labeled this a critical severity violation.
-- **Formal Review Question:** What is the mathematically and mechanically justified tolerance for $\text{Cl}(4,1)$ multivector closure across composite floating-point operations in IEEE 754 float32, and what is the measured empirical residual distribution across production field operations?
-- **Verification Plan:** In Phase 2, trace all uses of `_MANIFOLD_RESIDUAL_TOLERANCE` in `algebra/versor.py`, evaluate numerical accumulation in `_close_applied_versor`, and run bounded numerical sweeps without modifying runtime code.
+#### REV-Q-001: Algebraic Tolerance Thresholds and Boundary Regimes
+- **Topic:** Algebraic closure condition, numerical tolerance locations, and operator substitution.
+- **Source References:** `docs/Whitepaper.md` §V (Invariant I), `AGENTS.md` (Non-negotiable Field Invariant), `algebra/versor.py` (lines 13–15, 146), `vocab/manifold.py` (line 40), `docs/adr-audit/20-finding-register.md` claim `AA-4`.
+- **Context & Tension:** Tolerances are distributed across distinct functional boundaries and numeric regimes, rather than a single global constant:
+  1. **Runtime Closure:** `algebra/versor.py` line 14 defines `_RUNTIME_CLOSURE_TOLERANCE = 1e-6`, matching Whitepaper Invariant I and `AGENTS.md` (`versor_condition(F) < 1e-6`). Enforced in `float64` via `_runtime_closed`, `_close_applied_versor`, and `normalize_to_versor`. Calls `versor_condition` with `allow_negative=False`, strictly requiring positive unit $+1.0$.
+  2. **Vocabulary Admission:** `vocab/manifold.py` line 40 defines `_MANIFOLD_RESIDUAL_TOLERANCE = 1e-5`. Enforced on `add()` and `update()` via `_assert_manifold_versor`. Storage is in `float32`, but residual diagnostics evaluate in `float64` via `versor_unit_residual(v, allow_negative=True)`, admitting both positive ($\approx +1$) and negative ($\approx -1$) unit versors.
+  3. **Construction Residue:** `algebra/versor.py` line 13 defines `_CONSTRUCTION_RESIDUE_TOLERANCE = 1e-2`. Used in `_unitize_closed` at `float64` to admit non-scalar residue before scaling by $1/\sqrt{\text{scalar\_sq}}$ (requires $\text{scalar\_sq} > 0.0$).
+  4. **Null-Input Routing:** `algebra/versor.py` line 146 defines `_NULL_INNER_TOL = 1e-5` (evaluated at `float64`), routing null vectors ($|F \cdot F| < 10^{-5}$) around `_close_applied_versor` in `versor_apply` to preserve conformal point geometry.
+  5. **Normalization vs. Synthetic Rotor Substitution:** `algebra/versor.py` distinguishes algebraic normalization (`_unitize_closed`, which rescales an existing versor candidate by $1/\sqrt{\text{scalar\_sq}}$) from synthetic rotor substitution (`_seed_to_rotor`). In `unitize_versor`, substitution triggers only when `bad_residue` is encountered AND support is sufficient (`support >= _DENSE_SEED_MIN_COMPONENTS`, i.e. $\ge 8$). Other paths invoke substitution after closure failure (e.g. in `normalize_to_versor` or `_runtime_closed` when `versor_condition >= _RUNTIME_CLOSURE_TOLERANCE`) or caught `ValueError`. When invoked, `_seed_to_rotor` does not simply extract bivector coefficients; it samples the seed through the indexed expression `seed[(blade + step) % 32] / scale` across six fixed bivectors `_SEED_BIVECTORS = (6, 7, 8, 10, 11, 13)` and composes a newly synthesized, closed rotor via $\cos(\theta) + \sin(\theta) e_{\text{blade}}$ factors where $\theta = 0.5 \tanh(\text{source})$.
+  6. **Attribution Correction:** An earlier draft of this restoration assessment incorrectly located `_MANIFOLD_RESIDUAL_TOLERANCE` in `algebra/versor.py` and treated distinct boundary predicates as one regime. This record corrects that assessment error. Historical AA-4 separately reports a discrepancy between vocabulary admission tolerance and the documented invariant; its interpretation remains under review.
+- **Formal Review Question:** What are the mathematically and mechanically justified tolerances for each distinct boundary (vocabulary admission, runtime field closure, construction residue, null routing), and what is the empirical residual distribution across dtypes and sign branches on live mounts?
+- **Verification Plan:** In Phase 2, trace all tolerance sites across `algebra/versor.py`, `vocab/manifold.py`, and `algebra/rotor.py`, evaluate numerical accumulation in `_close_applied_versor`, and verify positive/negative unit handling without modifying runtime code.
 
 #### REV-Q-002: Vocabulary Representation on the Conformal Manifold
 - **Topic:** Conformal embedding geometry of vocabulary items.

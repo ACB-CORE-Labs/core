@@ -64,11 +64,11 @@ The Seven Axioms are established in `docs/Whitepaper.md` §III as foundational p
 
 3. **Propagation-over-Mutation** — *The primary mode of computation is propagation through a structured medium, not stepwise mutation of flat records.*  
    - **Historical Whitepaper Realization Statement (Design assertion to trace; not an assessment assumption):** *"Every generation step is a versor product: `F ← V · F · reverse(V)`. Nothing is mutated in place."*  
-   - **Review Qualification:** Finite-precision propagation and operator composition across live turns are held for investigation (see [`REV-Q-001`](01-FINDINGS.md#rev-q-001-algebraic-tolerance-threshold) and [`REV-Q-005`](01-FINDINGS.md#rev-q-005-epistemic-transitions-and-drift-repair-boundary)).
+   - **Review Qualification:** Finite-precision propagation and operator composition across live turns are held for investigation (see [`REV-Q-001`](01-FINDINGS.md#rev-q-001-algebraic-tolerance-thresholds-and-boundary-regimes) and [`REV-Q-005`](01-FINDINGS.md#rev-q-005-epistemic-transitions-and-drift-repair-boundary)).
 
 4. **Dual-Correction** — *Every meaningful forward operator should have a corrective, conjugate, adjoint, or opposing counterpart that restores coherence or reduces distortion.*  
    - **Historical Whitepaper Realization Statement (Design assertion to trace; not an assessment assumption):** *"The versor's reverse is its correction: `reverse(V)` is the conjugate of `V` that closes the sandwich product and enforces closure on the manifold."*  
-   - **Review Qualification:** Manifold closure and numerical tolerance floors across finite float operations are held for investigation (see [`REV-Q-001`](01-FINDINGS.md#rev-q-001-algebraic-tolerance-threshold)).
+   - **Review Qualification:** Manifold closure and numerical tolerance floors across finite float operations are held for investigation (see [`REV-Q-001`](01-FINDINGS.md#rev-q-001-algebraic-tolerance-thresholds-and-boundary-regimes)).
 
 5. **Reconstruction-over-Storage** — *What matters is not storing every detail explicitly, but encoding enough structured state to reconstruct what is needed at the right moment.*  
    - **Historical Whitepaper Realization Statement (Design assertion to trace; not an assessment assumption):** *"The vault stores versors — not tokens, not full context windows. Recall is reconstruction via the CGA inner product, not retrieval of a stored string."*  
@@ -104,7 +104,7 @@ To prevent divergent or parallel registers, all review questions are maintained 
 👉 **[Canonical Question Register in `docs/reconciliation/01-FINDINGS.md` §3](01-FINDINGS.md#3-canonical-question-register-disputed-invariants--historical-claims)**
 
 The questions currently registered for substantive review are:
-- [**`REV-Q-001`**](01-FINDINGS.md#rev-q-001-algebraic-tolerance-threshold): Algebraic Tolerance Threshold (`versor_condition(F) < 1e-6` vs `_MANIFOLD_RESIDUAL_TOLERANCE = 1e-5`, claim `AA-4`)
+- [**`REV-Q-001`**](01-FINDINGS.md#rev-q-001-algebraic-tolerance-thresholds-and-boundary-regimes): Algebraic Tolerance Thresholds and Boundary Regimes (Separating runtime closure, vocabulary admission, construction residue, and null routing)
 - [**`REV-Q-002`**](01-FINDINGS.md#rev-q-002-vocabulary-representation-on-the-conformal-manifold): Vocabulary Representation on the Conformal Manifold (Null points $X \cdot X = 0$ vs unit versors $V \widetilde{V} = 1$, claim `AA-2`)
 - [**`REV-Q-003`**](01-FINDINGS.md#rev-q-003-geometric-custody-vs-relational-lookup): Geometric Custody vs Relational Lookup (`VocabManifold.nearest()` behavior & exact CGA recall, claim `AA-1`)
 - [**`REV-Q-004`**](01-FINDINGS.md#rev-q-004-role-of-geometry-in-semantic-determination-and-tested-outcomes): Role of Geometry in Semantic Determination and Tested Outcomes (`coreai` PR #291 `LOGOS-ABLATION-1`)
