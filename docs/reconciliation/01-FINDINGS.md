@@ -357,6 +357,109 @@ This findings ledger records observations and facts directly established during 
 
 ---
 
+### FIND-0015: `FieldState` Construction Boundary, Dtype Handling, and Invariant Checking Policy
+
+- **Original obligation:** Whitepaper §V (Invariant I) and `AGENTS.md` (Non-negotiable Field Invariant) mandate that every runtime field state $F$ must satisfy $\text{versor\_condition}(F) < 1\text{e-}6$.
+- **Subsequent change:** Static code inspection of `field/state.py` at revision `069ceb55` reveals the construction boundary and invariant checking policy:
+  - `FieldState` is defined as a `@dataclass(frozen=True, slots=True)` in `field/state.py:123-150`.
+  - In `__post_init__`, it executes:
+    1. **Dtype Handling:** `f_dtype` is inspected via `np.asarray(self.F).dtype`. If not `np.float32` or `np.float64`, it defaults to `np.float32`.
+    2. **Defensive Isolation:** It executes `F = np.array(self.F, dtype=f_dtype).copy()`. This defensive copy provides memory isolation from the supplied array; however, a frozen dataclass wrapper does not, by itself, make the buffer of an enclosed NumPy array immutable.
+    3. **Shape Validation:** It checks `F.shape == (32,)`, raising `ValueError` on mismatch. Identical defensive copying, dtype fallback, and shape checking apply to `holonomy` when non-None.
+    4. **Invariant Checking Policy:** `FieldState.__post_init__` does not evaluate `versor_condition(F)`. A `FieldState` instance can be instantiated with arbitrary multivector components without validation of the versor condition.
+  - Ingestion gate and boundary enforcement:
+    - At the interactive ingestion boundary, `ingest/gate.py:422-427` evaluates `cond = versor_condition(F)` and checks `if cond > 1e-6: raise RuntimeError(...)`. Under this literal predicate, equality (`cond == 1e-6`) passes. The gate strictly rejects candidates with `cond > 1e-6`, but this check alone does not guarantee rejection of every non-versor numerical edge case.
+    - Non-null sandwich results are routed through the downstream closure mechanisms described in `FIND-0016`.
+- **Implementation sites and consumers:** `field/state.py:123-150`, `ingest/gate.py:422-427`, `field/propagate.py:47-72`.
+- **Evidence and its scope:** Direct static code inspection of `field/state.py` and `ingest/gate.py` at revision `069ceb55`.
+- **Classification:** Implementation Boundary & Invariant Placement.
+- **Architectural consequence:** `FieldState` operates as a structural data container rather than a self-validating algebraic boundary. Protection of the non-negotiable field invariant relies entirely on caller discipline and explicit gateway evaluations (`ingest/gate.py`, `algebra/versor.py`).
+- **Proposed disposition:** Document the division of responsibility: `FieldState` provides defensive isolation, shape validation, and dtype standardization, while algebra modules and ingestion gates own manifold invariants.
+- **Verification status:** Confirmed directly from source code.
+- **Unresolved questions:** None.
+
+---
+
+### FIND-0016: Propagation Kinematics, Backend Dispatch Fallback, and Synthetic Rotor Substitution
+
+- **Original obligation:** Whitepaper §V and ADR-0004 specify propagation as group action on the Spin manifold, preserving the versor condition without ad-hoc drift repairs.
+- **Subsequent change:** Static code inspection of `field/propagate.py`, `algebra/backend.py`, and `algebra/versor.py` at revision `069ceb55` reveals the execution kinematics:
+  - **Propagation Step:** `propagate_step(state, V)` in `field/propagate.py:47-72` computes `new_F = versor_apply(V, state.F)`.
+  - **Backend Dispatch and Fallback Policy:** `algebra/backend.py:122-132` dispatches to Rust (`core_rs`) if available and enabled by `CORE_BACKEND`, but wraps execution in `try ... except (AttributeError, TypeError, ValueError, Exception): pass`, silently falling back to pure Python. Static inspection confirms this dispatch and fallback policy, but does not determine which backend executed in historical runs.
+  - **Five Distinct Field Operations:** Inspection of propagation and field evolution paths delineates five distinct operations with differing preservation properties:
+    1. *Raw Transport (Null Inputs):* In `algebra/versor.py:160-176`, `versor_apply(V, F)` evaluates `_input_is_null(F)` via `abs(float(cga_inner(F, F))) < 1e-5`. For inputs satisfying `abs(float(cga_inner(F, F))) < 1e-5`, it returns the raw float64 sandwich without invoking the non-null closure path. This predicate does not establish that the input is a grade-1 conformal point, validate the operator, or measure the output’s null residual.
+    2. *Algebraic Normalization:* `_unitize_closed(v)` in `algebra/versor.py:30-50` rescales magnitude by $1/\sqrt{\langle v \widetilde{v} \rangle_0}$ when non-scalar residue $< 10^{-2}$ and scalar square $> 0$.
+    3. *Deterministic Seed-Derived Replacement:* `_seed_to_rotor(v)` in `algebra/versor.py:52-68` replaces the candidate with a rotor synthesized from selected input coefficients and the input coefficient norm; preservation of the candidate's geometric meaning is not established. This is a deterministic seed-derived replacement, not rejection of the transition.
+    4. *Energy Refresh:* `propagate_step` updates energy conditionally (only when `state.energy is not None`), incrementing `activation_count`, advancing `current_cycle`, and passing `coherence_residual = 0.0` as an assigned policy constant argument.
+    5. *Turn-Finalization Anchoring:* `session/context.py:182-240, 268-270` executes inside `finalize_turn` before graph/state/vault publication, applying hemisphere sign checks and `_session_anchor_pull`. It calls the same null-bypass / non-null closure boundary; calling this function alone does not establish unmodified sandwich transport or universal strict closure.
+  - **Substitution Call Hierarchy in `algebra/versor.py`:**
+    - `_close_applied_versor(v)` tries `_runtime_closed(v)`; on caught `ValueError`, it attempts `_seed_to_rotor(v)`.
+    - `_runtime_closed(v)` calls `unitize_versor(v)` at `float64`. If `versor_condition(candidate) < 1e-6`, it returns the candidate; otherwise it invokes `_seed_to_rotor(v)`.
+    - `unitize_versor(v)` tries `_unitize_closed(v)`. If a `ValueError` containing `"bad_residue"` is caught and support has at least eight components with `abs(component) > 1e-12` (`_DENSE_SEED_MIN_COMPONENTS = 8`, `_NEAR_ZERO_TOLERANCE = 1e-12`), it falls back to `_seed_to_rotor(v)`.
+- **Implementation sites and consumers:** `field/propagate.py:47-72`, `algebra/backend.py:122-132`, `algebra/versor.py:30-82, 122-180`.
+- **Evidence and its scope:** Static code inspection at revision `069ceb55`.
+- **Classification:** Kinematics Implementation & Boundary Closure.
+- **Architectural consequence:** In the non-null regime, `versor_apply` routes the raw sandwich result through unitization and, on the documented failure paths, deterministic seed-derived replacement. Static inspection establishes these mechanisms, not universal strict closure or preservation of the candidate’s geometric meaning for every input.
+- **Proposed disposition:** Record the precise mechanics of `versor_apply`, distinguishing raw transport (null inputs), algebraic scaling (`_unitize_closed`), and deterministic replacement (`_seed_to_rotor`).
+- **Verification status:** Confirmed directly from source code.
+- **Unresolved questions:** None.
+
+---
+
+### FIND-0017: Field Energy Operator Policy and Constant Parameter Assignment in Propagation
+
+- **Original obligation:** ADR-0006 defines the Field Energy Operator $H: \text{FieldState} \to \mathbb{R}_{\ge 0}$ as a Hamiltonian companion scalar computed from convergence density, recency, coherence residual, and aspect-class weight.
+- **Subsequent change:** Inspection of `docs/adr/ADR-0006-field-energy-operator.md`, `core/physics/energy.py`, and `field/propagate.py` at revision `069ceb55` reveals:
+  - `FieldEnergyOperator.compute()` in `core/physics/energy.py:75-107` computes raw energy from four weighted terms: `raw = 0.35 * convergence + 0.25 * recency + 0.20 * residual + 0.20 * aspect`.
+  - **Conditional Execution:** In `field/propagate.py:50-64`, energy recomputation occurs only when `state.energy is not None`. If `state.energy` is None, `new_energy` remains None.
+  - **Propagation Step Parameters:** When `state.energy is not None`:
+    - `activation_count` increments by 1.
+    - `current_cycle` updates to `new_step`.
+    - `convergence_density`, `last_activation_cycle`, `anchor_adjacent`, and `aspect_weight` are inherited from the prior `EnergyProfile`.
+    - `coherence_residual = 0.0` is passed as an assigned constant argument (based on the design assumption in ADR-0006 that propagation is not a corrective pass), not as an empirical measurement of zero residual or zero field tension.
+- **Implementation sites and consumers:** `docs/adr/ADR-0006-field-energy-operator.md`, `core/physics/energy.py`, `field/propagate.py:50-64`.
+- **Evidence and its scope:** Complete substantive reading of ADR-0006 and static tracing of `field/propagate.py` and `core/physics/energy.py` at revision `069ceb55`.
+- **Classification:** Operator Implementation & State Evolution.
+- **Architectural consequence:** During propagation steps, coherence residual does not reflect dynamic geometric deformation or field tension; it is clamped to zero by constant parameter assignment. The recency contribution combines capped activation count with exponential age decay; advancing a propagation step does not, by itself, establish monotonically decreasing total energy.
+- **Proposed disposition:** Document that propagation steps update the energy profile conditionally and set `coherence_residual = 0.0` as an assigned policy constant.
+- **Verification status:** Confirmed directly from source code and ADR text.
+- **Unresolved questions:** None.
+
+---
+
+### FIND-0018: Semantic Anchoring Kinematic Discrepancy, Historical Docstring Evidence, and Unresolved Operator Mismatch
+
+- **Original obligation:** `AGENTS.md` permits session-scoped semantic anchoring of the field toward the session concept-attractor in `session/context.py` only because every such operation is intended to preserve `versor_condition` by construction and carry semantic meaning in the cognitive model (nudging the field toward the anchor).
+- **Subsequent change:** Static code inspection of `session/context.py:182-240, 268-270`, `algebra/rotor.py:285-305`, and `algebra/versor.py:160-180` reveals:
+  - **Turn-Finalization Anchoring:** Inside `finalize_turn`, before graph, state, and vault publication:
+    1. `_hemisphere_consistent_field` flips field sign if $\text{cga\_inner}(F, \text{Anchor}) < 0.0$.
+    2. `_session_anchor_pull` calls $R = \text{word\_transition\_rotor}(F, \text{Anchor})$, scales it via $R^\alpha = \text{rotor\_power}(R, 0.05)$, and executes `pulled_F = versor_apply(R_step, field_state.F)`.
+  - **Operator Construction vs. Application Kinematics:**
+    - `word_transition_rotor(A, B)` in `algebra/rotor.py:289` computes $R = B \widetilde{A}$. For normalized invertible versors with $\widetilde{A} A = 1$, under left multiplication $R$ satisfies the endpoint identity:
+      $$R A = (B \widetilde{A}) A = B (\widetilde{A} A) = B.$$
+    - However, `_session_anchor_pull` applies the fractional operator $R^\alpha$ via `versor_apply`, which performs a sandwich transformation:
+      $$F' = R^\alpha F \widetilde{R^\alpha}.$$
+    - At full power ($\alpha = 1$), for normalized invertible versors with $\widetilde{A} A = 1$, and $R = B \widetilde{A}$:
+      $$R A \widetilde{R} = (B \widetilde{A}) A (A \widetilde{B}) = B A \widetilde{B}.$$
+    - This evaluates to $B A \widetilde{B}$, which need not equal $B$. The relative operator's left-action endpoint identity ($R A = B$) does not imply $R A \widetilde{R} = B$, nor does it establish that sandwiching $A$ by $R^\alpha$ moves it toward $B$.
+    - The endpoint identity for $R^\alpha A$ does not, by itself, establish a particular metric, principal-power domain, or geodesic interpretation.
+  - **Invariant and Closure Characterization:**
+    - `session/context.py:231` passes $R^\alpha$ and $F$ to `versor_apply`, which calls the same null-bypass / non-null closure boundary described in `FIND-0016`. Calling this function alone does not establish unmodified sandwich transport or universal strict closure.
+    - The docstring in `session/context.py:216` citing a "100k-step measurement" is historical docstring and design testimony from earlier project phases; it was not re-run or pinned to an active test lane in this assessment unit.
+  - **State Representation Context:**
+    - ADR-0241 §2 discusses representations, noting a distinction between sandwich transport for multivectors ($\psi' = R \psi \widetilde{R}$) and left multiplication for spinors ($\psi' = R \psi$). However, that distinction is relevant context and does not constitute a decision or authorization to alter the session field representation.
+  - **Central Conclusion:**
+    - The relative operator's left-action endpoint identity does not establish the claimed attractor-directed behavior under the sandwich action used by this caller. The intended state representation, action, trajectory, and applicable invariant require reconciliation.
+- **Implementation sites and consumers:** `session/context.py:182-240, 268-270`, `algebra/rotor.py:285-305`, `algebra/versor.py:160-180`.
+- **Evidence and its scope:** Direct static code inspection at revision `069ceb55`.
+- **Classification:** Kinematic Discrepancy & Documentation Reconciliation.
+- **Architectural consequence:** `finalize_turn` invokes hemisphere consistency and the anchor-pull helper before graph/state/vault publication. The helper can return the input unchanged when no anchor exists or when transition construction or rotor-power evaluation raises `ValueError`. If the sandwich action of $R^\alpha$ does not direct $F$ toward the anchor on the manifold, the semantic pull does not realize its stated cognitive function.
+- **Proposed disposition:** Register `REV-Q-008` as an unresolved formal review question. Do not modify runtime code, adjust tolerances, or preselect a repair.
+- **Verification status:** Call structure and algebraic action distinction confirmed by static inspection; attractor-directed behavior remains unresolved in `REV-Q-008`.
+- **Unresolved questions:** Addressed in `REV-Q-008`.
+
+---
+
 ## 3. Canonical Question Register: Disputed Invariants & Historical Claims
 
 The following tensions across historical documents, code implementations, and external experiments are held as **Formal Review Questions** rather than premature architectural verdicts. This register is the single canonical question roster for the restoration assessment.
@@ -370,6 +473,7 @@ The following tensions across historical documents, code implementations, and ex
 | [**`REV-Q-005`**](#rev-q-005-epistemic-transitions-and-drift-repair-boundary) | Drift Repair Boundary | `AGENTS.md` (`INV-21`..`INV-30`) | `AGENTS.md` strictly prohibits watchdog normalization or drift repair in hot paths, restricting closure to `algebra/versor.py`. | How do live session field updates and memory consolidation operations maintain the versor condition by construction without triggering drift-repair violations? | Audit `session/context.py` and `vault/store.py` against `_close_applied_versor` in Phase 2. |
 | [**`REV-Q-006`**](#rev-q-006-sensory-modality-recovery-boundary) | Modality Recovery | ADR-0013, `sensorium/protocol.py`, `sensorium/adapters/` | ADR-0013 specifies projection heads as the Logos-recovery boundary into `(32,)` Cl(4,1) multivectors. Unit 2 verified protocol types and non-text compilers exist, but non-text packs default to closed gates (`gate_engaged=False`) and the runtime turn pipeline bypasses `sensorium/` for direct token injection. | What evaluation gates and seeding epochs govern engaging modality gates (`gate_engaged=True`), and how are multimodal multivectors admitted into field state without bypassing versor coherence? | Trace modality compiler versors and eval gates against ADR-0013/ADR-0181/ADR-0197 in Phase 2. |
 | [**`REV-Q-007`**](#rev-q-007-historical-predecessor-lineage-and-commit-integrity) | Object Provenance | `core-iii/docs/NON-INHERITANCE.md` §2.1 | Git blob `aa80bce` is missing from `coreai` repository history. | Does blob `aa80bce` or its referenced commit exist in `core`'s git object database, and does it affect any live provenance seals? | Search `core` git object database via `git cat-file -e aa80bce` in Phase 3. |
+| [**`REV-Q-008`**](#rev-q-008-semantic-anchoring-kinematics-and-operator-action) | Semantic Anchoring Kinematics | `session/context.py:197-240`, `algebra/rotor.py:285-305`, `algebra/versor.py:160-180`, `AGENTS.md` | `_session_anchor_pull` claims to perform a mild rotor-geodesic pull toward the session concept-attractor via $R = B \widetilde{A}$, $R^\alpha = \text{rotor\_power}(R, 0.05)$, and `versor_apply(R_step, F)`. But $R = B \widetilde{A}$ is a left-multiplication operator ($R A = B$), whereas `versor_apply` executes a sandwich transformation ($R^\alpha A \widetilde{R^\alpha}$), evaluating at $\alpha=1$ to $B A \widetilde{B}$, which need not equal $B$. | What representation and group action are intended at the session-anchor boundary? Under those contracts, what does $R^\alpha A\widetilde{R^\alpha}$, with $R=B\widetilde A$, preserve, and what establishes movement toward the anchor? If distance reduction is required, which explicitly defined distance and domain apply? | Trace group action contracts across `session/context.py`, `algebra/rotor.py`, and ADR-0241 §2, evaluating trajectory behavior and manifold distance metrics under both left-action and sandwich formulations without mutating runtime code. |
 
 ---
 
@@ -429,3 +533,10 @@ The following tensions across historical documents, code implementations, and ex
 - **Context & Tension:** `core-iii` documentation reported that git blob `aa80bce` was missing from `coreai` repository history, triggering provenance refusals.
 - **Formal Review Question:** Does blob `aa80bce` or its referenced commit exist in `core`'s git object database, and does it affect any live provenance seals?
 - **Verification Plan:** In Phase 3, query the `core` git object database via `git cat-file -e aa80bce` and trace its origin.
+
+#### REV-Q-008: Semantic Anchoring Kinematics and Operator Action
+- **Topic:** Operator action mismatch in session semantic anchoring.
+- **Source References:** `session/context.py:197-240, 268-270`, `algebra/rotor.py:285-305`, `algebra/versor.py:160-180`, `AGENTS.md` (Allowed Normalization Boundaries).
+- **Context & Tension:** `_session_anchor_pull` is documented as a semantic anchoring site that nudges the field toward the session concept-attractor. It constructs $R = \text{word\_transition\_rotor}(F, \text{Anchor}) = B \widetilde{A}$. While $R A = B$ holds for left multiplication, `versor_apply` applies $R^\alpha$ via sandwich conjugation: $F' = R^\alpha A \widetilde{R^\alpha}$. For normalized invertible versors with $\widetilde{A} A = 1$, at $\alpha = 1$ this yields $R A \widetilde{R} = (B \widetilde{A}) A (A \widetilde{B}) = B A \widetilde{B}$, which need not equal $B$. Thus, the left-action endpoint identity does not establish movement toward $B$ under the sandwich action. Furthermore, `versor_apply` routes through the null-bypass / non-null closure boundary (`_close_applied_versor`), where closure failure can trigger deterministic seed-derived rotor substitution.
+- **Formal Review Question:** What representation and group action are intended at the session-anchor boundary? Under those contracts, what does $R^\alpha A\widetilde{R^\alpha}$, with $R=B\widetilde A$, preserve, and what establishes movement toward the anchor? If distance reduction is required, which explicitly defined distance and domain apply?
+- **Verification Plan:** In Phase 2, trace group action semantics and manifold metric definitions across `session/context.py`, `algebra/rotor.py`, and related ADRs to reconcile the intended state representation and operator action without code modifications.
